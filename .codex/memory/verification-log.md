@@ -457,3 +457,33 @@ Scope conclusion: repository-side source and static project-site checks pass
 for the sixth milestone. No affected C++ target was compiled or executed, no
 LibreOffice binary or window ran, the low-level headless driver still has no
 fork binary to test, and accepted application screenshots remain **0**.
+
+## 2026-07-16 — sixth Material milestone publication
+
+- Source commit `3fe772f6068f6820f37c8297f431b39127f4e4d1` was pushed directly to
+  remote `main`; an authenticated `gh api` query reported the same SHA for the
+  remote branch.
+- GitHub Actions run `29525519723` (`Validate Material UI source`) completed
+  successfully. Its semantic-theme validation, validator unittest, and Start
+  Center lint steps each reported `success`.
+- GitHub Pages run `29525520389` completed successfully for the same source
+  commit. Configure, upload, and deploy steps each reported `success`, and the
+  Pages API continued to report workflow deployment mode.
+- Direct requests to the published index and stylesheet returned HTTP `200`.
+  The index contained the exact sixth-milestone
+  `2 schemes · 23 color tokens · 3 type roles · 8 shape tokens · 72 style slots
+  · 74 parts · 190 states · unbuilt` summary, `Source milestone 6`, and the
+  statement that verified application screenshots remain at zero. No
+  sixth-milestone browser-render claim is made.
+- The clean detached LF worktree at
+  `C:\Users\Administrator\Documents\GitHub\libreoffice-material-build` was
+  moved without reset from `a644ed9abb6d5112f182ff7ec6e0826b1754c89e` to
+  `3fe772f6068f6820f37c8297f431b39127f4e4d1`. All scoped source files report
+  `w/lf`; the validator again reported 2 schemes, 23 tokens each, 3 typography
+  roles, 8 shape tokens, 72 style slots, 74 parts, and 190 states; all 16
+  validator unittest methods passed; worktree status remained clean.
+
+Scope conclusion: the sixth source milestone is published, its repository-side
+CI and project site are green, and the line-ending-safe build worktree is pinned
+to the exact source commit. No C++ target or LibreOffice binary ran, and accepted
+application screenshots remain **0**.

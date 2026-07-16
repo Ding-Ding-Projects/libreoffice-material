@@ -51,6 +51,8 @@ prove a whole-GUI rewrite or any completed application surface.
   `7c33dd2462aaa6ee168f8ff711d89026f9b0d1ba`.
 - Fifth Material VCL source milestone commit:
   `a644ed9abb6d5112f182ff7ec6e0826b1754c89e`.
+- Sixth Material VCL source milestone commit:
+  `3fe772f6068f6820f37c8297f431b39127f4e4d1`.
 - The two commits shared tree object
   `68ccb73abac4f7da67f894f11b0802627e90b474` when verified.
 - Initial native source slice: packaged Material definition; opt-in file-widget
@@ -100,12 +102,15 @@ prove a whole-GUI rewrite or any completed application surface.
   fifth-milestone commit `a644ed9abb6d5112f182ff7ec6e0826b1754c89e`;
   semantic theme validation, all validator unittests, and Start Center lint each
   passed.
+- GitHub Actions source-validation run `29525519723` completed successfully for
+  sixth-milestone commit `3fe772f6068f6820f37c8297f431b39127f4e4d1`;
+  semantic theme validation, all validator unittests, and Start Center lint each
+  passed.
 - A detached build worktree exists at
   `C:\Users\Administrator\Documents\GitHub\libreoffice-material-build`, pinned
-  to `a644ed9abb6d5112f182ff7ec6e0826b1754c89e`. The modified VCL settings,
-  renderer, reader, tests, validator, and Material definition all report
-  `w/lf`; the validator and its eleven unittest methods pass from that clean
-  worktree.
+  to `3fe772f6068f6820f37c8297f431b39127f4e4d1`. The reader, tests, validator,
+  and Material definition all report `w/lf`; the validator and its 16 unittest
+  methods pass from that clean worktree.
 - Required runtime opt-in: `VCL_DRAW_WIDGETS_FROM_FILE=1` and
   `VCL_FILE_WIDGET_THEME=material`.
 - UI driver: sibling repository `lowlevel-computer-use-mcp`, preflighted at
@@ -144,6 +149,10 @@ prove a whole-GUI rewrite or any completed application surface.
   `a644ed9abb6d5112f182ff7ec6e0826b1754c89e` successfully; the live index and
   stylesheet returned HTTP `200`, exposed the exact 23-token, 72-style-slot,
   74-part, 190-state summary, and kept the verified-capture count at `0`.
+- Pages run `29525520389` deployed sixth-milestone commit
+  `3fe772f6068f6820f37c8297f431b39127f4e4d1` successfully; the live index and
+  stylesheet returned HTTP `200`, exposed the exact 8-shape-token summary and
+  `Source milestone 6`, and kept the verified-capture count at `0`.
 
 ## Required next gates
 

@@ -15,8 +15,8 @@ licensing and provenance.
 **Milestone 0 — reproducible foundation, in progress.**
 
 The repository contains an imported LibreOffice source baseline, an initial
-native Material source slice, design contract, roadmap, static GitHub Pages
-source, screenshot registry, and headless evidence plan. The automation harness
+native Material source slice, design contract, roadmap, published GitHub Pages
+site, screenshot registry, and headless evidence plan. The automation harness
 has passed a Notepad-only off-screen preflight. The native slice has not been
 built or run as LibreOffice, so this does not prove a whole-GUI rewrite or any
 completed application surface.
@@ -28,9 +28,11 @@ completed application surface.
 - Upstream: `LibreOffice/core`.
 - Imported upstream commit: `63584e7f9f0cdc74b0e004bcbf88e5c3b42dba21`.
 - Fork import commit: `44d393283e776c7e099763496c57b02ae509cd15`.
+- Initial Material implementation commit:
+  `46807f76f9a744fe61732e90f6085cc82eef16f5`.
 - The two commits shared tree object
   `68ccb73abac4f7da67f894f11b0802627e90b474` when verified.
-- Initial local source slice: packaged Material definition; opt-in file-widget
+- Initial native source slice: packaged Material definition; opt-in file-widget
   theme selection/cache/fallback; definition-aware support; palette reader
   coverage; Material control/menu/progress states; and Start Center
   spacing/header/surface/recent/template treatment.
@@ -47,8 +49,11 @@ completed application surface.
   `03C6A068ACAAB96579621CE0BFC4F447C0F43E8EB23DDB5B8665A580E062BFA3`;
   it was not retained because it was unrelated to LibreOffice.
 - Verified LibreOffice Material screenshots: **0**.
-- GitHub Pages source: `site/`; deployment requires repository Pages settings
-  to use GitHub Actions and a successful workflow run.
+- GitHub Pages source: `site/`; public URL:
+  `https://codingmachineedge.github.io/libreoffice-material/`.
+- Pages uses GitHub Actions workflow mode. Run `29510014215` deployed commit
+  `46807f76f9a744fe61732e90f6085cc82eef16f5` successfully on 2026-07-16;
+  follow-up endpoint checks returned HTTP `200` for both `/` and `styles.css`.
 
 ## Required next gates
 
@@ -70,8 +75,7 @@ completed application surface.
 - no application surface is verified Material-complete;
 - this host has no installed WSL distribution/configured WSL helper and lacks
   the Windows-native LibreOffice prerequisites, so the C++ unit target and real
-  application capture have not run;
-- publishing success cannot be claimed until the GitHub Pages workflow runs.
+  application capture have not run.
 
 ## Multi-repository boundary
 

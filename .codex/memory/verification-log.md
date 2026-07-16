@@ -88,3 +88,21 @@ a compiler, unit-test, runtime, accessibility, or visual result.
 - The hero, direction, evidence, roadmap, and provenance sections were visually
   inspected, and the browser console reported no warnings or errors. These are
   project-site checks only, not LibreOffice application evidence.
+
+## 2026-07-16 — GitHub publication
+
+- Initial Material implementation commit
+  `46807f76f9a744fe61732e90f6085cc82eef16f5` was pushed directly to remote
+  `main`.
+- Repository Pages was configured for GitHub Actions workflow deployment.
+- Pages workflow run `29510014215` completed with conclusion `success` for that
+  commit.
+- The published URL is
+  `https://codingmachineedge.github.io/libreoffice-material/`.
+- Direct follow-up requests returned HTTP `200` for the published index and
+  `styles.css`; the index title was
+  `LibreOffice Material — native office UI, thoughtfully renewed`.
+
+Scope conclusion: the documentation/status site is publicly deployed. This
+does not change the native application evidence count, which remains zero until
+a fork build and LibreOffice headless scenario pass the evidence contract.

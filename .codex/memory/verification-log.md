@@ -256,3 +256,27 @@ ran, and accepted application screenshots remain **0**.
 Scope conclusion: the local documentation site is render-verified for this
 refresh. Temporary browser images were not retained and are not LibreOffice
 application evidence.
+
+## 2026-07-16 — third Material milestone publication
+
+- Commit `ddeec51e886f4642718eaa626ea2f48cdd9aa6a8` was pushed directly to
+  remote `main`.
+- GitHub Actions source-validation run `29517978358` completed successfully for
+  that commit.
+- GitHub Pages run `29517978373` completed successfully for that commit.
+- Direct follow-up requests returned HTTP `200` for the published index and
+  `styles.css`. The index contained the exact
+  `2 schemes · 19 tokens each · 74 parts · 190 states · unbuilt` status and a
+  verified-capture count of `0`.
+- The clean detached worktree at
+  `C:\Users\Administrator\Documents\GitHub\libreoffice-material-build` was
+  moved without reset from `c4414aa3919642ebb1079427b5ce27ce77049901` to
+  `ddeec51e886f4642718eaa626ea2f48cdd9aa6a8`. It remains detached and clean;
+  `autogen.sh`, `configure.ac`, the Material renderer/definition, and the new
+  headless drawing test report `w/lf`.
+- `bin/check-material-theme.py` passed there with 2 schemes, 19 tokens each,
+  74 parts, and 190 states; `git diff --check` was clean.
+
+Scope conclusion: source validation, publication, and the line-ending-safe
+build-worktree pin are verified for the third milestone. No C++ target or
+LibreOffice binary ran, and accepted application screenshots remain **0**.

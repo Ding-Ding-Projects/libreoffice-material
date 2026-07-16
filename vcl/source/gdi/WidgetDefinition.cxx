@@ -189,6 +189,20 @@ WidgetDefinitionPart::getStates(ControlType eType, ControlPart ePart, ControlSta
                     sExtra = "flat";
             }
             break;
+            case ControlType::LevelBar:
+            {
+                const tools::Long nPercent = std::clamp<tools::Long>(
+                    rValue.getNumericVal(), tools::Long(0), tools::Long(10000));
+                if (nPercent < 2500)
+                    sExtra = "critical";
+                else if (nPercent < 5000)
+                    sExtra = "low";
+                else if (nPercent < 7500)
+                    sExtra = "medium";
+                else
+                    sExtra = "high";
+            }
+            break;
             default:
                 break;
         }

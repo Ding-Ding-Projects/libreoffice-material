@@ -12,10 +12,10 @@ licensing and provenance.
 
 ## Current milestone
 
-**Phase 1 — seventh Material VCL source milestone, in progress. Phase 0's native
+**Phase 1 — eighth Material VCL source milestone, in progress. Phase 0's native
 build/evidence gate remains open.**
 
-The repository contains an imported LibreOffice source baseline, seven native
+The repository contains an imported LibreOffice source baseline, eight native
 Material source milestones, a design contract, roadmap, published GitHub Pages
 site, screenshot registry, and headless evidence plan. The third milestone adds
 matched light/dark profiles, source-level high-contrast fallback routing,
@@ -38,6 +38,13 @@ normalized fractional coordinates stay literal, and the shape and typography
 contracts remain separate. Existing downstream native conversions remain
 unchanged; this source centralization adds no density profile or new DPI-aware,
 `dp`, fractional-scale, or touch-sizing policy.
+The eighth milestone adds optional full-width `TrackHorzArea` anatomy to the
+native file renderer for progress and level indicators, keeps `Entire` as the
+numeric-value-clipped fill, paints the track at zero, and maps level values to
+the existing critical/low/medium/high 25% bands. Fill-only legacy definitions
+retain their previous renderer path. The Material definition now has 77 parts,
+199 states, 155 rounded rectangles, and 340 metric references; these changes
+remain uncompiled and unexecuted.
 The native source has not been built or run as LibreOffice, so this does not
 prove a whole-GUI rewrite or any completed application surface.
 
@@ -103,6 +110,19 @@ prove a whole-GUI rewrite or any completed application surface.
   integer uses split into 292 strokes, 34 part geometry attributes, and 5
   settings; 676 unchanged normalized coordinates; and legacy literal numeric
   compatibility for bundled and out-of-tree definitions.
+- Eighth Material VCL source milestone: optional full-width progress/level
+  tracks rendered before the clipped `Entire` fill; overflow-safe 25%, 50%, and
+  75% level-band selection; zero-value track painting; direct track-part
+  dispatch; and compatibility with legacy definitions that omit the track.
+  Material adds 3 parts and 9 states/actions without adding token families.
+- Local eighth-milestone validation passes for the full
+  `2/23/3/8/15/72/77/199` schema. All 24 Python validator tests pass; the
+  resolved 340-row metric geometry hash is
+  `0345bb83fae32d79a5b596cc4f17046737a453de0d345a1fa144f737b9b35140`;
+  the 676-row normalized coordinate hash remains unchanged. Exact indicator
+  anatomy, each level band, track-only zero behavior, source-guard patterns,
+  and pixel-oriented C++ test source are present, but the C++ targets remain
+  uncompiled and unexecuted.
 - Local seventh-milestone validation passes for the full
   `2/23/3/8/15/72/74/190` schema. All 22 Python validator tests pass; 38 metric
   reader fixtures exist (1 positive and 37 negative); the resolved 331-row

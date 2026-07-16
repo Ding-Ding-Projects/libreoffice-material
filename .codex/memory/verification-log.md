@@ -591,3 +591,41 @@ Scope conclusion: the seventh source milestone is published, its repository
 static CI and project site are green, and the prepared LF build worktree is
 pinned to the exact source commit. No C++ target or LibreOffice binary ran, and
 accepted application screenshots remain **0**.
+
+## 2026-07-16 — eighth indicator source validation
+
+- The in-progress worktree is based on metadata commit
+  `551e52e0598b7fff509542154c1a3332ac917f6f`; publication evidence is not yet
+  recorded in this entry.
+- The Material definition adds `TrackHorzArea` to Progress and introduces
+  LevelBar with `TrackHorzArea` plus `Entire`. Nine new exact states/actions
+  produce a 77-part, 199-state definition with 166 rectangles: 155 use one of
+  the existing eight semantic corner roles and 11 remain implicit squares.
+- The shared renderer draws an optional full track before the numeric fill,
+  keeps track-only zero values successful, dispatches direct non-`Entire`
+  requests normally, and preserves fill-only legacy definitions. Level values
+  are mapped at exact 25%, 50%, and 75% boundaries without multiplying large
+  native widths.
+- The standalone validator reports exactly 2 schemes, 23 color tokens per
+  scheme, 3 typography roles, 8 shape tokens, 15 metric tokens, 72 style slots,
+  77 parts, and 199 states. All 24 Python unittest methods pass in the sibling
+  low-level driver's isolated Python environment.
+- Exact indicator state attributes, token anatomy, nonempty actions, required
+  tracks, four level bands, and disabled states are validator-enforced. Native
+  source guards strip comments and raw strings and require the optional-track,
+  zero-value, threshold, direct-part, and C++ pixel-test paths.
+- Nine new `@stroke-none` uses bring the exact metric reference total to 340:
+  301 strokes, 34 part dimensions/margins, and 5 settings. The resolved geometry
+  hash is
+  `0345bb83fae32d79a5b596cc4f17046737a453de0d345a1fa144f737b9b35140`;
+  all 676 existing normalized coordinates and their
+  `0979f2b3...331ed2e` hash remain unchanged.
+- Reader C++ assertions cover all four level colors and exact boundary values;
+  headless drawing C++ source covers full-track/clipped-fill pixels, track-only
+  zero, direct support reporting, and the 24/25, 49/50, and 74/75 transitions.
+  These C++ targets have not compiled or executed on this host.
+
+Scope conclusion: repository-side semantic validation, 24 validator unittests,
+formatting, and diff checks pass for the eighth slice at this entry. No affected
+C++ target or LibreOffice binary ran, the low-level headless driver has no fork
+binary to launch, and accepted application screenshots remain **0**.

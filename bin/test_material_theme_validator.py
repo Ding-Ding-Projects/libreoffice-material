@@ -64,9 +64,14 @@ class MaterialThemeValidatorTest(unittest.TestCase):
             path.write_text(definition, encoding="utf-8")
             return VALIDATOR.validate(path)
 
+    def assert_indicator_fails(self, definition: str, message: str) -> None:
+        root = ET.fromstring(definition)
+        with self.assertRaisesRegex(VALIDATOR.ValidationError, re.escape(message)):
+            VALIDATOR.validate_indicator_states(root)
+
     def test_canonical_theme_and_native_sources_pass(self) -> None:
         self.assertEqual(
-            VALIDATOR.validate(DEFINITION_PATH), (2, 23, 3, 8, 15, 72, 74, 190)
+            VALIDATOR.validate(DEFINITION_PATH), (2, 23, 3, 8, 15, 72, 77, 199)
         )
         VALIDATOR.validate_native_typography_source(
             (RENDERER_PATH, TYPOGRAPHY_SOURCE_PATH)
@@ -87,6 +92,14 @@ class MaterialThemeValidatorTest(unittest.TestCase):
         )
         VALIDATOR.validate_native_metric_source(
             (READER_HEADER_PATH, READER_SOURCE_PATH)
+        )
+        VALIDATOR.validate_native_indicator_source(
+            (
+                RENDERER_PATH,
+                TYPOGRAPHY_SOURCE_PATH,
+                REPOSITORY
+                / "vcl/qa/cppunit/widgetdraw/FileDefinitionWidgetDrawTest.cxx",
+            )
         )
 
     def test_style_structure_and_semantic_mapping_are_strict(self) -> None:
@@ -437,8 +450,8 @@ class MaterialThemeValidatorTest(unittest.TestCase):
         rects = list(root.iter("rect"))
         rounded = [element for element in rects if "radius" in element.attrib]
         square = [element for element in rects if "radius" not in element.attrib]
-        self.assertEqual(len(rects), 157)
-        self.assertEqual(len(rounded), 146)
+        self.assertEqual(len(rects), 166)
+        self.assertEqual(len(rounded), 155)
         self.assertEqual(len(square), 11)
         self.assertFalse(
             any("rx" in element.attrib or "ry" in element.attrib for element in root.iter())
@@ -448,7 +461,7 @@ class MaterialThemeValidatorTest(unittest.TestCase):
             Counter(
                 {
                     "corner-checkbox": 12,
-                    "corner-indicator": 10,
+                    "corner-indicator": 19,
                     "corner-focus": 2,
                     "corner-small": 19,
                     "corner-control": 26,
@@ -465,7 +478,7 @@ class MaterialThemeValidatorTest(unittest.TestCase):
         moved = self.definition[:start] + self.definition[end:]
         moved = moved.replace("</widgets>", f"{section}\n\n</widgets>", 1)
         self.assertEqual(
-            self.validate_definition(moved), (2, 23, 3, 8, 15, 72, 74, 190)
+            self.validate_definition(moved), (2, 23, 3, 8, 15, 72, 77, 199)
         )
 
     def test_metric_structure_is_strict(self) -> None:
@@ -842,7 +855,7 @@ class MaterialThemeValidatorTest(unittest.TestCase):
         metrics = VALIDATOR.read_metrics(root)
         references, digest = VALIDATOR.validate_metric_usage(root, metrics)
         self.assertEqual(references, Counter(VALIDATOR.REQUIRED_METRIC_USAGE))
-        self.assertEqual(sum(references.values()), 331)
+        self.assertEqual(sum(references.values()), 340)
         self.assertEqual(digest, VALIDATOR.METRIC_GEOMETRY_SHA256)
         self.assertFalse(
             any(
@@ -859,7 +872,7 @@ class MaterialThemeValidatorTest(unittest.TestCase):
         moved = self.definition[:start] + self.definition[end:]
         moved = moved.replace("</widgets>", f"{section}\n\n</widgets>", 1)
         self.assertEqual(
-            self.validate_definition(moved), (2, 23, 3, 8, 15, 72, 74, 190)
+            self.validate_definition(moved), (2, 23, 3, 8, 15, 72, 77, 199)
         )
 
         swapped = self.definition.replace(
@@ -888,6 +901,82 @@ class MaterialThemeValidatorTest(unittest.TestCase):
             equal_value_swap,
             "settings/listBoxPreviewDefaultLogicWidth/@value must reference @size-list-preview",
         )
+
+    def test_progress_and_level_indicator_anatomy_is_strict(self) -> None:
+        VALIDATOR.validate_indicator_states(ET.fromstring(self.definition))
+
+        progress_track_prefix = (
+            "    <progress>\n"
+            '        <part value="TrackHorzArea">\n'
+            '            <state enabled="true"><rect stroke="@outline-variant" '
+            'fill="@outline-variant" stroke-width="@stroke-none" '
+            'radius="@corner-indicator"/></state>\n'
+            '            <state enabled="false"><rect stroke="@disabled-container" '
+            'fill="@disabled-container" stroke-width="@stroke-none" '
+            'radius="@corner-indicator"/></state>\n'
+            "        </part>\n"
+        )
+        level_track_prefix = progress_track_prefix.replace(
+            "    <progress>", "    <levelbar>", 1
+        )
+        critical = (
+            '            <state enabled="true" extra="critical"><rect '
+            'stroke="@error-container" fill="@error-container" '
+            'stroke-width="@stroke-none" '
+            'radius="@corner-indicator"/></state>'
+        )
+        high = (
+            '            <state enabled="true" extra="high"><rect '
+            'stroke="@primary" fill="@primary" stroke-width="@stroke-none" '
+            'radius="@corner-indicator"/></state>'
+        )
+        disabled_track = (
+            '            <state enabled="false"><rect '
+            'stroke="@disabled-container" fill="@disabled-container" '
+            'stroke-width="@stroke-none" '
+            'radius="@corner-indicator"/></state>'
+        )
+
+        cases = {
+            "missing progress track": (
+                self.definition.replace(progress_track_prefix, "    <progress>\n", 1),
+                "missing progress/TrackHorzArea",
+            ),
+            "missing level track": (
+                self.definition.replace(level_track_prefix, "    <levelbar>\n", 1),
+                "missing levelbar/TrackHorzArea",
+            ),
+            "missing high band": (
+                self.replace_once(high, ""),
+                "levelbar/Entire must define exactly 5 states, found 4",
+            ),
+            "empty critical band": (
+                self.replace_once(
+                    critical,
+                    '            <state enabled="true" extra="critical"/>',
+                ),
+                "levelbar/Entire critical state must contain exactly one rectangle",
+            ),
+            "unknown band": (
+                self.replace_once('extra="critical"', 'extra="danger"'),
+                "levelbar/Entire has unexpected state attributes",
+            ),
+            "wrong band anatomy": (
+                self.replace_once(
+                    critical, critical.replace('fill="@error-container"', 'fill="@primary"')
+                ),
+                "levelbar/Entire critical rectangle has the wrong Material anatomy",
+            ),
+            "empty disabled track": (
+                self.definition.replace(
+                    disabled_track, '            <state enabled="false"/>', 1
+                ),
+                "progress/TrackHorzArea disabled state must contain exactly one rectangle",
+            ),
+        }
+        for name, (definition, message) in cases.items():
+            with self.subTest(name=name):
+                self.assert_indicator_fails(definition, message)
 
     def test_feedback_tokens_are_scheme_specific_and_exact(self) -> None:
         expected = {
@@ -1292,6 +1381,69 @@ class MaterialThemeValidatorTest(unittest.TestCase):
                 "native metric source contains direct consumer conversion 'sWidth'",
             ):
                 VALIDATOR.validate_native_metric_source((source,))
+
+    def test_required_native_indicator_patterns_cannot_hide_in_comments(self) -> None:
+        comments = "\n".join(
+            (
+                "// tools::Long getLevelBarStateValue();",
+                "// case ControlType::LevelBar:",
+                '// sExtra = "critical"; sExtra = "low";',
+                '// sExtra = "medium"; sExtra = "high";',
+                "// ControlPart::TrackHorzArea;",
+                "// if (nProgressWidth == 0) break;",
+                "// testProgressAndLevelIndicatorTracks();",
+            )
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "indicator-source.cxx"
+            source.write_text(comments, encoding="utf-8")
+            with self.assertRaisesRegex(
+                VALIDATOR.ValidationError,
+                "native indicator source is missing pattern",
+            ):
+                VALIDATOR.validate_native_indicator_source((source,))
+
+        combined_source = "\n".join(
+            (
+                RENDERER_PATH.read_text(encoding="utf-8"),
+                TYPOGRAPHY_SOURCE_PATH.read_text(encoding="utf-8"),
+                (
+                    REPOSITORY
+                    / "vcl/qa/cppunit/widgetdraw/FileDefinitionWidgetDrawTest.cxx"
+                ).read_text(encoding="utf-8"),
+            )
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "indicator-source.cxx"
+            source.write_text(
+                'R"codex(' + combined_source + ')codex"\n', encoding="utf-8"
+            )
+            with self.assertRaisesRegex(
+                VALIDATOR.ValidationError,
+                "native indicator source is missing pattern",
+            ):
+                VALIDATOR.validate_native_indicator_source((source,))
+
+        renderer_source = RENDERER_PATH.read_text(encoding="utf-8")
+        missing_legacy_compatibility = renderer_source.replace(
+            "bOK = !pTrack", "bOK = pTrack &&", 1
+        )
+        self.assertNotEqual(missing_legacy_compatibility, renderer_source)
+        with tempfile.TemporaryDirectory() as directory:
+            renderer = Path(directory) / "renderer.cxx"
+            renderer.write_text(missing_legacy_compatibility, encoding="utf-8")
+            with self.assertRaisesRegex(
+                VALIDATOR.ValidationError,
+                "native indicator source is missing pattern",
+            ):
+                VALIDATOR.validate_native_indicator_source(
+                    (
+                        renderer,
+                        TYPOGRAPHY_SOURCE_PATH,
+                        REPOSITORY
+                        / "vcl/qa/cppunit/widgetdraw/FileDefinitionWidgetDrawTest.cxx",
+                    )
+                )
 
     def test_native_source_guard_rejects_fixed_identity_setters(self) -> None:
         valid_source = "\n".join(

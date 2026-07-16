@@ -59,7 +59,7 @@ REQUIRED_METRICS = {
     "height-tab": 40,
 }
 REQUIRED_METRIC_USAGE = {
-    "stroke-none": 86,
+    "stroke-none": 95,
     "stroke-thin": 45,
     "stroke-standard": 153,
     "stroke-track": 8,
@@ -126,7 +126,7 @@ STROKE_METRICS = {
 }
 METRIC_PART_ATTRIBUTES = ("width", "height", "margin-width", "margin-height")
 METRIC_GEOMETRY_SHA256 = (
-    "33d4dea20362213e99c3e931d0b238de5904608d8f80cb5b9ce4142705135de0"
+    "0345bb83fae32d79a5b596cc4f17046737a453de0d345a1fa144f737b9b35140"
 )
 NORMALIZED_COORDINATE_SHA256 = (
     "0979f2b3d1d4dff15278fb6b1d1d708795d207045cb339d3ad42a9dcb331ed2e"
@@ -279,7 +279,8 @@ REQUIRED_PARTS = {
         "TrackVertLower",
     },
     "fixedline": {"SeparatorHorz", "SeparatorVert"},
-    "progress": {"Entire"},
+    "progress": {"Entire", "TrackHorzArea"},
+    "levelbar": {"Entire", "TrackHorzArea"},
     "tabitem": {"Entire", "MenuItem"},
     "tabheader": {"Entire"},
     "tabpane": {"Entire"},
@@ -380,6 +381,76 @@ def validate_interaction_states(part: ET.Element, label: str) -> None:
             fail(f"{label} missing {state_name} state")
         if any(len(state) == 0 for state in matching):
             fail(f"{label} {state_name} state has no drawing action")
+
+
+def validate_indicator_states(root: ET.Element) -> None:
+    expected_parts = {
+        ("progress", "TrackHorzArea"): (
+            ({"enabled": "true"}, "enabled", "outline-variant"),
+            ({"enabled": "false"}, "disabled", "disabled-container"),
+        ),
+        ("progress", "Entire"): (
+            ({"enabled": "true"}, "enabled", "primary"),
+            ({"enabled": "false"}, "disabled", "outline-variant"),
+        ),
+        ("levelbar", "TrackHorzArea"): (
+            ({"enabled": "true"}, "enabled", "outline-variant"),
+            ({"enabled": "false"}, "disabled", "disabled-container"),
+        ),
+        ("levelbar", "Entire"): (
+            ({"enabled": "true", "extra": "critical"}, "critical", "error-container"),
+            ({"enabled": "true", "extra": "low"}, "low", "warning-container"),
+            ({"enabled": "true", "extra": "medium"}, "medium", "primary-hover"),
+            ({"enabled": "true", "extra": "high"}, "high", "primary"),
+            ({"enabled": "false"}, "disabled", "outline-variant"),
+        ),
+    }
+
+    for (control_name, part_name), expected_states in expected_parts.items():
+        label = f"{control_name}/{part_name}"
+        part = find_part(root, control_name, part_name)
+        states = part.findall("state")
+        if len(states) != len(expected_states):
+            fail(
+                f"{label} must define exactly {len(expected_states)} states, "
+                f"found {len(states)}"
+            )
+
+        expected_by_attributes = {
+            tuple(sorted(attributes.items())): (state_name, color_name)
+            for attributes, state_name, color_name in expected_states
+        }
+        seen: set[tuple[tuple[str, str], ...]] = set()
+        for state in states:
+            attributes = tuple(sorted(state.attrib.items()))
+            expected = expected_by_attributes.get(attributes)
+            if expected is None:
+                fail(f"{label} has unexpected state attributes {dict(attributes)!r}")
+            if attributes in seen:
+                fail(f"{label} duplicates its {expected[0]} state")
+            seen.add(attributes)
+
+            state_name, color_name = expected
+            actions = list(state)
+            if (
+                len(actions) != 1
+                or actions[0].tag != "rect"
+                or (state.text or "").strip()
+                or (actions[0].tail or "").strip()
+            ):
+                fail(f"{label} {state_name} state must contain exactly one rectangle")
+            expected_rectangle = {
+                "stroke": f"@{color_name}",
+                "fill": f"@{color_name}",
+                "stroke-width": "@stroke-none",
+                "radius": "@corner-indicator",
+            }
+            if (
+                actions[0].attrib != expected_rectangle
+                or list(actions[0])
+                or (actions[0].text or "").strip()
+            ):
+                fail(f"{label} {state_name} rectangle has the wrong Material anatomy")
 
 
 def read_palettes(
@@ -864,8 +935,12 @@ def validate_metric_usage(
             f"expected {dict(sorted(expected_usage.items()))}, "
             f"found {dict(sorted(references.items()))}"
         )
-    if len(geometry_rows) != 331:
-        fail(f"expected 331 resolved metric geometry rows, found {len(geometry_rows)}")
+    expected_geometry_rows = sum(REQUIRED_METRIC_USAGE.values())
+    if len(geometry_rows) != expected_geometry_rows:
+        fail(
+            f"expected {expected_geometry_rows} resolved metric geometry rows, "
+            f"found {len(geometry_rows)}"
+        )
 
     geometry_digest = hashlib.sha256(
         "\n".join(sorted(geometry_rows)).encode("utf-8")
@@ -1064,6 +1139,37 @@ def validate_native_metric_source(paths: tuple[Path, ...]) -> None:
         )
 
 
+def validate_native_indicator_source(paths: tuple[Path, ...]) -> None:
+    source = "\n".join(path.read_text(encoding="utf-8") for path in paths)
+    source = strip_cpp_non_code(source)
+    required = (
+        r"tools::Long\s+getLevelBarStateValue\s*\(",
+        r"nFullWidth\s*/\s*4\s*\+\s*\(\s*nFullWidth\s*%\s*4\s*!=\s*0\s*\)",
+        r"nFullWidth\s*-\s*nFullWidth\s*/\s*4",
+        r"case\s+ControlType::LevelBar\s*:",
+        r'nPercent\s*<\s*2500[^;]*sExtra\s*=\s*"critical"',
+        r'nPercent\s*<\s*5000[^;]*sExtra\s*=\s*"low"',
+        r'nPercent\s*<\s*7500[^;]*sExtra\s*=\s*"medium"',
+        r'sExtra\s*=\s*"high"',
+        r"ePart\s*!=\s*ControlPart::Entire",
+        r"pWidgetDefinition\s*->\s*getDefinition\s*\(\s*"
+        r"eType\s*,\s*ControlPart::TrackHorzArea\s*\)",
+        r"bOK\s*=\s*!\s*pTrack\s*\|\|\s*resolveDefinition\s*\(\s*"
+        r"eType\s*,\s*ControlPart::TrackHorzArea",
+        r"std::max\s*\(\s*nWidth\s*,\s*tools::Long\s*\(\s*0\s*\)\s*\)",
+        r"if\s*\(\s*nProgressWidth\s*==\s*0\s*\)\s*break",
+        r"getLevelBarStateValue\s*\(\s*rValue\.getNumericVal\s*\(\s*\)\s*,\s*"
+        r"rControlRegion\.GetWidth\s*\(\s*\)\s*\)",
+        r"testProgressAndLevelIndicatorTracks",
+        r"ControlType::Progress\s*,\s*ControlPart::TrackHorzArea",
+        r"ControlType::LevelBar\s*,\s*ControlPart::TrackHorzArea",
+        r"ImplControlValue\s*\(\s*tools::Long\s*\(\s*0\s*\)\s*\)",
+    )
+    for pattern in required:
+        if re.search(pattern, source, flags=re.DOTALL) is None:
+            fail(f"native indicator source is missing pattern {pattern!r}")
+
+
 def validate(path: Path) -> tuple[int, int, int, int, int, int, int, int]:
     parser = ET.XMLParser(target=ET.TreeBuilder(insert_pis=True))
     root = ET.parse(path, parser=parser).getroot()
@@ -1136,6 +1242,8 @@ def validate(path: Path) -> tuple[int, int, int, int, int, int, int, int]:
         missing_parts = sorted(required_parts - actual_parts)
         if missing_parts:
             fail(f"{control_name} missing parts: {', '.join(missing_parts)}")
+
+    validate_indicator_states(root)
 
     checkbox = find_part(root, "checkbox", "Entire")
     for enabled in ("true", "false"):
@@ -1300,6 +1408,14 @@ def main() -> int:
             (
                 repository / "vcl/inc/widgetdraw/WidgetDefinitionReader.hxx",
                 repository / "vcl/source/gdi/WidgetDefinitionReader.cxx",
+            )
+        )
+        validate_native_indicator_source(
+            (
+                args.renderer,
+                args.typography_source,
+                repository
+                / "vcl/qa/cppunit/widgetdraw/FileDefinitionWidgetDrawTest.cxx",
             )
         )
     except (ET.ParseError, OSError, ValidationError) as error:

@@ -33,6 +33,7 @@ link, gallery artifact, or accepted visual result.
 | 2026-07-16 | Low-level driver | Clean commit `806d9ba85e4afbc2af58d7499496babfa7c68891`, MCP on `127.0.0.1:8765`; no LibreOffice scenario; launch/PID/teardown limitations recorded | Driver readiness only; no UI evidence |
 | 2026-07-16 | Sixth-milestone source audit | Validator reports 8 exact shape roles across 146 rounded and 11 implicit-square rectangles; 16 Python tests and static source checks pass; the C++ reader/tests remain uncompiled | Source consistency only; no renderer or UI evidence |
 | 2026-07-16 | Seventh-milestone source audit | Published source `2ce2cfd3e7489dc0acd6ce09f7e5461546fbb731` defines 15 native integer roles for 331 existing uses; exact metric/coordinate hashes, 22 validator tests, 38 reader fixtures, Actions run `29527917064`, and Pages run `29527917148` pass | Source consistency only; no compiled, runtime, interaction, or visual evidence |
+| 2026-07-16 | Eighth-milestone source audit | In-progress source defines full-track progress and four-band level indicators; exact `2/23/3/8/15/72/77/199` validation, 24 Python tests, and 340-row metric closure pass; C++ pixel tests are source-only | Source consistency only; no compiled, runtime, interaction, or visual evidence |
 
 These audits are reproducibility facts, not accepted build, interaction, or
 visual runs. The verified LibreOffice Material screenshot count remains zero.

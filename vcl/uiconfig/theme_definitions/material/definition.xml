@@ -511,11 +511,29 @@
     </fixedline>
 
     <progress>
+        <part value="TrackHorzArea">
+            <state enabled="true"><rect stroke="@outline-variant" fill="@outline-variant" stroke-width="@stroke-none" radius="@corner-indicator"/></state>
+            <state enabled="false"><rect stroke="@disabled-container" fill="@disabled-container" stroke-width="@stroke-none" radius="@corner-indicator"/></state>
+        </part>
         <part value="Entire">
             <state enabled="true"><rect stroke="@primary" fill="@primary" stroke-width="@stroke-none" radius="@corner-indicator"/></state>
             <state enabled="false"><rect stroke="@outline-variant" fill="@outline-variant" stroke-width="@stroke-none" radius="@corner-indicator"/></state>
         </part>
     </progress>
+
+    <levelbar>
+        <part value="TrackHorzArea">
+            <state enabled="true"><rect stroke="@outline-variant" fill="@outline-variant" stroke-width="@stroke-none" radius="@corner-indicator"/></state>
+            <state enabled="false"><rect stroke="@disabled-container" fill="@disabled-container" stroke-width="@stroke-none" radius="@corner-indicator"/></state>
+        </part>
+        <part value="Entire">
+            <state enabled="true" extra="critical"><rect stroke="@error-container" fill="@error-container" stroke-width="@stroke-none" radius="@corner-indicator"/></state>
+            <state enabled="true" extra="low"><rect stroke="@warning-container" fill="@warning-container" stroke-width="@stroke-none" radius="@corner-indicator"/></state>
+            <state enabled="true" extra="medium"><rect stroke="@primary-hover" fill="@primary-hover" stroke-width="@stroke-none" radius="@corner-indicator"/></state>
+            <state enabled="true" extra="high"><rect stroke="@primary" fill="@primary" stroke-width="@stroke-none" radius="@corner-indicator"/></state>
+            <state enabled="false"><rect stroke="@outline-variant" fill="@outline-variant" stroke-width="@stroke-none" radius="@corner-indicator"/></state>
+        </part>
+    </levelbar>
 
     <tabitem>
         <part value="Entire" margin-width="@space-tab-inline" height="@height-tab">

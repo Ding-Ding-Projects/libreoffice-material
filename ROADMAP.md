@@ -49,7 +49,7 @@ Exit gate:
 Implemented source milestones:
 
 - packaged `material/definition.xml` with matched light and dark palettes of 23
-  semantic roles each, 74 definition-backed parts, and 190 control states;
+  semantic roles each, 77 definition-backed parts, and 199 control states;
 - exact semantic coverage for all 72 `StyleSettings` color slots, including the
   formerly native-dependent accent, list-box collection/selection,
   alternating-row, warning, and error roles; the ten additions are optional in
@@ -69,13 +69,13 @@ Implemented source milestones:
   font identity preservation across app, help, field, control, menu, tab, and
   title slots;
 - eight semantic corner roles with strict, order-independent native reader
-  resolution; 146 rounded Material rectangles now use one role reference each,
+  resolution; 155 rounded Material rectangles now use one role reference each,
   11 square rectangles remain implicit, and legacy numeric `rx`/`ry` themes
   retain their existing path;
 - 15 semantic native integer metric roles with strict, order-independent native
-  reader resolution; 331 existing integer uses now reference those roles—292
-  drawing strokes, 34 explicit part dimensions/margins, and 5 numeric
-  settings—while generic legacy themes retain literal numeric compatibility;
+  reader resolution; 340 current integer uses reference those roles—301 drawing
+  strokes, 34 explicit part dimensions/margins, and 5 numeric settings—while
+  generic legacy themes retain literal numeric compatibility;
 - exact geometry preservation across that conversion: the 676 normalized
   fractional drawing coordinates stay literal, implicit dimensions remain
   implicit, and typography scale and corner radius keep their separate token
@@ -91,6 +91,10 @@ Implemented source milestones:
 - expanded mixed/disabled controls, flat buttons, selected-hover/focus tabs,
   toolbar buttons and grips, list nodes, edit variants, scrollbars, sliders,
   menus, progress, surfaces, and standalone vertical/horizontal spin buttons;
+- full-track progress indicators and value-sensitive level indicators in the
+  shared file-widget renderer: the optional track spans the control, the fill
+  remains clipped to the caller's numeric value, and level states preserve the
+  four existing 25% semantic bands without changing legacy fill-only themes;
 - composite combo/RTL geometry, native-region and slider sizing corrections,
   exact standalone spin geometry/direction, and native graphics line/fill cache
   invalidation;
@@ -102,8 +106,8 @@ Implemented source milestones:
   real file renderer.
 
 The standalone validator passes with 2 schemes, 23 color tokens each, 3
-typography roles, 8 shape tokens, 15 metric roles, 72 style slots, 74 parts, and
-190 states. No affected C++ target has been compiled or executed, and none of
+typography roles, 8 shape tokens, 15 metric roles, 72 style slots, 77 parts, and
+199 states. No affected C++ target has been compiled or executed, and none of
 this source has run in LibreOffice yet. The metric roles preserve the current
 integers and existing downstream native conversions; they add no density
 profile or new DPI-aware, `dp`, fractional-scale, or touch-sizing policy.

@@ -9,6 +9,10 @@
 
 #include <sal/config.h>
 
+#include <array>
+#include <cstddef>
+#include <iterator>
+
 #include <cppunit/TestAssert.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/plugin/TestPlugIn.h>
@@ -222,6 +226,65 @@ CPPUNIT_TEST_FIXTURE(FileDefinitionWidgetDrawTest, testToolbarGripUsesValueGeome
 
     CPPUNIT_ASSERT_EQUAL(COL_WHITE, xDevice->GetPixel(Point(20, 30)));
     CPPUNIT_ASSERT(xDevice->GetPixel(aValue.maGripRect.Center()) != COL_WHITE);
+}
+
+CPPUNIT_TEST_FIXTURE(FileDefinitionWidgetDrawTest, testProgressAndLevelIndicatorTracks)
+{
+    ScopedVclPtrInstance<VirtualDevice> xDevice;
+    initializeDevice(*xDevice);
+
+    CPPUNIT_ASSERT(xDevice->IsNativeControlSupported(ControlType::Progress, ControlPart::Entire));
+    CPPUNIT_ASSERT(
+        xDevice->IsNativeControlSupported(ControlType::Progress, ControlPart::TrackHorzArea));
+    CPPUNIT_ASSERT(xDevice->IsNativeControlSupported(ControlType::LevelBar, ControlPart::Entire));
+    CPPUNIT_ASSERT(
+        xDevice->IsNativeControlSupported(ControlType::LevelBar, ControlPart::TrackHorzArea));
+
+    const tools::Rectangle aProgressRegion(Point(10, 4), Size(140, 12));
+    CPPUNIT_ASSERT(xDevice->DrawNativeControl(ControlType::Progress, ControlPart::Entire,
+                                              aProgressRegion, ControlState::ENABLED,
+                                              ImplControlValue(tools::Long(45)), OUString()));
+    const Color aProgressFill
+        = xDevice->GetPixel(Point(aProgressRegion.Left() + 12, aProgressRegion.Center().Y()));
+    const Color aProgressTrack
+        = xDevice->GetPixel(Point(aProgressRegion.Right() - 12, aProgressRegion.Center().Y()));
+    CPPUNIT_ASSERT(aProgressFill != COL_WHITE);
+    CPPUNIT_ASSERT(aProgressTrack != COL_WHITE);
+    CPPUNIT_ASSERT(aProgressFill != aProgressTrack);
+
+    const tools::Rectangle aZeroRegion(Point(10, 20), Size(140, 12));
+    CPPUNIT_ASSERT(xDevice->DrawNativeControl(ControlType::Progress, ControlPart::Entire,
+                                              aZeroRegion, ControlState::ENABLED,
+                                              ImplControlValue(tools::Long(0)), OUString()));
+    const Color aZeroTrackLeft
+        = xDevice->GetPixel(Point(aZeroRegion.Left() + 12, aZeroRegion.Center().Y()));
+    const Color aZeroTrackRight
+        = xDevice->GetPixel(Point(aZeroRegion.Right() - 12, aZeroRegion.Center().Y()));
+    CPPUNIT_ASSERT(aZeroTrackLeft != COL_WHITE);
+    CPPUNIT_ASSERT_EQUAL(aZeroTrackLeft, aZeroTrackRight);
+
+    constexpr tools::Long aValues[] = { 24, 25, 49, 50, 74, 75 };
+    std::array<Color, std::size(aValues)> aLevelColors;
+    for (std::size_t i = 0; i < std::size(aValues); ++i)
+    {
+        const tools::Rectangle aLevelRegion(Point(10, 36 + tools::Long(i) * 10), Size(100, 8));
+        CPPUNIT_ASSERT(xDevice->DrawNativeControl(ControlType::LevelBar, ControlPart::Entire,
+                                                  aLevelRegion, ControlState::ENABLED,
+                                                  ImplControlValue(aValues[i]), OUString()));
+        aLevelColors[i]
+            = xDevice->GetPixel(Point(aLevelRegion.Left() + 5, aLevelRegion.Center().Y()));
+        const Color aTrack
+            = xDevice->GetPixel(Point(aLevelRegion.Right() - 5, aLevelRegion.Center().Y()));
+        CPPUNIT_ASSERT(aLevelColors[i] != COL_WHITE);
+        CPPUNIT_ASSERT(aTrack != COL_WHITE);
+        CPPUNIT_ASSERT(aLevelColors[i] != aTrack);
+    }
+
+    CPPUNIT_ASSERT(aLevelColors[0] != aLevelColors[1]);
+    CPPUNIT_ASSERT_EQUAL(aLevelColors[1], aLevelColors[2]);
+    CPPUNIT_ASSERT(aLevelColors[2] != aLevelColors[3]);
+    CPPUNIT_ASSERT_EQUAL(aLevelColors[3], aLevelColors[4]);
+    CPPUNIT_ASSERT(aLevelColors[4] != aLevelColors[5]);
 }
 
 CPPUNIT_TEST_FIXTURE(FileDefinitionWidgetDrawTest, testStandaloneSpinButtonComposites)

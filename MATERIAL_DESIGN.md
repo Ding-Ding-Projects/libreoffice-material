@@ -6,17 +6,17 @@ implements these rules.
 
 ## Current implementation status
 
-Seven native source milestones now exist. They package an opt-in Material
+Eight native source milestones now exist. They package an opt-in Material
 file-widget definition, add safe keyed theme selection and definition-aware
 fallback in VCL, begin the Start Center surface/header treatment, and implement
 matched light and dark palettes of 23 semantic roles each. The reader resolves
 `@token` references independently of declaration order and rejects invalid
 colors, invalid or duplicate palettes, mismatched schemas, unknown or duplicate
 tokens, and unknown or duplicate control parts. The theme currently validates
-74 definition-backed parts and 190 states, including mixed and disabled
+77 definition-backed parts and 199 states, including mixed and disabled
 controls, flat buttons, selected-hover/focus tabs, toolbar buttons/grips, list
 nodes, borderless and multiline edits, and standalone vertical/horizontal spin
-buttons.
+buttons, plus full-track progress and value-sensitive level indicators.
 
 The fourth milestone introduces the first non-color token family: strict
 `body`, `label`, and `title` typography roles. Material definitions may select
@@ -39,14 +39,14 @@ semantic mapping.
 The sixth milestone introduces eight semantic corner roles. A strict optional
 `shapes` section is resolved in the reader's order-independent first pass, and
 one `radius="@role"` reference populates both existing native rectangle radius
-axes. The 146 rounded Material rectangles use the exact `corner-checkbox`,
+axes. The 155 rounded Material rectangles use the exact `corner-checkbox`,
 `corner-indicator`, `corner-focus`, `corner-small`, `corner-control`,
 `corner-container`, `corner-toolbar`, and `corner-pill` roles; the 11 square
 rectangles keep their prior implicit geometry. Existing themes that use numeric
 `rx` and `ry` attributes retain that legacy path, while mixing the new and old
 forms is rejected as ambiguous.
 
-The seventh milestone introduces 15 semantic native integer metric roles. Four
+The seventh milestone introduced 15 semantic native integer metric roles. Four
 stroke roles, two spacing roles, three title/preview roles, and six control/tab
 size roles preserve the exact existing integer geometry while removing
 331 repeated literals: 292 `stroke-width` values, 34 explicit part
@@ -56,6 +56,17 @@ or out-of-tree themes may continue using literal numeric values. The reader
 resolves setting roles back to the existing decimal-string representation and
 part/drawing roles into the existing integer fields, so no public draw-action,
 part, settings, or renderer ABI is added for this source slice.
+
+The eighth milestone adds native Material anatomy for determinate progress and
+level indicators. An optional `TrackHorzArea` definition paints the complete
+control before the `Entire` fill is clipped to the caller's numeric value.
+Level fills classify that value into `critical`, `low`, `medium`, and `high`
+bands at the existing 25%, 50%, and 75% boundaries, so the generic level-bar
+meaning is not flattened into one color. Zero still paints the track; legacy
+file themes that define only `Entire` retain their prior fill-only behavior.
+These nine new rounded actions reuse the existing shape and metric contracts,
+bringing the current definition to 155 rounded rectangles and 340 metric
+references (301 strokes, 34 part dimensions/margins, and 5 settings).
 
 The 676 normalized fractional drawing coordinates remain component-local
 literals. They describe proportional glyph and inset geometry rather than

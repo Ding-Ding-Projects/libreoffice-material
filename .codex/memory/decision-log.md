@@ -73,10 +73,10 @@
 ## D-008 — preserve generic fallbacks when file geometry lacks semantics
 
 - Date: 2026-07-16
-- State: active policy
+- State: superseded for `LevelBar` by D-017; active for `ListNet` and Frame
 - Decision: do not claim file-widget support for controls whose current caller
-  geometry cannot preserve meaning. `LevelBar`, `ListNet`, and Frame borders
-  remain on existing fallback paths in this milestone.
+  geometry cannot preserve meaning. At this decision point, `LevelBar`,
+  `ListNet`, and Frame borders remained on existing fallback paths.
 - Reason: painting a generic filled level bar would erase its threshold colors,
   the current ListNet caller provides an empty region, and Frame requires a
   verified inner-content contract rather than a pass-through border rectangle.
@@ -201,3 +201,22 @@
   patterns rather than create reusable geometry primitives. Separate names for
   equal-valued title, preview, menu, size, and spacing roles avoid coupling
   future density work merely because their current integers match.
+
+## D-017 — preserve level meaning while adding full-track indicators
+
+- Date: 2026-07-16
+- State: implemented source; build verification pending
+- Decision: model `TrackHorzArea` as an optional full-width part for Progress
+  and LevelBar, draw it before the existing `Entire` fill, and keep fill width
+  clipped to the caller's numeric value. A zero value succeeds after painting
+  the track; definitions without a track retain the old fill-only path.
+- Decision: classify LevelBar values at the existing 25%, 50%, and 75%
+  boundaries using overflow-safe integer comparisons, then resolve exact
+  `critical`, `low`, `medium`, or `high` definition states. Keep `ListNet` and
+  `TabPaneWithHeader` on fallback because the current file definition lacks the
+  caller geometry needed to represent their meaning faithfully; keep Frame on
+  fallback until its native content-region inset is implemented and verified.
+- Reason: a Material progress indicator needs both track and determinate fill,
+  but a one-color LevelBar would regress the semantic bands that generic and
+  platform renderers expose. Reusing an existing control part avoids a new VCL
+  enum/ABI, and an optional lookup avoids breaking older file themes.

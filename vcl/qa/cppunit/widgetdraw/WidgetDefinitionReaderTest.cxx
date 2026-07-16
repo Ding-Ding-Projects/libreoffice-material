@@ -13,6 +13,7 @@
 #include <array>
 #include <cmath>
 #include <string_view>
+#include <utility>
 
 #include <cppunit/TestAssert.h>
 #include <cppunit/extensions/HelperMacros.h>
@@ -729,6 +730,41 @@ void WidgetDefinitionReaderTest::testReadMaterialTheme()
         ControlType::Slider, ControlPart::TrackHorzLeft, ControlState::NONE, SliderValue());
     CPPUNIT_ASSERT_EQUAL(size_t(1), aDisabledSliderTrackStates.size());
     CPPUNIT_ASSERT_EQUAL(size_t(1), aDisabledSliderTrackStates[0]->mpWidgetDrawActions.size());
+
+    auto pProgressTrack
+        = aDefinition.getDefinition(ControlType::Progress, ControlPart::TrackHorzArea);
+    CPPUNIT_ASSERT(pProgressTrack);
+    const auto aProgressTrackStates
+        = pProgressTrack->getStates(ControlType::Progress, ControlPart::TrackHorzArea,
+                                    ControlState::ENABLED, ImplControlValue());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), aProgressTrackStates.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), aProgressTrackStates[0]->mpWidgetDrawActions.size());
+    const auto& rProgressTrackRect = static_cast<const vcl::WidgetDrawActionRectangle&>(
+        *aProgressTrackStates[0]->mpWidgetDrawActions[0]);
+    CPPUNIT_ASSERT_EQUAL(u"cac4d0"_ustr, rProgressTrackRect.maFillColor.AsRGBHexString());
+
+    auto pLevelTrack = aDefinition.getDefinition(ControlType::LevelBar, ControlPart::TrackHorzArea);
+    auto pLevelFill = aDefinition.getDefinition(ControlType::LevelBar, ControlPart::Entire);
+    CPPUNIT_ASSERT(pLevelTrack);
+    CPPUNIT_ASSERT(pLevelFill);
+    const std::pair<tools::Long, OUString> aLevelCases[] = {
+        { 2499, u"f9dedc"_ustr }, { 2500, u"ffddb3"_ustr }, { 4999, u"ffddb3"_ustr },
+        { 5000, u"d0bcff"_ustr }, { 7499, u"d0bcff"_ustr }, { 7500, u"6750a4"_ustr },
+    };
+    for (const auto& [nValue, rExpectedColor] : aLevelCases)
+    {
+        const auto aStates = pLevelFill->getStates(ControlType::LevelBar, ControlPart::Entire,
+                                                   ControlState::ENABLED, ImplControlValue(nValue));
+        CPPUNIT_ASSERT_EQUAL(size_t(1), aStates.size());
+        CPPUNIT_ASSERT_EQUAL(size_t(1), aStates[0]->mpWidgetDrawActions.size());
+        const auto& rRect = static_cast<const vcl::WidgetDrawActionRectangle&>(
+            *aStates[0]->mpWidgetDrawActions[0]);
+        CPPUNIT_ASSERT_EQUAL(rExpectedColor, rRect.maFillColor.AsRGBHexString());
+    }
+    const auto aDisabledLevelStates = pLevelFill->getStates(
+        ControlType::LevelBar, ControlPart::Entire, ControlState::NONE, ImplControlValue(7500));
+    CPPUNIT_ASSERT_EQUAL(size_t(1), aDisabledLevelStates.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), aDisabledLevelStates[0]->mpWidgetDrawActions.size());
 
     auto pToolbarEntire = aDefinition.getDefinition(ControlType::Toolbar, ControlPart::Entire);
     CPPUNIT_ASSERT(pToolbarEntire);

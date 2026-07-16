@@ -336,6 +336,25 @@ void updateNativeWidgetFrameworkSettings(const std::shared_ptr<WidgetDefinition>
         = getSettingValueInteger(pSettings->msListBoxEntryMargin, aBaseline.mnListBoxEntryMargin);
 }
 
+tools::Long getLevelBarStateValue(tools::Long nValue, tools::Long nFullWidth)
+{
+    if (nValue <= 0 || nFullWidth <= 0)
+        return 0;
+
+    const tools::Long nClampedValue = std::min(nValue, nFullWidth);
+    const tools::Long nQuarter = nFullWidth / 4 + (nFullWidth % 4 != 0);
+    const tools::Long nHalf = nFullWidth / 2 + (nFullWidth % 2 != 0);
+    const tools::Long nThreeQuarters = nFullWidth - nFullWidth / 4;
+
+    if (nClampedValue < nQuarter)
+        return 0;
+    if (nClampedValue < nHalf)
+        return 2500;
+    if (nClampedValue < nThreeQuarters)
+        return 5000;
+    return 7500;
+}
+
 } // end anonymous namespace
 
 FileDefinitionWidgetDraw::FileDefinitionWidgetDraw(SalGraphics& rGraphics)
@@ -1035,11 +1054,37 @@ bool FileDefinitionWidgetDraw::drawNativeControl(ControlType eType, ControlPart 
         case ControlType::Progress:
         case ControlType::LevelBar:
         {
+            if (ePart != ControlPart::Entire)
+            {
+                bOK = resolveDefinition(eType, ePart, eState, rValue, nX, nY, nWidth, nHeight);
+                break;
+            }
+
+            const tools::Long nDrawableWidth = std::max(nWidth, tools::Long(0));
+            const auto pTrack = pWidgetDefinition->getDefinition(eType, ControlPart::TrackHorzArea);
+            bOK = !pTrack
+                  || resolveDefinition(eType, ControlPart::TrackHorzArea, eState, rValue, nX, nY,
+                                       nDrawableWidth, nHeight);
+            if (!bOK)
+                break;
+
             const tools::Long nProgressWidth
-                = std::clamp(rValue.getNumericVal(), tools::Long(0), nWidth);
-            bOK = nProgressWidth == 0
-                  || resolveDefinition(eType, ePart, eState, rValue, nX, nY, nProgressWidth,
-                                       nHeight);
+                = std::clamp(rValue.getNumericVal(), tools::Long(0), nDrawableWidth);
+            if (nProgressWidth == 0)
+                break;
+
+            if (eType == ControlType::LevelBar)
+            {
+                const ImplControlValue aLevelValue(
+                    getLevelBarStateValue(rValue.getNumericVal(), rControlRegion.GetWidth()));
+                bOK = resolveDefinition(eType, ePart, eState, aLevelValue, nX, nY, nProgressWidth,
+                                        nHeight);
+            }
+            else
+            {
+                bOK = resolveDefinition(eType, ePart, eState, rValue, nX, nY, nProgressWidth,
+                                        nHeight);
+            }
         }
         break;
         case ControlType::IntroProgress:

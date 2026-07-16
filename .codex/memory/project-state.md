@@ -60,6 +60,8 @@ prove a whole-GUI rewrite or any completed application surface.
   `a644ed9abb6d5112f182ff7ec6e0826b1754c89e`.
 - Sixth Material VCL source milestone commit:
   `3fe772f6068f6820f37c8297f431b39127f4e4d1`.
+- Seventh Material VCL source milestone commit:
+  `2ce2cfd3e7489dc0acd6ce09f7e5461546fbb731`.
 - The two commits shared tree object
   `68ccb73abac4f7da67f894f11b0802627e90b474` when verified.
 - Initial native source slice: packaged Material definition; opt-in file-widget
@@ -107,13 +109,16 @@ prove a whole-GUI rewrite or any completed application surface.
   metric geometry hash is `33d4dea2...5135de0`; and the exact 676-row normalized
   coordinate hash is `0979f2b3...331ed2e`. These are static source checks only;
   the C++ reader and fixtures remain uncompiled and unexecuted.
-- Published sixth-milestone source validation passes for 2 schemes, 23 color
+- Published seventh-milestone source validation passes for 2 schemes, 23 color
+  tokens each, 3 typography roles, 8 shape tokens, 15 metric tokens, 72 style
+  slots, 74 parts, and 190 states. All 22 Python validator unittest methods
+  passed at the published source commit; the affected C++ targets remain
+  unexecuted.
+- Published sixth-milestone source validation passed for 2 schemes, 23 color
   tokens each, 3 typography roles, 8 shape tokens, 72 style slots, 74 parts,
   190 states, selected WCAG contrast pairs, native font/shape source
   invariants, XML parsing, and whitespace. All 16 Python validator unittest
-  methods passed at that published source commit. Seventh-milestone validation
-  and publication evidence must be recorded separately; the affected C++
-  targets remain unexecuted.
+  methods passed at that published source commit.
 - GitHub Actions source-validation run `29517978358` completed successfully for
   third-milestone commit `ddeec51e886f4642718eaa626ea2f48cdd9aa6a8`.
 - GitHub Actions source-validation run `29522004268` completed successfully for
@@ -127,11 +132,14 @@ prove a whole-GUI rewrite or any completed application surface.
   sixth-milestone commit `3fe772f6068f6820f37c8297f431b39127f4e4d1`;
   semantic theme validation, all validator unittests, and Start Center lint each
   passed.
+- GitHub Actions source-validation run `29527917064` completed successfully for
+  seventh-milestone commit `2ce2cfd3e7489dc0acd6ce09f7e5461546fbb731`;
+  semantic theme validation, all 22 validator unittests, and Start Center lint
+  each passed.
 - A detached build worktree exists at
   `C:\Users\Administrator\Documents\GitHub\libreoffice-material-build`, pinned
-  to `3fe772f6068f6820f37c8297f431b39127f4e4d1`. The reader, tests, validator,
-  and Material definition all report `w/lf`; the validator and its 16 unittest
-  methods pass from that clean worktree.
+  to `2ce2cfd3e7489dc0acd6ce09f7e5461546fbb731`. The validator and all 22
+  unittest methods pass from that clean LF worktree.
 - Required runtime opt-in: `VCL_DRAW_WIDGETS_FROM_FILE=1` and
   `VCL_FILE_WIDGET_THEME=material`.
 - UI driver: sibling repository `lowlevel-computer-use-mcp`, preflighted at
@@ -174,6 +182,10 @@ prove a whole-GUI rewrite or any completed application surface.
   `3fe772f6068f6820f37c8297f431b39127f4e4d1` successfully; the live index and
   stylesheet returned HTTP `200`, exposed the exact 8-shape-token summary and
   `Source milestone 6`, and kept the verified-capture count at `0`.
+- Pages run `29527917148` deployed seventh-milestone commit
+  `2ce2cfd3e7489dc0acd6ce09f7e5461546fbb731` successfully; the live index and
+  stylesheet returned HTTP `200`, exposed 15 metric roles, the exact 331-use
+  summary and `Source milestone 7`, and kept the accepted-capture count at `0`.
 
 ## Required next gates
 

@@ -560,3 +560,34 @@ run, and accepted application screenshots remain **0**.
 Scope conclusion: the seventh source slice passes repository-side static gates
 but is not yet published at this entry. No C++ target or LibreOffice binary ran,
 and accepted application screenshots remain **0**.
+
+## 2026-07-16 — seventh Material milestone publication
+
+- Source commit `2ce2cfd3e7489dc0acd6ce09f7e5461546fbb731` was pushed directly to
+  remote `main`; an authenticated `gh api` query reported the same SHA for the
+  remote branch.
+- GitHub Actions run `29527917064` (`Validate Material UI source`) completed
+  successfully for that exact commit. Semantic theme validation, all validator
+  unittests, and Start Center UI lint each reported `success`.
+- GitHub Pages run `29527917148` completed successfully for the same source
+  commit. Configure, upload, and deploy steps each reported `success`; the Pages
+  API reports workflow mode with HTTPS enforcement.
+- Direct requests to the published index and stylesheet returned HTTP `200`.
+  The index contains the seventh-milestone description, `15 metric roles`, the
+  exact `Fifteen roles replace 331 integer literals` statement, `Source
+  milestone 7`, and the statement that the accepted screenshot count remains
+  zero. This is an HTTP/content check, not a browser-render claim.
+- The clean detached LF worktree at
+  `C:\Users\Administrator\Documents\GitHub\libreoffice-material-build` moved
+  without reset from `3fe772f6068f6820f37c8297f431b39127f4e4d1` to
+  `2ce2cfd3e7489dc0acd6ce09f7e5461546fbb731`. The validator again reported the
+  exact `2/23/3/8/15/72/74/190` tuple and all 22 unittest methods passed from
+  that clean worktree.
+- The sibling low-level driver remains clean at
+  `806d9ba85e4afbc2af58d7499496babfa7c68891`. The short-lived GitHub tunnel was
+  terminated and port `18765` was confirmed not listening after verification.
+
+Scope conclusion: the seventh source milestone is published, its repository
+static CI and project site are green, and the prepared LF build worktree is
+pinned to the exact source commit. No C++ target or LibreOffice binary ran, and
+accepted application screenshots remain **0**.

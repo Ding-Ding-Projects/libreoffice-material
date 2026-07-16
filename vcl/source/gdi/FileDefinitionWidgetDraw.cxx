@@ -1388,6 +1388,14 @@ bool FileDefinitionWidgetDraw::updateSettings(AllSettings& rSettings, bool bUseD
     aStyleSet.SetLightBorderColor(pDefinitionStyle->maLightBorderColor);
     aStyleSet.SetShadowColor(pDefinitionStyle->maShadowColor);
     aStyleSet.SetDarkShadowColor(pDefinitionStyle->maDarkShadowColor);
+    if (pDefinitionStyle->moWarningColor)
+        aStyleSet.SetWarningColor(*pDefinitionStyle->moWarningColor);
+    if (pDefinitionStyle->moWarningTextColor)
+        aStyleSet.SetWarningTextColor(*pDefinitionStyle->moWarningTextColor);
+    if (pDefinitionStyle->moErrorColor)
+        aStyleSet.SetErrorColor(*pDefinitionStyle->moErrorColor);
+    if (pDefinitionStyle->moErrorTextColor)
+        aStyleSet.SetErrorTextColor(*pDefinitionStyle->moErrorTextColor);
     aStyleSet.SetDefaultButtonTextColor(pDefinitionStyle->maDefaultButtonTextColor);
     aStyleSet.SetButtonTextColor(pDefinitionStyle->maButtonTextColor);
     aStyleSet.SetDefaultActionButtonTextColor(pDefinitionStyle->maDefaultActionButtonTextColor);
@@ -1426,6 +1434,8 @@ bool FileDefinitionWidgetDraw::updateSettings(AllSettings& rSettings, bool bUseD
     aStyleSet.SetDeactiveColor(pDefinitionStyle->maDeactiveColor);
     aStyleSet.SetDeactiveTextColor(pDefinitionStyle->maDeactiveTextColor);
     aStyleSet.SetDeactiveBorderColor(pDefinitionStyle->maDeactiveBorderColor);
+    if (pDefinitionStyle->moAccentColor)
+        aStyleSet.SetAccentColor(*pDefinitionStyle->moAccentColor);
     aStyleSet.SetMenuColor(pDefinitionStyle->maMenuColor);
     aStyleSet.SetMenuBarColor(pDefinitionStyle->maMenuBarColor);
     aStyleSet.SetMenuBarRolloverColor(pDefinitionStyle->maMenuBarRolloverColor);
@@ -1436,10 +1446,22 @@ bool FileDefinitionWidgetDraw::updateSettings(AllSettings& rSettings, bool bUseD
     aStyleSet.SetMenuBarHighlightTextColor(pDefinitionStyle->maMenuBarHighlightTextColor);
     aStyleSet.SetMenuHighlightColor(pDefinitionStyle->maMenuHighlightColor);
     aStyleSet.SetMenuHighlightTextColor(pDefinitionStyle->maMenuHighlightTextColor);
+    if (pDefinitionStyle->moListBoxWindowBackgroundColor)
+        aStyleSet.SetListBoxWindowBackgroundColor(
+            *pDefinitionStyle->moListBoxWindowBackgroundColor);
+    if (pDefinitionStyle->moListBoxWindowTextColor)
+        aStyleSet.SetListBoxWindowTextColor(*pDefinitionStyle->moListBoxWindowTextColor);
+    if (pDefinitionStyle->moListBoxWindowHighlightColor)
+        aStyleSet.SetListBoxWindowHighlightColor(*pDefinitionStyle->moListBoxWindowHighlightColor);
+    if (pDefinitionStyle->moListBoxWindowHighlightTextColor)
+        aStyleSet.SetListBoxWindowHighlightTextColor(
+            *pDefinitionStyle->moListBoxWindowHighlightTextColor);
     aStyleSet.SetHighlightColor(pDefinitionStyle->maHighlightColor);
     aStyleSet.SetHighlightTextColor(pDefinitionStyle->maHighlightTextColor);
     aStyleSet.SetActiveTabColor(pDefinitionStyle->maActiveTabColor);
     aStyleSet.SetInactiveTabColor(pDefinitionStyle->maInactiveTabColor);
+    if (pDefinitionStyle->moAlternatingRowColor)
+        aStyleSet.SetAlternatingRowColor(*pDefinitionStyle->moAlternatingRowColor);
     aStyleSet.SetTabTextColor(pDefinitionStyle->maTabTextColor);
     aStyleSet.SetTabRolloverTextColor(pDefinitionStyle->maTabRolloverTextColor);
     aStyleSet.SetTabHighlightTextColor(pDefinitionStyle->maTabHighlightTextColor);

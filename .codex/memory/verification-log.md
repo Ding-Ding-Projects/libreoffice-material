@@ -348,3 +348,41 @@ Scope conclusion: the fourth source milestone is published, its repository-side
 CI and project site are green, and the line-ending-safe build worktree is pinned
 to the exact source commit. No C++ target or LibreOffice binary ran, and accepted
 application screenshots remain **0**.
+
+## 2026-07-16 — fifth Material VCL source milestone validation
+
+- `bin/check-material-theme.py` reported
+  `Material theme OK: 2 schemes, 23 tokens each, 3 typography roles, 72 style
+  slots, 74 parts, 190 states`.
+- Eleven Python unittest methods passed. The new mutations cover exact and
+  unique style mappings, section/child attributes, text, nesting, processing
+  instructions, feedback-token values, list/selection/warning/error contrast,
+  and native source patterns. A final audit found that nested palette-color
+  content and extra attributes were initially accepted; exact `name`/`value`
+  attributes, content rejection, and root/settings processing-instruction
+  rejection were added and the full suite passed again.
+- The native source guard found all ten optional reader fields, their XML
+  mappings, conditional renderer setters, the three new public `StyleSettings`
+  setter definitions, and the SVP test's real `SalGraphics::UpdateSettings`
+  dispatch. A structural check independently counted 72 `ColorSet` fields,
+  62 existing plus 10 optional `WidgetDefinitionStyle` fields, and 72 unique
+  Material style elements.
+- Python bytecode compilation, the Start Center UI linter, and `git diff
+  --check` passed. The Material definition and 29 reader fixture XML files
+  parsed successfully. All three workflow YAML files parsed successfully.
+- Visual Studio Clang 22.1.3 changed-line formatting was applied; a subsequent
+  changed-line dry run reported no remaining changes. Every changed text file
+  checked at this stage was UTF-8 without a byte-order mark and LF-only.
+- Static site integrity found 16 unique IDs, validated 22 HTML links and 38
+  local Markdown targets across 12 authored files, found balanced CSS, and
+  confirmed no image, inline SVG, or CSS URL asset. The stale roadmap card was
+  corrected to fifth milestone. No fifth-milestone browser-render claim is
+  made.
+- Independent read-only audits found no concrete C++ declaration, definition,
+  map-lifetime, setter-resolution, CppUnit registration, or cross-platform link
+  blocker after the corrections. This remains static inspection, not a build.
+
+Scope conclusion: repository-side source and static project-site checks pass
+for the fifth milestone. No affected C++ target was compiled or executed, no
+LibreOffice binary or window ran, the low-level headless driver had no fork
+binary to test, and accepted application screenshots remain **0**.

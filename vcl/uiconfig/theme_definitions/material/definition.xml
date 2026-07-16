@@ -34,6 +34,10 @@
         <color name="disabled-container" value="#E6E0E9"/>
         <color name="inverse-surface" value="#313033"/>
         <color name="inverse-on-surface" value="#F4EFF4"/>
+        <color name="warning-container" value="#FFDDB3"/>
+        <color name="on-warning-container" value="#2A1800"/>
+        <color name="error-container" value="#F9DEDC"/>
+        <color name="on-error-container" value="#410E0B"/>
         <color name="visited-link" value="#7D5260"/>
     </palette>
 
@@ -56,6 +60,10 @@
         <color name="disabled-container" value="#36343B"/>
         <color name="inverse-surface" value="#E6E0E9"/>
         <color name="inverse-on-surface" value="#322F35"/>
+        <color name="warning-container" value="#5F4100"/>
+        <color name="on-warning-container" value="#FFDDB3"/>
+        <color name="error-container" value="#8C1D18"/>
+        <color name="on-error-container" value="#F9DEDC"/>
         <color name="visited-link" value="#EFB8C8"/>
     </palette>
 
@@ -66,6 +74,10 @@
         <lightBorderColor value="@outline-variant"/>
         <shadowColor value="@outline"/>
         <darkShadowColor value="@on-surface"/>
+        <warningColor value="@warning-container"/>
+        <warningTextColor value="@on-warning-container"/>
+        <errorColor value="@error-container"/>
+        <errorTextColor value="@on-error-container"/>
         <defaultButtonTextColor value="@on-primary-container"/>
         <buttonTextColor value="@on-primary-container"/>
         <defaultActionButtonTextColor value="@on-primary"/>
@@ -99,6 +111,7 @@
         <deactiveColor value="@disabled-container"/>
         <deactiveTextColor value="@outline"/>
         <deactiveBorderColor value="@outline-variant"/>
+        <accentColor value="@primary"/>
         <menuColor value="@surface"/>
         <menuBarColor value="@surface-container"/>
         <menuBarRolloverColor value="@primary-container"/>
@@ -109,10 +122,15 @@
         <menuBarHighlightTextColor value="@on-primary-container"/>
         <menuHighlightColor value="@primary-container"/>
         <menuHighlightTextColor value="@on-primary-container"/>
+        <listBoxWindowBackgroundColor value="@surface"/>
+        <listBoxWindowTextColor value="@on-surface"/>
+        <listBoxWindowHighlightColor value="@primary-container"/>
+        <listBoxWindowHighlightTextColor value="@on-primary-container"/>
         <highlightColor value="@primary-container"/>
         <highlightTextColor value="@on-primary-container"/>
         <activeTabColor value="@primary-container"/>
         <inactiveTabColor value="@surface-container"/>
+        <alternatingRowColor value="@surface-container-low"/>
         <tabTextColor value="@on-surface-variant"/>
         <tabRolloverTextColor value="@on-surface"/>
         <tabHighlightTextColor value="@on-primary-container"/>

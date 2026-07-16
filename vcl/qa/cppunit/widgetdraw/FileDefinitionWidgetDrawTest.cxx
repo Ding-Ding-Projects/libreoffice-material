@@ -16,10 +16,12 @@
 
 #include <tools/color.hxx>
 #include <tools/gen.hxx>
+#include <vcl/settings.hxx>
 #include <vcl/salnativewidgets.hxx>
 #include <vcl/virdev.hxx>
 #include <vcl/wall.hxx>
 
+#include <salgdi.hxx>
 #include <toolbarvalue.hxx>
 
 namespace
@@ -34,6 +36,16 @@ void initializeDevice(VirtualDevice& rDevice)
     rDevice.Erase();
 }
 
+using StyleColorSetter = void (StyleSettings::*)(const Color&);
+
+void assertStyleColorApplied(const StyleSettings& rActual, StyleColorSetter pSetter,
+                             const Color& rExpected)
+{
+    StyleSettings aProbe(rActual);
+    (aProbe.*pSetter)(rExpected);
+    CPPUNIT_ASSERT(aProbe == rActual);
+}
+
 class FileDefinitionWidgetDrawTest : public test::BootstrapFixture
 {
 public:
@@ -42,6 +54,71 @@ public:
     {
     }
 };
+
+CPPUNIT_TEST_FIXTURE(FileDefinitionWidgetDrawTest, testMaterialStyleSettingsColorClosure)
+{
+    ScopedVclPtrInstance<VirtualDevice> xDevice;
+    initializeDevice(*xDevice);
+    CPPUNIT_ASSERT(xDevice->IsNativeControlSupported(ControlType::Pushbutton, ControlPart::Entire));
+
+    SalGraphics* pGraphics = xDevice->GetGraphics();
+    CPPUNIT_ASSERT(pGraphics);
+
+    AllSettings aSettings;
+    StyleSettings aSeededStyle(aSettings.GetStyleSettings());
+    const Color aSentinel(0x01, 0x02, 0x03);
+    aSeededStyle.SetAccentColor(aSentinel);
+    aSeededStyle.SetListBoxWindowBackgroundColor(aSentinel);
+    aSeededStyle.SetListBoxWindowTextColor(aSentinel);
+    aSeededStyle.SetListBoxWindowHighlightColor(aSentinel);
+    aSeededStyle.SetListBoxWindowHighlightTextColor(aSentinel);
+    aSeededStyle.SetAlternatingRowColor(aSentinel);
+    aSeededStyle.SetWarningColor(aSentinel);
+    aSeededStyle.SetWarningTextColor(aSentinel);
+    aSeededStyle.SetErrorColor(aSentinel);
+    aSeededStyle.SetErrorTextColor(aSentinel);
+    aSettings.SetStyleSettings(aSeededStyle);
+
+    CPPUNIT_ASSERT(pGraphics->UpdateSettings(aSettings));
+    const StyleSettings& rMaterialStyle = aSettings.GetStyleSettings();
+    const bool bDark = MiscSettings::GetUseDarkMode();
+    const auto selectSchemeColor
+        = [bDark](const Color& rLight, const Color& rDark) { return bDark ? rDark : rLight; };
+    assertStyleColorApplied(rMaterialStyle, &StyleSettings::SetAccentColor,
+                            selectSchemeColor(Color(0x67, 0x50, 0xA4), Color(0xD0, 0xBC, 0xFF)));
+    assertStyleColorApplied(rMaterialStyle, &StyleSettings::SetListBoxWindowBackgroundColor,
+                            selectSchemeColor(Color(0xFF, 0xFB, 0xFE), Color(0x14, 0x12, 0x18)));
+    assertStyleColorApplied(rMaterialStyle, &StyleSettings::SetListBoxWindowTextColor,
+                            selectSchemeColor(Color(0x1D, 0x1B, 0x20), Color(0xE6, 0xE0, 0xE9)));
+    assertStyleColorApplied(rMaterialStyle, &StyleSettings::SetListBoxWindowHighlightColor,
+                            selectSchemeColor(Color(0xE8, 0xDE, 0xF8), Color(0x4F, 0x37, 0x8B)));
+    assertStyleColorApplied(rMaterialStyle, &StyleSettings::SetListBoxWindowHighlightTextColor,
+                            selectSchemeColor(Color(0x1D, 0x19, 0x2B), Color(0xEA, 0xDD, 0xFF)));
+    assertStyleColorApplied(rMaterialStyle, &StyleSettings::SetAlternatingRowColor,
+                            selectSchemeColor(Color(0xF7, 0xF2, 0xFA), Color(0x1D, 0x1B, 0x20)));
+    assertStyleColorApplied(rMaterialStyle, &StyleSettings::SetWarningColor,
+                            selectSchemeColor(Color(0xFF, 0xDD, 0xB3), Color(0x5F, 0x41, 0x00)));
+    assertStyleColorApplied(rMaterialStyle, &StyleSettings::SetWarningTextColor,
+                            selectSchemeColor(Color(0x2A, 0x18, 0x00), Color(0xFF, 0xDD, 0xB3)));
+    assertStyleColorApplied(rMaterialStyle, &StyleSettings::SetErrorColor,
+                            selectSchemeColor(Color(0xF9, 0xDE, 0xDC), Color(0x8C, 0x1D, 0x18)));
+    assertStyleColorApplied(rMaterialStyle, &StyleSettings::SetErrorTextColor,
+                            selectSchemeColor(Color(0x41, 0x0E, 0x0B), Color(0xF9, 0xDE, 0xDC)));
+
+    const StyleSettings aFirstApplication(rMaterialStyle);
+    CPPUNIT_ASSERT(pGraphics->UpdateSettings(aSettings));
+    CPPUNIT_ASSERT(aFirstApplication == aSettings.GetStyleSettings());
+
+    AllSettings aHighContrastSettings;
+    StyleSettings aHighContrastStyle(aSeededStyle);
+    aHighContrastStyle.SetHighContrastMode(true);
+    aHighContrastSettings.SetStyleSettings(aHighContrastStyle);
+    CPPUNIT_ASSERT(!pGraphics->UpdateSettings(aHighContrastSettings));
+    CPPUNIT_ASSERT(aHighContrastStyle == aHighContrastSettings.GetStyleSettings());
+
+    // FileDefinitionThemeState is shared, so leave it in the ordinary Material path.
+    CPPUNIT_ASSERT(pGraphics->UpdateSettings(aSettings));
+}
 
 CPPUNIT_TEST_FIXTURE(FileDefinitionWidgetDrawTest, testComboBoxLtrAndRtlGeometryAndPixels)
 {

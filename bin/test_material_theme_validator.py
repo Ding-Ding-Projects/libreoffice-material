@@ -14,6 +14,7 @@ import re
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 REPOSITORY = Path(__file__).resolve().parents[1]
@@ -54,10 +55,199 @@ class MaterialThemeValidatorTest(unittest.TestCase):
                 VALIDATOR.validate(path)
 
     def test_canonical_theme_and_native_sources_pass(self) -> None:
-        self.assertEqual(VALIDATOR.validate(DEFINITION_PATH), (2, 19, 3, 74, 190))
+        self.assertEqual(
+            VALIDATOR.validate(DEFINITION_PATH), (2, 23, 3, 72, 74, 190)
+        )
         VALIDATOR.validate_native_typography_source(
             (RENDERER_PATH, TYPOGRAPHY_SOURCE_PATH)
         )
+        VALIDATOR.validate_native_style_source(
+            (
+                REPOSITORY / "vcl/inc/widgetdraw/WidgetDefinition.hxx",
+                REPOSITORY / "vcl/source/gdi/WidgetDefinitionReader.cxx",
+                RENDERER_PATH,
+                REPOSITORY / "include/vcl/settings.hxx",
+                REPOSITORY / "vcl/source/app/settings.cxx",
+                REPOSITORY
+                / "vcl/qa/cppunit/widgetdraw/FileDefinitionWidgetDrawTest.cxx",
+            )
+        )
+
+    def test_style_structure_and_semantic_mapping_are_strict(self) -> None:
+        face = '        <faceColor value="@surface-container"/>'
+        missing_section = self.replace_once(
+            "    <style>", "    <ignoredStyle>"
+        ).replace("    </style>", "    </ignoredStyle>", 1)
+        cases = {
+            "missing section": (
+                missing_section,
+                "expected exactly one <style> section, found 0",
+            ),
+            "duplicate section": (
+                self.replace_once(
+                    "    </style>", "    </style>\n\n    <style/>"
+                ),
+                "expected exactly one <style> section, found 2",
+            ),
+            "section attribute": (
+                self.replace_once("    <style>", '    <style mode="material">'),
+                "style section must not have attributes",
+            ),
+            "section text": (
+                self.replace_once("    <style>", "    <style>invalid"),
+                "style section must not contain text",
+            ),
+            "unknown element": (
+                self.replace_once(face, '        <mysteryColor value="@surface"/>'),
+                "style has unknown element <mysteryColor>",
+            ),
+            "missing value": (
+                self.replace_once(face, "        <faceColor/>"),
+                "style <faceColor> requires exactly one value attribute",
+            ),
+            "extra attribute": (
+                self.replace_once(
+                    face,
+                    '        <faceColor value="@surface-container" mode="fixed"/>',
+                ),
+                "style <faceColor> requires exactly one value attribute",
+            ),
+            "child text": (
+                self.replace_once(
+                    face,
+                    '        <faceColor value="@surface-container">invalid</faceColor>',
+                ),
+                "style <faceColor> must not have content",
+            ),
+            "nested element": (
+                self.replace_once(
+                    face,
+                    '        <faceColor value="@surface-container"><color/></faceColor>',
+                ),
+                "style <faceColor> must not have content",
+            ),
+            "nested processing instruction": (
+                self.replace_once(
+                    face,
+                    '        <faceColor value="@surface-container">'
+                    "<?material style?></faceColor>",
+                ),
+                "style <faceColor> must not have content",
+            ),
+            "direct processing instruction": (
+                self.replace_once(
+                    "    <style>", "    <style>\n        <?material style?>"
+                ),
+                "style has unknown element <",
+            ),
+            "child tail": (
+                self.replace_once(face, face + "invalid"),
+                "style section must not contain text",
+            ),
+            "duplicate element": (
+                self.replace_once(face, f"{face}\n{face}"),
+                "duplicate style element <faceColor>",
+            ),
+            "missing element": (
+                self.replace_once(face, ""),
+                "missing required style elements: faceColor",
+            ),
+            "wrong mapping": (
+                self.replace_once(
+                    face, '        <faceColor value="@surface"/>'
+                ),
+                "style <faceColor> must reference @surface-container",
+            ),
+            "literal value": (
+                self.replace_once(face, '        <faceColor value="#FFFBFE"/>'),
+                "style <faceColor> must reference @surface-container",
+            ),
+        }
+        for name, (definition, message) in cases.items():
+            with self.subTest(name=name):
+                self.assert_definition_fails(definition, message)
+
+    def test_feedback_tokens_are_scheme_specific_and_exact(self) -> None:
+        expected = {
+            ("light", "warning-container"): "#FFDDB3",
+            ("light", "on-warning-container"): "#2A1800",
+            ("light", "error-container"): "#F9DEDC",
+            ("light", "on-error-container"): "#410E0B",
+            ("dark", "warning-container"): "#5F4100",
+            ("dark", "on-warning-container"): "#FFDDB3",
+            ("dark", "error-container"): "#8C1D18",
+            ("dark", "on-error-container"): "#F9DEDC",
+        }
+        for (scheme, name), color in expected.items():
+            with self.subTest(scheme=scheme, token=name):
+                line = f'        <color name="{name}" value="{color}"/>'
+                definition = self.replace_once(
+                    line, f'        <color name="{name}" value="#000000"/>'
+                )
+                self.assert_definition_fails(
+                    definition,
+                    f"{scheme} palette token {name!r} must be {color}, "
+                    "found #000000",
+                )
+
+        light = '        <color name="warning-container" value="#FFDDB3"/>'
+        dark = '        <color name="warning-container" value="#5F4100"/>'
+        definition = self.definition.replace(light, "", 1).replace(dark, "", 1)
+        self.assert_definition_fails(
+            definition,
+            "light palette is missing required feedback token 'warning-container'",
+        )
+
+    def test_list_selection_warning_and_error_contrast_is_enforced(self) -> None:
+        cases = {
+            "list": (
+                self.replace_once(
+                    '        <color name="on-surface" value="#1D1B20"/>',
+                    '        <color name="on-surface" value="#FFFBFE"/>',
+                ),
+                "light listBoxWindowTextColor/listBoxWindowBackgroundColor "
+                "contrast is only 1.00:1",
+                None,
+            ),
+            "selection": (
+                self.replace_once(
+                    '        <color name="on-primary-container" value="#1D192B"/>',
+                    '        <color name="on-primary-container" value="#E8DEF8"/>',
+                ),
+                "light listBoxWindowHighlightTextColor/"
+                "listBoxWindowHighlightColor contrast is only 1.00:1",
+                None,
+            ),
+            "warning": (
+                self.replace_once(
+                    '        <color name="on-warning-container" value="#2A1800"/>',
+                    '        <color name="on-warning-container" value="#FFDDB3"/>',
+                ),
+                "light warningTextColor/warningColor contrast is only 1.00:1",
+                ("on-warning-container", "#FFDDB3"),
+            ),
+            "error": (
+                self.replace_once(
+                    '        <color name="on-error-container" value="#410E0B"/>',
+                    '        <color name="on-error-container" value="#F9DEDC"/>',
+                ),
+                "light errorTextColor/errorColor contrast is only 1.00:1",
+                ("on-error-container", "#F9DEDC"),
+            ),
+        }
+        for name, (definition, message, feedback_override) in cases.items():
+            with self.subTest(name=name):
+                feedback_colors = {
+                    scheme: dict(colors)
+                    for scheme, colors in VALIDATOR.REQUIRED_FEEDBACK_COLORS.items()
+                }
+                if feedback_override is not None:
+                    token, color = feedback_override
+                    feedback_colors["light"][token] = color
+                with mock.patch.object(
+                    VALIDATOR, "REQUIRED_FEEDBACK_COLORS", feedback_colors
+                ):
+                    self.assert_definition_fails(definition, message)
 
     def test_typography_structure_is_strict(self) -> None:
         body = '        <role name="body" scale="100" weight="preserve"/>'
@@ -155,6 +345,39 @@ class MaterialThemeValidatorTest(unittest.TestCase):
                 ),
                 "palette 'light' has unknown element",
             ),
+            "color extra attribute": (
+                self.replace_once(
+                    color,
+                    '        <color name="primary" value="#6750A4" mode="fixed"/>',
+                ),
+                "palette 'light' <color> requires exactly name and value attributes",
+            ),
+            "nested color element": (
+                self.replace_once(
+                    color,
+                    '        <color name="primary" value="#6750A4"><extra/></color>',
+                ),
+                "palette 'light' color 'primary' must not have content",
+            ),
+            "nested color processing instruction": (
+                self.replace_once(
+                    color,
+                    '        <color name="primary" value="#6750A4">'
+                    "<?material color?></color>",
+                ),
+                "palette 'light' color 'primary' must not have content",
+            ),
+            "root processing instruction": (
+                self.replace_once("<widgets>", "<widgets>\n    <?material root?>"),
+                "Material definition must not contain processing instructions",
+            ),
+            "settings processing instruction": (
+                self.replace_once(
+                    "    <settings>",
+                    "    <settings>\n        <?material settings?>",
+                ),
+                "Material definition must not contain processing instructions",
+            ),
         }
         for name, (definition, message) in cases.items():
             with self.subTest(name=name):
@@ -198,6 +421,28 @@ class MaterialThemeValidatorTest(unittest.TestCase):
                 "native typography source is missing pattern",
             ):
                 VALIDATOR.validate_native_typography_source((renderer, typography))
+
+    def test_required_native_style_patterns_cannot_hide_in_comments(self) -> None:
+        comments = "\n".join(
+            (
+                "// std::optional<Color> moAccentColor;",
+                '// { "accentColor", &rWidgetDefinition.mpStyle->moAccentColor },',
+                "// if (pDefinitionStyle->moAccentColor)",
+                "//     aStyleSet.SetAccentColor(*pDefinitionStyle->moAccentColor);",
+                "// StyleSettings::SetWarningTextColor(const Color&);",
+                "// StyleSettings::SetErrorColor(const Color&);",
+                "// StyleSettings::SetErrorTextColor(const Color&);",
+                "// pGraphics->UpdateSettings(aSettings);",
+            )
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "style-source.cxx"
+            source.write_text(comments, encoding="utf-8")
+            with self.assertRaisesRegex(
+                VALIDATOR.ValidationError,
+                "native style source is missing pattern",
+            ):
+                VALIDATOR.validate_native_style_source((source,))
 
     def test_native_source_guard_rejects_fixed_identity_setters(self) -> None:
         valid_source = "\n".join(

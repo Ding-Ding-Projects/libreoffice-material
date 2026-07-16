@@ -28,6 +28,121 @@ REQUIRED_TYPOGRAPHY = {
     "title": (120, "semibold"),
 }
 
+REQUIRED_FEEDBACK_COLORS = {
+    "light": {
+        "warning-container": "#FFDDB3",
+        "on-warning-container": "#2A1800",
+        "error-container": "#F9DEDC",
+        "on-error-container": "#410E0B",
+    },
+    "dark": {
+        "warning-container": "#5F4100",
+        "on-warning-container": "#FFDDB3",
+        "error-container": "#8C1D18",
+        "on-error-container": "#F9DEDC",
+    },
+}
+
+REQUIRED_STYLE = {
+    "faceColor": "surface-container",
+    "checkedColor": "primary-container",
+    "lightColor": "surface",
+    "lightBorderColor": "outline-variant",
+    "shadowColor": "outline",
+    "darkShadowColor": "on-surface",
+    "defaultButtonTextColor": "on-primary-container",
+    "buttonTextColor": "on-primary-container",
+    "defaultActionButtonTextColor": "on-primary",
+    "actionButtonTextColor": "on-primary",
+    "flatButtonTextColor": "primary",
+    "defaultButtonRolloverTextColor": "on-primary-container",
+    "buttonRolloverTextColor": "on-primary-container",
+    "defaultActionButtonRolloverTextColor": "on-primary",
+    "actionButtonRolloverTextColor": "on-primary",
+    "flatButtonRolloverTextColor": "on-primary-container",
+    "defaultButtonPressedRolloverTextColor": "on-primary-container",
+    "buttonPressedRolloverTextColor": "on-primary-container",
+    "defaultActionButtonPressedRolloverTextColor": "on-primary",
+    "actionButtonPressedRolloverTextColor": "on-primary",
+    "flatButtonPressedRolloverTextColor": "on-primary-container",
+    "radioCheckTextColor": "on-surface",
+    "groupTextColor": "on-surface-variant",
+    "labelTextColor": "on-surface",
+    "windowColor": "surface",
+    "windowTextColor": "on-surface",
+    "dialogColor": "surface-container",
+    "dialogTextColor": "on-surface",
+    "workspaceColor": "surface-container-low",
+    "monoColor": "on-surface",
+    "fieldColor": "surface",
+    "fieldTextColor": "on-surface",
+    "fieldRolloverTextColor": "on-surface",
+    "activeColor": "primary",
+    "activeTextColor": "on-primary",
+    "activeBorderColor": "primary",
+    "deactiveColor": "disabled-container",
+    "deactiveTextColor": "outline",
+    "deactiveBorderColor": "outline-variant",
+    "menuColor": "surface",
+    "menuBarColor": "surface-container",
+    "menuBarRolloverColor": "primary-container",
+    "menuBorderColor": "outline-variant",
+    "menuTextColor": "on-surface",
+    "menuBarTextColor": "on-surface",
+    "menuBarRolloverTextColor": "on-primary-container",
+    "menuBarHighlightTextColor": "on-primary-container",
+    "menuHighlightColor": "primary-container",
+    "menuHighlightTextColor": "on-primary-container",
+    "highlightColor": "primary-container",
+    "highlightTextColor": "on-primary-container",
+    "activeTabColor": "primary-container",
+    "inactiveTabColor": "surface-container",
+    "tabTextColor": "on-surface-variant",
+    "tabRolloverTextColor": "on-surface",
+    "tabHighlightTextColor": "on-primary-container",
+    "disableColor": "disabled-container",
+    "helpColor": "inverse-surface",
+    "helpTextColor": "inverse-on-surface",
+    "linkColor": "primary",
+    "visitedLinkColor": "visited-link",
+    "toolTextColor": "on-surface",
+    "accentColor": "primary",
+    "listBoxWindowBackgroundColor": "surface",
+    "listBoxWindowTextColor": "on-surface",
+    "listBoxWindowHighlightColor": "primary-container",
+    "listBoxWindowHighlightTextColor": "on-primary-container",
+    "alternatingRowColor": "surface-container-low",
+    "warningColor": "warning-container",
+    "warningTextColor": "on-warning-container",
+    "errorColor": "error-container",
+    "errorTextColor": "on-error-container",
+}
+
+STYLE_SOURCE_CLOSURE = {
+    "accentColor": ("moAccentColor", "SetAccentColor"),
+    "listBoxWindowBackgroundColor": (
+        "moListBoxWindowBackgroundColor",
+        "SetListBoxWindowBackgroundColor",
+    ),
+    "listBoxWindowTextColor": (
+        "moListBoxWindowTextColor",
+        "SetListBoxWindowTextColor",
+    ),
+    "listBoxWindowHighlightColor": (
+        "moListBoxWindowHighlightColor",
+        "SetListBoxWindowHighlightColor",
+    ),
+    "listBoxWindowHighlightTextColor": (
+        "moListBoxWindowHighlightTextColor",
+        "SetListBoxWindowHighlightTextColor",
+    ),
+    "alternatingRowColor": ("moAlternatingRowColor", "SetAlternatingRowColor"),
+    "warningColor": ("moWarningColor", "SetWarningColor"),
+    "warningTextColor": ("moWarningTextColor", "SetWarningTextColor"),
+    "errorColor": ("moErrorColor", "SetErrorColor"),
+    "errorTextColor": ("moErrorTextColor", "SetErrorTextColor"),
+}
+
 REQUIRED_PARTS = {
     "pushbutton": {"Entire", "Focus"},
     "radiobutton": {"Entire", "Focus"},
@@ -103,6 +218,10 @@ def parse_color(value: str) -> tuple[int, int, int]:
     if not HEX_COLOR.fullmatch(value):
         fail(f"invalid RGB color {value!r}")
     return tuple(int(value[index : index + 2], 16) for index in (1, 3, 5))
+
+
+def format_color(color: tuple[int, int, int]) -> str:
+    return "#" + "".join(f"{component:02X}" for component in color)
 
 
 def linear_component(component: int) -> float:
@@ -184,6 +303,10 @@ def read_palettes(
             if element.tag != "color":
                 fail(f"palette {scheme!r} has unknown element <{element.tag}>")
             palette_elements.add(element)
+            if set(element.attrib) != {"name", "value"}:
+                fail(
+                    f"palette {scheme!r} <color> requires exactly name and value attributes"
+                )
             name = element.get("name", "")
             value = element.get("value", "")
             if not TOKEN_NAME.fullmatch(name):
@@ -191,6 +314,8 @@ def read_palettes(
             if name in tokens:
                 fail(f"duplicate token {name!r} in {scheme!r} palette")
             tokens[name] = parse_color(value)
+            if list(element) or (element.text or "").strip():
+                fail(f"palette {scheme!r} color {name!r} must not have content")
             if (element.tail or "").strip():
                 fail(f"palette {scheme!r} must not contain text")
         if not tokens:
@@ -217,6 +342,20 @@ def read_palettes(
             if extra_tokens:
                 details.append(f"extra {', '.join(extra_tokens)}")
             fail(f"palette {scheme!r} token mismatch: {'; '.join(details)}")
+
+    for scheme, expected_colors in REQUIRED_FEEDBACK_COLORS.items():
+        for name, expected_text in expected_colors.items():
+            actual = palettes[scheme].get(name)
+            if actual is None:
+                fail(
+                    f"{scheme} palette is missing required feedback token {name!r}"
+                )
+            expected = parse_color(expected_text)
+            if actual != expected:
+                fail(
+                    f"{scheme} palette token {name!r} must be {expected_text}, "
+                    f"found {format_color(actual)}"
+                )
 
     return palettes, palette_elements
 
@@ -278,6 +417,45 @@ def read_typography(root: ET.Element) -> dict[str, tuple[int, str]]:
     return roles
 
 
+def read_style(root: ET.Element, token_names: set[str]) -> dict[str, str]:
+    sections = root.findall("style")
+    if len(sections) != 1:
+        fail(f"expected exactly one <style> section, found {len(sections)}")
+    style = sections[0]
+    if style.attrib:
+        fail("style section must not have attributes")
+    if (style.text or "").strip():
+        fail("style section must not contain text")
+
+    references: dict[str, str] = {}
+    for element in style:
+        if element.tag not in REQUIRED_STYLE:
+            fail(f"style has unknown element <{element.tag}>")
+        name = element.tag
+        if name in references:
+            fail(f"duplicate style element <{name}>")
+        if list(element) or (element.text or "").strip():
+            fail(f"style <{name}> must not have content")
+        if (element.tail or "").strip():
+            fail("style section must not contain text")
+        if set(element.attrib) != {"value"}:
+            fail(f"style <{name}> requires exactly one value attribute")
+
+        expected_token = REQUIRED_STYLE[name]
+        value = element.get("value", "")
+        expected_value = f"@{expected_token}"
+        if value != expected_value:
+            fail(f"style <{name}> must reference {expected_value}")
+        if expected_token not in token_names:
+            fail(f"style <{name}> references unknown token {expected_token!r}")
+        references[name] = expected_token
+
+    missing = sorted(REQUIRED_STYLE.keys() - references.keys())
+    if missing:
+        fail(f"missing required style elements: {', '.join(missing)}")
+    return references
+
+
 def validate_native_typography_source(paths: tuple[Path, ...]) -> None:
     source = "\n".join(path.read_text(encoding="utf-8") for path in paths)
     source = re.sub(r"//[^\n]*|/\*.*?\*/", "", source, flags=re.DOTALL)
@@ -309,7 +487,35 @@ def validate_native_typography_source(paths: tuple[Path, ...]) -> None:
             fail(f"native typography source is missing pattern {pattern!r}")
 
 
-def validate(path: Path) -> tuple[int, int, int, int, int]:
+def validate_native_style_source(paths: tuple[Path, ...]) -> None:
+    source = "\n".join(path.read_text(encoding="utf-8") for path in paths)
+    source = re.sub(r"//[^\n]*|/\*.*?\*/", "", source, flags=re.DOTALL)
+
+    required: list[str] = []
+    for xml_name, (member, setter) in STYLE_SOURCE_CLOSURE.items():
+        required.extend(
+            (
+                rf"std::optional\s*<\s*Color\s*>\s+{member}",
+                rf'\{{\s*"{xml_name}"\s*,\s*&rWidgetDefinition\.mpStyle->{member}\s*\}}',
+                rf"if\s*\(\s*pDefinitionStyle->{member}\s*\)\s*"
+                rf"aStyleSet\.{setter}\s*\(\s*\*pDefinitionStyle->{member}\s*\)",
+            )
+        )
+
+    required.extend(
+        (
+            r"StyleSettings::SetWarningTextColor",
+            r"StyleSettings::SetErrorColor",
+            r"StyleSettings::SetErrorTextColor",
+            r"pGraphics\s*->\s*UpdateSettings\s*\(",
+        )
+    )
+    for pattern in required:
+        if re.search(pattern, source) is None:
+            fail(f"native style source is missing pattern {pattern!r}")
+
+
+def validate(path: Path) -> tuple[int, int, int, int, int, int]:
     parser = ET.XMLParser(target=ET.TreeBuilder(insert_pis=True))
     root = ET.parse(path, parser=parser).getroot()
     if root.tag != "widgets":
@@ -326,22 +532,11 @@ def validate(path: Path) -> tuple[int, int, int, int, int]:
     if settings.find("defaultFontSize") is not None:
         fail("Material typography must not replace the native font with defaultFontSize")
 
-    references: set[str] = set()
-    style = root.find("style")
-    if style is None:
-        fail("missing <style>")
+    style_references = read_style(root, token_names)
+    references: set[str] = set(style_references.values())
 
-    style_references: dict[str, str] = {}
-    for element in style:
-        value = element.get("value", "")
-        match = TOKEN_REFERENCE.fullmatch(value)
-        if match is None:
-            fail(f"style {element.tag} must reference a semantic token")
-        name = match.group(1)
-        if name not in token_names:
-            fail(f"style {element.tag} references unknown token {name!r}")
-        references.add(name)
-        style_references[element.tag] = name
+    if any(not isinstance(element.tag, str) for element in root.iter()):
+        fail("Material definition must not contain processing instructions")
 
     for element in root.iter():
         if element in palette_elements:
@@ -419,6 +614,10 @@ def validate(path: Path) -> tuple[int, int, int, int, int]:
         )
 
     contrast_pairs = (
+        ("listBoxWindowTextColor", "listBoxWindowBackgroundColor"),
+        ("listBoxWindowHighlightTextColor", "listBoxWindowHighlightColor"),
+        ("warningTextColor", "warningColor"),
+        ("errorTextColor", "errorColor"),
         ("windowTextColor", "windowColor"),
         ("fieldTextColor", "fieldColor"),
         ("menuTextColor", "menuColor"),
@@ -461,7 +660,14 @@ def validate(path: Path) -> tuple[int, int, int, int, int]:
     part_count = sum(len(control.findall("part")) for control in root
                      if control.tag not in {"palette", "style", "settings", "typography"})
     state_count = sum(1 for _ in root.iter("state"))
-    return len(palettes), len(token_names), len(typography), part_count, state_count
+    return (
+        len(palettes),
+        len(token_names),
+        len(typography),
+        len(style_references),
+        part_count,
+        state_count,
+    )
 
 
 def main() -> int:
@@ -485,16 +691,33 @@ def main() -> int:
     )
     args = parser.parse_args()
     try:
-        scheme_count, token_count, typography_count, part_count, state_count = validate(
-            args.definition
-        )
+        (
+            scheme_count,
+            token_count,
+            typography_count,
+            style_count,
+            part_count,
+            state_count,
+        ) = validate(args.definition)
         validate_native_typography_source((args.renderer, args.typography_source))
+        validate_native_style_source(
+            (
+                repository / "vcl/inc/widgetdraw/WidgetDefinition.hxx",
+                repository / "vcl/source/gdi/WidgetDefinitionReader.cxx",
+                args.renderer,
+                repository / "include/vcl/settings.hxx",
+                repository / "vcl/source/app/settings.cxx",
+                repository
+                / "vcl/qa/cppunit/widgetdraw/FileDefinitionWidgetDrawTest.cxx",
+            )
+        )
     except (ET.ParseError, OSError, ValidationError) as error:
         print(f"{args.definition}: {error}", file=sys.stderr)
         return 1
     print(
         f"Material theme OK: {scheme_count} schemes, {token_count} tokens each, "
-        f"{typography_count} typography roles, {part_count} parts, {state_count} states"
+        f"{typography_count} typography roles, {style_count} style slots, "
+        f"{part_count} parts, {state_count} states"
     )
     return 0
 

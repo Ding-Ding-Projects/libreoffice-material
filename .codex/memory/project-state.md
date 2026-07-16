@@ -12,10 +12,10 @@ licensing and provenance.
 
 ## Current milestone
 
-**Phase 1 — fourth Material VCL source milestone, in progress. Phase 0's native
+**Phase 1 — fifth Material VCL source milestone, in progress. Phase 0's native
 build/evidence gate remains open.**
 
-The repository contains an imported LibreOffice source baseline, four native
+The repository contains an imported LibreOffice source baseline, five native
 Material source milestones, a design contract, roadmap, published GitHub Pages
 site, screenshot registry, and headless evidence plan. The third milestone adds
 matched light/dark profiles, source-level high-contrast fallback routing,
@@ -24,6 +24,9 @@ dark selection, standalone spin controls, and a dedicated headless drawing test
 target. The automation harness has passed a Notepad-only off-screen preflight.
 The fourth milestone adds strict semantic typography roles that derive from the
 captured native font baseline instead of replacing platform/user fonts.
+The fifth milestone closes all 72 `StyleSettings` color slots with exact
+Material mappings, including list/collection and warning/error feedback roles,
+while keeping the ten additions optional for partial legacy themes.
 The native source has not been built or run as LibreOffice, so this does not
 prove a whole-GUI rewrite or any completed application surface.
 
@@ -66,10 +69,15 @@ prove a whole-GUI rewrite or any completed application surface.
   nonshrinking relative size policy; baseline-derived idempotent refresh;
   accessibility-safe title-height minima; expanded XML-walker APIs/tests; and
   malformed typography fixtures.
-- Local source validation passes for 2 schemes, 19 color tokens each, 3
-  typography roles, 74 parts, 190 states, selected WCAG contrast pairs, native
-  font source invariants, XML parsing, C++ formatting, and whitespace. The
-  affected C++ targets remain unexecuted.
+- Fifth Material VCL source milestone: 23-token light/dark palettes; an exact
+  72-slot Material style schema; optional accent, list-box, alternating-row,
+  warning, and error reader fields; conditional renderer application that
+  preserves omitted legacy values; and source-level real-renderer dispatch,
+  idempotence, and high-contrast fallback assertions.
+- Local source validation passes for 2 schemes, 23 color tokens each, 3
+  typography roles, 72 style slots, 74 parts, 190 states, selected WCAG
+  contrast pairs, native font source invariants, XML parsing, and whitespace.
+  The affected C++ targets remain unexecuted.
 - GitHub Actions source-validation run `29517978358` completed successfully for
   third-milestone commit `ddeec51e886f4642718eaa626ea2f48cdd9aa6a8`.
 - GitHub Actions source-validation run `29522004268` completed successfully for
@@ -148,8 +156,9 @@ prove a whole-GUI rewrite or any completed application surface.
 
 The low-level driver is external test tooling, not another deliverable of the
 LibreOffice Material product. One product repository remains sufficient, so no
-master repository or submodule graph is currently justified. If later work
-creates several independently versioned product repositories, a separate master
-repository must pin them as Git submodules. That orchestration decision does not
-convert unverified external state into evidence and must record exact submodule
-commits.
+additional project-level master repository or product submodule graph is
+currently justified; this does not describe LibreOffice's imported optional
+upstream source submodules. If later work creates several independently
+versioned product repositories, a separate master repository must pin them as
+Git submodules. That orchestration decision does not convert unverified external
+state into evidence and must record exact submodule commits.

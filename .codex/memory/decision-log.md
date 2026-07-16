@@ -144,3 +144,17 @@
   `close_headless_desktop` does not close applications, and enumeration does not
   report PID. Run isolation prevents stale handles or unrelated LibreOffice
   processes from being mistaken for a clean, attributable test.
+
+## D-014 — close Material colors without breaking partial themes
+
+- Date: 2026-07-16
+- State: implemented source; build verification pending
+- Decision: map all 72 `StyleSettings` color slots in the Material definition,
+  including accent, list-box collection/selection, alternating rows, and
+  warning/error feedback. Represent the ten newly reader-addressable slots as
+  optional colors and apply them only when declared. Require every slot and its
+  exact semantic token in the Material validator, while leaving the general
+  reader compatible with partial bundled and out-of-tree themes.
+- Reason: unthemed collection and feedback colors make a light/dark Material
+  profile visibly incoherent, but unconditionally applying default-constructed
+  values would regress older definitions such as the partial iOS theme.

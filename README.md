@@ -4,7 +4,7 @@ An experimental LibreOffice engineering fork exploring a suite-wide Material
 Design 3 interface while retaining LibreOffice's native implementation stack,
 document engine, file-format support, and accessibility foundations.
 
-> **Current development focus: Phase 1 — fourth Material VCL source milestone.**
+> **Current development focus: Phase 1 — fifth Material VCL source milestone.**
 > Phase 0's native-build and application-evidence gate remains open. Semantic
 > widget tokens, stricter VCL definition parsing, broader state coverage, and
 > Start Center changes are present in source, but they have **not** been compiled
@@ -23,7 +23,7 @@ document engine, file-format support, and accessibility foundations.
 | --- | --- | --- |
 | LibreOffice source baseline | Imported | This repository's initial tree matches upstream commit `63584e7f9f0cdc74b0e004bcbf88e5c3b42dba21` |
 | Material design direction | Initial specification | [`MATERIAL_DESIGN.md`](MATERIAL_DESIGN.md) |
-| Material VCL implementation | Fourth source milestone, unbuilt | Light/dark profile routing, strict palette and typography parsing, native-preserving semantic type roles, high-contrast fallback, shared renderer fixes, static validation, and Start Center source changes are present; build and runtime gates remain open |
+| Material VCL implementation | Fifth source milestone, unbuilt | Light/dark profile routing, complete semantic `StyleSettings` color mapping, strict palette/style/typography validation, native-preserving semantic type roles, high-contrast fallback, shared renderer fixes, and Start Center source changes are present; build and runtime gates remain open |
 | Whole-suite implementation | Incomplete | Phased work remains in [`ROADMAP.md`](ROADMAP.md) |
 | Verified UI screenshots | None yet | The truthful empty registry is in [`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md) |
 | Headless harness | Preflight passed; LibreOffice not run | A temporary Notepad-only driver preflight proved the off-screen mechanics, not this UI; see [`docs/HEADLESS_UI_EVIDENCE.md`](docs/HEADLESS_UI_EVIDENCE.md) |
@@ -37,8 +37,12 @@ The implementation is intentionally opt-in and shared-layer first. The current
 source includes:
 
 - a packaged `material/definition.xml` file-widget theme with matching light and
-  dark palettes of 19 semantic color roles each, 74 definition-backed parts,
+  dark palettes of 23 semantic color roles each, 74 definition-backed parts,
   and 190 component states;
+- an exact 72-slot Material style contract that closes the ten previously
+  native-dependent accent, list-box collection, alternating-row, warning, and
+  error colors; these newer reader fields remain optional so partial legacy and
+  out-of-tree file themes preserve native values when a role is omitted;
 - typed `body`, `label`, and `title` roles with bounded relative scaling and a
   strict minimum-weight vocabulary; each role copies the captured platform font,
   applies the declared nonshrinking height scale, and only raises weight to the
@@ -68,20 +72,20 @@ source includes:
 - shared renderer corrections for composite combo geometry and RTL placement,
   toolbar grips, standalone spin geometry and direction, native control regions,
   slider sizing, and raw graphics-state invalidation;
-- a standalone source validator for semantic-token and typography use,
-  required parts and states, light/dark schema parity, unused tokens, native
-  font-preservation invariants, and selected WCAG contrast pairs, plus reader,
+- a standalone source validator for exact semantic-token, 72-slot style, and
+  typography use, required parts and states, light/dark schema parity, unused
+  tokens, native font-preservation invariants, and selected WCAG contrast
+  pairs—including list selection and warning/error feedback—plus reader,
   XML-walker, and headless draw C++ coverage with negative XML fixtures;
 - Start Center spacing, a Home header/subtitle, surface roles, and recent/template
   text and fill colors derived from VCL style settings.
 
-The local static validator passes with 2 schemes, 19 semantic color tokens per
-scheme, 3 semantic typography roles, 74 parts, and 190 states. This is source
-validation only: no affected C++ test target or `soffice` has run, no
-application surface is verified Material-complete, and the screenshot count
-remains 0. Controls whose current
-file-widget geometry cannot preserve native semantics continue through
-LibreOffice's existing fallback.
+The local static validator passes with 2 schemes, 23 semantic color tokens per
+scheme, 3 semantic typography roles, 72 style slots, 74 parts, and 190 states.
+This is source validation only: no affected C++ test target or `soffice` has
+run, no application surface is verified Material-complete, and the screenshot
+count remains 0. Controls whose current file-widget geometry cannot preserve
+native semantics continue through LibreOffice's existing fallback.
 
 Once a compatible LibreOffice build exists, the intended Windows opt-in is to
 set both variables before launching the built application:

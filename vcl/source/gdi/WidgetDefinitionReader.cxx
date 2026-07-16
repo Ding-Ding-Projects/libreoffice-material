@@ -771,6 +771,22 @@ bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
         { "toolTextColor", &rWidgetDefinition.mpStyle->maToolTextColor },
     };
 
+    std::unordered_map<std::string_view, std::optional<Color>*> aOptionalStyleColorMap = {
+        { "accentColor", &rWidgetDefinition.mpStyle->moAccentColor },
+        { "listBoxWindowBackgroundColor",
+          &rWidgetDefinition.mpStyle->moListBoxWindowBackgroundColor },
+        { "listBoxWindowTextColor", &rWidgetDefinition.mpStyle->moListBoxWindowTextColor },
+        { "listBoxWindowHighlightColor",
+          &rWidgetDefinition.mpStyle->moListBoxWindowHighlightColor },
+        { "listBoxWindowHighlightTextColor",
+          &rWidgetDefinition.mpStyle->moListBoxWindowHighlightTextColor },
+        { "alternatingRowColor", &rWidgetDefinition.mpStyle->moAlternatingRowColor },
+        { "warningColor", &rWidgetDefinition.mpStyle->moWarningColor },
+        { "warningTextColor", &rWidgetDefinition.mpStyle->moWarningTextColor },
+        { "errorColor", &rWidgetDefinition.mpStyle->moErrorColor },
+        { "errorTextColor", &rWidgetDefinition.mpStyle->moErrorTextColor },
+    };
+
     rWidgetDefinition.mpSettings = std::make_shared<WidgetDefinitionSettings>();
 
     std::unordered_map<std::string_view, OString*> aSettingMap = {
@@ -809,11 +825,23 @@ bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
             aWalker.children();
             while (aWalker.isValid())
             {
-                auto pair = aStyleColorMap.find(aWalker.name());
-                if (pair != aStyleColorMap.end())
+                auto aOptional = aOptionalStyleColorMap.find(aWalker.name());
+                if (aOptional != aOptionalStyleColorMap.end())
                 {
-                    if (!readColor(aWalker.attribute("value"_ostr), *pair->second))
+                    Color aColor;
+                    if (readColor(aWalker.attribute("value"_ostr), aColor))
+                        *aOptional->second = aColor;
+                    else
                         m_bValid = false;
+                }
+                else
+                {
+                    auto aColor = aStyleColorMap.find(aWalker.name());
+                    if (aColor != aStyleColorMap.end()
+                        && !readColor(aWalker.attribute("value"_ostr), *aColor->second))
+                    {
+                        m_bValid = false;
+                    }
                 }
                 aWalker.next();
             }

@@ -48,8 +48,12 @@ Exit gate:
 
 Implemented source milestones:
 
-- packaged `material/definition.xml` with matched light and dark palettes of 19
+- packaged `material/definition.xml` with matched light and dark palettes of 23
   semantic roles each, 74 definition-backed parts, and 190 control states;
+- exact semantic coverage for all 72 `StyleSettings` color slots, including the
+  formerly native-dependent accent, list-box collection/selection,
+  alternating-row, warning, and error roles; the ten additions are optional in
+  the general reader so partial legacy themes keep their native values;
 - opt-in `VCL_FILE_WIDGET_THEME=material` selection behind the existing
   `VCL_DRAW_WIDGETS_FROM_FILE` gate, with safe theme names, shared immutable
   definitions, and successful-load caching keyed by theme and scheme; failed
@@ -77,13 +81,16 @@ Implemented source milestones:
 - composite combo/RTL geometry, native-region and slider sizing corrections,
   exact standalone spin geometry/direction, and native graphics line/fill cache
   invalidation;
-- local static validation for token discipline, required parts/states, unused
-  tokens, light/dark schema parity, and selected contrast pairs, with reader and
-  headless drawing C++ targets plus negative fixtures.
+- local static validation for token discipline, an exact 72-slot Material style
+  schema, required parts/states, unused tokens, light/dark schema parity, and
+  selected contrast pairs, with reader and headless drawing C++ targets plus
+  negative fixtures; the headless target now includes source coverage that
+  dispatches settings through the real file renderer.
 
-The standalone validator passes with 2 schemes, 19 color tokens each, 3
-typography roles, 74 parts, and 190 states. No affected C++ target has been
-compiled or executed, and none of this source has run in LibreOffice yet.
+The standalone validator passes with 2 schemes, 23 color tokens each, 3
+typography roles, 72 style slots, 74 parts, and 190 states. No affected C++
+target has been compiled or executed, and none of this source has run in
+LibreOffice yet.
 
 - build/runtime verification of light/dark, focus, and high-contrast routing,
   plus complete forced-color and platform-signal coverage;

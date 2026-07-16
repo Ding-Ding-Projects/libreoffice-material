@@ -331,6 +331,31 @@ void WidgetDefinitionReaderTest::testReadMaterialTheme()
     CPPUNIT_ASSERT_EQUAL(u"ffffff"_ustr,
                          aDefinition.mpStyle->maActionButtonTextColor.AsRGBHexString());
     CPPUNIT_ASSERT_EQUAL(u"f4eff4"_ustr, aDefinition.mpStyle->maHelpTextColor.AsRGBHexString());
+    CPPUNIT_ASSERT(aDefinition.mpStyle->moAccentColor);
+    CPPUNIT_ASSERT_EQUAL(u"6750a4"_ustr, aDefinition.mpStyle->moAccentColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDefinition.mpStyle->moListBoxWindowBackgroundColor);
+    CPPUNIT_ASSERT_EQUAL(u"fffbfe"_ustr,
+                         aDefinition.mpStyle->moListBoxWindowBackgroundColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDefinition.mpStyle->moListBoxWindowTextColor);
+    CPPUNIT_ASSERT_EQUAL(u"1d1b20"_ustr,
+                         aDefinition.mpStyle->moListBoxWindowTextColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDefinition.mpStyle->moListBoxWindowHighlightColor);
+    CPPUNIT_ASSERT_EQUAL(u"e8def8"_ustr,
+                         aDefinition.mpStyle->moListBoxWindowHighlightColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDefinition.mpStyle->moListBoxWindowHighlightTextColor);
+    CPPUNIT_ASSERT_EQUAL(u"1d192b"_ustr,
+                         aDefinition.mpStyle->moListBoxWindowHighlightTextColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDefinition.mpStyle->moAlternatingRowColor);
+    CPPUNIT_ASSERT_EQUAL(u"f7f2fa"_ustr,
+                         aDefinition.mpStyle->moAlternatingRowColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDefinition.mpStyle->moWarningColor);
+    CPPUNIT_ASSERT_EQUAL(u"ffddb3"_ustr, aDefinition.mpStyle->moWarningColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDefinition.mpStyle->moWarningTextColor);
+    CPPUNIT_ASSERT_EQUAL(u"2a1800"_ustr, aDefinition.mpStyle->moWarningTextColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDefinition.mpStyle->moErrorColor);
+    CPPUNIT_ASSERT_EQUAL(u"f9dedc"_ustr, aDefinition.mpStyle->moErrorColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDefinition.mpStyle->moErrorTextColor);
+    CPPUNIT_ASSERT_EQUAL(u"410e0b"_ustr, aDefinition.mpStyle->moErrorTextColor->AsRGBHexString());
     CPPUNIT_ASSERT_EQUAL("12"_ostr, aDefinition.mpSettings->msListBoxEntryMargin);
     CPPUNIT_ASSERT(aDefinition.mpTypography);
     CPPUNIT_ASSERT_EQUAL(sal_Int32(100), aDefinition.mpTypography->maBody.mnScalePercent);
@@ -391,6 +416,18 @@ void WidgetDefinitionReaderTest::testReadMaterialTheme()
                    >= 4.5);
     CPPUNIT_ASSERT(
         contrastRatio(aDefinition.mpStyle->maHelpTextColor, aDefinition.mpStyle->maHelpColor)
+        >= 4.5);
+    CPPUNIT_ASSERT(contrastRatio(*aDefinition.mpStyle->moListBoxWindowTextColor,
+                                 *aDefinition.mpStyle->moListBoxWindowBackgroundColor)
+                   >= 4.5);
+    CPPUNIT_ASSERT(contrastRatio(*aDefinition.mpStyle->moListBoxWindowHighlightTextColor,
+                                 *aDefinition.mpStyle->moListBoxWindowHighlightColor)
+                   >= 4.5);
+    CPPUNIT_ASSERT(contrastRatio(*aDefinition.mpStyle->moWarningTextColor,
+                                 *aDefinition.mpStyle->moWarningColor)
+                   >= 4.5);
+    CPPUNIT_ASSERT(
+        contrastRatio(*aDefinition.mpStyle->moErrorTextColor, *aDefinition.mpStyle->moErrorColor)
         >= 4.5);
 
     auto pPushButton = aDefinition.getDefinition(ControlType::Pushbutton, ControlPart::Entire);
@@ -592,8 +629,48 @@ void WidgetDefinitionReaderTest::testReadMaterialTheme()
                          aDarkDefinition.mpStyle->maWindowTextColor.AsRGBHexString());
     CPPUNIT_ASSERT_EQUAL(u"381e72"_ustr,
                          aDarkDefinition.mpStyle->maActionButtonTextColor.AsRGBHexString());
+    CPPUNIT_ASSERT(aDarkDefinition.mpStyle->moAccentColor);
+    CPPUNIT_ASSERT_EQUAL(u"d0bcff"_ustr, aDarkDefinition.mpStyle->moAccentColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDarkDefinition.mpStyle->moListBoxWindowBackgroundColor);
+    CPPUNIT_ASSERT_EQUAL(u"141218"_ustr,
+                         aDarkDefinition.mpStyle->moListBoxWindowBackgroundColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDarkDefinition.mpStyle->moListBoxWindowTextColor);
+    CPPUNIT_ASSERT_EQUAL(u"e6e0e9"_ustr,
+                         aDarkDefinition.mpStyle->moListBoxWindowTextColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDarkDefinition.mpStyle->moListBoxWindowHighlightColor);
+    CPPUNIT_ASSERT_EQUAL(u"4f378b"_ustr,
+                         aDarkDefinition.mpStyle->moListBoxWindowHighlightColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDarkDefinition.mpStyle->moListBoxWindowHighlightTextColor);
+    CPPUNIT_ASSERT_EQUAL(
+        u"eaddff"_ustr,
+        aDarkDefinition.mpStyle->moListBoxWindowHighlightTextColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDarkDefinition.mpStyle->moAlternatingRowColor);
+    CPPUNIT_ASSERT_EQUAL(u"1d1b20"_ustr,
+                         aDarkDefinition.mpStyle->moAlternatingRowColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDarkDefinition.mpStyle->moWarningColor);
+    CPPUNIT_ASSERT_EQUAL(u"5f4100"_ustr, aDarkDefinition.mpStyle->moWarningColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDarkDefinition.mpStyle->moWarningTextColor);
+    CPPUNIT_ASSERT_EQUAL(u"ffddb3"_ustr,
+                         aDarkDefinition.mpStyle->moWarningTextColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDarkDefinition.mpStyle->moErrorColor);
+    CPPUNIT_ASSERT_EQUAL(u"8c1d18"_ustr, aDarkDefinition.mpStyle->moErrorColor->AsRGBHexString());
+    CPPUNIT_ASSERT(aDarkDefinition.mpStyle->moErrorTextColor);
+    CPPUNIT_ASSERT_EQUAL(u"f9dedc"_ustr,
+                         aDarkDefinition.mpStyle->moErrorTextColor->AsRGBHexString());
     CPPUNIT_ASSERT(contrastRatio(aDarkDefinition.mpStyle->maWindowTextColor,
                                  aDarkDefinition.mpStyle->maWindowColor)
+                   >= 4.5);
+    CPPUNIT_ASSERT(contrastRatio(*aDarkDefinition.mpStyle->moListBoxWindowTextColor,
+                                 *aDarkDefinition.mpStyle->moListBoxWindowBackgroundColor)
+                   >= 4.5);
+    CPPUNIT_ASSERT(contrastRatio(*aDarkDefinition.mpStyle->moListBoxWindowHighlightTextColor,
+                                 *aDarkDefinition.mpStyle->moListBoxWindowHighlightColor)
+                   >= 4.5);
+    CPPUNIT_ASSERT(contrastRatio(*aDarkDefinition.mpStyle->moWarningTextColor,
+                                 *aDarkDefinition.mpStyle->moWarningColor)
+                   >= 4.5);
+    CPPUNIT_ASSERT(contrastRatio(*aDarkDefinition.mpStyle->moErrorTextColor,
+                                 *aDarkDefinition.mpStyle->moErrorColor)
                    >= 4.5);
     CPPUNIT_ASSERT(aDarkDefinition.mpTypography);
     CPPUNIT_ASSERT_EQUAL(aDefinition.mpTypography->maBody.mnScalePercent,
@@ -681,6 +758,16 @@ void WidgetDefinitionReaderTest::testRead()
     CPPUNIT_ASSERT_EQUAL(u"ffffff"_ustr, aDefinition.mpStyle->maVisitedLinkColor.AsRGBHexString());
     CPPUNIT_ASSERT_EQUAL(u"ffffff"_ustr, aDefinition.mpStyle->maToolTextColor.AsRGBHexString());
     CPPUNIT_ASSERT_EQUAL(u"ffffff"_ustr, aDefinition.mpStyle->maWindowTextColor.AsRGBHexString());
+    CPPUNIT_ASSERT(!aDefinition.mpStyle->moAccentColor);
+    CPPUNIT_ASSERT(!aDefinition.mpStyle->moListBoxWindowBackgroundColor);
+    CPPUNIT_ASSERT(!aDefinition.mpStyle->moListBoxWindowTextColor);
+    CPPUNIT_ASSERT(!aDefinition.mpStyle->moListBoxWindowHighlightColor);
+    CPPUNIT_ASSERT(!aDefinition.mpStyle->moListBoxWindowHighlightTextColor);
+    CPPUNIT_ASSERT(!aDefinition.mpStyle->moAlternatingRowColor);
+    CPPUNIT_ASSERT(!aDefinition.mpStyle->moWarningColor);
+    CPPUNIT_ASSERT(!aDefinition.mpStyle->moWarningTextColor);
+    CPPUNIT_ASSERT(!aDefinition.mpStyle->moErrorColor);
+    CPPUNIT_ASSERT(!aDefinition.mpStyle->moErrorTextColor);
 
     // Pushbutton
     {

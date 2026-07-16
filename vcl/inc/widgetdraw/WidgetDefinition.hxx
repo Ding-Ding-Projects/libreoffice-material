@@ -12,6 +12,7 @@
 
 #include <vcl/dllapi.h>
 #include <memory>
+#include <optional>
 #include <rtl/ustring.hxx>
 #include <tools/color.hxx>
 #include <unordered_map>
@@ -304,6 +305,19 @@ public:
     Color maLinkColor;
     Color maVisitedLinkColor;
     Color maToolTextColor;
+
+    // Optional so older and out-of-tree file themes retain native values for
+    // StyleSettings roles they do not define.
+    std::optional<Color> moAccentColor;
+    std::optional<Color> moListBoxWindowBackgroundColor;
+    std::optional<Color> moListBoxWindowTextColor;
+    std::optional<Color> moListBoxWindowHighlightColor;
+    std::optional<Color> moListBoxWindowHighlightTextColor;
+    std::optional<Color> moAlternatingRowColor;
+    std::optional<Color> moWarningColor;
+    std::optional<Color> moWarningTextColor;
+    std::optional<Color> moErrorColor;
+    std::optional<Color> moErrorTextColor;
 };
 
 class VCL_DLLPUBLIC WidgetDefinition

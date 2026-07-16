@@ -12,9 +12,11 @@
 #include <frozen/bits/elsa_std.h>
 #include <frozen/unordered_map.h>
 
+#include <algorithm>
+#include <initializer_list>
 #include <map>
-#include <unordered_map>
 #include <optional>
+#include <unordered_map>
 #include <utility>
 
 #include <widgetdraw/WidgetDefinitionReader.hxx>
@@ -67,6 +69,179 @@ bool haveSameColorTokenNames(std::map<OString, Color> const& rFirst,
         ++aSecond;
     }
     return true;
+}
+
+bool haveOnlyAttributes(tools::XmlWalker const& rWalker,
+                        std::initializer_list<std::string_view> aAllowed)
+{
+    for (const OString& rAttribute : rWalker.attributeNames())
+    {
+        const std::string_view aAttribute(rAttribute.getStr(), rAttribute.getLength());
+        if (std::find(aAllowed.begin(), aAllowed.end(), aAttribute) == aAllowed.end())
+        {
+            SAL_WARN("vcl.gdi", "Unsupported file-widget typography attribute: " << rAttribute);
+            return false;
+        }
+    }
+    return true;
+}
+
+std::optional<WidgetDefinitionFontWeight> xmlStringToTypographyWeight(std::string_view rWeight)
+{
+    if (rWeight == "preserve")
+        return WidgetDefinitionFontWeight::Preserve;
+    if (rWeight == "normal")
+        return WidgetDefinitionFontWeight::Normal;
+    if (rWeight == "medium")
+        return WidgetDefinitionFontWeight::Medium;
+    if (rWeight == "semibold")
+        return WidgetDefinitionFontWeight::SemiBold;
+    if (rWeight == "bold")
+        return WidgetDefinitionFontWeight::Bold;
+    return std::nullopt;
+}
+
+std::optional<sal_Int32> readTypographyScale(OString const& rScale)
+{
+    if (rScale.getLength() != 3)
+        return std::nullopt;
+    for (sal_Int32 i = 0; i < rScale.getLength(); ++i)
+    {
+        if (rScale[i] < '0' || rScale[i] > '9')
+            return std::nullopt;
+    }
+
+    const sal_Int32 nScale = rScale.toInt32();
+    if (nScale < 100 || nScale > 200)
+        return std::nullopt;
+    return nScale;
+}
+
+bool hasTypographyRoleContent(tools::XmlWalker& rWalker)
+{
+    bool bHasContent = false;
+    rWalker.children();
+    while (rWalker.isValid())
+    {
+        if (!rWalker.isBlank() && !rWalker.isComment())
+            bHasContent = true;
+        rWalker.next();
+    }
+    rWalker.parent();
+    return bHasContent;
+}
+
+bool readTypography(tools::XmlWalker& rWalker, WidgetDefinitionTypography& rTypography)
+{
+    bool bValid = true;
+    if (!rWalker.attributeNames().empty())
+    {
+        SAL_WARN("vcl.gdi", "File-widget typography section must not have attributes");
+        bValid = false;
+    }
+
+    bool bHasBody = false;
+    bool bHasLabel = false;
+    bool bHasTitle = false;
+
+    rWalker.children();
+    while (rWalker.isValid())
+    {
+        if (!rWalker.isElement())
+        {
+            if (!rWalker.isBlank() && !rWalker.isComment())
+            {
+                SAL_WARN("vcl.gdi", "Unexpected content in file-widget typography section");
+                bValid = false;
+            }
+            rWalker.next();
+            continue;
+        }
+        if (rWalker.name() != "role")
+        {
+            SAL_WARN("vcl.gdi", "Unsupported file-widget typography element: " << rWalker.name());
+            bValid = false;
+            rWalker.next();
+            continue;
+        }
+
+        const auto aAttributes = rWalker.attributeNames();
+        if (aAttributes.size() != 3 || !haveOnlyAttributes(rWalker, { "name", "scale", "weight" }))
+        {
+            SAL_WARN("vcl.gdi", "File-widget typography roles require name, scale, and weight");
+            bValid = false;
+        }
+
+        const OString aName = rWalker.attribute("name"_ostr);
+        WidgetDefinitionTypographyRole* pRole = nullptr;
+        bool* pSeen = nullptr;
+        if (aName == "body")
+        {
+            pRole = &rTypography.maBody;
+            pSeen = &bHasBody;
+        }
+        else if (aName == "label")
+        {
+            pRole = &rTypography.maLabel;
+            pSeen = &bHasLabel;
+        }
+        else if (aName == "title")
+        {
+            pRole = &rTypography.maTitle;
+            pSeen = &bHasTitle;
+        }
+        else
+        {
+            SAL_WARN("vcl.gdi", "Unknown file-widget typography role: " << aName);
+            bValid = false;
+        }
+
+        if (pSeen && *pSeen)
+        {
+            SAL_WARN("vcl.gdi", "Duplicate file-widget typography role: " << aName);
+            bValid = false;
+            pRole = nullptr;
+        }
+        if (pSeen)
+            *pSeen = true;
+
+        const OString aScale = rWalker.attribute("scale"_ostr);
+        const auto nScale = readTypographyScale(aScale);
+        if (!nScale)
+        {
+            SAL_WARN("vcl.gdi", "Invalid file-widget typography scale: " << aScale);
+            bValid = false;
+        }
+
+        const OString aWeight = rWalker.attribute("weight"_ostr);
+        const auto eWeight = xmlStringToTypographyWeight(aWeight);
+        if (!eWeight)
+        {
+            SAL_WARN("vcl.gdi", "Invalid file-widget typography weight: " << aWeight);
+            bValid = false;
+        }
+
+        if (pRole && nScale && eWeight)
+        {
+            pRole->mnScalePercent = *nScale;
+            pRole->meWeight = *eWeight;
+        }
+
+        if (hasTypographyRoleContent(rWalker))
+        {
+            SAL_WARN("vcl.gdi", "File-widget typography roles must not have content");
+            bValid = false;
+        }
+        rWalker.next();
+    }
+    rWalker.parent();
+
+    if (!bHasBody || !bHasLabel || !bHasTitle)
+    {
+        SAL_WARN("vcl.gdi", "File-widget typography requires body, label, and title roles");
+        bValid = false;
+    }
+    return bValid;
 }
 
 std::optional<ControlPart> xmlStringToControlPart(std::string_view sPart)
@@ -225,6 +400,16 @@ bool WidgetDefinitionReader::readColorPalette(tools::XmlWalker& rWalker,
     rWalker.children();
     while (rWalker.isValid())
     {
+        if (!rWalker.isElement())
+        {
+            if (!rWalker.isBlank() && !rWalker.isComment())
+            {
+                SAL_WARN("vcl.gdi", "Unexpected content in file-widget color palette");
+                bValid = false;
+            }
+            rWalker.next();
+            continue;
+        }
         if (rWalker.name() == "color")
         {
             OString const sName = rWalker.attribute("name"_ostr);
@@ -449,6 +634,7 @@ bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
     m_aColorTokens.clear();
     m_bValid = true;
     rWidgetDefinition.maDefinitions.clear();
+    rWidgetDefinition.mpTypography.reset();
 
     // Resolve every palette in a dedicated pass so definitions may place them
     // anywhere under the root without making token use order-dependent. All
@@ -609,6 +795,7 @@ bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
     if (aWalker.name() != "widgets")
         return false;
 
+    bool bHasTypography = false;
     aWalker.children();
     while (aWalker.isValid())
     {
@@ -645,6 +832,20 @@ bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
                 aWalker.next();
             }
             aWalker.parent();
+        }
+        else if (aWalker.name() == "typography")
+        {
+            auto pTypography = std::make_shared<WidgetDefinitionTypography>();
+            if (!readTypography(aWalker, *pTypography))
+                m_bValid = false;
+            if (bHasTypography)
+            {
+                SAL_WARN("vcl.gdi", "Duplicate file-widget typography section");
+                m_bValid = false;
+            }
+            else
+                rWidgetDefinition.mpTypography = std::move(pTypography);
+            bHasTypography = true;
         }
         else if (getControlTypeForXmlString(aWalker.name(), eType))
         {

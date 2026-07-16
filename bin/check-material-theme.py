@@ -21,6 +21,12 @@ TOKEN_NAME = re.compile(r"^[a-z][a-z0-9-]*$")
 HEX_COLOR = re.compile(r"^#[0-9A-Fa-f]{6}$")
 TOKEN_REFERENCE = re.compile(r"^@([a-z][a-z0-9-]*)$")
 REQUIRED_SCHEMES = {"light", "dark"}
+ALLOWED_TYPOGRAPHY_WEIGHTS = {"preserve", "normal", "medium", "semibold", "bold"}
+REQUIRED_TYPOGRAPHY = {
+    "body": (100, "preserve"),
+    "label": (100, "medium"),
+    "title": (120, "semibold"),
+}
 
 REQUIRED_PARTS = {
     "pushbutton": {"Entire", "Focus"},
@@ -170,6 +176,8 @@ def read_palettes(
             fail(f"invalid palette scheme {scheme!r}")
         if scheme in palettes:
             fail(f"duplicate palette scheme {scheme!r}")
+        if (palette.text or "").strip():
+            fail(f"palette {scheme!r} must not contain text")
 
         tokens: dict[str, tuple[int, int, int]] = {}
         for element in palette:
@@ -183,6 +191,8 @@ def read_palettes(
             if name in tokens:
                 fail(f"duplicate token {name!r} in {scheme!r} palette")
             tokens[name] = parse_color(value)
+            if (element.tail or "").strip():
+                fail(f"palette {scheme!r} must not contain text")
         if not tokens:
             fail(f"palette {scheme!r} is empty")
         palettes[scheme] = tokens
@@ -211,13 +221,110 @@ def read_palettes(
     return palettes, palette_elements
 
 
-def validate(path: Path) -> tuple[int, int, int, int]:
-    root = ET.parse(path).getroot()
+def read_typography(root: ET.Element) -> dict[str, tuple[int, str]]:
+    sections = root.findall("typography")
+    if len(sections) != 1:
+        fail(f"expected exactly one <typography> section, found {len(sections)}")
+    typography = sections[0]
+    if typography.attrib:
+        fail("typography section must not have attributes")
+    if (typography.text or "").strip():
+        fail("typography section must not contain text")
+
+    roles: dict[str, tuple[int, str]] = {}
+    for element in typography:
+        if element.tag != "role":
+            fail(f"typography has unknown element <{element.tag}>")
+        if list(element) or (element.text or "").strip():
+            fail(f"typography role {element.get('name', '')!r} must not have content")
+        if (element.tail or "").strip():
+            fail("typography section must not contain text")
+        unknown_attributes = sorted(set(element.attrib) - {"name", "scale", "weight"})
+        if unknown_attributes:
+            fail(
+                "typography role has unknown attributes: "
+                + ", ".join(unknown_attributes)
+            )
+        if set(element.attrib) != {"name", "scale", "weight"}:
+            fail("typography roles require exactly name, scale, and weight")
+
+        name = element.get("name", "")
+        if name not in REQUIRED_TYPOGRAPHY:
+            fail(f"unknown typography role {name!r}")
+        if name in roles:
+            fail(f"duplicate typography role {name!r}")
+
+        scale_text = element.get("scale", "")
+        if not re.fullmatch(r"[0-9]{3}", scale_text):
+            fail(f"invalid typography scale {scale_text!r} for {name!r}")
+        scale = int(scale_text)
+        if not 100 <= scale <= 200:
+            fail(f"typography scale for {name!r} must be between 100 and 200")
+
+        weight = element.get("weight", "")
+        if weight not in ALLOWED_TYPOGRAPHY_WEIGHTS:
+            fail(f"invalid typography weight {weight!r} for {name!r}")
+        roles[name] = (scale, weight)
+
+    missing = sorted(REQUIRED_TYPOGRAPHY.keys() - roles.keys())
+    if missing:
+        fail(f"missing typography roles: {', '.join(missing)}")
+    for name, expected in REQUIRED_TYPOGRAPHY.items():
+        if roles[name] != expected:
+            fail(
+                f"typography role {name!r} must be scale={expected[0]} "
+                f"weight={expected[1]!r}"
+            )
+    return roles
+
+
+def validate_native_typography_source(paths: tuple[Path, ...]) -> None:
+    source = "\n".join(path.read_text(encoding="utf-8") for path in paths)
+    source = re.sub(r"//[^\n]*|/\*.*?\*/", "", source, flags=re.DOTALL)
+    for forbidden in (
+        "Liberation Sans",
+        "FAMILY_SWISS",
+        ".SetIconFont(",
+        ".SetFamilyName(",
+        ".SetFamily(",
+        ".SetStyleName(",
+        ".SetCharSet(",
+        ".SetLanguage(",
+        ".SetPitch(",
+        ".SetOrientation(",
+        ".SetFontWidth(",
+    ):
+        if forbidden in source:
+            fail(f"native typography source contains forbidden override {forbidden!r}")
+    required = (
+        r"mpTypography\s*->\s*apply\s*\(\s*aStyleSet\s*,\s*aNativeStyleSet\s*\)",
+        r"moNativeStyle",
+        r"applyLegacyMinimumFontHeight\s*\(\s*aStyleSet\s*,\s*aNativeStyleSet\s*,",
+        r"WidgetDefinitionTypography::apply",
+        r"rTarget\.SetAppFont",
+        r"rTarget\.SetTitleFont",
+    )
+    for pattern in required:
+        if re.search(pattern, source) is None:
+            fail(f"native typography source is missing pattern {pattern!r}")
+
+
+def validate(path: Path) -> tuple[int, int, int, int, int]:
+    parser = ET.XMLParser(target=ET.TreeBuilder(insert_pis=True))
+    root = ET.parse(path, parser=parser).getroot()
     if root.tag != "widgets":
         fail("root element must be <widgets>")
 
     palettes, palette_elements = read_palettes(root)
     token_names = set(palettes["light"])
+    typography = read_typography(root)
+
+    settings_sections = root.findall("settings")
+    if len(settings_sections) != 1:
+        fail(f"expected exactly one <settings> section, found {len(settings_sections)}")
+    settings = settings_sections[0]
+    if settings.find("defaultFontSize") is not None:
+        fail("Material typography must not replace the native font with defaultFontSize")
 
     references: set[str] = set()
     style = root.find("style")
@@ -352,29 +459,42 @@ def validate(path: Path) -> tuple[int, int, int, int]:
             )
 
     part_count = sum(len(control.findall("part")) for control in root
-                     if control.tag not in {"palette", "style", "settings"})
+                     if control.tag not in {"palette", "style", "settings", "typography"})
     state_count = sum(1 for _ in root.iter("state"))
-    return len(palettes), len(token_names), part_count, state_count
+    return len(palettes), len(token_names), len(typography), part_count, state_count
 
 
 def main() -> int:
+    repository = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "definition",
         nargs="?",
         type=Path,
-        default=Path(__file__).resolve().parents[1]
-        / "vcl/uiconfig/theme_definitions/material/definition.xml",
+        default=repository / "vcl/uiconfig/theme_definitions/material/definition.xml",
+    )
+    parser.add_argument(
+        "--renderer",
+        type=Path,
+        default=repository / "vcl/source/gdi/FileDefinitionWidgetDraw.cxx",
+    )
+    parser.add_argument(
+        "--typography-source",
+        type=Path,
+        default=repository / "vcl/source/gdi/WidgetDefinition.cxx",
     )
     args = parser.parse_args()
     try:
-        scheme_count, token_count, part_count, state_count = validate(args.definition)
+        scheme_count, token_count, typography_count, part_count, state_count = validate(
+            args.definition
+        )
+        validate_native_typography_source((args.renderer, args.typography_source))
     except (ET.ParseError, OSError, ValidationError) as error:
         print(f"{args.definition}: {error}", file=sys.stderr)
         return 1
     print(
         f"Material theme OK: {scheme_count} schemes, {token_count} tokens each, "
-        f"{part_count} parts, {state_count} states"
+        f"{typography_count} typography roles, {part_count} parts, {state_count} states"
     )
     return 0
 

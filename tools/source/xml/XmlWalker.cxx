@@ -112,9 +112,35 @@ OString XmlWalker::attribute(const OString& sName) const
     return aAttributeContent;
 }
 
+std::vector<OString> XmlWalker::attributeNames() const
+{
+    std::vector<OString> aNames;
+    for (xmlAttrPtr pAttribute = mpImpl->mpCurrent->properties; pAttribute;
+         pAttribute = pAttribute->next)
+    {
+        aNames.emplace_back(reinterpret_cast<const char*>(pAttribute->name));
+    }
+    return aNames;
+}
+
 void XmlWalker::next() { mpImpl->mpCurrent = mpImpl->mpCurrent->next; }
 
 bool XmlWalker::isValid() const { return mpImpl->mpCurrent != nullptr; }
+
+bool XmlWalker::isElement() const
+{
+    return mpImpl->mpCurrent && mpImpl->mpCurrent->type == XML_ELEMENT_NODE;
+}
+
+bool XmlWalker::isBlank() const
+{
+    return mpImpl->mpCurrent && xmlIsBlankNode(mpImpl->mpCurrent) != 0;
+}
+
+bool XmlWalker::isComment() const
+{
+    return mpImpl->mpCurrent && mpImpl->mpCurrent->type == XML_COMMENT_NODE;
+}
 
 } // end tools namespace
 

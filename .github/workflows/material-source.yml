@@ -6,7 +6,12 @@ on:
       - main
     paths:
       - "bin/check-material-theme.py"
+      - "bin/test_material_theme_validator.py"
+      - "include/tools/XmlWalker.hxx"
       - "sfx2/uiconfig/ui/startcenter.ui"
+      - "tools/source/xml/XmlWalker.cxx"
+      - "tools/qa/data/test.xml"
+      - "tools/qa/cppunit/test_xmlwalker.cxx"
       - "vcl/inc/widgetdraw/**"
       - "vcl/source/gdi/FileDefinitionWidgetDraw.cxx"
       - "vcl/source/gdi/WidgetDefinition*.cxx"
@@ -17,7 +22,12 @@ on:
   pull_request:
     paths:
       - "bin/check-material-theme.py"
+      - "bin/test_material_theme_validator.py"
+      - "include/tools/XmlWalker.hxx"
       - "sfx2/uiconfig/ui/startcenter.ui"
+      - "tools/source/xml/XmlWalker.cxx"
+      - "tools/qa/data/test.xml"
+      - "tools/qa/cppunit/test_xmlwalker.cxx"
       - "vcl/inc/widgetdraw/**"
       - "vcl/source/gdi/FileDefinitionWidgetDraw.cxx"
       - "vcl/source/gdi/WidgetDefinition*.cxx"
@@ -39,6 +49,9 @@ jobs:
 
       - name: Validate semantic Material theme
         run: python3 bin/check-material-theme.py
+
+      - name: Test Material theme validator
+        run: python3 -m unittest bin/test_material_theme_validator.py
 
       - name: Lint Start Center UI
         run: python3 bin/lint-ui.py sfx2/uiconfig/ui/startcenter.ui

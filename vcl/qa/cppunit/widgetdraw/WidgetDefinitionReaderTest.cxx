@@ -10,6 +10,7 @@
 #include <sal/config.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <string_view>
 
@@ -17,6 +18,8 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/plugin/TestPlugIn.h>
 #include <unotest/bootstrapfixturebase.hxx>
+#include <vcl/font.hxx>
+#include <vcl/settings.hxx>
 
 #include <widgetdraw/WidgetDefinitionReader.hxx>
 
@@ -61,6 +64,7 @@ private:
 public:
     void testRead();
     void testReadSettings();
+    void testReadTypography();
     void testReadColorTokens();
     void testReadColorPalettes();
     void testRejectInvalidDefinitions();
@@ -69,6 +73,7 @@ public:
     CPPUNIT_TEST_SUITE(WidgetDefinitionReaderTest);
     CPPUNIT_TEST(testRead);
     CPPUNIT_TEST(testReadSettings);
+    CPPUNIT_TEST(testReadTypography);
     CPPUNIT_TEST(testReadColorTokens);
     CPPUNIT_TEST(testReadColorPalettes);
     CPPUNIT_TEST(testRejectInvalidDefinitions);
@@ -196,6 +201,121 @@ void WidgetDefinitionReaderTest::testRejectInvalidDefinitions()
                                             getFullUrl(u""));
         CPPUNIT_ASSERT(!aReader.read(aDefinition));
     }
+
+    constexpr std::array<std::u16string_view, 15> aInvalidTypographyDefinitions = {
+        u"definitionDuplicateTypographyRole.xml",
+        u"definitionDuplicateTypographySection.xml",
+        u"definitionMissingTypographyRole.xml",
+        u"definitionInvalidTypographyScale.xml",
+        u"definitionInvalidTypographyWeight.xml",
+        u"definitionUnknownTypographyRole.xml",
+        u"definitionTypographyFamily.xml",
+        u"definitionNestedTypography.xml",
+        u"definitionMissingTypographyAttribute.xml",
+        u"definitionTypographyText.xml",
+        u"definitionTooLargeTypographyScale.xml",
+        u"definitionTypographySectionAttribute.xml",
+        u"definitionUnknownTypographyElement.xml",
+        u"definitionTypographyRoleText.xml",
+        u"definitionTypographyRoleProcessingInstruction.xml",
+    };
+    for (const auto aFileName : aInvalidTypographyDefinitions)
+    {
+        vcl::WidgetDefinition aDefinition;
+        vcl::WidgetDefinitionReader aReader(getFullUrl(aFileName), getFullUrl(u""));
+        CPPUNIT_ASSERT(!aReader.read(aDefinition));
+    }
+}
+
+void WidgetDefinitionReaderTest::testReadTypography()
+{
+    vcl::WidgetDefinition aDefinition;
+    vcl::WidgetDefinitionReader aReader(getFullUrl(u"definitionTypography.xml"), getFullUrl(u""));
+    CPPUNIT_ASSERT(aReader.read(aDefinition));
+    CPPUNIT_ASSERT(aDefinition.mpTypography);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(125), aDefinition.mpTypography->maBody.mnScalePercent);
+    CPPUNIT_ASSERT(aDefinition.mpTypography->maBody.meWeight
+                   == vcl::WidgetDefinitionFontWeight::Normal);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(150), aDefinition.mpTypography->maLabel.mnScalePercent);
+    CPPUNIT_ASSERT(aDefinition.mpTypography->maLabel.meWeight
+                   == vcl::WidgetDefinitionFontWeight::Bold);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(200), aDefinition.mpTypography->maTitle.mnScalePercent);
+    CPPUNIT_ASSERT(aDefinition.mpTypography->maTitle.meWeight
+                   == vcl::WidgetDefinitionFontWeight::Medium);
+
+    auto makeNativeFont = [](const OUString& rFamily, tools::Long nHeight)
+    {
+        vcl::Font aFont(rFamily, u"Native Style"_ustr, Size(7, nHeight));
+        aFont.SetWeight(WEIGHT_LIGHT);
+        aFont.SetPitch(PITCH_FIXED);
+        aFont.SetCharSet(RTL_TEXTENCODING_UTF8);
+        aFont.SetLanguage(LANGUAGE_JAPANESE);
+        aFont.SetOrientation(Degree10(120));
+        return aFont;
+    };
+
+    StyleSettings aNative;
+    aNative.SetAppFont(makeNativeFont(u"Native App"_ustr, 24));
+    aNative.SetHelpFont(makeNativeFont(u"Native Help"_ustr, 25));
+    aNative.SetFieldFont(makeNativeFont(u"Native Field"_ustr, 26));
+    aNative.SetMenuFont(makeNativeFont(u"Native Menu"_ustr, 27));
+    aNative.SetToolFont(makeNativeFont(u"Native Tool"_ustr, 28));
+    aNative.SetGroupFont(makeNativeFont(u"Native Group"_ustr, 29));
+    aNative.SetLabelFont(makeNativeFont(u"Native Label"_ustr, 30));
+    aNative.SetRadioCheckFont(makeNativeFont(u"Native Radio"_ustr, 31));
+    aNative.SetPushButtonFont(makeNativeFont(u"Native Button"_ustr, 32));
+    vcl::Font aNativeTabFont = makeNativeFont(u"Native Tab"_ustr, 33);
+    aNativeTabFont.SetWeight(WEIGHT_BLACK);
+    aNative.SetTabFont(aNativeTabFont);
+    aNative.SetTitleFont(makeNativeFont(u"Native Title"_ustr, 35));
+    aNative.SetFloatTitleFont(makeNativeFont(u"Native Float Title"_ustr, 36));
+
+    auto applyRole = [](const vcl::Font& rNative, sal_Int32 nScale, FontWeight eWeight)
+    {
+        vcl::Font aFont(rNative);
+        aFont.SetFontHeight((rNative.GetFontHeight() * nScale + 50) / 100);
+        if (aFont.GetWeight() == WEIGHT_DONTKNOW || aFont.GetWeight() < eWeight)
+            aFont.SetWeight(eWeight);
+        return aFont;
+    };
+
+    StyleSettings aExpected(aNative);
+    aExpected.SetAppFont(applyRole(aNative.GetAppFont(), 125, WEIGHT_NORMAL));
+    aExpected.SetHelpFont(applyRole(aNative.GetHelpFont(), 125, WEIGHT_NORMAL));
+    aExpected.SetFieldFont(applyRole(aNative.GetFieldFont(), 125, WEIGHT_NORMAL));
+    aExpected.SetMenuFont(applyRole(aNative.GetMenuFont(), 150, WEIGHT_BOLD));
+    aExpected.SetToolFont(applyRole(aNative.GetToolFont(), 150, WEIGHT_BOLD));
+    aExpected.SetGroupFont(applyRole(aNative.GetGroupFont(), 150, WEIGHT_BOLD));
+    aExpected.SetLabelFont(applyRole(aNative.GetLabelFont(), 150, WEIGHT_BOLD));
+    aExpected.SetRadioCheckFont(applyRole(aNative.GetRadioCheckFont(), 150, WEIGHT_BOLD));
+    aExpected.SetPushButtonFont(applyRole(aNative.GetPushButtonFont(), 150, WEIGHT_BOLD));
+    aExpected.SetTabFont(applyRole(aNative.GetTabFont(), 150, WEIGHT_BOLD));
+    aExpected.SetTitleFont(applyRole(aNative.GetTitleFont(), 200, WEIGHT_MEDIUM));
+    aExpected.SetFloatTitleFont(applyRole(aNative.GetFloatTitleFont(), 200, WEIGHT_MEDIUM));
+
+    StyleSettings aActual(aNative);
+    aDefinition.mpTypography->apply(aActual, aNative);
+    CPPUNIT_ASSERT(aExpected == aActual);
+    CPPUNIT_ASSERT_EQUAL(u"Native App"_ustr, aActual.GetAppFont().GetFamilyName());
+    CPPUNIT_ASSERT_EQUAL(u"Native Style"_ustr, aActual.GetAppFont().GetStyleName());
+    CPPUNIT_ASSERT(aActual.GetAppFont().GetCharSet() == RTL_TEXTENCODING_UTF8);
+    CPPUNIT_ASSERT(aActual.GetAppFont().GetLanguage() == LANGUAGE_JAPANESE);
+    CPPUNIT_ASSERT(aActual.GetAppFont().GetPitch() == PITCH_FIXED);
+    CPPUNIT_ASSERT(aActual.GetAppFont().GetOrientation() == Degree10(120));
+    CPPUNIT_ASSERT_EQUAL(tools::Long(30), aActual.GetAppFont().GetFontHeight());
+    CPPUNIT_ASSERT(aActual.GetAppFont().GetWeight() == WEIGHT_NORMAL);
+    CPPUNIT_ASSERT_EQUAL(tools::Long(31), aActual.GetHelpFont().GetFontHeight());
+    CPPUNIT_ASSERT_EQUAL(tools::Long(33), aActual.GetFieldFont().GetFontHeight());
+    CPPUNIT_ASSERT_EQUAL(tools::Long(41), aActual.GetMenuFont().GetFontHeight());
+    CPPUNIT_ASSERT(aActual.GetMenuFont().GetWeight() == WEIGHT_BOLD);
+    CPPUNIT_ASSERT(aActual.GetTabFont().GetWeight() == WEIGHT_BLACK);
+    CPPUNIT_ASSERT_EQUAL(u"Native Title"_ustr, aActual.GetTitleFont().GetFamilyName());
+    CPPUNIT_ASSERT_EQUAL(tools::Long(70), aActual.GetTitleFont().GetFontHeight());
+    CPPUNIT_ASSERT(aActual.GetTitleFont().GetWeight() == WEIGHT_MEDIUM);
+
+    StyleSettings aAppliedTwice(aActual);
+    aDefinition.mpTypography->apply(aAppliedTwice, aNative);
+    CPPUNIT_ASSERT(aActual == aAppliedTwice);
 }
 
 void WidgetDefinitionReaderTest::testReadMaterialTheme()
@@ -212,6 +332,51 @@ void WidgetDefinitionReaderTest::testReadMaterialTheme()
                          aDefinition.mpStyle->maActionButtonTextColor.AsRGBHexString());
     CPPUNIT_ASSERT_EQUAL(u"f4eff4"_ustr, aDefinition.mpStyle->maHelpTextColor.AsRGBHexString());
     CPPUNIT_ASSERT_EQUAL("12"_ostr, aDefinition.mpSettings->msListBoxEntryMargin);
+    CPPUNIT_ASSERT(aDefinition.mpTypography);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(100), aDefinition.mpTypography->maBody.mnScalePercent);
+    CPPUNIT_ASSERT(aDefinition.mpTypography->maBody.meWeight
+                   == vcl::WidgetDefinitionFontWeight::Preserve);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(100), aDefinition.mpTypography->maLabel.mnScalePercent);
+    CPPUNIT_ASSERT(aDefinition.mpTypography->maLabel.meWeight
+                   == vcl::WidgetDefinitionFontWeight::Medium);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(120), aDefinition.mpTypography->maTitle.mnScalePercent);
+    CPPUNIT_ASSERT(aDefinition.mpTypography->maTitle.meWeight
+                   == vcl::WidgetDefinitionFontWeight::SemiBold);
+
+    auto makeMaterialNativeFont
+        = [](const OUString& rFamily, tools::Long nHeight, FontWeight eWeight)
+    {
+        vcl::Font aFont(rFamily, u"Native Material Style"_ustr, Size(0, nHeight));
+        aFont.SetWeight(eWeight);
+        return aFont;
+    };
+    StyleSettings aNativeTypography;
+    aNativeTypography.SetAppFont(
+        makeMaterialNativeFont(u"Material Native Body"_ustr, 16, WEIGHT_BOLD));
+    aNativeTypography.SetMenuFont(
+        makeMaterialNativeFont(u"Material Native Label"_ustr, 17, WEIGHT_LIGHT));
+    aNativeTypography.SetTabFont(
+        makeMaterialNativeFont(u"Material Native Strong Label"_ustr, 18, WEIGHT_BLACK));
+    aNativeTypography.SetTitleFont(
+        makeMaterialNativeFont(u"Material Native Title"_ustr, 15, WEIGHT_LIGHT));
+    aNativeTypography.SetFloatTitleFont(
+        makeMaterialNativeFont(u"Material Native Strong Title"_ustr, 19, WEIGHT_BOLD));
+
+    StyleSettings aAppliedTypography(aNativeTypography);
+    aDefinition.mpTypography->apply(aAppliedTypography, aNativeTypography);
+    CPPUNIT_ASSERT_EQUAL(u"Material Native Body"_ustr,
+                         aAppliedTypography.GetAppFont().GetFamilyName());
+    CPPUNIT_ASSERT_EQUAL(tools::Long(16), aAppliedTypography.GetAppFont().GetFontHeight());
+    CPPUNIT_ASSERT(aAppliedTypography.GetAppFont().GetWeight() == WEIGHT_BOLD);
+    CPPUNIT_ASSERT_EQUAL(tools::Long(17), aAppliedTypography.GetMenuFont().GetFontHeight());
+    CPPUNIT_ASSERT(aAppliedTypography.GetMenuFont().GetWeight() == WEIGHT_MEDIUM);
+    CPPUNIT_ASSERT(aAppliedTypography.GetTabFont().GetWeight() == WEIGHT_BLACK);
+    CPPUNIT_ASSERT_EQUAL(u"Material Native Title"_ustr,
+                         aAppliedTypography.GetTitleFont().GetFamilyName());
+    CPPUNIT_ASSERT_EQUAL(tools::Long(18), aAppliedTypography.GetTitleFont().GetFontHeight());
+    CPPUNIT_ASSERT(aAppliedTypography.GetTitleFont().GetWeight() == WEIGHT_SEMIBOLD);
+    CPPUNIT_ASSERT_EQUAL(tools::Long(23), aAppliedTypography.GetFloatTitleFont().GetFontHeight());
+    CPPUNIT_ASSERT(aAppliedTypography.GetFloatTitleFont().GetWeight() == WEIGHT_BOLD);
     CPPUNIT_ASSERT(
         contrastRatio(aDefinition.mpStyle->maWindowTextColor, aDefinition.mpStyle->maWindowColor)
         >= 4.5);
@@ -430,6 +595,19 @@ void WidgetDefinitionReaderTest::testReadMaterialTheme()
     CPPUNIT_ASSERT(contrastRatio(aDarkDefinition.mpStyle->maWindowTextColor,
                                  aDarkDefinition.mpStyle->maWindowColor)
                    >= 4.5);
+    CPPUNIT_ASSERT(aDarkDefinition.mpTypography);
+    CPPUNIT_ASSERT_EQUAL(aDefinition.mpTypography->maBody.mnScalePercent,
+                         aDarkDefinition.mpTypography->maBody.mnScalePercent);
+    CPPUNIT_ASSERT(aDefinition.mpTypography->maBody.meWeight
+                   == aDarkDefinition.mpTypography->maBody.meWeight);
+    CPPUNIT_ASSERT_EQUAL(aDefinition.mpTypography->maLabel.mnScalePercent,
+                         aDarkDefinition.mpTypography->maLabel.mnScalePercent);
+    CPPUNIT_ASSERT(aDefinition.mpTypography->maLabel.meWeight
+                   == aDarkDefinition.mpTypography->maLabel.meWeight);
+    CPPUNIT_ASSERT_EQUAL(aDefinition.mpTypography->maTitle.mnScalePercent,
+                         aDarkDefinition.mpTypography->maTitle.mnScalePercent);
+    CPPUNIT_ASSERT(aDefinition.mpTypography->maTitle.meWeight
+                   == aDarkDefinition.mpTypography->maTitle.meWeight);
 
     auto pDarkPushButton
         = aDarkDefinition.getDefinition(ControlType::Pushbutton, ControlPart::Entire);

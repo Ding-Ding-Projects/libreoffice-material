@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <typography>
+        Forbidden text
+        <role name="body" scale="100" weight="preserve"/>
+        <role name="label" scale="100" weight="medium"/>
+        <role name="title" scale="120" weight="semibold"/>
+    </typography>
+</widgets>

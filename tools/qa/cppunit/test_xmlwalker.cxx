@@ -7,6 +7,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <algorithm>
 #include <cppunit/extensions/HelperMacros.h>
 #include <test/bootstrapfixture.hxx>
 #include <rtl/ustring.hxx>
@@ -42,13 +43,26 @@ void XmlWalkerTest::testReadXML()
     SvFileStream aFileStream(aXmlFilePath, StreamMode::READ);
     CPPUNIT_ASSERT(aWalker.open(&aFileStream));
     CPPUNIT_ASSERT_EQUAL(std::string_view("root"), aWalker.name());
+    CPPUNIT_ASSERT(aWalker.isElement());
+    CPPUNIT_ASSERT(!aWalker.isBlank());
     CPPUNIT_ASSERT_EQUAL("Hello World"_ostr, aWalker.attribute("root-attr"_ostr));
+    const auto aRootAttributes = aWalker.attributeNames();
+    CPPUNIT_ASSERT_EQUAL(size_t(1), aRootAttributes.size());
+    CPPUNIT_ASSERT_EQUAL("root-attr"_ostr, aRootAttributes[0]);
 
     int nNumberOfChildNodes = 0;
+    bool bSawComment = false;
 
     aWalker.children();
     while (aWalker.isValid())
     {
+        if (!aWalker.isElement())
+        {
+            CPPUNIT_ASSERT(aWalker.isBlank() || aWalker.isComment());
+            bSawComment |= aWalker.isComment();
+            aWalker.next();
+            continue;
+        }
         if (aWalker.name() == "child")
         {
             nNumberOfChildNodes++;
@@ -66,8 +80,14 @@ void XmlWalkerTest::testReadXML()
             {
                 if (aWalker.name() == "grandchild")
                 {
+                    CPPUNIT_ASSERT(aWalker.isElement());
                     CPPUNIT_ASSERT_EQUAL("ABC"_ostr, aWalker.attribute("attribute1"_ostr));
                     CPPUNIT_ASSERT_EQUAL("CDE"_ostr, aWalker.attribute("attribute2"_ostr));
+                    auto aAttributeNames = aWalker.attributeNames();
+                    std::sort(aAttributeNames.begin(), aAttributeNames.end());
+                    CPPUNIT_ASSERT_EQUAL(size_t(2), aAttributeNames.size());
+                    CPPUNIT_ASSERT_EQUAL("attribute1"_ostr, aAttributeNames[0]);
+                    CPPUNIT_ASSERT_EQUAL("attribute2"_ostr, aAttributeNames[1]);
                     CPPUNIT_ASSERT_EQUAL("Content"_ostr, aWalker.content());
                 }
                 aWalker.next();
@@ -97,6 +117,7 @@ void XmlWalkerTest::testReadXML()
     aWalker.parent();
 
     CPPUNIT_ASSERT_EQUAL(3, nNumberOfChildNodes);
+    CPPUNIT_ASSERT(bSawComment);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(XmlWalkerTest);

@@ -128,12 +128,17 @@
         <noActiveTabTextRaise value="true"/>
         <centeredTabs value="true"/>
         <listBoxEntryMargin value="12"/>
-        <defaultFontSize value="10"/>
         <titleHeight value="18"/>
         <floatTitleHeight value="14"/>
         <listBoxPreviewDefaultLogicWidth value="18"/>
         <listBoxPreviewDefaultLogicHeight value="18"/>
     </settings>
+
+    <typography>
+        <role name="body" scale="100" weight="preserve"/>
+        <role name="label" scale="100" weight="medium"/>
+        <role name="title" scale="120" weight="semibold"/>
+    </typography>
 
     <pushbutton>
         <part value="Entire">

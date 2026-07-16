@@ -30,8 +30,10 @@ No phase is currently marked verified.
 Current evidence: the Windows harness preflight passed on 2026-07-16 using a
 temporary Notepad process, but no LibreOffice build or window was involved. The
 host has usable Visual Studio Build Tools 2022, but no complete supported
-LibreOffice build profile: WSL 2.7.10 has no installed distribution/helper, and
-required Unix/configuration and Java tooling remains incomplete.
+LibreOffice build profile: WSL 2.7.10 has no installed distribution/helper, the
+selectable Visual Studio instance lacks ATL and its configured CMake, SDK 28000
+is selected despite missing required desktop files, and supporting build tools
+remain incomplete.
 
 Exit gate:
 
@@ -58,6 +60,10 @@ Implemented source milestones:
 - capture/restore of the pre-Material native style/framework baseline, plus
   dynamic focus-policy refreshes so a switch to generic high-contrast fallback
   does not retain Material colors or suppress VCL focus indicators;
+- semantic `body`, `label`, and `title` typography roles with strict parsing,
+  100–200% nonshrinking scale bounds, explicit minimum weights, and native
+  font identity preservation across app, help, field, control, menu, tab, and
+  title slots;
 - Qt proxy/no-native high-contrast signal handling and explicit dark-profile
   selection when headless VCL has no operating-system appearance signal;
 - support reporting limited to definition-backed parts so unsupported parts
@@ -75,13 +81,14 @@ Implemented source milestones:
   tokens, light/dark schema parity, and selected contrast pairs, with reader and
   headless drawing C++ targets plus negative fixtures.
 
-The standalone validator passes with 2 schemes, 19 tokens each, 74 parts, and
-190 states. Neither C++ target has been compiled or executed, and none of this
-source has run in LibreOffice yet.
+The standalone validator passes with 2 schemes, 19 color tokens each, 3
+typography roles, 74 parts, and 190 states. No affected C++ target has been
+compiled or executed, and none of this source has run in LibreOffice yet.
 
 - build/runtime verification of light/dark, focus, and high-contrast routing,
   plus complete forced-color and platform-signal coverage;
-- typography, spacing, shape, elevation, opacity, motion, and density tokens;
+- remaining typography properties (line height and letter spacing), spacing,
+  shape, elevation, opacity, motion, and density tokens;
 - remaining dragged, read-only, invalid, and platform-specific state layers;
 - reusable focus rings and keyboard modality handling;
 - core button, icon button, checkbox, radio, switch, text field, list, tab,

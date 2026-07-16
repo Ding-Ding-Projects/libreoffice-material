@@ -12,16 +12,18 @@ licensing and provenance.
 
 ## Current milestone
 
-**Phase 1 — third Material VCL source milestone, in progress. Phase 0's native
+**Phase 1 — fourth Material VCL source milestone, in progress. Phase 0's native
 build/evidence gate remains open.**
 
-The repository contains an imported LibreOffice source baseline, three native
+The repository contains an imported LibreOffice source baseline, four native
 Material source milestones, a design contract, roadmap, published GitHub Pages
 site, screenshot registry, and headless evidence plan. The third milestone adds
 matched light/dark profiles, source-level high-contrast fallback routing,
 native-style restoration and dynamic focus-policy refreshes, explicit headless
 dark selection, standalone spin controls, and a dedicated headless drawing test
 target. The automation harness has passed a Notepad-only off-screen preflight.
+The fourth milestone adds strict semantic typography roles that derive from the
+captured native font baseline instead of replacing platform/user fonts.
 The native source has not been built or run as LibreOffice, so this does not
 prove a whole-GUI rewrite or any completed application surface.
 
@@ -56,10 +58,16 @@ prove a whole-GUI rewrite or any completed application surface.
   native-focus recomputation; Qt proxy/no-native high-contrast detection;
   explicit headless dark selection; shared theme state; standalone directional
   spin controls; and a dedicated public-API headless draw CppUnit target.
-- Local source validation passes for 2 schemes, 19 tokens each, 74 parts, 190
-  states, selected WCAG contrast pairs, the Start Center UI linter, XML parsing,
-  changed-line C++ formatting, and whitespace. Both C++ targets remain
-  unexecuted.
+- Fourth Material VCL source milestone: typed `body`, `label`, and `title`
+  roles; exact role/attribute/scale/minimum-weight parsing; native family, style,
+  charset, language, pitch, orientation, width, and icon-font preservation;
+  nonshrinking relative size policy; baseline-derived idempotent refresh;
+  accessibility-safe title-height minima; expanded XML-walker APIs/tests; and
+  malformed typography fixtures.
+- Local source validation passes for 2 schemes, 19 color tokens each, 3
+  typography roles, 74 parts, 190 states, selected WCAG contrast pairs, native
+  font source invariants, XML parsing, C++ formatting, and whitespace. The
+  affected C++ targets remain unexecuted.
 - GitHub Actions source-validation run `29517978358` completed successfully for
   third-milestone commit `ddeec51e886f4642718eaa626ea2f48cdd9aa6a8`.
 - A detached build worktree exists at
@@ -71,6 +79,11 @@ prove a whole-GUI rewrite or any completed application surface.
   `VCL_FILE_WIDGET_THEME=material`.
 - UI driver: sibling repository `lowlevel-computer-use-mcp`, preflighted at
   commit `806d9ba85e4afbc2af58d7499496babfa7c68891`.
+- A read-only driver audit found the same clean commit serving MCP on
+  `127.0.0.1:8765`. Launch has no environment/cwd fields; window enumeration
+  has no PID; generic move/resize/window actions are not off-screen reliable;
+  desktop close does not close the app; and long-lived server handle caching
+  requires a short-lived driver session for strict teardown proof.
 - 2026-07-16 harness preflight: created
   `WinSta0\LibreOfficeMaterialQA`, launched and enumerated an off-screen Notepad
   window (HWND `37291736`, `1920×1125`), captured it through `PrintWindow` with
@@ -97,7 +110,7 @@ prove a whole-GUI rewrite or any completed application surface.
 
 1. complete a supported LibreOffice build profile and document a reproducible
    native build from the prepared detached LF worktree;
-2. run `vcl_widget_definition_reader_test` and
+2. run `tools_test`, `vcl_widget_definition_reader_test`, and
    `vcl_file_definition_widget_draw_test` against the local Material changes;
 3. launch the built start center with the two opt-in variables and an isolated
    profile on the proven headless desktop;
@@ -114,11 +127,12 @@ prove a whole-GUI rewrite or any completed application surface.
 - no headless LibreOffice Material scenario is registered;
 - no screenshot is registered;
 - no application surface is verified Material-complete;
-- Build Tools 2022 is usable, but the host has no complete supported
-  LibreOffice build profile: WSL 2.7.10 has zero distributions, required
-  Unix/configuration and Java tooling is incomplete, and the active imported
-  worktree was mostly materialized with CRLF endings. The C++ unit targets and
-  real application capture have not run.
+- the detached LF worktree is clean, but the host has no complete supported
+  LibreOffice build profile: WSL 2.7.10 has zero distributions; selectable VS
+  2022 lacks ATL and its configured CMake; registry-selected SDK 28000 lacks
+  required desktop/MSI files that installed SDK 26100 contains; OpenJDK 21 is
+  outside `PATH`; and Ant/JUnit plus other helpers are absent. The C++ unit
+  targets and real application capture have not run.
 
 ## Multi-repository boundary
 

@@ -39,17 +39,43 @@ gallery asset, accepted run, UI screenshot, or proof of the fork's rendering.
 The preflight proves only that this driver revision could create, enumerate,
 capture, and clean up a test window on an off-screen Win32 desktop.
 
+## Current driver audit — 2026-07-16
+
+The sibling checkout is clean on `main` at driver commit
+`806d9ba85e4afbc2af58d7499496babfa7c68891`. Its HTTP MCP server was observed
+listening only on `127.0.0.1:8765`, with the installed scheduled task ready.
+No LibreOffice scenario, fixture, macro, or binary exists in the driver repo.
+
+The audited Windows contract has important boundaries:
+
+- `launch_on_headless_desktop` accepts only a desktop name and command; it has
+  no per-run environment or working-directory field, so a run-scoped wrapper
+  must set Material variables and execute the exact binary/arguments;
+- window enumeration reports HWND, title, class, and dimensions, but not PID;
+  ownership must therefore be proven through a run-specific `--pidfile`, exact
+  executable path, process creation time, and a pre-launch process snapshot;
+- `PrintWindow` capture and HWND-targeted background text/click/key operations
+  are cross-desktop aware, but modifier-key input is documented as unreliable;
+- move, resize, and generic window actions use caller-desktop discovery and are
+  not reliable for an off-screen HWND;
+- `close_headless_desktop` releases one tracked desktop handle; it does not
+  close LibreOffice, and the long-lived server caches additional opened desktop
+  handles. Strict desktop-deletion proof therefore requires a dedicated
+  short-lived driver process/session that exits after normal app shutdown.
+
+These are audited capabilities and constraints, not a LibreOffice run result.
+
 ## Current LibreOffice build blocker
 
-A corrected host audit found a usable Visual Studio Build Tools 2022
-installation, but no complete supported LibreOffice build profile. WSL 2.7.10
-is enabled with zero installed distributions, the Unix/configuration and Java
-tooling is incomplete, and the active imported worktree is unsuitable for a
-configure run because most tracked files were materialized with CRLF endings.
-A fresh LF worktree and a completed build profile are required. The
-`vcl_widget_definition_reader_test` C++ target was therefore not run, no
-`soffice` binary containing these changes was launched, and no real LibreOffice
-headless capture exists.
+A clean detached LF worktree exists, but no complete supported LibreOffice
+build profile or LibreOffice executable exists. WSL 2.7.10 has zero installed
+distributions. The selectable Visual Studio 2022 instance lacks ATL and its
+configured bundled CMake. The Windows SDK registry selects SDK 28000, which
+lacks required desktop headers and MSI tools, while installed SDK 26100 has
+those files but is not selected by the current configure path. A complete
+OpenJDK 21 exists outside `PATH`; Ant, JUnit, and other build helpers remain
+absent. No affected C++ target, `soffice` process, or real LibreOffice capture
+has run.
 
 ## Evidence principles
 
@@ -95,22 +121,39 @@ The manifest must record:
 The tool names below are the low-level MCP operations expected by this plan.
 Exact arguments belong in the run manifest or automation macro.
 
-1. Build LibreOffice and record the artifact plus source state.
-2. Create an isolated LibreOffice user profile containing no personal data.
-3. Call `create_headless_desktop` with a unique run-scoped name.
-4. Call `launch_on_headless_desktop` to start the built `soffice` binary with
-   the isolated profile and deterministic test fixture.
-5. Poll `list_headless_windows` until the expected start center or document
-   window is stable; fail with a timeout rather than waiting forever.
-6. Use `list_child_windows` and background-capable input methods where reliable.
-   Prefer semantic control handles over fixed screen coordinates.
-7. Exercise the scenario and capture required checkpoints with `screenshot`
-   using the target window handle.
-8. Verify every capture is nonblank, has the expected dimensions, and belongs
-   to the expected process/window title.
-9. Close the application normally, collect logs, and call
-   `close_headless_desktop` even after a failed scenario.
-10. Hash files, write results, review for sensitive data, and only then add
+1. Require `instdir/program/soffice.exe` to exist, hash it, record the exact
+   source commit, and verify the detached build worktree is clean.
+2. Create a unique run ID, desktop name, UNO pipe, and empty profile under
+   `%LOCALAPPDATA%\Temp\LibreOfficeMaterialQA\<run-id>`; fail if the profile
+   pre-exists or is nonempty.
+3. Snapshot processes whose executable path is the exact fork `instdir/program`
+   directory, then start a dedicated short-lived driver session.
+4. Call `create_headless_desktop` with the run-scoped desktop name.
+5. Call `launch_on_headless_desktop` with a wrapper command that sets
+   `VCL_DRAW_WIDGETS_FROM_FILE=1`, `VCL_FILE_WIDGET_THEME=material`, and
+   `SAL_LOG=+WARN.vcl.gdi`, then executes the exact fork binary.
+6. Launch with an isolated `-env:UserInstallation=file:///...` URL,
+   `--nologo`, `--norestore`, `--quickstart=no`, `--language=en-US`, a unique
+   `--pidfile`, and unique `--accept=pipe,name=...;urp`. Do not use `--headless`,
+   `--invisible`, or `--nodefault`, because each suppresses the Start Center GUI.
+7. Poll `list_headless_windows` for at most 60 seconds. Resolve a nonempty,
+   stable LibreOffice/SALFRAME window for three consecutive polls; never
+   hard-code an HWND.
+8. Read the PID file and require that PID's executable path to be inside the
+   exact fork build before accepting window ownership.
+9. Capture the resolved window and require successful/rendered flags, positive
+   dimensions, nonblank pixel statistics, expected title/class, SHA-256, and
+   visual review before driving input.
+10. Use runtime-resolved child HWNDs and background-capable operations; record
+    any coordinate input and avoid relying on modifier chords.
+11. Shut down normally over the unique UNO pipe with the built Python/UNO
+    runtime, then poll until the recorded PID and windows disappear.
+12. If normal termination fails, preserve a failure capture/log and terminate
+    only after revalidating that exact PID, path, and creation time. Never kill
+    every process named `soffice.exe`.
+13. Release the desktop, end the dedicated driver process so cached desktop
+    handles close, and verify cleanup.
+14. Hash files, write results, review for sensitive data, and only then add
     accepted captures to the screenshot registry.
 
 For the current opt-in Material slice, the future LibreOffice launch environment

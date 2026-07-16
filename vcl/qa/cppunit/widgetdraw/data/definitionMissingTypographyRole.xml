@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <typography>
+        <role name="body" scale="100" weight="preserve"/>
+        <role name="label" scale="100" weight="medium"/>
+    </typography>
+</widgets>

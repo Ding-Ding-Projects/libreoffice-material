@@ -280,3 +280,44 @@ application evidence.
 Scope conclusion: source validation, publication, and the line-ending-safe
 build-worktree pin are verified for the third milestone. No C++ target or
 LibreOffice binary ran, and accepted application screenshots remain **0**.
+
+## 2026-07-16 — fourth Material VCL source milestone validation
+
+- `bin/check-material-theme.py` reported
+  `Material theme OK: 2 schemes, 19 tokens each, 3 typography roles, 74 parts,
+  190 states`. The checks cover the canonical semantic type roles, exact schema,
+  scale bounds, native-font source invariants, palette/profile parity, widget
+  coverage, and selected contrast pairs.
+- Seven Python unittest methods exercised 30 validator scenarios. They include
+  canonical success; duplicate, missing, unknown, nested, text, family-injection,
+  scale, weight, processing-instruction, palette-content, settings, and native
+  source-guard failures. All passed.
+- The Start Center UI linter and Python bytecode compilation passed. PowerShell
+  XML parsing passed for 31 relevant files; all 29 reader fixture references
+  resolve to an existing file.
+- Visual Studio Clang 22.1.3 `--dry-run --Werror` passed for every changed C++
+  and header file. `git diff --check` passed. All 38 changed or untracked scoped
+  text files are UTF-8 without a byte-order mark and use LF rather than CRLF.
+- Workflow YAML parsing passed. Local integrity checks found 16 unique HTML IDs,
+  validated 22 HTML links, validated 38 local Markdown targets across 12
+  authored files, found balanced CSS, and confirmed that the project site has
+  no image, SVG, or CSS URL asset.
+- The in-app browser reloaded the local fourth-milestone site. Desktop reported
+  `clientWidth = scrollWidth = 1265`; a `390×844` mobile viewport reported
+  `clientWidth = scrollWidth = 390`, a single-column hero, and no element beyond
+  either horizontal viewport. The exact fourth-milestone source summary and
+  verified-capture count `0` were present; browser logs were empty. The viewport
+  override was reset, the tab was finalized, and the run-scoped local server was
+  stopped.
+- Independent source audits found no remaining compile-, API-, link-, parser-,
+  fixture-, or build-registration blocker. Minimum-weight tests cover stronger
+  native-weight preservation and production `preserve`, `medium`, and
+  `semibold` application. This is static inspection, not compilation.
+- A fresh host audit still found no supported runnable build profile or
+  LibreOffice binary. The low-level driver remains external test tooling with
+  no LibreOffice scenario or attributable fork window to capture.
+
+Scope conclusion: repository-side source and project-site checks pass for the
+fourth milestone. No affected C++ target was compiled or executed, no
+LibreOffice process or window ran, no native renderer behavior was observed,
+and accepted application screenshots remain **0**.

@@ -13,10 +13,84 @@
 #include <widgetdraw/WidgetDefinition.hxx>
 
 #include <sal/config.h>
+#include <algorithm>
+#include <limits>
+#include <o3tl/safeint.hxx>
 #include <unordered_map>
+#include <vcl/font.hxx>
+#include <vcl/settings.hxx>
 
 namespace vcl
 {
+namespace
+{
+vcl::Font applyTypographyRole(const vcl::Font& rNative, const WidgetDefinitionTypographyRole& rRole)
+{
+    vcl::Font aFont(rNative);
+    const tools::Long nNativeHeight = rNative.GetFontHeight();
+    if (nNativeHeight > 0)
+    {
+        const sal_Int32 nScale = std::clamp<sal_Int32>(rRole.mnScalePercent, 100, 200);
+        sal_Int64 nProduct;
+        sal_Int64 nScaledHeight;
+        if (o3tl::checked_multiply<sal_Int64>(nNativeHeight, nScale, nProduct))
+            nScaledHeight = std::numeric_limits<tools::Long>::max();
+        else
+        {
+            nScaledHeight = nProduct / 100;
+            if (nProduct % 100 >= 50)
+                ++nScaledHeight;
+            nScaledHeight = std::max<sal_Int64>(nNativeHeight, nScaledHeight);
+        }
+        aFont.SetFontHeight(static_cast<tools::Long>(
+            std::min<sal_Int64>(nScaledHeight, std::numeric_limits<tools::Long>::max())));
+    }
+
+    FontWeight eMinimumWeight = WEIGHT_DONTKNOW;
+    switch (rRole.meWeight)
+    {
+        case WidgetDefinitionFontWeight::Preserve:
+            break;
+        case WidgetDefinitionFontWeight::Normal:
+            eMinimumWeight = WEIGHT_NORMAL;
+            break;
+        case WidgetDefinitionFontWeight::Medium:
+            eMinimumWeight = WEIGHT_MEDIUM;
+            break;
+        case WidgetDefinitionFontWeight::SemiBold:
+            eMinimumWeight = WEIGHT_SEMIBOLD;
+            break;
+        case WidgetDefinitionFontWeight::Bold:
+            eMinimumWeight = WEIGHT_BOLD;
+            break;
+    }
+    if (eMinimumWeight != WEIGHT_DONTKNOW
+        && (aFont.GetWeight() == WEIGHT_DONTKNOW || aFont.GetWeight() < eMinimumWeight))
+    {
+        aFont.SetWeight(eMinimumWeight);
+    }
+    return aFont;
+}
+}
+
+void WidgetDefinitionTypography::apply(StyleSettings& rTarget, const StyleSettings& rNative) const
+{
+    rTarget.SetAppFont(applyTypographyRole(rNative.GetAppFont(), maBody));
+    rTarget.SetHelpFont(applyTypographyRole(rNative.GetHelpFont(), maBody));
+    rTarget.SetFieldFont(applyTypographyRole(rNative.GetFieldFont(), maBody));
+
+    rTarget.SetMenuFont(applyTypographyRole(rNative.GetMenuFont(), maLabel));
+    rTarget.SetToolFont(applyTypographyRole(rNative.GetToolFont(), maLabel));
+    rTarget.SetGroupFont(applyTypographyRole(rNative.GetGroupFont(), maLabel));
+    rTarget.SetLabelFont(applyTypographyRole(rNative.GetLabelFont(), maLabel));
+    rTarget.SetRadioCheckFont(applyTypographyRole(rNative.GetRadioCheckFont(), maLabel));
+    rTarget.SetPushButtonFont(applyTypographyRole(rNative.GetPushButtonFont(), maLabel));
+    rTarget.SetTabFont(applyTypographyRole(rNative.GetTabFont(), maLabel));
+
+    rTarget.SetTitleFont(applyTypographyRole(rNative.GetTitleFont(), maTitle));
+    rTarget.SetFloatTitleFont(applyTypographyRole(rNative.GetFloatTitleFont(), maTitle));
+}
+
 std::shared_ptr<WidgetDefinitionPart> WidgetDefinition::getDefinition(ControlType eType,
                                                                       ControlPart ePart)
 {

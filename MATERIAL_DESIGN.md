@@ -6,7 +6,7 @@ implements these rules.
 
 ## Current implementation status
 
-Three native source milestones now exist. They package an opt-in Material
+Four native source milestones now exist. They package an opt-in Material
 file-widget definition, add safe keyed theme selection and definition-aware
 fallback in VCL, begin the Start Center surface/header treatment, and implement
 matched light and dark palettes of 19 semantic roles each. The reader resolves
@@ -18,12 +18,22 @@ controls, flat buttons, selected-hover/focus tabs, toolbar buttons/grips, list
 nodes, borderless and multiline edits, and standalone vertical/horizontal spin
 buttons.
 
+The fourth milestone introduces the first non-color token family: strict
+`body`, `label`, and `title` typography roles. Material definitions may select
+a 100–200% relative height and one of five bounded minimum-weight policies, but
+they cannot select a font family. The renderer derives every role from the
+captured native `StyleSettings` baseline on each refresh, preserves script/language,
+charset, family, style, pitch, orientation, width, and icon-font identity, and
+never reduces a positive native font height. This path is covered by source
+tests but remains uncompiled and unexecuted.
+
 The shared renderer also contains source corrections for composite combo and
 RTL geometry, toolbar grip regions, slider sizing, definition-backed regions,
 and native line/fill cache invalidation. A standalone validator checks token
 discipline, light/dark schema parity, unused roles, required control/state
-coverage, and selected contrast pairs; dedicated reader and headless draw C++
-targets and negative fixtures are present but have not executed.
+coverage, selected contrast pairs, and native font-preservation invariants;
+dedicated XML-walker, reader, and headless draw C++ coverage plus negative
+fixtures are present but have not executed.
 
 This slice is **implemented source, not verified behavior**: it has not been
 compiled or run as LibreOffice. Once a compatible build exists, it is intended
@@ -82,15 +92,17 @@ Token resolution must incorporate the operating system theme, LibreOffice user
 preferences, high-contrast/forced-color requirements, display scale, and the
 active density profile. Contrast and legibility outrank brand palette matching.
 
-The current definition contains matched light and dark semantic palettes. Source
+The current definition contains matched light and dark semantic palettes plus
+three native-preserving typography roles. Source
 selects between them from resolved dark mode; resolved high contrast takes
 precedence, restores the captured native style/framework baseline, and bypasses
 Material drawing for native or generic fallback. Controls refresh native-focus
 suppression when the profile changes so generic fallback can retain a visible
 VCL focus indicator. Headless VCL maps an explicit dark preference because it
 has no operating-system appearance signal. This routing is unbuilt and
-unverified. Forced-color/platform signal completeness, density, typography,
-shape, elevation, and motion resolution remain planned.
+unverified. Forced-color/platform signal completeness, density, line-height and
+letter-spacing typography, shape, elevation, and motion resolution remain
+planned.
 
 ## Component behavior
 

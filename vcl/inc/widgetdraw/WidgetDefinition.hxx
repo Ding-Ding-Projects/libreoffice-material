@@ -20,6 +20,8 @@
 #include <o3tl/hash_combine.hxx>
 #include <vcl/salnativewidgets.hxx>
 
+class StyleSettings;
+
 namespace vcl
 {
 enum class WidgetDrawActionType
@@ -212,6 +214,31 @@ public:
     OString msListBoxPreviewDefaultLogicHeight;
 };
 
+enum class WidgetDefinitionFontWeight
+{
+    Preserve,
+    Normal,
+    Medium,
+    SemiBold,
+    Bold
+};
+
+struct VCL_DLLPUBLIC WidgetDefinitionTypographyRole
+{
+    sal_Int32 mnScalePercent = 100;
+    WidgetDefinitionFontWeight meWeight = WidgetDefinitionFontWeight::Preserve;
+};
+
+class VCL_DLLPUBLIC WidgetDefinitionTypography
+{
+public:
+    WidgetDefinitionTypographyRole maBody;
+    WidgetDefinitionTypographyRole maLabel;
+    WidgetDefinitionTypographyRole maTitle;
+
+    void apply(StyleSettings& rTarget, const StyleSettings& rNative) const;
+};
+
 class VCL_DLLPUBLIC WidgetDefinitionStyle
 {
 public:
@@ -284,6 +311,7 @@ class VCL_DLLPUBLIC WidgetDefinition
 public:
     std::shared_ptr<WidgetDefinitionStyle> mpStyle;
     std::shared_ptr<WidgetDefinitionSettings> mpSettings;
+    std::shared_ptr<WidgetDefinitionTypography> mpTypography;
     std::unordered_map<ControlTypeAndPart, std::shared_ptr<WidgetDefinitionPart>> maDefinitions;
     std::shared_ptr<WidgetDefinitionPart> getDefinition(ControlType eType, ControlPart ePart);
 };

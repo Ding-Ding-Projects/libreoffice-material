@@ -117,3 +117,30 @@
 - Reason: switching to high contrast must not retain fixed Material colors or
   leave VCL focus indicators suppressed when drawing falls back to generic
   controls; the same precedence must be observable on Qt and headless paths.
+
+## D-012 — make Material typography native-preserving
+
+- Date: 2026-07-16
+- State: implemented source; build verification pending
+- Decision: expose only `body`, `label`, and `title` roles with a 100–200%
+  nonshrinking scale and a bounded minimum-weight enum. Do not expose font-family
+  selection. Apply each role to a copy of its corresponding captured native
+  font, leave icon fonts untouched, and derive repeat refreshes from the same
+  native baseline.
+- Reason: the prior renderer replaced platform, localized, CJK/CTL, and
+  accessibility font choices with a fixed 10-point Liberation Sans font.
+  Material hierarchy should alter declared size/minimum weight without erasing
+  the operating system's font identity or compounding on menu refreshes.
+
+## D-013 — isolate each Windows evidence driver session
+
+- Date: 2026-07-16
+- State: accepted test policy; LibreOffice execution pending
+- Decision: use a short-lived low-level driver process/session per accepted
+  Windows evidence run, prove window ownership through a unique PID file and
+  exact fork executable path, shut down over a unique UNO pipe, and exit the
+  driver before claiming off-screen desktop deletion.
+- Reason: the long-lived server caches opened desktop handles,
+  `close_headless_desktop` does not close applications, and enumeration does not
+  report PID. Run isolation prevents stale handles or unrelated LibreOffice
+  processes from being mistaken for a clean, attributable test.

@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <limits>
 #include <map>
 #include <mutex>
 #include <optional>
@@ -243,6 +244,33 @@ bool getSettingValueBool(std::string_view rValue, bool bDefault)
     if (rValue == "true" || rValue == "false")
         return rValue == "true";
     return bDefault;
+}
+
+vcl::Font withMinimumFontHeight(const vcl::Font& rNative, tools::Long nMinimumHeight)
+{
+    vcl::Font aFont(rNative);
+    if (nMinimumHeight > 0 && aFont.GetFontHeight() > 0 && aFont.GetFontHeight() < nMinimumHeight)
+    {
+        aFont.SetFontHeight(nMinimumHeight);
+    }
+    return aFont;
+}
+
+void applyLegacyMinimumFontHeight(StyleSettings& rTarget, const StyleSettings& rNative,
+                                  tools::Long nMinimumHeight)
+{
+    rTarget.SetAppFont(withMinimumFontHeight(rNative.GetAppFont(), nMinimumHeight));
+    rTarget.SetHelpFont(withMinimumFontHeight(rNative.GetHelpFont(), nMinimumHeight));
+    rTarget.SetFieldFont(withMinimumFontHeight(rNative.GetFieldFont(), nMinimumHeight));
+    rTarget.SetMenuFont(withMinimumFontHeight(rNative.GetMenuFont(), nMinimumHeight));
+    rTarget.SetToolFont(withMinimumFontHeight(rNative.GetToolFont(), nMinimumHeight));
+    rTarget.SetGroupFont(withMinimumFontHeight(rNative.GetGroupFont(), nMinimumHeight));
+    rTarget.SetLabelFont(withMinimumFontHeight(rNative.GetLabelFont(), nMinimumHeight));
+    rTarget.SetRadioCheckFont(withMinimumFontHeight(rNative.GetRadioCheckFont(), nMinimumHeight));
+    rTarget.SetPushButtonFont(withMinimumFontHeight(rNative.GetPushButtonFont(), nMinimumHeight));
+    rTarget.SetTabFont(withMinimumFontHeight(rNative.GetTabFont(), nMinimumHeight));
+    rTarget.SetTitleFont(withMinimumFontHeight(rNative.GetTitleFont(), nMinimumHeight));
+    rTarget.SetFloatTitleFont(withMinimumFontHeight(rNative.GetFloatTitleFont(), nMinimumHeight));
 }
 
 struct NativeWidgetFrameworkBaseline
@@ -1423,34 +1451,34 @@ bool FileDefinitionWidgetDraw::updateSettings(AllSettings& rSettings, bool bUseD
     aStyleSet.SetToolTextColor(pDefinitionStyle->maToolTextColor);
 
     auto& pSettings = pWidgetDefinition->mpSettings;
+    StyleSettings aNativeStyleSet = aStyleSet;
+    {
+        std::scoped_lock aGuard(m_pThemeState->maMutex);
+        if (m_pThemeState->moNativeStyle)
+            aNativeStyleSet = *m_pThemeState->moNativeStyle;
+    }
 
-    int nFontSize = getSettingValueInteger(pSettings->msDefaultFontSize, 10);
-    vcl::Font aFont(FAMILY_SWISS, Size(0, nFontSize));
-    aFont.SetCharSet(osl_getThreadTextEncoding());
-    aFont.SetWeight(WEIGHT_NORMAL);
-    aFont.SetFamilyName(u"Liberation Sans"_ustr);
-    aStyleSet.SetAppFont(aFont);
-    aStyleSet.SetHelpFont(aFont);
-    aStyleSet.SetMenuFont(aFont);
-    aStyleSet.SetToolFont(aFont);
-    aStyleSet.SetGroupFont(aFont);
-    aStyleSet.SetLabelFont(aFont);
-    aStyleSet.SetRadioCheckFont(aFont);
-    aStyleSet.SetPushButtonFont(aFont);
-    aStyleSet.SetFieldFont(aFont);
-    aStyleSet.SetIconFont(aFont);
-    aStyleSet.SetTabFont(aFont);
+    if (pWidgetDefinition->mpTypography)
+        pWidgetDefinition->mpTypography->apply(aStyleSet, aNativeStyleSet);
+    else if (!pSettings->msDefaultFontSize.isEmpty())
+    {
+        const int nMinimumFontHeight = getSettingValueInteger(pSettings->msDefaultFontSize, 0);
+        applyLegacyMinimumFontHeight(aStyleSet, aNativeStyleSet, nMinimumFontHeight);
+    }
 
-    aFont.SetWeight(WEIGHT_BOLD);
-    aStyleSet.SetFloatTitleFont(aFont);
-    aStyleSet.SetTitleFont(aFont);
+    const sal_Int32 nTitleFontHeight = static_cast<sal_Int32>(std::clamp<tools::Long>(
+        aStyleSet.GetTitleFont().GetFontHeight(), 0, std::numeric_limits<sal_Int32>::max()));
+    const sal_Int32 nTitleHeight
+        = getSettingValueInteger(pSettings->msTitleHeight, aStyleSet.GetTitleHeight());
+    aStyleSet.SetTitleHeight(
+        std::max({ nTitleHeight, aNativeStyleSet.GetTitleHeight(), nTitleFontHeight }));
 
-    int nTitleHeight = getSettingValueInteger(pSettings->msTitleHeight, aStyleSet.GetTitleHeight());
-    aStyleSet.SetTitleHeight(nTitleHeight);
-
-    int nFloatTitleHeight
+    const sal_Int32 nFloatTitleFontHeight = static_cast<sal_Int32>(std::clamp<tools::Long>(
+        aStyleSet.GetFloatTitleFont().GetFontHeight(), 0, std::numeric_limits<sal_Int32>::max()));
+    const sal_Int32 nFloatTitleHeight
         = getSettingValueInteger(pSettings->msFloatTitleHeight, aStyleSet.GetFloatTitleHeight());
-    aStyleSet.SetFloatTitleHeight(nFloatTitleHeight);
+    aStyleSet.SetFloatTitleHeight(std::max(
+        { nFloatTitleHeight, aNativeStyleSet.GetFloatTitleHeight(), nFloatTitleFontHeight }));
 
     int nLogicWidth = getSettingValueInteger(pSettings->msListBoxPreviewDefaultLogicWidth,
                                              15); // See vcl/source/app/settings.cxx

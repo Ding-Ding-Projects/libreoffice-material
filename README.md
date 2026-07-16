@@ -4,7 +4,7 @@ An experimental LibreOffice engineering fork exploring a suite-wide Material
 Design 3 interface while retaining LibreOffice's native implementation stack,
 document engine, file-format support, and accessibility foundations.
 
-> **Current development focus: Phase 1 — third Material VCL source milestone.**
+> **Current development focus: Phase 1 — fourth Material VCL source milestone.**
 > Phase 0's native-build and application-evidence gate remains open. Semantic
 > widget tokens, stricter VCL definition parsing, broader state coverage, and
 > Start Center changes are present in source, but they have **not** been compiled
@@ -23,7 +23,7 @@ document engine, file-format support, and accessibility foundations.
 | --- | --- | --- |
 | LibreOffice source baseline | Imported | This repository's initial tree matches upstream commit `63584e7f9f0cdc74b0e004bcbf88e5c3b42dba21` |
 | Material design direction | Initial specification | [`MATERIAL_DESIGN.md`](MATERIAL_DESIGN.md) |
-| Material VCL implementation | Third source milestone, unbuilt | Light/dark profile routing, strict palette parsing, high-contrast fallback, shared renderer fixes, static validation, and Start Center source changes are present; build and runtime gates remain open |
+| Material VCL implementation | Fourth source milestone, unbuilt | Light/dark profile routing, strict palette and typography parsing, native-preserving semantic type roles, high-contrast fallback, shared renderer fixes, static validation, and Start Center source changes are present; build and runtime gates remain open |
 | Whole-suite implementation | Incomplete | Phased work remains in [`ROADMAP.md`](ROADMAP.md) |
 | Verified UI screenshots | None yet | The truthful empty registry is in [`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md) |
 | Headless harness | Preflight passed; LibreOffice not run | A temporary Notepad-only driver preflight proved the off-screen mechanics, not this UI; see [`docs/HEADLESS_UI_EVIDENCE.md`](docs/HEADLESS_UI_EVIDENCE.md) |
@@ -39,6 +39,11 @@ source includes:
 - a packaged `material/definition.xml` file-widget theme with matching light and
   dark palettes of 19 semantic color roles each, 74 definition-backed parts,
   and 190 component states;
+- typed `body`, `label`, and `title` roles with bounded relative scaling and a
+  strict minimum-weight vocabulary; each role copies the captured platform font,
+  applies the declared nonshrinking height scale, and only raises weight to the
+  declared minimum, so family, style, charset, language, pitch, orientation,
+  width, and icon fonts remain native;
 - order-independent `@token` resolution and strict rejection of malformed
   colors, invalid or duplicate palettes, mismatched palette schemas, unknown or
   duplicate tokens, and unknown or duplicate control parts;
@@ -63,16 +68,18 @@ source includes:
 - shared renderer corrections for composite combo geometry and RTL placement,
   toolbar grips, standalone spin geometry and direction, native control regions,
   slider sizing, and raw graphics-state invalidation;
-- a standalone source validator for semantic-token use, required parts and
-  states, light/dark schema parity, unused tokens, and selected WCAG contrast
-  pairs, plus reader and headless draw C++ targets and negative XML fixtures;
+- a standalone source validator for semantic-token and typography use,
+  required parts and states, light/dark schema parity, unused tokens, native
+  font-preservation invariants, and selected WCAG contrast pairs, plus reader,
+  XML-walker, and headless draw C++ coverage with negative XML fixtures;
 - Start Center spacing, a Home header/subtitle, surface roles, and recent/template
   text and fill colors derived from VCL style settings.
 
 The local static validator passes with 2 schemes, 19 semantic color tokens per
-scheme, 74 parts, and 190 states. This is source validation only: neither C++
-test target nor `soffice` has run, no application surface is verified
-Material-complete, and the screenshot count remains 0. Controls whose current
+scheme, 3 semantic typography roles, 74 parts, and 190 states. This is source
+validation only: no affected C++ test target or `soffice` has run, no
+application surface is verified Material-complete, and the screenshot count
+remains 0. Controls whose current
 file-widget geometry cannot preserve native semantics continue through
 LibreOffice's existing fallback.
 
@@ -159,11 +166,13 @@ cross-platform native project; consult The Document Foundation's current
 [platform build instructions](https://wiki.documentfoundation.org/Development/How_to_build)
 and the imported build files before configuring a machine.
 
-> **Current build gate:** a corrected host audit found a usable Visual Studio
-> Build Tools 2022 installation, but no complete supported LibreOffice build
-> profile. WSL 2.7.10 has no installed distribution/helper, and required
-> Unix/configuration and Java tooling remains incomplete. No native C++ test or
-> LibreOffice application run has occurred.
+> **Current build gate:** the detached LF worktree is clean, but no complete
+> supported LibreOffice build profile exists. WSL 2.7.10 has no distribution;
+> the selectable Visual Studio 2022 instance lacks ATL and its configured
+> bundled CMake; and the Windows SDK registry selects incomplete SDK 28000
+> instead of the usable 26100 desktop SDK. A complete OpenJDK 21 exists outside
+> `PATH`, while Ant/JUnit and other required build helpers remain absent. No
+> native C++ test or LibreOffice application run has occurred.
 
 The imported checkout was also materialized mostly with CRLF worktree endings.
 Use a fresh detached worktree created with `core.autocrlf=false` for any native

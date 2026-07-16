@@ -13,6 +13,7 @@
 #include <tools/toolsdllapi.h>
 #include <rtl/string.hxx>
 #include <memory>
+#include <vector>
 
 class SvStream;
 
@@ -49,7 +50,11 @@ public:
     void parent();
     void next();
     bool isValid() const;
+    bool isElement() const;
+    bool isBlank() const;
+    bool isComment() const;
     OString attribute(const OString& sName) const;
+    std::vector<OString> attributeNames() const;
 };
 
 } // end tools namespace

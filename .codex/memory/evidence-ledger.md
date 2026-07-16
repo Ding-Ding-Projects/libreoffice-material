@@ -23,6 +23,18 @@ The discarded preflight image reported `rendered_ok: true`, dimensions
 Its hash is retained only to identify the temporary observation; it is not a
 link, gallery artifact, or accepted visual result.
 
+## Non-run environment audits
+
+| Date | Scope | Result | Evidence effect |
+| --- | --- | --- | --- |
+| 2026-07-16 | Fork binary search | No installed, worktree, AppX, WSL, or running `soffice`/LibreOffice binary found | Runtime gate remains closed |
+| 2026-07-16 | Detached build worktree | Clean at `ddeec51e886f4642718eaa626ea2f48cdd9aa6a8`; no configure output, build directory, `instdir`, or initialized optional source submodules | Source is prepared, not built |
+| 2026-07-16 | Windows build profile | WSL has no distro; selectable VS 2022 lacks ATL/configured CMake; selected SDK 28000 lacks required files; other helpers remain incomplete | No supported build command was run |
+| 2026-07-16 | Low-level driver | Clean commit `806d9ba85e4afbc2af58d7499496babfa7c68891`, MCP on `127.0.0.1:8765`; no LibreOffice scenario; launch/PID/teardown limitations recorded | Driver readiness only; no UI evidence |
+
+These audits are reproducibility facts, not accepted build, interaction, or
+visual runs. The verified LibreOffice Material screenshot count remains zero.
+
 ## Entry requirements
 
 An entry may be added only when:

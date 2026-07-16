@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <typography>
+        <!-- Comments are schema-neutral. -->
+        <role name="body" scale="125" weight="normal">
+            <!-- Comments inside a role are schema-neutral too. -->
+        </role>
+        <role name="label" scale="150" weight="bold"/>
+        <role name="title" scale="200" weight="medium"/>
+    </typography>
+</widgets>

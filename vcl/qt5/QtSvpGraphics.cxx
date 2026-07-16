@@ -22,7 +22,7 @@
 QtSvpGraphics::QtSvpGraphics(QtFrame* pFrame)
     : m_pFrame(pFrame)
 {
-    if (!QtInstance::noNativeControls())
+    if (!m_pWidgetDraw && !QtInstance::noNativeControls())
         m_pWidgetDraw.reset(new QtGraphics_Controls(*this));
     if (m_pFrame)
         setDevicePixelRatioF(m_pFrame->devicePixelRatioF());
@@ -71,10 +71,18 @@ static void QImage2BitmapBuffer(QImage& rImg, BitmapBuffer& rBuf)
 void QtSvpGraphics::handleDamage(const tools::Rectangle& rDamagedRegion)
 {
     assert(m_pWidgetDraw);
-    assert(dynamic_cast<QtGraphics_Controls*>(m_pWidgetDraw.get()));
     assert(!rDamagedRegion.IsEmpty());
 
-    QImage* pImage = static_cast<QtGraphics_Controls*>(m_pWidgetDraw.get())->getImage();
+    auto* pQtControls = dynamic_cast<QtGraphics_Controls*>(m_pWidgetDraw.get());
+    if (!pQtControls)
+    {
+        // File-defined widgets draw into the Svp backend itself, so there is
+        // no temporary Qt image to copy. Publish the updated backing surface.
+        updateQWidget();
+        return;
+    }
+
+    QImage* pImage = pQtControls->getImage();
     assert(pImage);
     if (pImage->width() == 0 || pImage->height() == 0)
         return;

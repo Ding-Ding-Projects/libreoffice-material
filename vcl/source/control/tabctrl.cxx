@@ -158,11 +158,12 @@ void TabControl::ImplInitSettings( bool bBackground )
     if ( !bBackground )
         return;
 
+    const bool bNativeTab = IsNativeControlSupported(ControlType::TabPane, ControlPart::Entire)
+                            || IsNativeControlSupported(ControlType::TabItem, ControlPart::Entire);
+    ImplGetWindowImpl()->mbUseNativeFocus = bNativeTab && ImplGetSVData()->maNWFData.mbNoFocusRects;
+
     vcl::Window* pParent = GetParent();
-    if ( !IsControlBackground() &&
-        (pParent->IsChildTransparentModeEnabled()
-        || IsNativeControlSupported(ControlType::TabPane, ControlPart::Entire)
-        || IsNativeControlSupported(ControlType::TabItem, ControlPart::Entire) ) )
+    if (!IsControlBackground() && (pParent->IsChildTransparentModeEnabled() || bNativeTab))
 
     {
         // set transparent mode for NWF tabcontrols to have
@@ -171,8 +172,6 @@ void TabControl::ImplInitSettings( bool bBackground )
         SetParentClipMode( ParentClipMode::NoClip );
         SetPaintTransparent( true );
         SetBackground();
-        ImplGetWindowImpl()->mbUseNativeFocus = ImplGetSVData()->maNWFData.mbNoFocusRects;
-
         return;
     }
 

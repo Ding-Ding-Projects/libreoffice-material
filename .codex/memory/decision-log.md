@@ -80,3 +80,40 @@
 - Reason: painting a generic filled level bar would erase its threshold colors,
   the current ListNet caller provides an empty region, and Frame requires a
   verified inner-content contract rather than a pass-through border rectangle.
+
+## D-009 — resolve Material profiles after native settings
+
+- Date: 2026-07-16
+- State: implemented source; build verification pending
+- Decision: collect native platform settings first, resolve LibreOffice theme
+  overrides, then select the file-widget profile with precedence high contrast
+  over dark over light. High contrast restores the captured native framework
+  settings and delegates to native controls or LibreOffice's generic drawing
+  instead of applying fixed Material colors.
+- Reason: accessibility and platform forced-color behavior must outrank brand
+  palette selection, while shared immutable definitions keep every graphics
+  instance on the same resolved profile.
+
+## D-010 — give standalone spin controls explicit direction and geometry
+
+- Date: 2026-07-16
+- State: implemented source; build verification pending
+- Decision: define standalone spin-button parts explicitly as up, down, left,
+  and right; draw composite controls into the two exact rectangles supplied by
+  the caller; and treat horizontal increment as right and decrement as left.
+- Reason: reusing vertical semantics or an enclosing rectangle would reverse
+  horizontal meaning and could paint outside the caller-owned control regions.
+
+## D-011 — make runtime profile transitions accessibility-safe
+
+- Date: 2026-07-16
+- State: implemented source; build verification pending
+- Decision: capture the resolved pre-Material `StyleSettings` and native widget
+  framework values before applying the file theme, restore them before the next
+  platform refresh, and recompute per-control native-focus suppression after
+  profile changes. Detect Qt high contrast through proxy-style chains and honor
+  explicit dark appearance in headless VCL, where no operating-system signal
+  exists.
+- Reason: switching to high contrast must not retain fixed Material colors or
+  leave VCL focus indicators suppressed when drawing falls back to generic
+  controls; the same precedence must be observable on Qt and headless paths.

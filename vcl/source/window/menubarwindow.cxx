@@ -29,6 +29,7 @@
 #include <sal/log.hxx>
 
 #include <salframe.hxx>
+#include <salgdi.hxx>
 #include <salmenu.hxx>
 #include <svdata.hxx>
 #include <strings.hrc>
@@ -1067,7 +1068,15 @@ void MenuBarWindow::ImplInitStyleSettings()
         return;
 
     AllSettings aSettings(GetSettings());
+    const bool bResolvedHighContrast = aSettings.GetStyleSettings().GetHighContrastMode();
     ImplGetFrame()->UpdateSettings(aSettings); // to update persona
+    StyleSettings aResolvedStyle(aSettings.GetStyleSettings());
+    aResolvedStyle.SetHighContrastMode(bResolvedHighContrast);
+    aSettings.SetStyleSettings(aResolvedStyle);
+    if (SalGraphics* pGraphics = GetOutDev()->GetGraphics())
+    {
+        pGraphics->UpdateFileDefinitionSettings(aSettings, ImplGetFrame()->GetUseDarkMode());
+    }
     StyleSettings aStyle(aSettings.GetStyleSettings());
     Color aHighlightTextColor = ImplGetSVData()->maNWFData.maMenuBarHighlightTextColor;
     if (aHighlightTextColor != COL_TRANSPARENT)

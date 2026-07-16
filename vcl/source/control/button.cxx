@@ -648,21 +648,24 @@ void PushButton::ImplInitSettings( bool bBackground )
     if ( !bBackground )
         return;
 
+    const bool bNativeEntire
+        = IsNativeControlSupported(ControlType::Pushbutton, ControlPart::Entire);
+    const bool bNativeFocus = IsNativeControlSupported(ControlType::Pushbutton, ControlPart::Focus);
+    mpWindowImpl->mbUseNativeFocus
+        = (bNativeEntire || bNativeFocus)
+          && ((GetStyle() & WB_FLATBUTTON) != 0
+                  ? ImplGetSVData()->maNWFData.mbNoFocusRectsForFlatButtons
+                  : ImplGetSVData()->maNWFData.mbNoFocusRects);
+
     SetBackground();
     // #i38498#: do not check for GetParent()->IsChildTransparentModeEnabled()
     // otherwise the formcontrol button will be overdrawn due to ParentClipMode::NoClip
     // for radio and checkbox this is ok as they should appear transparent in documents
-    if ( IsNativeControlSupported( ControlType::Pushbutton, ControlPart::Entire ) ||
-         (GetStyle() & WB_FLATBUTTON) != 0 )
+    if (bNativeEntire || (GetStyle() & WB_FLATBUTTON) != 0)
     {
         EnableChildTransparentMode();
         SetParentClipMode( ParentClipMode::NoClip );
-        SetPaintTransparent( true );
-
-        if ((GetStyle() & WB_FLATBUTTON) == 0)
-            mpWindowImpl->mbUseNativeFocus = ImplGetSVData()->maNWFData.mbNoFocusRects;
-        else
-            mpWindowImpl->mbUseNativeFocus = ImplGetSVData()->maNWFData.mbNoFocusRectsForFlatButtons;
+        SetPaintTransparent(true);
     }
     else
     {
@@ -1874,16 +1877,20 @@ void RadioButton::ImplInitSettings( bool bBackground )
     if ( !bBackground )
         return;
 
+    const bool bNativeEntire
+        = IsNativeControlSupported(ControlType::Radiobutton, ControlPart::Entire);
+    const bool bNativeFocus
+        = IsNativeControlSupported(ControlType::Radiobutton, ControlPart::Focus);
+    mpWindowImpl->mbUseNativeFocus
+        = (bNativeEntire || bNativeFocus) && ImplGetSVData()->maNWFData.mbNoFocusRects;
+
     vcl::Window* pParent = GetParent();
-    if ( !IsControlBackground() &&
-        (pParent->IsChildTransparentModeEnabled() || IsNativeControlSupported( ControlType::Radiobutton, ControlPart::Entire ) ) )
+    if (!IsControlBackground() && (pParent->IsChildTransparentModeEnabled() || bNativeEntire))
     {
         EnableChildTransparentMode();
         SetParentClipMode( ParentClipMode::NoClip );
         SetPaintTransparent( true );
         SetBackground();
-        if( IsNativeControlSupported( ControlType::Radiobutton, ControlPart::Entire ) )
-            mpWindowImpl->mbUseNativeFocus = ImplGetSVData()->maNWFData.mbNoFocusRects;
     }
     else
     {
@@ -2970,16 +2977,18 @@ void CheckBox::ImplInitSettings( bool bBackground )
     if ( !bBackground )
         return;
 
+    const bool bNativeEntire = IsNativeControlSupported(ControlType::Checkbox, ControlPart::Entire);
+    const bool bNativeFocus = IsNativeControlSupported(ControlType::Checkbox, ControlPart::Focus);
+    ImplGetWindowImpl()->mbUseNativeFocus
+        = (bNativeEntire || bNativeFocus) && ImplGetSVData()->maNWFData.mbNoFocusRects;
+
     vcl::Window* pParent = GetParent();
-    if ( !IsControlBackground() &&
-        (pParent->IsChildTransparentModeEnabled() || IsNativeControlSupported( ControlType::Checkbox, ControlPart::Entire ) ) )
+    if (!IsControlBackground() && (pParent->IsChildTransparentModeEnabled() || bNativeEntire))
     {
         EnableChildTransparentMode();
         SetParentClipMode( ParentClipMode::NoClip );
         SetPaintTransparent( true );
         SetBackground();
-        if( IsNativeControlSupported( ControlType::Checkbox, ControlPart::Entire ) )
-            ImplGetWindowImpl()->mbUseNativeFocus = ImplGetSVData()->maNWFData.mbNoFocusRects;
     }
     else
     {

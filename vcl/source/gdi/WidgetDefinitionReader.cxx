@@ -12,6 +12,7 @@
 #include <frozen/bits/elsa_std.h>
 #include <frozen/unordered_map.h>
 
+#include <map>
 #include <unordered_map>
 #include <optional>
 #include <utility>
@@ -48,6 +49,24 @@ OString getValueOrAny(OString const& rInputString)
     if (rInputString.isEmpty())
         return "any"_ostr;
     return rInputString;
+}
+
+bool haveSameColorTokenNames(std::map<OString, Color> const& rFirst,
+                             std::map<OString, Color> const& rSecond)
+{
+    if (rFirst.size() != rSecond.size())
+        return false;
+
+    auto aFirst = rFirst.begin();
+    auto aSecond = rSecond.begin();
+    while (aFirst != rFirst.end())
+    {
+        if (aFirst->first != aSecond->first)
+            return false;
+        ++aFirst;
+        ++aSecond;
+    }
+    return true;
 }
 
 std::optional<ControlPart> xmlStringToControlPart(std::string_view sPart)
@@ -138,6 +157,7 @@ bool getControlTypeForXmlString(std::string_view rString, ControlType& reType)
         { "listbox", ControlType::Listbox },
         { "scrollbar", ControlType::Scrollbar },
         { "spinbox", ControlType::Spinbox },
+        { "spinbuttons", ControlType::SpinButtons },
         { "slider", ControlType::Slider },
         { "fixedline", ControlType::Fixedline },
         { "progress", ControlType::Progress },
@@ -168,9 +188,11 @@ bool getControlTypeForXmlString(std::string_view rString, ControlType& reType)
 
 } // end anonymous namespace
 
-WidgetDefinitionReader::WidgetDefinitionReader(OUString aDefinitionFile, OUString aResourcePath)
+WidgetDefinitionReader::WidgetDefinitionReader(OUString aDefinitionFile, OUString aResourcePath,
+                                               OString aScheme)
     : m_rDefinitionFile(std::move(aDefinitionFile))
     , m_rResourcePath(std::move(aResourcePath))
+    , m_aScheme(std::move(aScheme))
     , m_bValid(true)
 {
 }
@@ -196,8 +218,10 @@ bool WidgetDefinitionReader::readColor(OString const& rValue, Color& rColor) con
     return true;
 }
 
-void WidgetDefinitionReader::readColorPalette(tools::XmlWalker& rWalker)
+bool WidgetDefinitionReader::readColorPalette(tools::XmlWalker& rWalker,
+                                              std::map<OString, Color>& rColorTokens) const
 {
+    bool bValid = true;
     rWalker.children();
     while (rWalker.isValid())
     {
@@ -210,17 +234,29 @@ void WidgetDefinitionReader::readColorPalette(tools::XmlWalker& rWalker)
                 || !color::createFromString(sValue, aColor))
             {
                 SAL_WARN("vcl.gdi", "Invalid file-widget color token: " << sName);
-                m_bValid = false;
+                bValid = false;
             }
-            else if (!m_aColorTokens.emplace(sName, aColor).second)
+            else if (!rColorTokens.emplace(sName, aColor).second)
             {
                 SAL_WARN("vcl.gdi", "Duplicate file-widget color token: " << sName);
-                m_bValid = false;
+                bValid = false;
             }
+        }
+        else
+        {
+            SAL_WARN("vcl.gdi", "Unknown file-widget palette entry: " << rWalker.name());
+            bValid = false;
         }
         rWalker.next();
     }
     rWalker.parent();
+
+    if (rColorTokens.empty())
+    {
+        SAL_WARN("vcl.gdi", "Empty file-widget color palette");
+        bValid = false;
+    }
+    return bValid;
 }
 
 void WidgetDefinitionReader::readDrawingDefinition(
@@ -414,8 +450,10 @@ bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
     m_bValid = true;
     rWidgetDefinition.maDefinitions.clear();
 
-    // Resolve the palette in a dedicated pass so definitions may place it
-    // anywhere under the root without making token use order-dependent.
+    // Resolve every palette in a dedicated pass so definitions may place them
+    // anywhere under the root without making token use order-dependent. All
+    // profiles are validated even though only one is selected for this read.
+    std::map<OString, std::map<OString, Color>> aColorPalettes;
     {
         SvFileStream aPaletteStream(m_rDefinitionFile, StreamMode::READ);
         tools::XmlWalker aPaletteWalker;
@@ -426,10 +464,45 @@ bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
         while (aPaletteWalker.isValid())
         {
             if (aPaletteWalker.name() == "palette")
-                readColorPalette(aPaletteWalker);
+            {
+                OString const aScheme = aPaletteWalker.attribute("scheme"_ostr);
+                std::map<OString, Color> aColorTokens;
+                if (!readColorPalette(aPaletteWalker, aColorTokens))
+                    m_bValid = false;
+                if (!aColorPalettes.emplace(aScheme, std::move(aColorTokens)).second)
+                {
+                    SAL_WARN("vcl.gdi", "Duplicate file-widget color palette scheme: " << aScheme);
+                    m_bValid = false;
+                }
+            }
             aPaletteWalker.next();
         }
         aPaletteWalker.parent();
+    }
+
+    if (!aColorPalettes.empty())
+    {
+        auto const& rReferencePalette = aColorPalettes.begin()->second;
+        for (auto const& [rScheme, rColorTokens] : aColorPalettes)
+        {
+            if (!haveSameColorTokenNames(rReferencePalette, rColorTokens))
+            {
+                SAL_WARN("vcl.gdi",
+                         "Mismatched file-widget color token set for palette scheme: " << rScheme);
+                m_bValid = false;
+            }
+        }
+
+        auto aSelectedPalette = aColorPalettes.find(m_aScheme);
+        if (aSelectedPalette == aColorPalettes.end() && !m_aScheme.isEmpty())
+            aSelectedPalette = aColorPalettes.find(OString());
+        if (aSelectedPalette == aColorPalettes.end())
+        {
+            SAL_WARN("vcl.gdi", "No file-widget color palette for scheme: " << m_aScheme);
+            m_bValid = false;
+        }
+        else
+            m_aColorTokens = aSelectedPalette->second;
     }
 
     if (!m_bValid)

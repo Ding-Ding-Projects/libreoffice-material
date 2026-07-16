@@ -58,9 +58,29 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QMainWindow>
+#include <QtWidgets/QProxyStyle>
 #if CHECK_QT5_USING_X11
 #include <QtX11Extras/QX11Info>
 #endif
+
+namespace
+{
+bool isHighContrastStyle()
+{
+    const QStyle* pApplicationStyle = QApplication::style();
+    while (pApplicationStyle)
+    {
+        if (pApplicationStyle->inherits("HighContrastStyle"))
+            return true;
+
+        const auto* pProxyStyle = qobject_cast<const QProxyStyle*>(pApplicationStyle);
+        if (!pProxyStyle || pProxyStyle->baseStyle() == pApplicationStyle)
+            break;
+        pApplicationStyle = pProxyStyle->baseStyle();
+    }
+    return false;
+}
+}
 
 QtFrame::QtFrame(QtFrame* pParent, SalFrameStyleFlags nStyle)
     : m_pTopLevel(nullptr)
@@ -923,10 +943,17 @@ void QtFrame::UpdateSettings(AllSettings& rSettings)
     SolarMutexGuard g;
     GetQtInstance().RunInMainThread([&] {
         if (QtInstance::noNativeControls())
+        {
+            StyleSettings style(rSettings.GetStyleSettings());
+            style.SetHighContrastMode(isHighContrastStyle());
+            rSettings.SetStyleSettings(style);
             return;
+        }
         QtCustomStyle::LoadCustomStyle(GetUseDarkMode());
 
         StyleSettings style(rSettings.GetStyleSettings());
+        const bool bHighContrast = isHighContrastStyle();
+        style.SetHighContrastMode(bHighContrast);
         const css::lang::Locale aLocale = rSettings.GetUILanguageTag().getLocale();
 
         // General settings
@@ -1035,7 +1062,7 @@ void QtFrame::UpdateSettings(AllSettings& rSettings)
         style.SetMenuHighlightTextColor(toColor(qMenuCG.color(QPalette::HighlightedText)));
 
         // set special menubar highlight text color
-        if (QApplication::style()->inherits("HighContrastStyle"))
+        if (bHighContrast)
             ImplGetSVData()->maNWFData.maMenuBarHighlightTextColor
                 = toColor(qMenuCG.color(QPalette::HighlightedText));
         else

@@ -62,6 +62,7 @@ public:
     void testRead();
     void testReadSettings();
     void testReadColorTokens();
+    void testReadColorPalettes();
     void testRejectInvalidDefinitions();
     void testReadMaterialTheme();
 
@@ -69,6 +70,7 @@ public:
     CPPUNIT_TEST(testRead);
     CPPUNIT_TEST(testReadSettings);
     CPPUNIT_TEST(testReadColorTokens);
+    CPPUNIT_TEST(testReadColorPalettes);
     CPPUNIT_TEST(testRejectInvalidDefinitions);
     CPPUNIT_TEST(testReadMaterialTheme);
     CPPUNIT_TEST_SUITE_END();
@@ -97,6 +99,53 @@ void WidgetDefinitionReaderTest::testReadColorTokens()
     CPPUNIT_ASSERT_EQUAL(u"abcdef"_ustr, rRect.maFillColor.AsRGBHexString());
 }
 
+void WidgetDefinitionReaderTest::testReadColorPalettes()
+{
+    {
+        vcl::WidgetDefinition aDefinition;
+        vcl::WidgetDefinitionReader aReader(getFullUrl(u"definitionColorPalettes.xml"),
+                                            getFullUrl(u""));
+        CPPUNIT_ASSERT(aReader.read(aDefinition));
+        CPPUNIT_ASSERT_EQUAL(u"abcdef"_ustr, aDefinition.mpStyle->maFaceColor.AsRGBHexString());
+
+        auto pSpinButton
+            = aDefinition.getDefinition(ControlType::SpinButtons, ControlPart::ButtonUp);
+        CPPUNIT_ASSERT(pSpinButton);
+        const auto aStates = pSpinButton->getStates(ControlType::SpinButtons, ControlPart::ButtonUp,
+                                                    ControlState::ENABLED, SpinbuttonValue());
+        CPPUNIT_ASSERT_EQUAL(size_t(1), aStates.size());
+        const auto& rRect = static_cast<const vcl::WidgetDrawActionRectangle&>(
+            *aStates[0]->mpWidgetDrawActions[0]);
+        CPPUNIT_ASSERT_EQUAL(u"654321"_ustr, rRect.maFillColor.AsRGBHexString());
+    }
+
+    {
+        vcl::WidgetDefinition aDefinition;
+        vcl::WidgetDefinitionReader aReader(getFullUrl(u"definitionColorPalettes.xml"),
+                                            getFullUrl(u""), "dark"_ostr);
+        CPPUNIT_ASSERT(aReader.read(aDefinition));
+        CPPUNIT_ASSERT_EQUAL(u"101010"_ustr, aDefinition.mpStyle->maFaceColor.AsRGBHexString());
+
+        auto pSpinButton
+            = aDefinition.getDefinition(ControlType::SpinButtons, ControlPart::ButtonUp);
+        CPPUNIT_ASSERT(pSpinButton);
+        const auto aStates = pSpinButton->getStates(ControlType::SpinButtons, ControlPart::ButtonUp,
+                                                    ControlState::ENABLED, SpinbuttonValue());
+        CPPUNIT_ASSERT_EQUAL(size_t(1), aStates.size());
+        const auto& rRect = static_cast<const vcl::WidgetDrawActionRectangle&>(
+            *aStates[0]->mpWidgetDrawActions[0]);
+        CPPUNIT_ASSERT_EQUAL(u"d0bcff"_ustr, rRect.maFillColor.AsRGBHexString());
+    }
+
+    {
+        vcl::WidgetDefinition aDefinition;
+        vcl::WidgetDefinitionReader aReader(getFullUrl(u"definitionColorPalettes.xml"),
+                                            getFullUrl(u""), "unknown"_ostr);
+        CPPUNIT_ASSERT(aReader.read(aDefinition));
+        CPPUNIT_ASSERT_EQUAL(u"abcdef"_ustr, aDefinition.mpStyle->maFaceColor.AsRGBHexString());
+    }
+}
+
 void WidgetDefinitionReaderTest::testRejectInvalidDefinitions()
 {
     {
@@ -123,6 +172,27 @@ void WidgetDefinitionReaderTest::testRejectInvalidDefinitions()
     {
         vcl::WidgetDefinition aDefinition;
         vcl::WidgetDefinitionReader aReader(getFullUrl(u"definitionDuplicatePart.xml"),
+                                            getFullUrl(u""));
+        CPPUNIT_ASSERT(!aReader.read(aDefinition));
+    }
+
+    {
+        vcl::WidgetDefinition aDefinition;
+        vcl::WidgetDefinitionReader aReader(getFullUrl(u"definitionDuplicatePaletteScheme.xml"),
+                                            getFullUrl(u""), "dark"_ostr);
+        CPPUNIT_ASSERT(!aReader.read(aDefinition));
+    }
+
+    {
+        vcl::WidgetDefinition aDefinition;
+        vcl::WidgetDefinitionReader aReader(getFullUrl(u"definitionInvalidUnselectedPalette.xml"),
+                                            getFullUrl(u""));
+        CPPUNIT_ASSERT(!aReader.read(aDefinition));
+    }
+
+    {
+        vcl::WidgetDefinition aDefinition;
+        vcl::WidgetDefinitionReader aReader(getFullUrl(u"definitionMismatchedPaletteTokens.xml"),
                                             getFullUrl(u""));
         CPPUNIT_ASSERT(!aReader.read(aDefinition));
     }
@@ -246,6 +316,25 @@ void WidgetDefinitionReaderTest::testReadMaterialTheme()
     CPPUNIT_ASSERT_EQUAL(size_t(1), aComboButtonStates.size());
     CPPUNIT_ASSERT_EQUAL(size_t(3), aComboButtonStates[0]->mpWidgetDrawActions.size());
 
+    for (ControlPart ePart : { ControlPart::ButtonUp, ControlPart::ButtonDown,
+                               ControlPart::ButtonLeft, ControlPart::ButtonRight })
+    {
+        auto pSpinButton = aDefinition.getDefinition(ControlType::SpinButtons, ePart);
+        CPPUNIT_ASSERT(pSpinButton);
+        CPPUNIT_ASSERT_EQUAL(sal_Int32(28), pSpinButton->mnWidth);
+        CPPUNIT_ASSERT_EQUAL(sal_Int32(28), pSpinButton->mnHeight);
+
+        for (ControlState eState :
+             { ControlState::ENABLED, ControlState::ENABLED | ControlState::ROLLOVER,
+               ControlState::ENABLED | ControlState::PRESSED, ControlState::NONE })
+        {
+            const auto aSpinButtonStates = pSpinButton->getStates(ControlType::SpinButtons, ePart,
+                                                                  eState, SpinbuttonValue());
+            CPPUNIT_ASSERT(!aSpinButtonStates.empty());
+            CPPUNIT_ASSERT(!aSpinButtonStates.back()->mpWidgetDrawActions.empty());
+        }
+    }
+
     CPPUNIT_ASSERT(aDefinition.getDefinition(ControlType::EditboxNoBorder, ControlPart::Entire));
     CPPUNIT_ASSERT(aDefinition.getDefinition(ControlType::MultilineEditbox, ControlPart::Entire));
     CPPUNIT_ASSERT(aDefinition.getDefinition(ControlType::Listbox, ControlPart::ListboxWindow));
@@ -328,6 +417,42 @@ void WidgetDefinitionReaderTest::testReadMaterialTheme()
                                       ControlState::ENABLED, ImplControlValue(tools::Long(1)));
     CPPUNIT_ASSERT_EQUAL(size_t(1), aDownArrowStates.size());
     CPPUNIT_ASSERT_EQUAL(size_t(2), aDownArrowStates[0]->mpWidgetDrawActions.size());
+
+    vcl::WidgetDefinition aDarkDefinition;
+    vcl::WidgetDefinitionReader aDarkReader(getMaterialThemeUrl(u"definition.xml"),
+                                            getMaterialThemeUrl(u""), "dark"_ostr);
+    CPPUNIT_ASSERT(aDarkReader.read(aDarkDefinition));
+    CPPUNIT_ASSERT_EQUAL(u"141218"_ustr, aDarkDefinition.mpStyle->maWindowColor.AsRGBHexString());
+    CPPUNIT_ASSERT_EQUAL(u"e6e0e9"_ustr,
+                         aDarkDefinition.mpStyle->maWindowTextColor.AsRGBHexString());
+    CPPUNIT_ASSERT_EQUAL(u"381e72"_ustr,
+                         aDarkDefinition.mpStyle->maActionButtonTextColor.AsRGBHexString());
+    CPPUNIT_ASSERT(contrastRatio(aDarkDefinition.mpStyle->maWindowTextColor,
+                                 aDarkDefinition.mpStyle->maWindowColor)
+                   >= 4.5);
+
+    auto pDarkPushButton
+        = aDarkDefinition.getDefinition(ControlType::Pushbutton, ControlPart::Entire);
+    CPPUNIT_ASSERT(pDarkPushButton);
+    const auto aDarkActionButtonStates = pDarkPushButton->getStates(
+        ControlType::Pushbutton, ControlPart::Entire, ControlState::ENABLED, aActionButtonValue);
+    CPPUNIT_ASSERT_EQUAL(size_t(2), aDarkActionButtonStates.size());
+    const auto& rDarkActionButtonRect = static_cast<const vcl::WidgetDrawActionRectangle&>(
+        *aDarkActionButtonStates.back()->mpWidgetDrawActions[0]);
+    CPPUNIT_ASSERT_EQUAL(u"d0bcff"_ustr, rDarkActionButtonRect.maFillColor.AsRGBHexString());
+    CPPUNIT_ASSERT(contrastRatio(aDarkDefinition.mpStyle->maActionButtonTextColor,
+                                 rDarkActionButtonRect.maFillColor)
+                   >= 4.5);
+
+    auto pDarkSpinButton
+        = aDarkDefinition.getDefinition(ControlType::SpinButtons, ControlPart::ButtonUp);
+    CPPUNIT_ASSERT(pDarkSpinButton);
+    const auto aDarkSpinButtonStates = pDarkSpinButton->getStates(
+        ControlType::SpinButtons, ControlPart::ButtonUp, ControlState::ENABLED, SpinbuttonValue());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), aDarkSpinButtonStates.size());
+    const auto& rDarkSpinButtonRect = static_cast<const vcl::WidgetDrawActionRectangle&>(
+        *aDarkSpinButtonStates[0]->mpWidgetDrawActions[0]);
+    CPPUNIT_ASSERT_EQUAL(u"4f378b"_ustr, rDarkSpinButtonRect.maFillColor.AsRGBHexString());
 }
 
 void WidgetDefinitionReaderTest::testReadSettings()

@@ -34,6 +34,7 @@
 #include <comphelper/processfactory.hxx>
 
 #include <salframe.hxx>
+#include <salgdi.hxx>
 #include <brdwin.hxx>
 
 #include <window.h>
@@ -152,6 +153,9 @@ void Window::UpdateSettings( const AllSettings& rSettings, bool bChild )
 
 void Window::ImplUpdateGlobalSettings( AllSettings& rSettings, bool bCallHdl ) const
 {
+    if (SalGraphics* pGraphics = mpWindowImpl->mxOutDev->GetGraphics())
+        pGraphics->RestoreFileDefinitionNativeSettings(rSettings);
+
     StyleSettings aTmpSt( rSettings.GetStyleSettings() );
     aTmpSt.SetHighContrastMode( false );
     rSettings.SetStyleSettings( aTmpSt );
@@ -249,6 +253,15 @@ void Window::ImplUpdateGlobalSettings( AllSettings& rSettings, bool bCallHdl ) c
 
     if ( bCallHdl )
         GetpApp()->OverrideSystemSettings( rSettings );
+
+    // A file-defined widget theme is a final style overlay, not a substitute
+    // for platform settings discovery. Applying it here gives every backend
+    // the same ordering and lets resolved high contrast retain native colors.
+    if (SalGraphics* pGraphics = mpWindowImpl->mxOutDev->GetGraphics())
+    {
+        pGraphics->CaptureFileDefinitionNativeSettings(rSettings);
+        pGraphics->UpdateFileDefinitionSettings(rSettings, ImplGetFrame()->GetUseDarkMode());
+    }
 }
 
 } /*namespace vcl*/

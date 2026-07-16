@@ -32,10 +32,10 @@
 
 namespace {
 
-void lcl_GetSpinbuttonValue(vcl::Window* pWin,
-                            const tools::Rectangle& rUpperRect, const tools::Rectangle& rLowerRect,
-                            bool bUpperIn, bool bLowerIn, bool bUpperEnabled, bool bLowerEnabled,
-                            bool bHorz, SpinbuttonValue& rValue )
+void lcl_GetSpinbuttonValue(vcl::Window* pWin, const tools::Rectangle& rUpperRect,
+                            const tools::Rectangle& rLowerRect, bool bUpperIn, bool bLowerIn,
+                            bool bUpperEnabled, bool bLowerEnabled, bool bHorz, bool bMirrorHorz,
+                            SpinbuttonValue& rValue)
 {
     // convert spinbutton data to a SpinbuttonValue structure for native painting
 
@@ -67,8 +67,10 @@ void lcl_GetSpinbuttonValue(vcl::Window* pWin,
         nState |= ControlState::ROLLOVER;
     rValue.mnLowerState = nState;
 
-    rValue.mnUpperPart = bHorz ? ControlPart::ButtonLeft : ControlPart::ButtonUp;
-    rValue.mnLowerPart = bHorz ? ControlPart::ButtonRight : ControlPart::ButtonDown;
+    rValue.mnUpperPart = bHorz ? (bMirrorHorz ? ControlPart::ButtonRight : ControlPart::ButtonLeft)
+                               : ControlPart::ButtonUp;
+    rValue.mnLowerPart = bHorz ? (bMirrorHorz ? ControlPart::ButtonLeft : ControlPart::ButtonRight)
+                               : ControlPart::ButtonDown;
 }
 
 bool lcl_DrawNativeSpinfield(vcl::RenderContext& rRenderContext, vcl::Window const * pWin, const SpinbuttonValue& rSpinbuttonValue)
@@ -185,9 +187,8 @@ void ImplDrawSpinButton(vcl::RenderContext& rRenderContext, vcl::Window* pWindow
         }
 
         SpinbuttonValue aValue;
-        lcl_GetSpinbuttonValue(pWindow, rUpperRect, rLowerRect,
-                               bUpperIn, bLowerIn, bUpperEnabled, bLowerEnabled,
-                               bHorz, aValue);
+        lcl_GetSpinbuttonValue(pWindow, rUpperRect, rLowerRect, bUpperIn, bLowerIn, bUpperEnabled,
+                               bLowerEnabled, bHorz, bMirrorHorz, aValue);
 
         if( aControl == ControlType::Spinbox )
             bNativeOK = lcl_DrawNativeSpinfield(rRenderContext, pWindow, aValue);

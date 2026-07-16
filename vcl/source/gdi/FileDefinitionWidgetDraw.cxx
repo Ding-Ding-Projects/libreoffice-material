@@ -14,7 +14,9 @@
 #include <cstdlib>
 #include <map>
 #include <mutex>
+#include <optional>
 #include <string_view>
+#include <utility>
 
 #include <FileDefinitionWidgetDraw.hxx>
 #include <widgetdraw/WidgetDefinitionReader.hxx>
@@ -49,6 +51,22 @@ using namespace css;
 
 namespace vcl
 {
+struct FileDefinitionThemeState
+{
+    explicit FileDefinitionThemeState(OUString aRequestedTheme)
+        : maRequestedTheme(std::move(aRequestedTheme))
+    {
+    }
+
+    std::mutex maMutex;
+    OUString maRequestedTheme;
+    OUString maResolvedTheme;
+    OString maColorScheme;
+    std::shared_ptr<WidgetDefinition> mpDefinition;
+    std::optional<StyleSettings> moNativeStyle;
+    bool mbHighContrast = false;
+};
+
 namespace
 {
 OUString lcl_getThemeDefinitionPath()
@@ -103,11 +121,18 @@ ComboBoxPartRegions lcl_getComboBoxPartRegions(const tools::Rectangle& rControlR
                               Size(nSubEditWidth, nSubEditHeight)) };
 }
 
+bool lcl_isSpinButtonPart(ControlPart ePart)
+{
+    return ePart == ControlPart::ButtonUp || ePart == ControlPart::ButtonDown
+           || ePart == ControlPart::ButtonLeft || ePart == ControlPart::ButtonRight;
+}
+
 std::shared_ptr<WidgetDefinition> getWidgetDefinition(OUString const& rDefinitionFile,
-                                                      OUString const& rDefinitionResourcesPath)
+                                                      OUString const& rDefinitionResourcesPath,
+                                                      OString const& rColorScheme)
 {
     auto pWidgetDefinition = std::make_shared<WidgetDefinition>();
-    WidgetDefinitionReader aReader(rDefinitionFile, rDefinitionResourcesPath);
+    WidgetDefinitionReader aReader(rDefinitionFile, rDefinitionResourcesPath, rColorScheme);
     if (aReader.read(*pWidgetDefinition))
         return pWidgetDefinition;
     return std::shared_ptr<WidgetDefinition>();
@@ -140,15 +165,17 @@ OUString lcl_getRequestedThemeName()
     return OUString::fromUtf8(aThemeName);
 }
 
-std::shared_ptr<WidgetDefinition> getWidgetDefinitionForTheme(std::u16string_view rThemeName)
+std::shared_ptr<WidgetDefinition> getWidgetDefinitionForTheme(std::u16string_view rThemeName,
+                                                              OString const& rColorScheme)
 {
     static std::mutex aDefinitionsMutex;
-    static std::map<OUString, std::shared_ptr<WidgetDefinition>> aDefinitions;
+    static std::map<OUString, std::map<OString, std::shared_ptr<WidgetDefinition>>> aDefinitions;
 
     const OUString aThemeName(rThemeName);
     std::scoped_lock aGuard(aDefinitionsMutex);
-    const auto aExisting = aDefinitions.find(aThemeName);
-    if (aExisting != aDefinitions.end())
+    auto& rThemeDefinitions = aDefinitions[aThemeName];
+    const auto aExisting = rThemeDefinitions.find(rColorScheme);
+    if (aExisting != rThemeDefinitions.end())
         return aExisting->second;
 
     OUString sSharedDefinitionBasePath = lcl_getThemeDefinitionPath();
@@ -156,10 +183,48 @@ std::shared_ptr<WidgetDefinition> getWidgetDefinitionForTheme(std::u16string_vie
     OUString sThemeDefinitionFile = sThemeFolder + "definition.xml";
     std::shared_ptr<WidgetDefinition> pDefinition;
     if (lcl_directoryExists(sThemeFolder) && lcl_fileExists(sThemeDefinitionFile))
-        pDefinition = getWidgetDefinition(sThemeDefinitionFile, sThemeFolder);
+        pDefinition = getWidgetDefinition(sThemeDefinitionFile, sThemeFolder, rColorScheme);
 
-    aDefinitions.emplace(aThemeName, pDefinition);
+    // A transient packaging or deployment failure must not poison the cache.
+    if (pDefinition)
+        rThemeDefinitions.emplace(rColorScheme, pDefinition);
     return pDefinition;
+}
+
+std::shared_ptr<WidgetDefinition> selectWidgetDefinition(OUString const& rRequestedTheme,
+                                                         OString const& rColorScheme,
+                                                         OUString& rResolvedTheme)
+{
+    std::shared_ptr<WidgetDefinition> pDefinition
+        = getWidgetDefinitionForTheme(rRequestedTheme, rColorScheme);
+    rResolvedTheme = rRequestedTheme;
+
+    if (!pDefinition && rRequestedTheme != u"online")
+    {
+        pDefinition = getWidgetDefinitionForTheme(u"online", rColorScheme);
+        rResolvedTheme = u"online"_ustr;
+    }
+#ifdef IOS
+    if (!pDefinition)
+    {
+        pDefinition = getWidgetDefinitionForTheme(u"ios", rColorScheme);
+        rResolvedTheme = u"ios"_ustr;
+    }
+#endif
+    return pDefinition;
+}
+
+std::shared_ptr<FileDefinitionThemeState>
+getFileDefinitionThemeState(OUString const& rRequestedTheme)
+{
+    static std::mutex aThemeStatesMutex;
+    static std::map<OUString, std::shared_ptr<FileDefinitionThemeState>> aThemeStates;
+
+    std::scoped_lock aGuard(aThemeStatesMutex);
+    auto [aIterator, bInserted] = aThemeStates.try_emplace(rRequestedTheme, nullptr);
+    if (bInserted)
+        aIterator->second = std::make_shared<FileDefinitionThemeState>(rRequestedTheme);
+    return aIterator->second;
 }
 
 int getSettingValueInteger(std::string_view rValue, int nDefault)
@@ -180,6 +245,69 @@ bool getSettingValueBool(std::string_view rValue, bool bDefault)
     return bDefault;
 }
 
+struct NativeWidgetFrameworkBaseline
+{
+    bool mbCaptured = false;
+    bool mbNoFocusRects = false;
+    bool mbNoFocusRectsForFlatButtons = false;
+    bool mbNoActiveTabTextRaise = false;
+    bool mbCenteredTabs = false;
+    bool mbProgressNeedsErase = false;
+    int mnStatusBarLowerRightOffset = 0;
+    bool mbCanDrawWidgetAnySize = false;
+    int mnListBoxEntryMargin = 0;
+};
+
+void updateNativeWidgetFrameworkSettings(const std::shared_ptr<WidgetDefinition>& pDefinition)
+{
+    static std::mutex aBaselineMutex;
+    static NativeWidgetFrameworkBaseline aBaseline;
+    std::scoped_lock aGuard(aBaselineMutex);
+
+    ImplSVData* pSVData = ImplGetSVData();
+    auto& rNWFData = pSVData->maNWFData;
+    if (!pDefinition)
+    {
+        if (!aBaseline.mbCaptured)
+            return;
+
+        rNWFData.mbNoFocusRects = aBaseline.mbNoFocusRects;
+        rNWFData.mbNoFocusRectsForFlatButtons = aBaseline.mbNoFocusRectsForFlatButtons;
+        rNWFData.mbNoActiveTabTextRaise = aBaseline.mbNoActiveTabTextRaise;
+        rNWFData.mbCenteredTabs = aBaseline.mbCenteredTabs;
+        rNWFData.mbProgressNeedsErase = aBaseline.mbProgressNeedsErase;
+        rNWFData.mnStatusBarLowerRightOffset = aBaseline.mnStatusBarLowerRightOffset;
+        rNWFData.mbCanDrawWidgetAnySize = aBaseline.mbCanDrawWidgetAnySize;
+        rNWFData.mnListBoxEntryMargin = aBaseline.mnListBoxEntryMargin;
+        aBaseline.mbCaptured = false;
+        return;
+    }
+
+    if (!aBaseline.mbCaptured)
+    {
+        aBaseline.mbNoFocusRects = rNWFData.mbNoFocusRects;
+        aBaseline.mbNoFocusRectsForFlatButtons = rNWFData.mbNoFocusRectsForFlatButtons;
+        aBaseline.mbNoActiveTabTextRaise = rNWFData.mbNoActiveTabTextRaise;
+        aBaseline.mbCenteredTabs = rNWFData.mbCenteredTabs;
+        aBaseline.mbProgressNeedsErase = rNWFData.mbProgressNeedsErase;
+        aBaseline.mnStatusBarLowerRightOffset = rNWFData.mnStatusBarLowerRightOffset;
+        aBaseline.mbCanDrawWidgetAnySize = rNWFData.mbCanDrawWidgetAnySize;
+        aBaseline.mnListBoxEntryMargin = rNWFData.mnListBoxEntryMargin;
+        aBaseline.mbCaptured = true;
+    }
+
+    auto const& pSettings = pDefinition->mpSettings;
+    rNWFData.mbNoFocusRects = true;
+    rNWFData.mbNoFocusRectsForFlatButtons = true;
+    rNWFData.mbNoActiveTabTextRaise = getSettingValueBool(pSettings->msNoActiveTabTextRaise, true);
+    rNWFData.mbCenteredTabs = getSettingValueBool(pSettings->msCenteredTabs, true);
+    rNWFData.mbProgressNeedsErase = true;
+    rNWFData.mnStatusBarLowerRightOffset = 10;
+    rNWFData.mbCanDrawWidgetAnySize = true;
+    rNWFData.mnListBoxEntryMargin
+        = getSettingValueInteger(pSettings->msListBoxEntryMargin, aBaseline.mnListBoxEntryMargin);
+}
+
 } // end anonymous namespace
 
 FileDefinitionWidgetDraw::FileDefinitionWidgetDraw(SalGraphics& rGraphics)
@@ -187,40 +315,40 @@ FileDefinitionWidgetDraw::FileDefinitionWidgetDraw(SalGraphics& rGraphics)
     , m_bIsActive(false)
 {
     const OUString aRequestedTheme = lcl_getRequestedThemeName();
-    m_pWidgetDefinition = getWidgetDefinitionForTheme(aRequestedTheme);
-    if (!m_pWidgetDefinition && aRequestedTheme != u"online")
-        m_pWidgetDefinition = getWidgetDefinitionForTheme(u"online");
-#ifdef IOS
-    if (!m_pWidgetDefinition)
-        m_pWidgetDefinition = getWidgetDefinitionForTheme(u"ios");
-#endif
+    m_pThemeState = getFileDefinitionThemeState(aRequestedTheme);
 
-    if (!m_pWidgetDefinition)
-        return;
+    std::scoped_lock aGuard(m_pThemeState->maMutex);
+    if (!m_pThemeState->mpDefinition)
+    {
+        m_pThemeState->mpDefinition
+            = selectWidgetDefinition(aRequestedTheme, OString(), m_pThemeState->maResolvedTheme);
+        m_pThemeState->maColorScheme.clear();
+    }
+    m_bIsActive = bool(m_pThemeState->mpDefinition);
+}
 
-    auto& pSettings = m_pWidgetDefinition->mpSettings;
+std::shared_ptr<WidgetDefinition> FileDefinitionWidgetDraw::getWidgetDefinition() const
+{
+    std::scoped_lock aGuard(m_pThemeState->maMutex);
+    return m_pThemeState->mpDefinition;
+}
 
-    ImplSVData* pSVData = ImplGetSVData();
-    pSVData->maNWFData.mbNoFocusRects = true;
-    pSVData->maNWFData.mbNoFocusRectsForFlatButtons = true;
-    pSVData->maNWFData.mbNoActiveTabTextRaise
-        = getSettingValueBool(pSettings->msNoActiveTabTextRaise, true);
-    pSVData->maNWFData.mbCenteredTabs = getSettingValueBool(pSettings->msCenteredTabs, true);
-    pSVData->maNWFData.mbProgressNeedsErase = true;
-    pSVData->maNWFData.mnStatusBarLowerRightOffset = 10;
-    pSVData->maNWFData.mbCanDrawWidgetAnySize = true;
-
-    int nDefaultListboxEntryMargin = pSVData->maNWFData.mnListBoxEntryMargin;
-    pSVData->maNWFData.mnListBoxEntryMargin
-        = getSettingValueInteger(pSettings->msListBoxEntryMargin, nDefaultListboxEntryMargin);
-
-    m_bIsActive = true;
+bool FileDefinitionWidgetDraw::usesNativeFallback() const
+{
+    std::scoped_lock aGuard(m_pThemeState->maMutex);
+    return m_pThemeState->mbHighContrast;
 }
 
 bool FileDefinitionWidgetDraw::isNativeControlSupported(ControlType eType, ControlPart ePart)
 {
-    if (eType == ControlType::Generic || eType == ControlType::SpinButtons
-        || eType == ControlType::IntroProgress)
+    if (usesNativeFallback())
+        return m_rGraphics.IsNativeControlSupportedNative(eType, ePart);
+
+    const auto pWidgetDefinition = getWidgetDefinition();
+    if (!pWidgetDefinition)
+        return false;
+
+    if (eType == ControlType::Generic || eType == ControlType::IntroProgress)
         return false;
 
     if ((eType == ControlType::Combobox || eType == ControlType::Listbox)
@@ -230,8 +358,20 @@ bool FileDefinitionWidgetDraw::isNativeControlSupported(ControlType eType, Contr
     // ComboBox border drawing suppresses the child drop-down button because
     // native themes are expected to paint the composite in the Entire call.
     if (eType == ControlType::Combobox && ePart == ControlPart::Entire)
-        return m_pWidgetDefinition->getDefinition(eType, ControlPart::Entire)
-               && m_pWidgetDefinition->getDefinition(eType, ControlPart::ButtonDown);
+        return pWidgetDefinition->getDefinition(eType, ControlPart::Entire)
+               && pWidgetDefinition->getDefinition(eType, ControlPart::ButtonDown);
+
+    if (eType == ControlType::SpinButtons)
+    {
+        if (ePart == ControlPart::Entire || ePart == ControlPart::AllButtons)
+        {
+            return pWidgetDefinition->getDefinition(eType, ControlPart::ButtonUp)
+                   && pWidgetDefinition->getDefinition(eType, ControlPart::ButtonDown)
+                   && pWidgetDefinition->getDefinition(eType, ControlPart::ButtonLeft)
+                   && pWidgetDefinition->getDefinition(eType, ControlPart::ButtonRight);
+        }
+        return false;
+    }
 
     if (eType == ControlType::Spinbox && ePart == ControlPart::AllButtons)
         return false;
@@ -242,28 +382,31 @@ bool FileDefinitionWidgetDraw::isNativeControlSupported(ControlType eType, Contr
 
     if (eType == ControlType::Slider)
     {
-        const bool bHasThumb = bool(m_pWidgetDefinition->getDefinition(eType, ControlPart::Button));
+        const bool bHasThumb = bool(pWidgetDefinition->getDefinition(eType, ControlPart::Button));
         if (ePart == ControlPart::TrackHorzArea)
-            return bHasThumb
-                   && m_pWidgetDefinition->getDefinition(eType, ControlPart::TrackHorzLeft)
-                   && m_pWidgetDefinition->getDefinition(eType, ControlPart::TrackHorzRight);
+            return bHasThumb && pWidgetDefinition->getDefinition(eType, ControlPart::TrackHorzLeft)
+                   && pWidgetDefinition->getDefinition(eType, ControlPart::TrackHorzRight);
         if (ePart == ControlPart::TrackVertArea)
-            return bHasThumb
-                   && m_pWidgetDefinition->getDefinition(eType, ControlPart::TrackVertUpper)
-                   && m_pWidgetDefinition->getDefinition(eType, ControlPart::TrackVertLower);
+            return bHasThumb && pWidgetDefinition->getDefinition(eType, ControlPart::TrackVertUpper)
+                   && pWidgetDefinition->getDefinition(eType, ControlPart::TrackVertLower);
         return false;
     }
 
     // A file theme must not claim a part it cannot draw. Several VCL callers
     // choose their generic fallback solely from this answer and do not retry
     // after drawNativeControl() returns false.
-    return bool(m_pWidgetDefinition->getDefinition(eType, ePart));
+    return bool(pWidgetDefinition->getDefinition(eType, ePart));
 }
 
-bool FileDefinitionWidgetDraw::hitTestNativeControl(
-    ControlType /*eType*/, ControlPart /*ePart*/,
-    const tools::Rectangle& /*rBoundingControlRegion*/, const Point& /*aPos*/, bool& /*rIsInside*/)
+bool FileDefinitionWidgetDraw::hitTestNativeControl(ControlType eType, ControlPart ePart,
+                                                    const tools::Rectangle& rBoundingControlRegion,
+                                                    const Point& rPos, bool& rIsInside)
 {
+    if (usesNativeFallback())
+    {
+        return m_rGraphics.HitTestNativeControlNative(eType, ePart, rBoundingControlRegion, rPos,
+                                                      rIsInside);
+    }
     return false;
 }
 
@@ -602,7 +745,11 @@ bool FileDefinitionWidgetDraw::resolveDefinition(ControlType eType, ControlPart 
                                                  tools::Long nHeight)
 {
     bool bOK = false;
-    auto const pPart = m_pWidgetDefinition->getDefinition(eType, ePart);
+    const auto pWidgetDefinition = getWidgetDefinition();
+    if (!pWidgetDefinition)
+        return false;
+
+    auto const pPart = pWidgetDefinition->getDefinition(eType, ePart);
     if (pPart)
     {
         auto const aStates = pPart->getStates(eType, ePart, eState, rValue);
@@ -624,9 +771,19 @@ bool FileDefinitionWidgetDraw::drawNativeControl(ControlType eType, ControlPart 
                                                  const tools::Rectangle& rControlRegion,
                                                  ControlState eState,
                                                  const ImplControlValue& rValue,
-                                                 const OUString& /*aCaptions*/,
-                                                 const Color& /*rBackgroundColor*/)
+                                                 const OUString& rCaptions,
+                                                 const Color& rBackgroundColor)
 {
+    if (usesNativeFallback())
+    {
+        return m_rGraphics.DrawNativeControlNative(eType, ePart, rControlRegion, eState, rValue,
+                                                   rCaptions, rBackgroundColor);
+    }
+
+    const auto pWidgetDefinition = getWidgetDefinition();
+    if (!pWidgetDefinition)
+        return false;
+
     bool bOldAA = m_rGraphics.getAntiAlias();
     m_rGraphics.setAntiAlias(true);
 
@@ -665,7 +822,7 @@ bool FileDefinitionWidgetDraw::drawNativeControl(ControlType eType, ControlPart 
             if (bOK && ePart == ControlPart::Entire)
             {
                 auto const pButton
-                    = m_pWidgetDefinition->getDefinition(eType, ControlPart::ButtonDown);
+                    = pWidgetDefinition->getDefinition(eType, ControlPart::ButtonDown);
                 if (!pButton || pButton->mnWidth <= 0 || pButton->mnHeight <= 0)
                 {
                     bOK = false;
@@ -736,7 +893,36 @@ bool FileDefinitionWidgetDraw::drawNativeControl(ControlType eType, ControlPart 
         }
         break;
         case ControlType::SpinButtons:
-            break;
+        {
+            if ((ePart != ControlPart::Entire && ePart != ControlPart::AllButtons)
+                || rValue.getType() != ControlType::SpinButtons)
+            {
+                break;
+            }
+
+            const auto& rSpinValue = static_cast<const SpinbuttonValue&>(rValue);
+            if (!lcl_isSpinButtonPart(rSpinValue.mnUpperPart)
+                || !lcl_isSpinButtonPart(rSpinValue.mnLowerPart))
+            {
+                break;
+            }
+
+            const tools::Rectangle& rUpperRect = rSpinValue.maUpperRect;
+            const tools::Rectangle& rLowerRect = rSpinValue.maLowerRect;
+            if (rUpperRect.IsEmpty() || rLowerRect.IsEmpty())
+                break;
+
+            bOK = resolveDefinition(eType, rSpinValue.mnUpperPart, rSpinValue.mnUpperState,
+                                    ImplControlValue(), rUpperRect.Left(), rUpperRect.Top(),
+                                    rUpperRect.GetWidth() - 1, rUpperRect.GetHeight() - 1);
+            if (bOK)
+            {
+                bOK = resolveDefinition(eType, rSpinValue.mnLowerPart, rSpinValue.mnLowerState,
+                                        ImplControlValue(), rLowerRect.Left(), rLowerRect.Top(),
+                                        rLowerRect.GetWidth() - 1, rLowerRect.GetHeight() - 1);
+            }
+        }
+        break;
         case ControlType::TabItem:
         case ControlType::TabHeader:
         case ControlType::TabPane:
@@ -859,9 +1045,20 @@ bool FileDefinitionWidgetDraw::drawNativeControl(ControlType eType, ControlPart 
 
 bool FileDefinitionWidgetDraw::getNativeControlRegion(
     ControlType eType, ControlPart ePart, const tools::Rectangle& rBoundingControlRegion,
-    ControlState /*eState*/, const ImplControlValue& /*aValue*/, const OUString& /*aCaption*/,
+    ControlState eState, const ImplControlValue& rValue, const OUString& rCaption,
     tools::Rectangle& rNativeBoundingRegion, tools::Rectangle& rNativeContentRegion)
 {
+    if (usesNativeFallback())
+    {
+        return m_rGraphics.GetNativeControlRegionNative(
+            eType, ePart, rBoundingControlRegion, eState, rValue, rCaption, rNativeBoundingRegion,
+            rNativeContentRegion);
+    }
+
+    const auto pWidgetDefinition = getWidgetDefinition();
+    if (!pWidgetDefinition)
+        return false;
+
     Point aLocation(rBoundingControlRegion.TopLeft());
 
     switch (eType)
@@ -869,18 +1066,18 @@ bool FileDefinitionWidgetDraw::getNativeControlRegion(
         case ControlType::Spinbox:
         {
             auto const pButtonUpPart
-                = m_pWidgetDefinition->getDefinition(eType, ControlPart::ButtonUp);
+                = pWidgetDefinition->getDefinition(eType, ControlPart::ButtonUp);
             if (!pButtonUpPart)
                 return false;
             Size aButtonSizeUp(pButtonUpPart->mnWidth, pButtonUpPart->mnHeight);
 
             auto const pButtonDownPart
-                = m_pWidgetDefinition->getDefinition(eType, ControlPart::ButtonDown);
+                = pWidgetDefinition->getDefinition(eType, ControlPart::ButtonDown);
             if (!pButtonDownPart)
                 return false;
             Size aButtonSizeDown(pButtonDownPart->mnWidth, pButtonDownPart->mnHeight);
 
-            auto const pEntirePart = m_pWidgetDefinition->getDefinition(eType, ControlPart::Entire);
+            auto const pEntirePart = pWidgetDefinition->getDefinition(eType, ControlPart::Entire);
             if (!pEntirePart)
                 return false;
 
@@ -969,7 +1166,7 @@ bool FileDefinitionWidgetDraw::getNativeControlRegion(
         case ControlType::Checkbox:
         case ControlType::Radiobutton:
         {
-            auto const pPart = m_pWidgetDefinition->getDefinition(eType, ControlPart::Entire);
+            auto const pPart = pWidgetDefinition->getDefinition(eType, ControlPart::Entire);
             if (!pPart)
                 return false;
 
@@ -980,7 +1177,7 @@ bool FileDefinitionWidgetDraw::getNativeControlRegion(
         }
         case ControlType::TabItem:
         {
-            auto const pPart = m_pWidgetDefinition->getDefinition(eType, ControlPart::Entire);
+            auto const pPart = pWidgetDefinition->getDefinition(eType, ControlPart::Entire);
             if (!pPart)
                 return false;
 
@@ -1000,7 +1197,7 @@ bool FileDefinitionWidgetDraw::getNativeControlRegion(
         {
             sal_Int32 nHeight = rBoundingControlRegion.GetHeight();
 
-            auto const pPart = m_pWidgetDefinition->getDefinition(eType, ControlPart::Entire);
+            auto const pPart = pWidgetDefinition->getDefinition(eType, ControlPart::Entire);
             if (!pPart)
                 return false;
             nHeight = std::max(nHeight, pPart->mnHeight);
@@ -1033,7 +1230,7 @@ bool FileDefinitionWidgetDraw::getNativeControlRegion(
         case ControlType::Combobox:
         case ControlType::Listbox:
         {
-            auto const pPart = m_pWidgetDefinition->getDefinition(eType, ControlPart::ButtonDown);
+            auto const pPart = pWidgetDefinition->getDefinition(eType, ControlPart::ButtonDown);
             if (!pPart || pPart->mnWidth <= 0 || pPart->mnHeight <= 0)
                 return false;
             const bool bRtl = bool(m_rGraphics.GetLayout() & SalLayoutFlags::BiDiRtl);
@@ -1067,7 +1264,7 @@ bool FileDefinitionWidgetDraw::getNativeControlRegion(
             if (ePart == ControlPart::MenuItemCheckMark || ePart == ControlPart::MenuItemRadioMark
                 || ePart == ControlPart::SubmenuArrow)
             {
-                auto const pPart = m_pWidgetDefinition->getDefinition(eType, ePart);
+                auto const pPart = pWidgetDefinition->getDefinition(eType, ePart);
                 if (!pPart || pPart->mnWidth <= 0 || pPart->mnHeight <= 0)
                     return false;
 
@@ -1081,7 +1278,7 @@ bool FileDefinitionWidgetDraw::getNativeControlRegion(
         case ControlType::Slider:
             if (ePart == ControlPart::ThumbHorz || ePart == ControlPart::ThumbVert)
             {
-                auto const pPart = m_pWidgetDefinition->getDefinition(eType, ControlPart::Button);
+                auto const pPart = pWidgetDefinition->getDefinition(eType, ControlPart::Button);
                 if (!pPart)
                     return false;
                 tools::Long const nWidth = pPart->mnWidth > 0 ? pPart->mnWidth : 28;
@@ -1100,9 +1297,62 @@ bool FileDefinitionWidgetDraw::getNativeControlRegion(
 
 bool FileDefinitionWidgetDraw::updateSettings(AllSettings& rSettings)
 {
+    return updateSettings(rSettings, MiscSettings::GetUseDarkMode());
+}
+
+void FileDefinitionWidgetDraw::restoreNativeSettings(AllSettings& rSettings) const
+{
+    std::scoped_lock aGuard(m_pThemeState->maMutex);
+    if (m_pThemeState->moNativeStyle)
+        rSettings.SetStyleSettings(*m_pThemeState->moNativeStyle);
+}
+
+void FileDefinitionWidgetDraw::captureNativeSettings(const AllSettings& rSettings)
+{
+    std::scoped_lock aGuard(m_pThemeState->maMutex);
+    m_pThemeState->moNativeStyle = rSettings.GetStyleSettings();
+}
+
+bool FileDefinitionWidgetDraw::updateSettings(AllSettings& rSettings, bool bUseDarkMode)
+{
+    if (rSettings.GetStyleSettings().GetHighContrastMode())
+    {
+        {
+            std::scoped_lock aGuard(m_pThemeState->maMutex);
+            m_pThemeState->mbHighContrast = true;
+        }
+        updateNativeWidgetFrameworkSettings(nullptr);
+        return false;
+    }
+
+    const OString aColorScheme = bUseDarkMode ? "dark"_ostr : OString();
+    OUString aRequestedTheme;
+    {
+        std::scoped_lock aGuard(m_pThemeState->maMutex);
+        aRequestedTheme = m_pThemeState->maRequestedTheme;
+    }
+
+    OUString aResolvedTheme;
+    const auto pWidgetDefinition
+        = selectWidgetDefinition(aRequestedTheme, aColorScheme, aResolvedTheme);
+    {
+        std::scoped_lock aGuard(m_pThemeState->maMutex);
+        m_pThemeState->mpDefinition = pWidgetDefinition;
+        m_pThemeState->maResolvedTheme = aResolvedTheme;
+        m_pThemeState->maColorScheme = aColorScheme;
+        m_pThemeState->mbHighContrast = false;
+    }
+
+    if (!pWidgetDefinition)
+    {
+        updateNativeWidgetFrameworkSettings(nullptr);
+        return false;
+    }
+
+    updateNativeWidgetFrameworkSettings(pWidgetDefinition);
     StyleSettings aStyleSet = rSettings.GetStyleSettings();
 
-    auto& pDefinitionStyle = m_pWidgetDefinition->mpStyle;
+    auto& pDefinitionStyle = pWidgetDefinition->mpStyle;
 
     aStyleSet.SetFaceColor(pDefinitionStyle->maFaceColor);
     aStyleSet.SetCheckedColor(pDefinitionStyle->maCheckedColor);
@@ -1172,7 +1422,7 @@ bool FileDefinitionWidgetDraw::updateSettings(AllSettings& rSettings)
     aStyleSet.SetVisitedLinkColor(pDefinitionStyle->maVisitedLinkColor);
     aStyleSet.SetToolTextColor(pDefinitionStyle->maToolTextColor);
 
-    auto& pSettings = m_pWidgetDefinition->mpSettings;
+    auto& pSettings = pWidgetDefinition->mpSettings;
 
     int nFontSize = getSettingValueInteger(pSettings->msDefaultFontSize, 10);
     vcl::Font aFont(FAMILY_SWISS, Size(0, nFontSize));

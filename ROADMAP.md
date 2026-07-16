@@ -46,28 +46,41 @@ Exit gate:
 
 Implemented source milestones:
 
-- packaged `material/definition.xml` with a 19-role static light semantic
-  palette, 70 definition-backed parts, and 172 control states;
+- packaged `material/definition.xml` with matched light and dark palettes of 19
+  semantic roles each, 74 definition-backed parts, and 190 control states;
 - opt-in `VCL_FILE_WIDGET_THEME=material` selection behind the existing
-  `VCL_DRAW_WIDGETS_FROM_FILE` gate, with safe theme names, a keyed cache, and
-  fallback to the `online` definition;
+  `VCL_DRAW_WIDGETS_FROM_FILE` gate, with safe theme names, shared immutable
+  definitions, and successful-load caching keyed by theme and scheme; failed
+  requests attempt `online`, which is absent from this imported desktop tree;
+- source-level profile selection from resolved dark mode, with high contrast
+  taking precedence and bypassing Material colors for native or generic
+  fallback drawing;
+- capture/restore of the pre-Material native style/framework baseline, plus
+  dynamic focus-policy refreshes so a switch to generic high-contrast fallback
+  does not retain Material colors or suppress VCL focus indicators;
+- Qt proxy/no-native high-contrast signal handling and explicit dark-profile
+  selection when headless VCL has no operating-system appearance signal;
 - support reporting limited to definition-backed parts so unsupported parts
   preserve their existing fallback;
 - order-independent semantic `@token` resolution with strict rejection of
-  invalid colors, unknown or duplicate tokens, and unknown or duplicate parts;
+  invalid colors, invalid or duplicate palettes, mismatched palette schemas,
+  unknown or duplicate tokens, and unknown or duplicate parts;
 - expanded mixed/disabled controls, flat buttons, selected-hover/focus tabs,
   toolbar buttons and grips, list nodes, edit variants, scrollbars, sliders,
-  menus, progress, and surfaces;
+  menus, progress, surfaces, and standalone vertical/horizontal spin buttons;
 - composite combo/RTL geometry, native-region and slider sizing corrections,
-  plus native graphics line/fill cache invalidation;
+  exact standalone spin geometry/direction, and native graphics line/fill cache
+  invalidation;
 - local static validation for token discipline, required parts/states, unused
-  tokens, and selected contrast pairs, with expanded unexecuted C++ reader tests
-  and negative fixtures.
+  tokens, light/dark schema parity, and selected contrast pairs, with reader and
+  headless drawing C++ targets plus negative fixtures.
 
-The standalone validator passes with 19 tokens, 70 parts, and 172 states. None
-of the C++ source has been compiled or executed in LibreOffice yet.
+The standalone validator passes with 2 schemes, 19 tokens each, 74 parts, and
+190 states. Neither C++ target has been compiled or executed, and none of this
+source has run in LibreOffice yet.
 
-- dynamic light, dark, high-contrast, forced-color, and platform token mapping;
+- build/runtime verification of light/dark, focus, and high-contrast routing,
+  plus complete forced-color and platform-signal coverage;
 - typography, spacing, shape, elevation, opacity, motion, and density tokens;
 - remaining dragged, read-only, invalid, and platform-specific state layers;
 - reusable focus rings and keyboard modality handling;

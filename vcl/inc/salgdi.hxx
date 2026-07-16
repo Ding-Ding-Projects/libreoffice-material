@@ -352,6 +352,29 @@ public:
      */
     inline bool UpdateSettings(AllSettings&);
 
+    /** Run the platform implementation without a file-widget override. */
+    inline bool UpdateNativeSettings(AllSettings&);
+
+    /** Apply a file-widget theme after native and accessibility settings. */
+    SAL_DLLPRIVATE bool UpdateFileDefinitionSettings(AllSettings&, bool bUseDarkMode);
+
+    /** Restore/capture the pre-file-theme style around native settings discovery. */
+    SAL_DLLPRIVATE void RestoreFileDefinitionNativeSettings(AllSettings&);
+    SAL_DLLPRIVATE void CaptureFileDefinitionNativeSettings(const AllSettings&);
+
+    // Raw platform-widget entry points used when a file theme deliberately
+    // yields to native high-contrast rendering. Coordinates are already in
+    // device space when these are called.
+    inline bool IsNativeControlSupportedNative(ControlType, ControlPart);
+    inline bool HitTestNativeControlNative(ControlType, ControlPart, const tools::Rectangle&,
+                                           const Point&, bool&);
+    inline bool DrawNativeControlNative(ControlType, ControlPart, const tools::Rectangle&,
+                                        ControlState, const ImplControlValue&, const OUString&,
+                                        const Color&);
+    inline bool GetNativeControlRegionNative(ControlType, ControlPart, const tools::Rectangle&,
+                                             ControlState, const ImplControlValue&, const OUString&,
+                                             tools::Rectangle&, tools::Rectangle&);
+
     SAL_DLLPRIVATE void                        DrawAlphaBitmap(
                                     const SalTwoRect&,
                                     const SalBitmap& rSourceBitmap,
@@ -606,6 +629,40 @@ bool SalGraphics::IsNativeControlSupported(ControlType eType, ControlPart ePart)
 bool SalGraphics::UpdateSettings(AllSettings& rSettings)
 {
     return forWidget()->updateSettings(rSettings);
+}
+
+bool SalGraphics::UpdateNativeSettings(AllSettings& rSettings) { return updateSettings(rSettings); }
+
+bool SalGraphics::IsNativeControlSupportedNative(ControlType eType, ControlPart ePart)
+{
+    return isNativeControlSupported(eType, ePart);
+}
+
+bool SalGraphics::HitTestNativeControlNative(ControlType eType, ControlPart ePart,
+                                             const tools::Rectangle& rControlRegion,
+                                             const Point& rPos, bool& rIsInside)
+{
+    return hitTestNativeControl(eType, ePart, rControlRegion, rPos, rIsInside);
+}
+
+bool SalGraphics::DrawNativeControlNative(ControlType eType, ControlPart ePart,
+                                          const tools::Rectangle& rControlRegion,
+                                          ControlState eState, const ImplControlValue& rValue,
+                                          const OUString& rCaption, const Color& rBackgroundColor)
+{
+    return drawNativeControl(eType, ePart, rControlRegion, eState, rValue, rCaption,
+                             rBackgroundColor);
+}
+
+bool SalGraphics::GetNativeControlRegionNative(ControlType eType, ControlPart ePart,
+                                               const tools::Rectangle& rControlRegion,
+                                               ControlState eState, const ImplControlValue& rValue,
+                                               const OUString& rCaption,
+                                               tools::Rectangle& rNativeBoundingRegion,
+                                               tools::Rectangle& rNativeContentRegion)
+{
+    return getNativeControlRegion(eType, ePart, rControlRegion, eState, rValue, rCaption,
+                                  rNativeBoundingRegion, rNativeContentRegion);
 }
 
 void SalGraphics::handleDamage(const tools::Rectangle&) {}

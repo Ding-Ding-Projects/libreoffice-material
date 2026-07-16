@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <style>
+        <faceColor value="@surface"/>
+    </style>
+    <spinbuttons>
+        <part value="ButtonUp" width="24" height="20">
+            <state>
+                <rect stroke="@outline" fill="@primary" stroke-width="1"/>
+            </state>
+        </part>
+        <part value="ButtonDown" width="24" height="20">
+            <state>
+                <rect stroke="@outline" fill="@surface" stroke-width="1"/>
+            </state>
+        </part>
+    </spinbuttons>
+    <palette>
+        <color name="surface" value="#ABCDEF"/>
+        <color name="outline" value="#123456"/>
+        <color name="primary" value="#654321"/>
+    </palette>
+    <palette scheme="dark">
+        <color name="surface" value="#101010"/>
+        <color name="outline" value="#E0E0E0"/>
+        <color name="primary" value="#D0BCFF"/>
+    </palette>
+</widgets>

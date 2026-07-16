@@ -76,10 +76,17 @@ SystemGraphicsData QtGraphics::GetGraphicsData() const { return SystemGraphicsDa
 void QtGraphics::handleDamage(const tools::Rectangle& rDamagedRegion)
 {
     assert(m_pWidgetDraw);
-    assert(dynamic_cast<QtGraphics_Controls*>(m_pWidgetDraw.get()));
     assert(!rDamagedRegion.IsEmpty());
 
-    QImage* pImage = static_cast<QtGraphics_Controls*>(m_pWidgetDraw.get())->getImage();
+    auto* pQtControls = dynamic_cast<QtGraphics_Controls*>(m_pWidgetDraw.get());
+    if (!pQtControls)
+    {
+        // File-defined widgets draw through QtGraphicsBackend directly, whose
+        // QtPainter operations already publish their damaged rectangles.
+        return;
+    }
+
+    QImage* pImage = pQtControls->getImage();
     QImage blit(*pImage);
     blit.setDevicePixelRatio(1);
     QtPainter aPainter(*m_pBackend);

@@ -14,6 +14,7 @@
 #include <widgetdraw/WidgetDefinition.hxx>
 #include <map>
 #include <memory>
+#include <rtl/string.hxx>
 #include <rtl/ustring.hxx>
 #include <tools/XmlWalker.hxx>
 
@@ -24,11 +25,13 @@ class VCL_DLLPUBLIC WidgetDefinitionReader
 private:
     OUString m_rDefinitionFile;
     OUString m_rResourcePath;
+    OString m_aScheme;
     std::map<OString, Color> m_aColorTokens;
     bool m_bValid;
 
     SAL_DLLPRIVATE bool readColor(OString const& rValue, Color& rColor) const;
-    SAL_DLLPRIVATE void readColorPalette(tools::XmlWalker& rWalker);
+    SAL_DLLPRIVATE bool readColorPalette(tools::XmlWalker& rWalker,
+                                         std::map<OString, Color>& rColorTokens) const;
 
     SAL_DLLPRIVATE void readDefinition(tools::XmlWalker& rWalker,
                                        WidgetDefinition& rWidgetDefinition, ControlType eType);
@@ -41,7 +44,8 @@ private:
                           const std::shared_ptr<WidgetDefinitionState>& rStates);
 
 public:
-    WidgetDefinitionReader(OUString aDefinitionFile, OUString aResourcePath);
+    WidgetDefinitionReader(OUString aDefinitionFile, OUString aResourcePath,
+                           OString aScheme = OString());
     bool read(WidgetDefinition& rWidgetDefinition);
 };
 

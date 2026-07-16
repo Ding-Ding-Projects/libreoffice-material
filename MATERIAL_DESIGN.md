@@ -6,22 +6,24 @@ implements these rules.
 
 ## Current implementation status
 
-Two native source milestones now exist. They package an opt-in Material
+Three native source milestones now exist. They package an opt-in Material
 file-widget definition, add safe keyed theme selection and definition-aware
 fallback in VCL, begin the Start Center surface/header treatment, and implement
-a static light palette of 19 semantic roles. The reader resolves `@token`
-references independently of declaration order and rejects invalid colors,
-unknown or duplicate tokens, and unknown or duplicate control parts. The theme
-currently validates 70 definition-backed parts and 172 states, including mixed
-and disabled controls, flat buttons, selected-hover/focus tabs, toolbar
-buttons/grips, list nodes, and borderless and multiline edits.
+matched light and dark palettes of 19 semantic roles each. The reader resolves
+`@token` references independently of declaration order and rejects invalid
+colors, invalid or duplicate palettes, mismatched schemas, unknown or duplicate
+tokens, and unknown or duplicate control parts. The theme currently validates
+74 definition-backed parts and 190 states, including mixed and disabled
+controls, flat buttons, selected-hover/focus tabs, toolbar buttons/grips, list
+nodes, borderless and multiline edits, and standalone vertical/horizontal spin
+buttons.
 
 The shared renderer also contains source corrections for composite combo and
 RTL geometry, toolbar grip regions, slider sizing, definition-backed regions,
 and native line/fill cache invalidation. A standalone validator checks token
-discipline, unused roles, required control/state coverage, and selected contrast
-pairs; expanded C++ reader tests and negative fixtures are present but have not
-executed.
+discipline, light/dark schema parity, unused roles, required control/state
+coverage, and selected contrast pairs; dedicated reader and headless draw C++
+targets and negative fixtures are present but have not executed.
 
 This slice is **implemented source, not verified behavior**: it has not been
 compiled or run as LibreOffice. Once a compatible build exists, it is intended
@@ -80,9 +82,15 @@ Token resolution must incorporate the operating system theme, LibreOffice user
 preferences, high-contrast/forced-color requirements, display scale, and the
 active density profile. Contrast and legibility outrank brand palette matching.
 
-The current file-widget definition implements only a static light semantic
-color layer. Dynamic dark, high-contrast, forced-color, platform, density,
-typography, shape, elevation, and motion resolution remain planned.
+The current definition contains matched light and dark semantic palettes. Source
+selects between them from resolved dark mode; resolved high contrast takes
+precedence, restores the captured native style/framework baseline, and bypasses
+Material drawing for native or generic fallback. Controls refresh native-focus
+suppression when the profile changes so generic fallback can retain a visible
+VCL focus indicator. Headless VCL maps an explicit dark preference because it
+has no operating-system appearance signal. This routing is unbuilt and
+unverified. Forced-color/platform signal completeness, density, typography,
+shape, elevation, and motion resolution remain planned.
 
 ## Component behavior
 

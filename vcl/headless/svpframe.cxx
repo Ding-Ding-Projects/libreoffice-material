@@ -29,6 +29,8 @@
 
 #include <basegfx/vector/b2ivector.hxx>
 #include <vcl/keycodes.hxx>
+#include <vcl/settings.hxx>
+#include <vcl/themecolors.hxx>
 
 #ifndef IOS
 #include <cairo.h>
@@ -459,6 +461,13 @@ LanguageType SvpSalFrame::GetInputLanguage()
     return LANGUAGE_DONTKNOW;
 }
 
+bool SvpSalFrame::GetUseDarkMode() const
+{
+    // Headless has no desktop preference to resolve AUTO against. Preserve
+    // that light default while honoring LibreOffice's explicit dark mode.
+    return MiscSettings::GetAppColorMode() == AppearanceMode::DARK;
+}
+
 void SvpSalFrame::UpdateSettings( AllSettings& rSettings )
 {
     StyleSettings aStyleSettings = rSettings.GetStyleSettings();
@@ -493,7 +502,8 @@ void SvpSalFrame::UpdateSettings( AllSettings& rSettings )
         }
         rSettings.SetStyleSettings(aStyleSettings);
 #ifndef IOS // For now...
-        pGraphics->UpdateSettings(rSettings);
+        // File-defined themes are applied by the common final settings pass.
+        pGraphics->UpdateNativeSettings(rSettings);
 #endif
         if (bFreeGraphics)
             ReleaseGraphics(pGraphics);

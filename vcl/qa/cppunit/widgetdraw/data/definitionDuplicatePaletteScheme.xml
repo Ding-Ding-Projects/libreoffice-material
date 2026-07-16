@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <palette scheme="dark">
+        <color name="surface" value="#101010"/>
+    </palette>
+    <palette scheme="dark">
+        <color name="surface" value="#202020"/>
+    </palette>
+    <style>
+        <faceColor value="@surface"/>
+    </style>
+</widgets>

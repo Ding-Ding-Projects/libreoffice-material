@@ -20,13 +20,14 @@
 #pragma once
 
 #include <tools/gen.hxx>
+#include <vcl/dllapi.h>
 #include <vcl/salnativewidgets.hxx>
 
 /*  Toolbarvalue:
  *
  *  Value container for toolbars detailing the grip position
  */
-class ToolbarValue final : public ImplControlValue
+class VCL_DLLPUBLIC ToolbarValue final : public ImplControlValue
 {
 public:
     ToolbarValue()

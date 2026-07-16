@@ -13,8 +13,8 @@ result, update memory to match the evidence.
   decisions with reasons;
 - [`evidence-ledger.md`](evidence-ledger.md) — accepted build, interaction, and
   visual evidence only;
-- [`verification-log.md`](verification-log.md) — documentation/site integrity
-  checks and their exact scope.
+- [`verification-log.md`](verification-log.md) — source, documentation, and site
+  integrity checks and their exact scope.
 
 ## Update contract
 

@@ -5,8 +5,9 @@
 
   This native theme deliberately uses VCL draw commands instead of a
   platform CSS layer. It therefore works with the same C++ renderer on every
-  backend that enables file-defined widgets. The palette is the Material 3
-  baseline purple scheme; component geometry uses rounded, tonal surfaces.
+  backend that enables file-defined widgets. The palettes are the Material 3
+  baseline purple light and dark schemes; component geometry uses rounded,
+  tonal surfaces.
 -->
 <widgets>
     <!--
@@ -34,6 +35,28 @@
         <color name="inverse-surface" value="#313033"/>
         <color name="inverse-on-surface" value="#F4EFF4"/>
         <color name="visited-link" value="#7D5260"/>
+    </palette>
+
+    <palette scheme="dark">
+        <color name="primary" value="#D0BCFF"/>
+        <color name="on-primary" value="#381E72"/>
+        <color name="primary-container" value="#4F378B"/>
+        <color name="on-primary-container" value="#EADDFF"/>
+        <color name="primary-hover" value="#4F378B"/>
+        <color name="primary-pressed" value="#625B71"/>
+        <color name="primary-action-hover" value="#C4AEFF"/>
+        <color name="primary-action-pressed" value="#B69DF8"/>
+        <color name="surface" value="#141218"/>
+        <color name="surface-container" value="#211F26"/>
+        <color name="surface-container-low" value="#1D1B20"/>
+        <color name="on-surface" value="#E6E0E9"/>
+        <color name="on-surface-variant" value="#CAC4D0"/>
+        <color name="outline" value="#938F99"/>
+        <color name="outline-variant" value="#49454F"/>
+        <color name="disabled-container" value="#36343B"/>
+        <color name="inverse-surface" value="#E6E0E9"/>
+        <color name="inverse-on-surface" value="#322F35"/>
+        <color name="visited-link" value="#EFB8C8"/>
     </palette>
 
     <style>
@@ -330,16 +353,45 @@
         <part value="SubEdit"><state><rect stroke="@surface" fill="@surface" stroke-width="0"/></state></part>
         <part value="ButtonDown" width="36" height="28">
             <state enabled="true"><rect stroke="@primary-container" fill="@primary-container" stroke-width="0" rx="12" ry="12"/><line stroke="@on-surface-variant" stroke-width="2" x1="0.35" y1="0.5" x2="0.65" y2="0.5"/></state>
-            <state enabled="true" pressed="true"><rect stroke="@primary-hover" fill="@primary-hover" stroke-width="0" rx="12" ry="12"/><line stroke="@on-surface" stroke-width="2" x1="0.35" y1="0.5" x2="0.65" y2="0.5"/></state>
+            <state enabled="true" rollover="true"><rect stroke="@primary-hover" fill="@primary-hover" stroke-width="0" rx="12" ry="12"/><line stroke="@on-surface" stroke-width="2" x1="0.35" y1="0.5" x2="0.65" y2="0.5"/></state>
+            <state enabled="true" pressed="true"><rect stroke="@primary-pressed" fill="@primary-pressed" stroke-width="0" rx="12" ry="12"/><line stroke="@on-surface" stroke-width="2" x1="0.35" y1="0.5" x2="0.65" y2="0.5"/></state>
             <state enabled="false"><rect stroke="@disabled-container" fill="@disabled-container" stroke-width="0" rx="12" ry="12"/><line stroke="@outline" stroke-width="2" x1="0.35" y1="0.5" x2="0.65" y2="0.5"/></state>
         </part>
         <part value="ButtonUp" width="36" height="28">
             <state enabled="true"><rect stroke="@primary-container" fill="@primary-container" stroke-width="0" rx="12" ry="12"/><line stroke="@on-surface-variant" stroke-width="2" x1="0.35" y1="0.5" x2="0.65" y2="0.5"/><line stroke="@on-surface-variant" stroke-width="2" x1="0.5" y1="0.31" x2="0.5" y2="0.69"/></state>
-            <state enabled="true" pressed="true"><rect stroke="@primary-hover" fill="@primary-hover" stroke-width="0" rx="12" ry="12"/><line stroke="@on-surface" stroke-width="2" x1="0.35" y1="0.5" x2="0.65" y2="0.5"/><line stroke="@on-surface" stroke-width="2" x1="0.5" y1="0.31" x2="0.5" y2="0.69"/></state>
+            <state enabled="true" rollover="true"><rect stroke="@primary-hover" fill="@primary-hover" stroke-width="0" rx="12" ry="12"/><line stroke="@on-surface" stroke-width="2" x1="0.35" y1="0.5" x2="0.65" y2="0.5"/><line stroke="@on-surface" stroke-width="2" x1="0.5" y1="0.31" x2="0.5" y2="0.69"/></state>
+            <state enabled="true" pressed="true"><rect stroke="@primary-pressed" fill="@primary-pressed" stroke-width="0" rx="12" ry="12"/><line stroke="@on-surface" stroke-width="2" x1="0.35" y1="0.5" x2="0.65" y2="0.5"/><line stroke="@on-surface" stroke-width="2" x1="0.5" y1="0.31" x2="0.5" y2="0.69"/></state>
             <state enabled="false"><rect stroke="@disabled-container" fill="@disabled-container" stroke-width="0" rx="12" ry="12"/><line stroke="@outline" stroke-width="2" x1="0.35" y1="0.5" x2="0.65" y2="0.5"/><line stroke="@outline" stroke-width="2" x1="0.5" y1="0.31" x2="0.5" y2="0.69"/></state>
         </part>
         <part value="Focus"><state><line stroke="@primary" stroke-width="2" x1="0.04" y1="0.04" x2="0.96" y2="0.04"/><line stroke="@primary" stroke-width="2" x1="0.96" y1="0.04" x2="0.96" y2="0.96"/><line stroke="@primary" stroke-width="2" x1="0.96" y1="0.96" x2="0.04" y2="0.96"/><line stroke="@primary" stroke-width="2" x1="0.04" y1="0.96" x2="0.04" y2="0.04"/></state></part>
     </spinbox>
+
+    <spinbuttons>
+        <part value="ButtonUp" width="28" height="28">
+            <state enabled="true"><rect stroke="@primary-container" fill="@primary-container" stroke-width="0" rx="10" ry="10"/><line stroke="@on-primary-container" stroke-width="2" x1="0.3" y1="0.6" x2="0.5" y2="0.4"/><line stroke="@on-primary-container" stroke-width="2" x1="0.5" y1="0.4" x2="0.7" y2="0.6"/></state>
+            <state enabled="true" rollover="true"><rect stroke="@primary-hover" fill="@primary-hover" stroke-width="0" rx="10" ry="10"/><line stroke="@on-primary-container" stroke-width="2" x1="0.3" y1="0.6" x2="0.5" y2="0.4"/><line stroke="@on-primary-container" stroke-width="2" x1="0.5" y1="0.4" x2="0.7" y2="0.6"/></state>
+            <state enabled="true" pressed="true"><rect stroke="@primary-pressed" fill="@primary-pressed" stroke-width="0" rx="10" ry="10"/><line stroke="@on-primary-container" stroke-width="2" x1="0.3" y1="0.6" x2="0.5" y2="0.4"/><line stroke="@on-primary-container" stroke-width="2" x1="0.5" y1="0.4" x2="0.7" y2="0.6"/></state>
+            <state enabled="false"><rect stroke="@disabled-container" fill="@disabled-container" stroke-width="0" rx="10" ry="10"/><line stroke="@outline" stroke-width="2" x1="0.3" y1="0.6" x2="0.5" y2="0.4"/><line stroke="@outline" stroke-width="2" x1="0.5" y1="0.4" x2="0.7" y2="0.6"/></state>
+        </part>
+        <part value="ButtonDown" width="28" height="28">
+            <state enabled="true"><rect stroke="@primary-container" fill="@primary-container" stroke-width="0" rx="10" ry="10"/><line stroke="@on-primary-container" stroke-width="2" x1="0.3" y1="0.4" x2="0.5" y2="0.6"/><line stroke="@on-primary-container" stroke-width="2" x1="0.5" y1="0.6" x2="0.7" y2="0.4"/></state>
+            <state enabled="true" rollover="true"><rect stroke="@primary-hover" fill="@primary-hover" stroke-width="0" rx="10" ry="10"/><line stroke="@on-primary-container" stroke-width="2" x1="0.3" y1="0.4" x2="0.5" y2="0.6"/><line stroke="@on-primary-container" stroke-width="2" x1="0.5" y1="0.6" x2="0.7" y2="0.4"/></state>
+            <state enabled="true" pressed="true"><rect stroke="@primary-pressed" fill="@primary-pressed" stroke-width="0" rx="10" ry="10"/><line stroke="@on-primary-container" stroke-width="2" x1="0.3" y1="0.4" x2="0.5" y2="0.6"/><line stroke="@on-primary-container" stroke-width="2" x1="0.5" y1="0.6" x2="0.7" y2="0.4"/></state>
+            <state enabled="false"><rect stroke="@disabled-container" fill="@disabled-container" stroke-width="0" rx="10" ry="10"/><line stroke="@outline" stroke-width="2" x1="0.3" y1="0.4" x2="0.5" y2="0.6"/><line stroke="@outline" stroke-width="2" x1="0.5" y1="0.6" x2="0.7" y2="0.4"/></state>
+        </part>
+        <part value="ButtonLeft" width="28" height="28">
+            <state enabled="true"><rect stroke="@primary-container" fill="@primary-container" stroke-width="0" rx="10" ry="10"/><line stroke="@on-primary-container" stroke-width="2" x1="0.6" y1="0.3" x2="0.4" y2="0.5"/><line stroke="@on-primary-container" stroke-width="2" x1="0.4" y1="0.5" x2="0.6" y2="0.7"/></state>
+            <state enabled="true" rollover="true"><rect stroke="@primary-hover" fill="@primary-hover" stroke-width="0" rx="10" ry="10"/><line stroke="@on-primary-container" stroke-width="2" x1="0.6" y1="0.3" x2="0.4" y2="0.5"/><line stroke="@on-primary-container" stroke-width="2" x1="0.4" y1="0.5" x2="0.6" y2="0.7"/></state>
+            <state enabled="true" pressed="true"><rect stroke="@primary-pressed" fill="@primary-pressed" stroke-width="0" rx="10" ry="10"/><line stroke="@on-primary-container" stroke-width="2" x1="0.6" y1="0.3" x2="0.4" y2="0.5"/><line stroke="@on-primary-container" stroke-width="2" x1="0.4" y1="0.5" x2="0.6" y2="0.7"/></state>
+            <state enabled="false"><rect stroke="@disabled-container" fill="@disabled-container" stroke-width="0" rx="10" ry="10"/><line stroke="@outline" stroke-width="2" x1="0.6" y1="0.3" x2="0.4" y2="0.5"/><line stroke="@outline" stroke-width="2" x1="0.4" y1="0.5" x2="0.6" y2="0.7"/></state>
+        </part>
+        <part value="ButtonRight" width="28" height="28">
+            <state enabled="true"><rect stroke="@primary-container" fill="@primary-container" stroke-width="0" rx="10" ry="10"/><line stroke="@on-primary-container" stroke-width="2" x1="0.4" y1="0.3" x2="0.6" y2="0.5"/><line stroke="@on-primary-container" stroke-width="2" x1="0.6" y1="0.5" x2="0.4" y2="0.7"/></state>
+            <state enabled="true" rollover="true"><rect stroke="@primary-hover" fill="@primary-hover" stroke-width="0" rx="10" ry="10"/><line stroke="@on-primary-container" stroke-width="2" x1="0.4" y1="0.3" x2="0.6" y2="0.5"/><line stroke="@on-primary-container" stroke-width="2" x1="0.6" y1="0.5" x2="0.4" y2="0.7"/></state>
+            <state enabled="true" pressed="true"><rect stroke="@primary-pressed" fill="@primary-pressed" stroke-width="0" rx="10" ry="10"/><line stroke="@on-primary-container" stroke-width="2" x1="0.4" y1="0.3" x2="0.6" y2="0.5"/><line stroke="@on-primary-container" stroke-width="2" x1="0.6" y1="0.5" x2="0.4" y2="0.7"/></state>
+            <state enabled="false"><rect stroke="@disabled-container" fill="@disabled-container" stroke-width="0" rx="10" ry="10"/><line stroke="@outline" stroke-width="2" x1="0.4" y1="0.3" x2="0.6" y2="0.5"/><line stroke="@outline" stroke-width="2" x1="0.6" y1="0.5" x2="0.4" y2="0.7"/></state>
+        </part>
+    </spinbuttons>
 
     <scrollbar>
         <part value="Entire"><state/></part>

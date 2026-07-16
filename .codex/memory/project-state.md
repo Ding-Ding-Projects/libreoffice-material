@@ -12,17 +12,18 @@ licensing and provenance.
 
 ## Current milestone
 
-**Phase 1 — second Material VCL source milestone, in progress. Phase 0's native
+**Phase 1 — third Material VCL source milestone, in progress. Phase 0's native
 build/evidence gate remains open.**
 
-The repository contains an imported LibreOffice source baseline, two native
+The repository contains an imported LibreOffice source baseline, three native
 Material source milestones, a design contract, roadmap, published GitHub Pages
-site, screenshot registry, and headless evidence plan. The second milestone
-adds semantic tokens, a strict definition reader, expanded shared-control state
-coverage, renderer corrections, and source validation. The automation harness
-has passed a Notepad-only off-screen preflight. The native source has not been
-built or run as LibreOffice, so this does not prove a whole-GUI rewrite or any
-completed application surface.
+site, screenshot registry, and headless evidence plan. The third milestone adds
+matched light/dark profiles, source-level high-contrast fallback routing,
+native-style restoration and dynamic focus-policy refreshes, explicit headless
+dark selection, standalone spin controls, and a dedicated headless drawing test
+target. The automation harness has passed a Notepad-only off-screen preflight.
+The native source has not been built or run as LibreOffice, so this does not
+prove a whole-GUI rewrite or any completed application surface.
 
 ## Recorded facts
 
@@ -46,9 +47,17 @@ completed application surface.
   rejection; 70 definition-backed parts and 172 states; expanded reader tests
   and negative fixtures; combo/RTL, toolbar grip, region, slider, and graphics
   cache corrections; and a standalone static source validator.
-- Local source validation passes for 19 tokens, 70 parts, 172 states, selected
-  WCAG contrast pairs, the Start Center UI linter, XML parsing, C++ formatting,
-  and whitespace. The C++ unit target remains unexecuted.
+- Third Material VCL source milestone: matched light/dark palettes with 19
+  tokens each; 74 definition-backed parts and 190 states; strict multi-palette
+  parsing; resolved dark-profile selection; high-contrast native/generic
+  fallback; captured pre-Material style/framework restoration; dynamic
+  native-focus recomputation; Qt proxy/no-native high-contrast detection;
+  explicit headless dark selection; shared theme state; standalone directional
+  spin controls; and a dedicated public-API headless draw CppUnit target.
+- Local source validation passes for 2 schemes, 19 tokens each, 74 parts, 190
+  states, selected WCAG contrast pairs, the Start Center UI linter, XML parsing,
+  changed-line C++ formatting, and whitespace. Both C++ targets remain
+  unexecuted.
 - GitHub Actions source-validation run `29513175997` completed successfully for
   second-milestone commit `c4414aa3919642ebb1079427b5ce27ce77049901`.
 - A detached build worktree exists at
@@ -82,13 +91,15 @@ completed application surface.
 
 1. complete a supported LibreOffice build profile and document a reproducible
    native build from the prepared detached LF worktree;
-2. run `vcl_widget_definition_reader_test` against the local Material changes;
+2. run `vcl_widget_definition_reader_test` and
+   `vcl_file_definition_widget_draw_test` against the local Material changes;
 3. launch the built start center with the two opt-in variables and an isolated
    profile on the proven headless desktop;
 4. preserve the first LibreOffice baseline manifest, result, logs, and reviewed
    screenshot;
-5. implement dynamic dark/high-contrast/platform color resolution and the
-   remaining non-color token families and VCL primitives;
+5. build/runtime-verify light/dark, focus, and high-contrast routing, complete
+   forced-color/platform signal coverage, and implement the remaining non-color
+   token families and VCL primitives;
 6. continue through every phase in `ROADMAP.md` without skipping suite surfaces.
 
 ## Known evidence gaps
@@ -100,7 +111,7 @@ completed application surface.
 - Build Tools 2022 is usable, but the host has no complete supported
   LibreOffice build profile: WSL 2.7.10 has zero distributions, required
   Unix/configuration and Java tooling is incomplete, and the active imported
-  worktree was mostly materialized with CRLF endings. The C++ unit target and
+  worktree was mostly materialized with CRLF endings. The C++ unit targets and
   real application capture have not run.
 
 ## Multi-repository boundary

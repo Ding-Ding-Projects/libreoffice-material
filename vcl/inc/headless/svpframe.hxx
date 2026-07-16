@@ -105,6 +105,7 @@ public:
     virtual OUString            GetKeyName( sal_uInt16 nKeyCode ) override;
     virtual bool                MapUnicodeToKeyCode( sal_Unicode aUnicode, LanguageType aLangType, vcl::KeyCode& rKeyCode ) override;
     virtual LanguageType        GetInputLanguage() override;
+    virtual bool GetUseDarkMode() const override;
     virtual void                UpdateSettings( AllSettings& rSettings ) override;
     virtual void                Beep() override;
     virtual const SystemEnvData& GetSystemData() const override;

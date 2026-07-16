@@ -25,6 +25,7 @@
 #include <comphelper/OAccessible.hxx>
 #include <sal/log.hxx>
 #include <salframe.hxx>
+#include <salgdi.hxx>
 #include <svdata.hxx>
 #include <vcl/decoview.hxx>
 #include <vcl/salnativewidgets.hxx>
@@ -144,7 +145,15 @@ void MenuFloatingWindow::ApplySettings(vcl::RenderContext& rRenderContext)
         IsNativeControlSupported(ControlType::MenuPopup, ControlPart::Entire))
     {
         AllSettings aSettings(GetSettings());
+        const bool bResolvedHighContrast = aSettings.GetStyleSettings().GetHighContrastMode();
         ImplGetFrame()->UpdateSettings(aSettings); // Update theme colors.
+        StyleSettings aResolvedStyle(aSettings.GetStyleSettings());
+        aResolvedStyle.SetHighContrastMode(bResolvedHighContrast);
+        aSettings.SetStyleSettings(aResolvedStyle);
+        if (SalGraphics* pGraphics = GetOutDev()->GetGraphics())
+        {
+            pGraphics->UpdateFileDefinitionSettings(aSettings, ImplGetFrame()->GetUseDarkMode());
+        }
         StyleSettings aStyle(aSettings.GetStyleSettings());
         Color aHighlightTextColor = ImplGetSVData()->maNWFData.maMenuBarHighlightTextColor;
         if (aHighlightTextColor != COL_TRANSPARENT)

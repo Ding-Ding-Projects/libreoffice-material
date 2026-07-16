@@ -16,13 +16,17 @@
 
 namespace vcl
 {
+struct FileDefinitionThemeState;
+
 class FileDefinitionWidgetDraw final : public vcl::WidgetDrawInterface
 {
 private:
     SalGraphics& m_rGraphics;
     bool m_bIsActive;
 
-    std::shared_ptr<WidgetDefinition> m_pWidgetDefinition;
+    std::shared_ptr<FileDefinitionThemeState> m_pThemeState;
+
+    std::shared_ptr<WidgetDefinition> getWidgetDefinition() const;
 
     bool resolveDefinition(ControlType eType, ControlPart ePart, ControlState eState,
                            const ImplControlValue& rValue, tools::Long nX, tools::Long nY,
@@ -32,6 +36,7 @@ public:
     FileDefinitionWidgetDraw(SalGraphics& rGraphics);
 
     bool isActive() const { return m_bIsActive; }
+    bool usesNativeFallback() const;
 
     bool isNativeControlSupported(ControlType eType, ControlPart ePart) override;
 
@@ -51,6 +56,9 @@ public:
                                 tools::Rectangle& rNativeContentRegion) override;
 
     bool updateSettings(AllSettings& rSettings) override;
+    bool updateSettings(AllSettings& rSettings, bool bUseDarkMode);
+    void restoreNativeSettings(AllSettings& rSettings) const;
+    void captureNativeSettings(const AllSettings& rSettings);
 
     static void drawPolyPolygon(SalGraphics& rGraphics,
                                 const basegfx::B2DHomMatrix& rObjectToDevice,

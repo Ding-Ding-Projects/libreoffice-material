@@ -2665,6 +2665,10 @@ void ImplWin::ImplDraw(vcl::RenderContext& rRenderContext, bool bLayout)
 void ImplWin::ApplySettings(vcl::RenderContext& rRenderContext)
 {
     const StyleSettings& rStyleSettings = rRenderContext.GetSettings().GetStyleSettings();
+    ImplGetWindowImpl()->mbUseNativeFocus
+        = (IsNativeControlSupported(ControlType::Listbox, ControlPart::Focus)
+           || IsNativeControlSupported(ControlType::Listbox, ControlPart::Entire))
+          && ImplGetSVData()->maNWFData.mbNoFocusRects;
 
     ApplyControlFont(rRenderContext, rStyleSettings.GetFieldFont());
     ApplyControlForeground(rRenderContext, rStyleSettings.GetFieldTextColor());
@@ -2793,7 +2797,11 @@ void ImplWin::LoseFocus()
 
 void ImplWin::ShowFocus(const tools::Rectangle& rRect)
 {
-    if (IsNativeControlSupported(ControlType::Listbox, ControlPart::Focus))
+    const bool bNativeFocus = IsNativeControlSupported(ControlType::Listbox, ControlPart::Focus);
+    ImplGetWindowImpl()->mbUseNativeFocus
+        = (bNativeFocus || IsNativeControlSupported(ControlType::Listbox, ControlPart::Entire))
+          && ImplGetSVData()->maNWFData.mbNoFocusRects;
+    if (bNativeFocus)
     {
         ImplControlValue aControlValue;
 

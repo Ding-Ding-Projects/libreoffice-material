@@ -1,6 +1,6 @@
 # Verification log
 
-This file records checks of documentation and site infrastructure. These checks
+This file records source, documentation, and site integrity checks. These checks
 do not prove the native LibreOffice UI has been rebuilt or tested.
 
 ## 2026-07-16 — initial documentation and site foundation
@@ -196,3 +196,63 @@ a fork build and LibreOffice headless scenario pass the evidence contract.
 Scope conclusion: the source is now prepared in a line-ending-safe worktree for
 a native configure/build attempt. No toolchain was installed, no C++ target was
 run, and no LibreOffice application evidence was created.
+
+## 2026-07-16 — third Material VCL source milestone validation
+
+- `bin/check-material-theme.py` reported
+  `Material theme OK: 2 schemes, 19 tokens each, 74 parts, 190 states`. It
+  validated palette schema parity, token references, required standalone spin
+  parts and interaction matrices, unused tokens, and selected per-scheme
+  contrast pairs.
+- Python AST parsing passed for the validator, `bin/lint-ui.py` passed for the
+  Start Center, and PowerShell XML parsing passed for the Material definition
+  plus all 13 reader fixtures.
+- Visual Studio Clang 22.1.3 changed-line formatting was applied where needed;
+  the final tracked-diff dry run reported no remaining changes and the complete
+  new headless draw test passed `--dry-run --Werror`. `git diff --check` also
+  passed.
+- Independent read-only reviews found and prompted fixes for an invalid Qt
+  damage-path cast, Qt/Cairo overwriting the file/LibreOfficeKit widget backend,
+  and menu-local refreshes losing resolved forced-high-contrast enable or
+  disable values. A deeper runtime review also caught stale Material style and
+  native-focus state during dynamic high-contrast fallback, a Qt proxy/no-native
+  high-contrast signal gap, and missing explicit dark selection in headless
+  VCL. The corrected damage, settings, locking, focus, profile, and spin paths
+  were re-audited with no remaining source-level correctness blocker reported.
+- Non-blocking source caveats remain: Qt high contrast reaches LibreOffice's
+  generic drawing because the raw backend does not expose `QtGraphics_Controls`;
+  shared per-theme profile state is last-writer-wins for a hypothetical mix of
+  light and dark frames; and a platform menu highlight-text override can
+  supersede the Material value. None has runtime evidence yet.
+- A final read-only compile/API/link audit found matching baseline method
+  declarations, definitions, and visibility; valid Qt5/Qt6 proxy APIs and Svp
+  override includes; refreshed focus call sites; registered production/test
+  objects; and exported spin/toolbar value classes for Windows CppUnit linkage.
+  This was static inspection, not compilation or linking.
+- The source now declares `vcl_widget_definition_reader_test` and
+  `vcl_file_definition_widget_draw_test`; neither target was compiled or run.
+
+Scope conclusion: static source checks pass for the third milestone. No
+LibreOffice binary was built or launched, no headless LibreOffice interaction
+ran, and accepted application screenshots remain **0**.
+
+## 2026-07-16 — third-milestone project-site refresh
+
+- Local integrity checks found 16 unique HTML IDs, validated 22 HTML links, and
+  validated 36 local Markdown links across 11 authored Markdown files. No local
+  target was missing and the site still contains no image/SVG/CSS URL asset.
+- The in-app browser rendered the third-milestone page at the default desktop
+  viewport with `clientWidth = scrollWidth = 1265` and no element outside the
+  horizontal viewport.
+- A temporary `390×844` override produced
+  `clientWidth = scrollWidth = 375`, a single-column hero, no horizontal
+  offender, and legible milestone/profile cards. The viewport override was
+  reset afterward.
+- The rendered page exposed the exact
+  `2 schemes · 19 tokens each · 74 parts · 190 states · unbuilt` status and a
+  verified-capture count of `0`. The browser console contained no warnings or
+  errors.
+
+Scope conclusion: the local documentation site is render-verified for this
+refresh. Temporary browser images were not retained and are not LibreOffice
+application evidence.

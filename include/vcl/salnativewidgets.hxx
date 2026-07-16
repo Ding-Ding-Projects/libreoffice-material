@@ -396,7 +396,7 @@ class SAL_DLLPUBLIC_RTTI TabitemValue final : public ImplControlValue
  *   Note: the other parameters of DrawNativeControl will have no meaning
  *         all parameters for spinbuttons are carried here
  */
-class SAL_DLLPUBLIC_RTTI SpinbuttonValue final : public ImplControlValue
+class VCL_DLLPUBLIC SpinbuttonValue final : public ImplControlValue
 {
     public:
         tools::Rectangle       maUpperRect;

@@ -4,7 +4,7 @@ An experimental LibreOffice engineering fork exploring a suite-wide Material
 Design 3 interface while retaining LibreOffice's native implementation stack,
 document engine, file-format support, and accessibility foundations.
 
-> **Current development focus: Phase 1 — second Material VCL source milestone.**
+> **Current development focus: Phase 1 — third Material VCL source milestone.**
 > Phase 0's native-build and application-evidence gate remains open. Semantic
 > widget tokens, stricter VCL definition parsing, broader state coverage, and
 > Start Center changes are present in source, but they have **not** been compiled
@@ -23,7 +23,7 @@ document engine, file-format support, and accessibility foundations.
 | --- | --- | --- |
 | LibreOffice source baseline | Imported | This repository's initial tree matches upstream commit `63584e7f9f0cdc74b0e004bcbf88e5c3b42dba21` |
 | Material design direction | Initial specification | [`MATERIAL_DESIGN.md`](MATERIAL_DESIGN.md) |
-| Material VCL implementation | Second source milestone, unbuilt | The file theme, strict parser, shared renderer fixes, static validator, and Start Center source changes are present; build and runtime gates remain open |
+| Material VCL implementation | Third source milestone, unbuilt | Light/dark profile routing, strict palette parsing, high-contrast fallback, shared renderer fixes, static validation, and Start Center source changes are present; build and runtime gates remain open |
 | Whole-suite implementation | Incomplete | Phased work remains in [`ROADMAP.md`](ROADMAP.md) |
 | Verified UI screenshots | None yet | The truthful empty registry is in [`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md) |
 | Headless harness | Preflight passed; LibreOffice not run | A temporary Notepad-only driver preflight proved the off-screen mechanics, not this UI; see [`docs/HEADLESS_UI_EVIDENCE.md`](docs/HEADLESS_UI_EVIDENCE.md) |
@@ -36,34 +36,45 @@ its code, build result, interaction checks, and committed visual evidence agree.
 The implementation is intentionally opt-in and shared-layer first. The current
 source includes:
 
-- a packaged `material/definition.xml` file-widget theme with 19 semantic light
-  color roles, 70 definition-backed parts, and 172 component states;
+- a packaged `material/definition.xml` file-widget theme with matching light and
+  dark palettes of 19 semantic color roles each, 74 definition-backed parts,
+  and 190 component states;
 - order-independent `@token` resolution and strict rejection of malformed
-  colors, unknown or duplicate tokens, and unknown or duplicate control parts;
+  colors, invalid or duplicate palettes, mismatched palette schemas, unknown or
+  duplicate tokens, and unknown or duplicate control parts;
 - selection through `VCL_FILE_WIDGET_THEME`, with a restricted safe theme name,
-  a mutex-protected cache keyed by theme, and fallback to the existing `online`
-  definition when a requested theme cannot load;
-- Windows non-printer graphics initialization routed through the existing
-  file-widget backend gate; it remains inactive unless
-  `VCL_DRAW_WIDGETS_FROM_FILE` is present;
+  shared immutable definitions, and a mutex-protected cache keyed by theme and
+  resolved light/dark scheme; a failed request attempts `online`, which is not
+  packaged in this imported desktop tree, and otherwise leaves the file theme
+  inactive;
+- native settings collected and captured before the opt-in Material pass, with
+  the resolved precedence high contrast over dark over light; high contrast
+  restores the pre-Material style/framework baseline and delegates to native or
+  generic forced-color drawing;
+- runtime profile transitions recompute native-focus suppression for buttons,
+  tabs, and list boxes so generic fallback retains a visible VCL focus
+  indicator; Qt proxy styles preserve their high-contrast signal, and headless
+  VCL honors an explicitly selected dark appearance;
 - definition-aware support reporting so parts absent from the selected file
   theme stay on their existing fallback path;
 - expanded mixed, disabled, hover, pressed, focus, selected, flat-button,
-  toolbar, list-node, edit, scrollbar, slider, tab, menu, and progress coverage;
+  toolbar, list-node, edit, scrollbar, slider, tab, menu, progress, and
+  standalone vertical/horizontal spin-button coverage;
 - shared renderer corrections for composite combo geometry and RTL placement,
-  toolbar grips, native control regions, slider sizing, and raw graphics-state
-  invalidation;
+  toolbar grips, standalone spin geometry and direction, native control regions,
+  slider sizing, and raw graphics-state invalidation;
 - a standalone source validator for semantic-token use, required parts and
-  states, unused tokens, and selected WCAG contrast pairs, plus expanded C++
-  reader tests and negative XML fixtures;
+  states, light/dark schema parity, unused tokens, and selected WCAG contrast
+  pairs, plus reader and headless draw C++ targets and negative XML fixtures;
 - Start Center spacing, a Home header/subtitle, surface roles, and recent/template
   text and fill colors derived from VCL style settings.
 
-The local static validator passes with 19 semantic color tokens, 70 parts, and
-172 states. This is source validation only: the C++ test target and `soffice`
-have not run, no application surface is verified Material-complete, and the
-screenshot count remains 0. Controls whose current file-widget geometry cannot
-preserve native semantics continue through LibreOffice's existing fallback.
+The local static validator passes with 2 schemes, 19 semantic color tokens per
+scheme, 74 parts, and 190 states. This is source validation only: neither C++
+test target nor `soffice` has run, no application surface is verified
+Material-complete, and the screenshot count remains 0. Controls whose current
+file-widget geometry cannot preserve native semantics continue through
+LibreOffice's existing fallback.
 
 Once a compatible LibreOffice build exists, the intended Windows opt-in is to
 set both variables before launching the built application:
@@ -74,7 +85,8 @@ $env:VCL_FILE_WIDGET_THEME = "material"
 ```
 
 These variables describe the source path; they are not a successful-run claim.
-The `vcl_widget_definition_reader_test` target and a real `soffice` launch have
+The `vcl_widget_definition_reader_test` and
+`vcl_file_definition_widget_draw_test` targets and a real `soffice` launch have
 not run on this worktree.
 
 ## Product direction

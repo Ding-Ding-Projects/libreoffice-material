@@ -3007,7 +3007,10 @@ void GtkSalFrame::UpdateSettings( AllSettings& rSettings )
         bFreeGraphics = true;
     }
 
-    pGraphics->UpdateSettings( rSettings );
+    // Always collect the native GTK palette first. File-defined themes are
+    // applied once, after LibreOffice has resolved dark and high-contrast
+    // settings in Window::ImplUpdateGlobalSettings().
+    pGraphics->UpdateNativeSettings(rSettings);
 
     if( bFreeGraphics )
         ReleaseGraphics( pGraphics );

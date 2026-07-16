@@ -62,6 +62,30 @@ bool SalGraphics::initWidgetDrawBackends(bool bForce)
     return false;
 }
 
+bool SalGraphics::UpdateFileDefinitionSettings(AllSettings& rSettings, bool bUseDarkMode)
+{
+    auto* pFileDefinitionWidgetDraw
+        = dynamic_cast<vcl::FileDefinitionWidgetDraw*>(m_pWidgetDraw.get());
+    return pFileDefinitionWidgetDraw
+           && pFileDefinitionWidgetDraw->updateSettings(rSettings, bUseDarkMode);
+}
+
+void SalGraphics::RestoreFileDefinitionNativeSettings(AllSettings& rSettings)
+{
+    auto* pFileDefinitionWidgetDraw
+        = dynamic_cast<vcl::FileDefinitionWidgetDraw*>(m_pWidgetDraw.get());
+    if (pFileDefinitionWidgetDraw)
+        pFileDefinitionWidgetDraw->restoreNativeSettings(rSettings);
+}
+
+void SalGraphics::CaptureFileDefinitionNativeSettings(const AllSettings& rSettings)
+{
+    auto* pFileDefinitionWidgetDraw
+        = dynamic_cast<vcl::FileDefinitionWidgetDraw*>(m_pWidgetDraw.get());
+    if (pFileDefinitionWidgetDraw)
+        pFileDefinitionWidgetDraw->captureNativeSettings(rSettings);
+}
+
 SalGraphics::~SalGraphics()
 {
     // can't call ReleaseFonts here, as the destructor just calls this classes SetFont (pure virtual)!
@@ -777,7 +801,12 @@ bool SalGraphics::DrawNativeControl( ControlType nType, ControlPart nPart, const
         bRet = forWidget()->drawNativeControl(nType, nPart, aControlRegion, nState, aValue, aCaption, rBackgroundColor);
 
     if (bRet && m_pWidgetDraw)
-        handleDamage(aControlRegion);
+    {
+        auto* pFileDefinitionWidgetDraw
+            = dynamic_cast<vcl::FileDefinitionWidgetDraw*>(m_pWidgetDraw.get());
+        if (!pFileDefinitionWidgetDraw || !pFileDefinitionWidgetDraw->usesNativeFallback())
+            handleDamage(aControlRegion);
+    }
     return bRet;
 }
 

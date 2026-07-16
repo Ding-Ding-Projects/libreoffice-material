@@ -20,6 +20,7 @@ from pathlib import Path
 TOKEN_NAME = re.compile(r"^[a-z][a-z0-9-]*$")
 HEX_COLOR = re.compile(r"^#[0-9A-Fa-f]{6}$")
 TOKEN_REFERENCE = re.compile(r"^@([a-z][a-z0-9-]*)$")
+REQUIRED_SCHEMES = {"light", "dark"}
 
 REQUIRED_PARTS = {
     "pushbutton": {"Entire", "Focus"},
@@ -31,6 +32,7 @@ REQUIRED_PARTS = {
     "multilineeditbox": {"Entire"},
     "listbox": {"Entire", "ListboxWindow", "SubEdit", "ButtonDown", "Focus"},
     "spinbox": {"Entire", "SubEdit", "ButtonDown", "ButtonUp", "Focus"},
+    "spinbuttons": {"ButtonDown", "ButtonUp", "ButtonLeft", "ButtonRight"},
     "scrollbar": {
         "Entire",
         "ThumbHorz",
@@ -127,42 +129,112 @@ def has_state(part: ET.Element, **attributes: str) -> bool:
                for state in part.findall("state"))
 
 
-def validate(path: Path) -> tuple[int, int, int]:
+def validate_interaction_states(part: ET.Element, label: str) -> None:
+    states = part.findall("state")
+    expected = {
+        "normal": lambda state: state.get("enabled") == "true"
+        and state.get("rollover") is None
+        and state.get("pressed") is None,
+        "rollover": lambda state: state.get("enabled") == "true"
+        and state.get("rollover") == "true"
+        and state.get("pressed") is None,
+        "pressed": lambda state: state.get("enabled") == "true"
+        and state.get("pressed") == "true"
+        and state.get("rollover") is None,
+        "disabled": lambda state: state.get("enabled") == "false"
+        and state.get("rollover") is None
+        and state.get("pressed") is None,
+    }
+    for state_name, matches in expected.items():
+        matching = [state for state in states if matches(state)]
+        if not matching:
+            fail(f"{label} missing {state_name} state")
+        if any(len(state) == 0 for state in matching):
+            fail(f"{label} {state_name} state has no drawing action")
+
+
+def read_palettes(
+    root: ET.Element,
+) -> tuple[dict[str, dict[str, tuple[int, int, int]]], set[ET.Element]]:
+    palettes: dict[str, dict[str, tuple[int, int, int]]] = {}
+    palette_elements: set[ET.Element] = set()
+
+    for palette in root.findall("palette"):
+        unknown_attributes = sorted(set(palette.attrib) - {"scheme"})
+        if unknown_attributes:
+            fail(f"palette has unknown attributes: {', '.join(unknown_attributes)}")
+
+        scheme_attribute = palette.get("scheme")
+        scheme = "light" if scheme_attribute is None else scheme_attribute
+        if not TOKEN_NAME.fullmatch(scheme):
+            fail(f"invalid palette scheme {scheme!r}")
+        if scheme in palettes:
+            fail(f"duplicate palette scheme {scheme!r}")
+
+        tokens: dict[str, tuple[int, int, int]] = {}
+        for element in palette:
+            if element.tag != "color":
+                fail(f"palette {scheme!r} has unknown element <{element.tag}>")
+            palette_elements.add(element)
+            name = element.get("name", "")
+            value = element.get("value", "")
+            if not TOKEN_NAME.fullmatch(name):
+                fail(f"invalid token name {name!r} in {scheme!r} palette")
+            if name in tokens:
+                fail(f"duplicate token {name!r} in {scheme!r} palette")
+            tokens[name] = parse_color(value)
+        if not tokens:
+            fail(f"palette {scheme!r} is empty")
+        palettes[scheme] = tokens
+
+    if not palettes:
+        fail("missing semantic <palette>")
+    missing_schemes = sorted(REQUIRED_SCHEMES - palettes.keys())
+    if missing_schemes:
+        fail(f"missing palette schemes: {', '.join(missing_schemes)}")
+    unexpected_schemes = sorted(palettes.keys() - REQUIRED_SCHEMES)
+    if unexpected_schemes:
+        fail(f"unexpected palette schemes: {', '.join(unexpected_schemes)}")
+
+    light_tokens = set(palettes["light"])
+    for scheme, tokens in palettes.items():
+        missing_tokens = sorted(light_tokens - tokens.keys())
+        extra_tokens = sorted(tokens.keys() - light_tokens)
+        if missing_tokens or extra_tokens:
+            details = []
+            if missing_tokens:
+                details.append(f"missing {', '.join(missing_tokens)}")
+            if extra_tokens:
+                details.append(f"extra {', '.join(extra_tokens)}")
+            fail(f"palette {scheme!r} token mismatch: {'; '.join(details)}")
+
+    return palettes, palette_elements
+
+
+def validate(path: Path) -> tuple[int, int, int, int]:
     root = ET.parse(path).getroot()
     if root.tag != "widgets":
         fail("root element must be <widgets>")
 
-    palette = root.find("palette")
-    if palette is None:
-        fail("missing semantic <palette>")
-
-    tokens: dict[str, tuple[int, int, int]] = {}
-    palette_elements = set(palette.findall("color"))
-    for element in palette_elements:
-        name = element.get("name", "")
-        value = element.get("value", "")
-        if not TOKEN_NAME.fullmatch(name):
-            fail(f"invalid token name {name!r}")
-        if name in tokens:
-            fail(f"duplicate token {name!r}")
-        tokens[name] = parse_color(value)
+    palettes, palette_elements = read_palettes(root)
+    token_names = set(palettes["light"])
 
     references: set[str] = set()
     style = root.find("style")
     if style is None:
         fail("missing <style>")
 
-    style_colors: dict[str, tuple[int, int, int]] = {}
+    style_references: dict[str, str] = {}
     for element in style:
         value = element.get("value", "")
         match = TOKEN_REFERENCE.fullmatch(value)
         if match is None:
             fail(f"style {element.tag} must reference a semantic token")
         name = match.group(1)
-        if name not in tokens:
+        if name not in token_names:
             fail(f"style {element.tag} references unknown token {name!r}")
         references.add(name)
-        style_colors[element.tag] = tokens[name]
+        style_references[element.tag] = name
 
     for element in root.iter():
         if element in palette_elements:
@@ -175,11 +247,11 @@ def validate(path: Path) -> tuple[int, int, int]:
             if match is None:
                 fail(f"{element.tag}/@{attribute} must reference a semantic token")
             name = match.group(1)
-            if name not in tokens:
+            if name not in token_names:
                 fail(f"{element.tag}/@{attribute} references unknown token {name!r}")
             references.add(name)
 
-    unused = sorted(tokens.keys() - references)
+    unused = sorted(token_names - references)
     if unused:
         fail(f"unused semantic tokens: {', '.join(unused)}")
 
@@ -230,6 +302,15 @@ def validate(path: Path) -> tuple[int, int, int]:
         if not has_state(find_part(root, "slider", part_name), enabled="false"):
             fail(f"slider/{part_name} missing disabled state")
 
+    for part_name in ("ButtonDown", "ButtonUp"):
+        validate_interaction_states(
+            find_part(root, "spinbox", part_name), f"spinbox/{part_name}"
+        )
+    for part_name in ("ButtonDown", "ButtonUp", "ButtonLeft", "ButtonRight"):
+        validate_interaction_states(
+            find_part(root, "spinbuttons", part_name), f"spinbuttons/{part_name}"
+        )
+
     contrast_pairs = (
         ("windowTextColor", "windowColor"),
         ("fieldTextColor", "fieldColor"),
@@ -237,17 +318,43 @@ def validate(path: Path) -> tuple[int, int, int]:
         ("highlightTextColor", "highlightColor"),
         ("helpTextColor", "helpColor"),
     )
-    for foreground, background in contrast_pairs:
-        ratio = contrast(style_colors[foreground], style_colors[background])
-        if ratio < 4.5:
-            fail(f"{foreground}/{background} contrast is only {ratio:.2f}:1")
-    if contrast(tokens["on-primary"], tokens["primary"]) < 4.5:
-        fail("on-primary/primary contrast is below 4.5:1")
+    for scheme, tokens in palettes.items():
+        style_colors = {
+            style_name: tokens[token_name]
+            for style_name, token_name in style_references.items()
+        }
+        for foreground, background in contrast_pairs:
+            ratio = contrast(style_colors[foreground], style_colors[background])
+            if ratio < 4.5:
+                fail(
+                    f"{scheme} {foreground}/{background} contrast is only "
+                    f"{ratio:.2f}:1"
+                )
+        for foreground, background in (
+            ("on-primary", "primary"),
+            ("on-primary-container", "primary-container"),
+            ("on-primary-container", "primary-hover"),
+            ("on-primary-container", "primary-pressed"),
+            ("on-surface", "primary-hover"),
+            ("on-surface", "primary-pressed"),
+        ):
+            ratio = contrast(tokens[foreground], tokens[background])
+            if ratio < 4.5:
+                fail(
+                    f"{scheme} {foreground}/{background} contrast is only "
+                    f"{ratio:.2f}:1"
+                )
+        disabled_ratio = contrast(tokens["outline"], tokens["disabled-container"])
+        if disabled_ratio < 3.0:
+            fail(
+                f"{scheme} outline/disabled-container contrast is only "
+                f"{disabled_ratio:.2f}:1"
+            )
 
     part_count = sum(len(control.findall("part")) for control in root
                      if control.tag not in {"palette", "style", "settings"})
     state_count = sum(1 for _ in root.iter("state"))
-    return len(tokens), part_count, state_count
+    return len(palettes), len(token_names), part_count, state_count
 
 
 def main() -> int:
@@ -261,13 +368,13 @@ def main() -> int:
     )
     args = parser.parse_args()
     try:
-        token_count, part_count, state_count = validate(args.definition)
+        scheme_count, token_count, part_count, state_count = validate(args.definition)
     except (ET.ParseError, OSError, ValidationError) as error:
         print(f"{args.definition}: {error}", file=sys.stderr)
         return 1
     print(
-        f"Material theme OK: {token_count} tokens, {part_count} parts, "
-        f"{state_count} states"
+        f"Material theme OK: {scheme_count} schemes, {token_count} tokens each, "
+        f"{part_count} parts, {state_count} states"
     )
     return 0
 

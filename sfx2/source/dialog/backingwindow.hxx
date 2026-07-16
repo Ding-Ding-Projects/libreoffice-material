@@ -62,6 +62,8 @@ class BackingWindow : public InterimItemWindow
 
     std::unique_ptr<weld::Label> mxCreateLabel;
     std::unique_ptr<weld::Label> mxAltHelpLabel;
+    std::unique_ptr<weld::Label> mxWelcomeTitle;
+    std::unique_ptr<weld::Label> mxWelcomeSubtitle;
     std::unique_ptr<weld::ComboBox> mxFilter;
     std::unique_ptr<weld::MenuButton> mxActions;
 
@@ -81,6 +83,8 @@ class BackingWindow : public InterimItemWindow
     std::unique_ptr<weld::Container> mxAllButtonsBox;
     std::unique_ptr<weld::Container> mxButtonsBox;
     std::unique_ptr<weld::Container> mxSmallButtonsBox;
+    std::unique_ptr<weld::Container> mxWelcomeHeader;
+    std::unique_ptr<weld::Container> mxActionsBox;
     std::unique_ptr<weld::Container> mxRightBox;
 
     std::unique_ptr<sfx2::RecentDocsView> mxAllRecentThumbnails;

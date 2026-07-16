@@ -261,6 +261,9 @@ WinSalGraphics::WinSalGraphics(WinSalGraphics::Type eType, bool bScreen, HWND hW
         mpImpl.reset(impl);
         mWinSalGraphicsImplBase = impl;
     }
+
+    if (!mbPrinter)
+        initWidgetDrawBackends(false);
 }
 
 WinSalGraphics::~WinSalGraphics()

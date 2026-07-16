@@ -174,6 +174,8 @@ BackingWindow::BackingWindow(vcl::Window* i_pParent)
     , mxTemplateButton(m_xBuilder->weld_toggle_button(u"templates_all"_ustr))
     , mxCreateLabel(m_xBuilder->weld_label(u"create_label"_ustr))
     , mxAltHelpLabel(m_xBuilder->weld_label(u"althelplabel"_ustr))
+    , mxWelcomeTitle(m_xBuilder->weld_label(u"welcome_title"_ustr))
+    , mxWelcomeSubtitle(m_xBuilder->weld_label(u"welcome_subtitle"_ustr))
     , mxFilter(m_xBuilder->weld_combo_box(u"cbFilter"_ustr))
     , mxActions(m_xBuilder->weld_menu_button(u"mbActions"_ustr))
     , mxWriterAllButton(m_xBuilder->weld_button(u"writer_all"_ustr))
@@ -190,6 +192,8 @@ BackingWindow::BackingWindow(vcl::Window* i_pParent)
     , mxAllButtonsBox(m_xBuilder->weld_container(u"all_buttons_box"_ustr))
     , mxButtonsBox(m_xBuilder->weld_container(u"buttons_box"_ustr))
     , mxSmallButtonsBox(m_xBuilder->weld_container(u"small_buttons_box"_ustr))
+    , mxWelcomeHeader(m_xBuilder->weld_container(u"welcome_header"_ustr))
+    , mxActionsBox(m_xBuilder->weld_container(u"actions"_ustr))
     , mxRightBox(m_xBuilder->weld_container(u"box2"_ustr))
     , mxAllRecentThumbnails(new sfx2::RecentDocsView(m_xBuilder->weld_scrolled_window(u"scrollrecent"_ustr, true)))
     , mxAllRecentThumbnailsWin(new weld::CustomWeld(*m_xBuilder, u"all_recent"_ustr, *mxAllRecentThumbnails))
@@ -453,7 +457,11 @@ void BackingWindow::setLargerFont(WidgetClass& pWidget, const vcl::Font& rFont)
 void BackingWindow::ApplyStyleSettings()
 {
     const StyleSettings& rStyleSettings = GetSettings().GetStyleSettings();
-    const Color aButtonsBackground(rStyleSettings.GetWindowColor());
+    const Color aNavigationBackground(rStyleSettings.GetWorkspaceColor());
+    const Color aContentBackground(rStyleSettings.GetWindowColor());
+    const Color aSurfaceContainer(rStyleSettings.GetDialogColor());
+    const Color aOnSurface(rStyleSettings.GetWindowTextColor());
+    const Color aOnSurfaceVariant(rStyleSettings.GetLabelTextColor());
     const vcl::Font& aButtonFont(rStyleSettings.GetPushButtonFont());
     const vcl::Font& aLabelFont(rStyleSettings.GetLabelFont());
 
@@ -470,9 +478,17 @@ void BackingWindow::ApplyStyleSettings()
     setLargerFont(mxMathAllButton, aButtonFont);
     setLargerFont(mxCreateLabel, aLabelFont);
 
-    mxAllButtonsBox->set_background(aButtonsBackground);
-    mxSmallButtonsBox->set_background(aButtonsBackground);
-    SetBackground(aButtonsBackground);
+    mxWelcomeTitle->set_font_color(aOnSurface);
+    mxWelcomeSubtitle->set_font_color(aOnSurfaceVariant);
+    mxCreateLabel->set_font_color(aOnSurfaceVariant);
+
+    mxAllButtonsBox->set_background(aNavigationBackground);
+    mxButtonsBox->set_background(aNavigationBackground);
+    mxSmallButtonsBox->set_background(aNavigationBackground);
+    mxWelcomeHeader->set_background(aContentBackground);
+    mxActionsBox->set_background(aSurfaceContainer);
+    mxRightBox->set_background(aContentBackground);
+    SetBackground(aContentBackground);
 
     // compute the menubar height
     sal_Int32 nMenuHeight = 0;

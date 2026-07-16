@@ -10,6 +10,10 @@
 
 #include <sal/config.h>
 
+#include <algorithm>
+#include <cstdlib>
+#include <map>
+#include <mutex>
 #include <string_view>
 
 #include <FileDefinitionWidgetDraw.hxx>
@@ -26,6 +30,7 @@
 #include <basegfx/matrix/b2dhommatrixtools.hxx>
 
 #include <tools/stream.hxx>
+#include <sal/log.hxx>
 #include <vcl/bitmap.hxx>
 #include <vcl/BitmapTools.hxx>
 #include <vcl/gradient.hxx>
@@ -76,19 +81,51 @@ std::shared_ptr<WidgetDefinition> getWidgetDefinition(OUString const& rDefinitio
     return std::shared_ptr<WidgetDefinition>();
 }
 
-std::shared_ptr<WidgetDefinition> const&
-getWidgetDefinitionForTheme(std::u16string_view rThemenName)
+bool lcl_isSafeThemeName(std::string_view rThemeName)
 {
-    static std::shared_ptr<WidgetDefinition> spDefinition;
-    if (!spDefinition)
+    return !rThemeName.empty()
+           && std::all_of(rThemeName.begin(), rThemeName.end(), [](unsigned char c) {
+                  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+                         || (c >= '0' && c <= '9') || c == '-' || c == '_';
+              });
+}
+
+OUString lcl_getRequestedThemeName()
+{
+    const char* pThemeName = std::getenv("VCL_FILE_WIDGET_THEME");
+    if (!pThemeName)
+        return u"online"_ustr;
+
+    const std::string_view aThemeName(pThemeName);
+    if (!lcl_isSafeThemeName(aThemeName))
     {
-        OUString sSharedDefinitionBasePath = lcl_getThemeDefinitionPath();
-        OUString sThemeFolder = sSharedDefinitionBasePath + rThemenName + "/";
-        OUString sThemeDefinitionFile = sThemeFolder + "definition.xml";
-        if (lcl_directoryExists(sThemeFolder) && lcl_fileExists(sThemeDefinitionFile))
-            spDefinition = getWidgetDefinition(sThemeDefinitionFile, sThemeFolder);
+        SAL_WARN("vcl.gdi", "Ignoring unsafe VCL_FILE_WIDGET_THEME value");
+        return u"online"_ustr;
     }
-    return spDefinition;
+
+    return OUString::fromUtf8(aThemeName);
+}
+
+std::shared_ptr<WidgetDefinition> getWidgetDefinitionForTheme(std::u16string_view rThemeName)
+{
+    static std::mutex aDefinitionsMutex;
+    static std::map<OUString, std::shared_ptr<WidgetDefinition>> aDefinitions;
+
+    const OUString aThemeName(rThemeName);
+    std::scoped_lock aGuard(aDefinitionsMutex);
+    const auto aExisting = aDefinitions.find(aThemeName);
+    if (aExisting != aDefinitions.end())
+        return aExisting->second;
+
+    OUString sSharedDefinitionBasePath = lcl_getThemeDefinitionPath();
+    OUString sThemeFolder = sSharedDefinitionBasePath + aThemeName + "/";
+    OUString sThemeDefinitionFile = sThemeFolder + "definition.xml";
+    std::shared_ptr<WidgetDefinition> pDefinition;
+    if (lcl_directoryExists(sThemeFolder) && lcl_fileExists(sThemeDefinitionFile))
+        pDefinition = getWidgetDefinition(sThemeDefinitionFile, sThemeFolder);
+
+    aDefinitions.emplace(aThemeName, pDefinition);
+    return pDefinition;
 }
 
 int getSettingValueInteger(std::string_view rValue, int nDefault)
@@ -115,7 +152,10 @@ FileDefinitionWidgetDraw::FileDefinitionWidgetDraw(SalGraphics& rGraphics)
     : m_rGraphics(rGraphics)
     , m_bIsActive(false)
 {
-    m_pWidgetDefinition = getWidgetDefinitionForTheme(u"online");
+    const OUString aRequestedTheme = lcl_getRequestedThemeName();
+    m_pWidgetDefinition = getWidgetDefinitionForTheme(aRequestedTheme);
+    if (!m_pWidgetDefinition && aRequestedTheme != u"online")
+        m_pWidgetDefinition = getWidgetDefinitionForTheme(u"online");
 #ifdef IOS
     if (!m_pWidgetDefinition)
         m_pWidgetDefinition = getWidgetDefinitionForTheme(u"ios");
@@ -145,61 +185,41 @@ FileDefinitionWidgetDraw::FileDefinitionWidgetDraw(SalGraphics& rGraphics)
 
 bool FileDefinitionWidgetDraw::isNativeControlSupported(ControlType eType, ControlPart ePart)
 {
-    switch (eType)
+    if (eType == ControlType::Generic || eType == ControlType::SpinButtons
+        || eType == ControlType::IntroProgress)
+        return false;
+
+    if ((eType == ControlType::Combobox || eType == ControlType::Listbox)
+        && ePart == ControlPart::HasBackgroundTexture)
+        return false;
+
+    if (eType == ControlType::Spinbox && ePart == ControlPart::AllButtons)
+        return false;
+
+    if (eType == ControlType::Scrollbar
+        && (ePart == ControlPart::DrawBackgroundHorz
+            || ePart == ControlPart::DrawBackgroundVert))
+        return false;
+
+    if (eType == ControlType::Slider)
     {
-        case ControlType::Generic:
-        case ControlType::Pushbutton:
-        case ControlType::Radiobutton:
-        case ControlType::Checkbox:
-            return true;
-        case ControlType::Editbox:
-        case ControlType::EditboxNoBorder:
-        case ControlType::MultilineEditbox:
-            return true;
-        case ControlType::Combobox:
-        case ControlType::Listbox:
-            if (ePart == ControlPart::HasBackgroundTexture)
-                return false;
-            return true;
-        case ControlType::Spinbox:
-            if (ePart == ControlPart::AllButtons)
-                return false;
-            return true;
-        case ControlType::SpinButtons:
-            return false;
-        case ControlType::TabItem:
-        case ControlType::TabPane:
-        case ControlType::TabHeader:
-        case ControlType::TabBody:
-            return true;
-        case ControlType::Scrollbar:
-            if (ePart == ControlPart::DrawBackgroundHorz
-                || ePart == ControlPart::DrawBackgroundVert)
-                return false;
-            return true;
-        case ControlType::Slider:
-        case ControlType::Fixedline:
-        case ControlType::Toolbar:
-            return true;
-        case ControlType::Menubar:
-        case ControlType::MenuPopup:
-            return true;
-        case ControlType::Progress:
-        case ControlType::LevelBar:
-            return true;
-        case ControlType::IntroProgress:
-            return false;
-        case ControlType::Tooltip:
-            return true;
-        case ControlType::WindowBackground:
-        case ControlType::Frame:
-        case ControlType::ListNode:
-        case ControlType::ListNet:
-        case ControlType::ListHeader:
-            return true;
+        const bool bHasThumb
+            = bool(m_pWidgetDefinition->getDefinition(eType, ControlPart::Button));
+        if (ePart == ControlPart::TrackHorzArea)
+            return bHasThumb
+                   && m_pWidgetDefinition->getDefinition(eType, ControlPart::TrackHorzLeft)
+                   && m_pWidgetDefinition->getDefinition(eType, ControlPart::TrackHorzRight);
+        if (ePart == ControlPart::TrackVertArea)
+            return bHasThumb
+                   && m_pWidgetDefinition->getDefinition(eType, ControlPart::TrackVertUpper)
+                   && m_pWidgetDefinition->getDefinition(eType, ControlPart::TrackVertLower);
+        return false;
     }
 
-    return false;
+    // A file theme must not claim a part it cannot draw. Several VCL callers
+    // choose their generic fallback solely from this answer and do not retry
+    // after drawNativeControl() returns false.
+    return bool(m_pWidgetDefinition->getDefinition(eType, ePart));
 }
 
 bool FileDefinitionWidgetDraw::hitTestNativeControl(
@@ -699,7 +719,7 @@ bool FileDefinitionWidgetDraw::drawNativeControl(ControlType eType, ControlPart 
                 bOK = resolveDefinition(eType, ControlPart::TrackVertUpper, eState, rValue, nX, nY,
                                         nWidth, nCenterY - nY);
                 if (bOK)
-                    bOK = resolveDefinition(eType, ControlPart::TrackVertLower, eState, rValue, nY,
+                    bOK = resolveDefinition(eType, ControlPart::TrackVertLower, eState, rValue, nX,
                                             nCenterY, nWidth, nY + nHeight - nCenterY);
             }
 
@@ -730,7 +750,11 @@ bool FileDefinitionWidgetDraw::drawNativeControl(ControlType eType, ControlPart 
         case ControlType::Progress:
         case ControlType::LevelBar:
         {
-            bOK = resolveDefinition(eType, ePart, eState, rValue, nX, nY, nWidth, nHeight);
+            const tools::Long nProgressWidth
+                = std::clamp(rValue.getNumericVal(), tools::Long(0), nWidth);
+            bOK = nProgressWidth == 0
+                  || resolveDefinition(eType, ePart, eState, rValue, nX, nY, nProgressWidth,
+                                       nHeight);
         }
         break;
         case ControlType::IntroProgress:
@@ -959,6 +983,23 @@ bool FileDefinitionWidgetDraw::getNativeControlRegion(
                 rNativeContentRegion = tools::Rectangle(aLocation, aSize);
                 rNativeBoundingRegion = rNativeContentRegion;
                 rNativeBoundingRegion.expand(2);
+                return true;
+            }
+        }
+        break;
+        case ControlType::MenuPopup:
+        {
+            if (ePart == ControlPart::MenuItemCheckMark
+                || ePart == ControlPart::MenuItemRadioMark
+                || ePart == ControlPart::SubmenuArrow)
+            {
+                auto const pPart = m_pWidgetDefinition->getDefinition(eType, ePart);
+                if (!pPart || pPart->mnWidth <= 0 || pPart->mnHeight <= 0)
+                    return false;
+
+                rNativeContentRegion
+                    = tools::Rectangle(aLocation, Size(pPart->mnWidth, pPart->mnHeight));
+                rNativeBoundingRegion = rNativeContentRegion;
                 return true;
             }
         }

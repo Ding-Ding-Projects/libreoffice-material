@@ -1,142 +1,204 @@
-# LibreOffice
-[![Coverity Scan Build Status](https://scan.coverity.com/projects/211/badge.svg)](https://scan.coverity.com/projects/211) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/307/badge)](https://www.bestpractices.dev/projects/307) [![Translation status](https://weblate.documentfoundation.org/widgets/libo_ui-master/-/svg-badge.svg)](https://weblate.documentfoundation.org/engage/libo_ui-master/?utm_source=widget)
+# LibreOffice Material
 
-<img align="right" width="150" src="https://opensource.org/wp-content/uploads/2009/06/OSIApproved.svg">
+An experimental LibreOffice engineering fork exploring a suite-wide Material
+Design 3 interface while retaining LibreOffice's native implementation stack,
+document engine, file-format support, and accessibility foundations.
 
-LibreOffice is an integrated office suite based on copyleft licenses
-and compatible with most document formats and standards. Libreoffice
-is backed by The Document Foundation, which represents a large
-independent community of enterprises, developers and other volunteers
-moved by the common goal of bringing to the market the best software
-for personal productivity. LibreOffice is open source, and free to
-download, use and distribute.
+> **Current milestone: 0 — foundation with an initial native source slice.**
+> Material widget definitions, VCL selection/fallback plumbing, reader coverage,
+> and Start Center changes now exist in the local worktree. They have **not**
+> been compiled or run as LibreOffice. The whole GUI has not been rewritten, and
+> no application surface is Material-complete.
 
-A quick overview of the LibreOffice code structure.
+[Project site](https://codingmachineedge.github.io/libreoffice-material/) ·
+[Roadmap](ROADMAP.md) ·
+[Material specification](MATERIAL_DESIGN.md) ·
+[Headless UI evidence plan](docs/HEADLESS_UI_EVIDENCE.md) ·
+[Screenshot index](docs/SCREENSHOTS.md)
 
-## Overview
+## What is true today
 
-You can develop for LibreOffice in one of two ways, one
-recommended and one much less so. First the somewhat less recommended
-way: it is possible to use the SDK to develop an extension,
-for which you can read the [API docs](https://api.libreoffice.org/)
-and [Developers Guide](https://wiki.documentfoundation.org/Documentation/DevGuide).
-This re-uses the (extremely generic) UNO APIs that are also used by
-macro scripting in StarBasic.
+| Area | State | Evidence |
+| --- | --- | --- |
+| LibreOffice source baseline | Imported | This repository's initial tree matches upstream commit `63584e7f9f0cdc74b0e004bcbf88e5c3b42dba21` |
+| Material design direction | Initial specification | [`MATERIAL_DESIGN.md`](MATERIAL_DESIGN.md) |
+| Initial native implementation | Source present, unbuilt | Material file theme/VCL plumbing and Start Center source changes are local; build and runtime gates remain open |
+| Whole-suite implementation | Incomplete | Phased work remains in [`ROADMAP.md`](ROADMAP.md) |
+| Verified UI screenshots | None yet | The truthful empty registry is in [`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md) |
+| Headless harness | Preflight passed; LibreOffice not run | A temporary Notepad-only driver preflight proved the off-screen mechanics, not this UI; see [`docs/HEADLESS_UI_EVIDENCE.md`](docs/HEADLESS_UI_EVIDENCE.md) |
 
-The best way to add a generally useful feature to LibreOffice
-is to work on the code base however. Overall this way makes it easier
-to compile and build your code, it avoids any arbitrary limitations of
-our scripting APIs, and in general is far more simple and intuitive -
-if you are a reasonably able C++ programmer.
+This table is deliberately conservative. A roadmap item changes state only when
+its code, build result, interaction checks, and committed visual evidence agree.
 
-## The Build Chain and Runtime Baselines
+## Initial native slice
 
-These are the current minimal operating system and compiler versions to
-run and compile LibreOffice, also used by the TDF builds:
+The first implementation slice is intentionally opt-in and shared-layer first.
+The current local source changes include:
 
-* Windows:
-    * Runtime: Windows 10
-    * Build: [wsl-as-helper](https://wiki.documentfoundation.org/Development/BuildingOnWSLWindows) + Visual Studio 2022
-* macOS:
-    * Runtime: 11
-    * Build: 13 or later + Xcode 14.3 or later (using latest version available for a given version of macOS)
-* Linux:
-    * Runtime: RHEL 9 or CentOS 9 and comparable
-    * Build: either GCC 13; or Clang 18 with libstdc++ 11
-* iOS (only for LibreOfficeKit):
-    * Runtime: 14.5 (only support for newer i devices == 64 bit)
-    * Build: Xcode 12.5 and iPhone SDK 14.5
-* Android:
-    * Build: NDK 27 and SDK 30.0.3
-* Emscripten / WASM:
-    * Runtime: a browser with SharedMemory support (threads + atomics)
-    * Build: Qt 5.15 with Qt supported Emscripten 1.39.8
-    * See [README.wasm](static/README.wasm.md)
+- a packaged `material/definition.xml` file-widget theme with Material palette,
+  controls, focus/state variants, menus, tabs, surfaces, and progress drawing;
+- selection through `VCL_FILE_WIDGET_THEME`, with a restricted safe theme name,
+  a mutex-protected cache keyed by theme, and fallback to the existing `online`
+  definition when a requested theme cannot load;
+- Windows non-printer graphics initialization routed through the existing
+  file-widget backend gate; it remains inactive unless
+  `VCL_DRAW_WIDGETS_FROM_FILE` is present;
+- definition-aware support reporting so parts absent from the selected file
+  theme stay on their existing fallback path;
+- expanded `WidgetDefinitionReader` style/palette mapping and C++ assertions for
+  the Material definition;
+- Start Center spacing, a Home header/subtitle, surface roles, and recent/template
+  text and fill colors derived from VCL style settings.
 
-Java is required for building many parts of LibreOffice. In TDF Wiki article
-[Development/Java](https://wiki.documentfoundation.org/Development/Java), the
-exact modules that depend on Java are listed.
+Once a compatible LibreOffice build exists, the intended Windows opt-in is to
+set both variables before launching the built application:
 
-The baseline for Java is Java Development Kit (JDK) Version 17 or later.
+```powershell
+$env:VCL_DRAW_WIDGETS_FROM_FILE = "1"
+$env:VCL_FILE_WIDGET_THEME = "material"
+```
 
-The baseline for Python is version 3.11. It follows the version available
-in SUSE Linux Enterprise Desktop and the Maintenance Support version of
-Red Hat Enterprise Linux.
+These variables describe the source path; they are not a successful-run claim.
+The `vcl_widget_definition_reader_test` target and a real `soffice` launch have
+not run on this worktree.
 
-If you want to use Clang with the LibreOffice compiler plugins, the minimal
-version of Clang is 18. Since Xcode doesn't provide the compiler plugin
-headers, you have to compile your own Clang to use them on macOS.
+## Product direction
 
-You can find the TDF configure switches in the `distro-configs/` directory.
+LibreOffice Material aims to modernize the complete desktop experience rather
+than place a cosmetic skin over a few screenshots. The intended scope includes:
 
-To setup your initial build environment on Windows and macOS, we provide
-the LibreOffice Development Environment
-([LODE](https://wiki.documentfoundation.org/Development/lode)) scripts.
+- shared application chrome, menus, command surfaces, sidebars, status bars,
+  dialogs, pickers, notifications, and start center;
+- Writer, Calc, Impress, Draw, Base, Math, and shared editing components;
+- Material 3 color, type, shape, elevation, state, density, and motion tokens;
+- keyboard-first operation, screen-reader semantics, high contrast, reduced
+  motion, localization, bidirectional text, and platform conventions;
+- responsive/adaptive behavior that respects information-dense desktop work.
 
-For more information see the build instructions for your platform in the
-[TDF wiki](https://wiki.documentfoundation.org/Development/How_to_build).
+The implementation remains native LibreOffice code. Product UI changes should
+use the languages and resource formats already used by the affected upstream
+module—primarily C++, VCL, UNO, and XML `.ui`/configuration resources. The
+static HTML and CSS under [`site/`](site/) are only the project website; they
+are not a replacement runtime for LibreOffice.
 
-## The Important Bits of Code
+## Architecture at a glance
 
-Each module should have a `README.md` file inside it which has some
-degree of documentation for that module; patches are most welcome to
-improve those. We have those turned into a web page here:
+Materialization should flow from shared primitives into suite surfaces:
 
-<https://docs.libreoffice.org/>
+1. semantic tokens and platform-aware theme resolution;
+2. VCL widgets, focus/state behavior, and rendering primitives;
+3. shared framework chrome and reusable dialogs;
+4. application-specific surfaces in Writer, Calc, Impress/Draw, Base, and Math;
+5. accessibility, localization, performance, and headless visual verification.
 
-However, there are two hundred modules, many of them of only
-peripheral interest for a specialist audience. So - where is the
-good stuff, the code that is most useful. Here is a quick overview of
-the most important ones:
+The core upstream areas remain the natural integration points:
 
-Module    | Description
-----------|-------------------------------------------------
-[sal/](sal)             | this provides a simple System Abstraction Layer
-[tools/](tools)         | this provides basic internal types: `Rectangle`, `Color` etc.
-[vcl/](vcl)             | this is the widget toolkit library and one rendering abstraction
-[framework/](framework) | UNO framework, responsible for building toolbars, menus, status bars, and the chrome around the document using widgets from VCL, and XML descriptions from `/uiconfig/` files
-[sfx2/](sfx2)           | legacy core framework used by Writer/Calc/Draw: document model / load/save / signals for actions etc.
-[svx/](svx)             | drawing model related helper code, including much of Draw/Impress
+| Module | Relevance |
+| --- | --- |
+| [`vcl/`](vcl/) | Widget toolkit, rendering abstraction, platform backends, and theme behavior |
+| [`framework/`](framework/) | Menus, toolbars, status bars, and application chrome |
+| [`sfx2/`](sfx2/) | Shared document framework and shell behavior |
+| [`svx/`](svx/) | Shared drawing and editing controls |
+| [`cui/`](cui/) | Common dialogs and option surfaces |
+| [`desktop/`](desktop/) | Application bootstrap and start-center integration |
+| [`sw/`](sw/) | Writer |
+| [`sc/`](sc/) | Calc |
+| [`sd/`](sd/) | Impress and Draw |
 
-Then applications
+See [`MATERIAL_DESIGN.md`](MATERIAL_DESIGN.md) for component rules and
+[`ROADMAP.md`](ROADMAP.md) for sequencing and acceptance gates.
 
-Module    | Description
-----------|-------------------------------------------------
-[desktop/](desktop)  | this is where the `main()` for the application lives, init / bootstrap. the name dates back to an ancient StarOffice that also drew a desktop
-[sw/](sw/)           | Writer
-[sc/](sc/)           | Calc
-[sd/](sd/)           | Draw / Impress
+## Evidence, not mock completion
 
-There are several other libraries that are helpful from a graphical perspective:
+No screenshot is shown until it is captured from a build of this repository and
+registered with its commit, environment, test scenario, and result. Empty cards
+on the project site are **evidence slots**, not mockups or generated UI claims.
 
-Module    | Description
-----------|-------------------------------------------------
-[basegfx/](basegfx)  | algorithms and data-types for graphics as used in the canvas
-[canvas/](canvas)   | new (UNO) canvas rendering model with various backends
-[cppcanvas/](cppcanvas) | C++ helper classes for using the UNO canvas
-[drawinglayer/](drawinglayer) | View code to render drawable objects and break them down into primitives we can render more easily.
+The verification driver is the sibling
+[`lowlevel-computer-use-mcp`](https://github.com/codingmachineedge/lowlevel-computer-use-mcp)
+project. It can launch real GUI applications on an off-screen desktop, target
+windows without focusing them, and capture window images. A 2026-07-16 preflight
+using driver commit `806d9ba85e4afbc2af58d7499496babfa7c68891`
+successfully created and removed an off-screen Win32 desktop around Notepad.
+That temporary capture was unrelated to LibreOffice, was not retained, and is
+not registered as project evidence. The driver is not currently vendored into
+this repository. Exact preflight facts, the future LibreOffice capture contract,
+and safety rules are in [`docs/HEADLESS_UI_EVIDENCE.md`](docs/HEADLESS_UI_EVIDENCE.md).
 
-## Rules for #include Directives (C/C++)
+## Building LibreOffice
 
-Use the `"..."` form if and only if the included file is found next to the
-including file. Otherwise, use the `<...>` form. (For further details, see the
-mail [Re: C[++]: Normalizing include syntax ("" vs
-<>)](https://lists.freedesktop.org/archives/libreoffice/2017-November/078778.html).)
+This fork retains the upstream LibreOffice build chain. LibreOffice is a large,
+cross-platform native project; consult The Document Foundation's current
+[platform build instructions](https://wiki.documentfoundation.org/Development/How_to_build)
+and the imported build files before configuring a machine.
 
-The UNO API include files should consistently use double quotes, for the
-benefit of external users of this API.
+> **Current build blocker:** this host has no installed WSL distribution or
+> configured LibreOffice WSL helper, and the Windows-native LibreOffice build
+> prerequisites are not available. Consequently the C++ unit target and a real
+> application capture have not been run.
 
-`loplugin:includeform (compilerplugins/clang/includeform.cxx)` enforces these rules.
+At the imported baseline, the upstream README records these minimum build
+baselines:
 
+| Platform | Imported upstream build baseline |
+| --- | --- |
+| Windows | WSL helper plus Visual Studio 2022; runtime baseline Windows 10 |
+| macOS | macOS 13 or later with Xcode 14.3 or later; runtime baseline macOS 11 |
+| Linux | GCC 13 or Clang 18 with libstdc++ 11; RHEL/CentOS 9-class baseline |
+| Java | JDK 17 or later |
+| Python | Python 3.11 |
 
-## Finding Out More
+Typical source builds start with the upstream `autogen.sh`/`configure` flow and
+then use `make`. Platform-specific dependencies and supported switches change,
+so the TDF build documentation and [`distro-configs/`](distro-configs/) are the
+authority. [LODE](https://wiki.documentfoundation.org/Development/lode) can help
+prepare Windows and macOS development environments.
 
-Beyond this, you can read the `README.md` files, send us patches, ask
-on the mailing list libreoffice@lists.freedesktop.org (no subscription
-required) or poke people on IRC `#libreoffice-dev` on irc.libera.chat -
-we're a friendly and generally helpful mob. We know the code can be
-hard to get into at first, and so there are no silly questions.
+For extension development rather than core changes, use the
+[LibreOffice SDK](https://api.libreoffice.org/) and
+[Developer's Guide](https://wiki.documentfoundation.org/Documentation/DevGuide).
 
-## SAST Tools
+## Upstream provenance
 
-[PVS-Studio](https://pvs-studio.com/en/pvs-studio/?utm_source=website&utm_medium=github&utm_campaign=open_source) - static analyzer for C, C++, C#, and Java code.
+This is an independent experimental fork of
+[`LibreOffice/core`](https://github.com/LibreOffice/core), the office-suite
+source maintained by The Document Foundation and its contributor community.
+
+- Upstream remote: `https://github.com/LibreOffice/core.git`
+- Imported upstream commit: `63584e7f9f0cdc74b0e004bcbf88e5c3b42dba21`
+- Import commit in this repository: `44d393283e776c7e099763496c57b02ae509cd15`
+- Import method: a new root commit with a tree identical to that upstream commit;
+  the original upstream history is available through the `upstream` remote.
+
+See [`docs/PROVENANCE.md`](docs/PROVENANCE.md) for reproducible verification.
+LibreOffice Material is not an official The Document Foundation distribution,
+and no endorsement is implied.
+
+## Contributing
+
+Start with the design contract and the earliest incomplete roadmap gate. Keep
+changes narrow enough to build and verify, preserve existing shortcuts and
+accessibility semantics, and attach genuine headless evidence for visible UI
+changes. Never add generated or staged images as if they were application
+captures.
+
+When changing native product UI:
+
+1. identify the shared component before adding an application-local variant;
+2. use semantic tokens instead of hard-coded colors or elevations;
+3. test keyboard, focus, high-contrast, localization, and reduced-motion paths;
+4. record the exact commit and environment in the evidence manifest;
+5. update the roadmap and repository memory only after the acceptance gate
+   passes.
+
+## License and attribution
+
+LibreOffice source is open source and copyleft-licensed. Retain the license
+headers and notices of every file you modify. The authoritative license texts
+shipped with this source tree are [`COPYING`](COPYING),
+[`COPYING.LGPL`](COPYING.LGPL), and [`COPYING.MPL`](COPYING.MPL); entirely new
+LibreOffice source files should follow [`TEMPLATE.SOURCECODE.HEADER`](TEMPLATE.SOURCECODE.HEADER).
+
+LibreOffice is backed by The Document Foundation. LibreOffice and The Document
+Foundation names and marks belong to their respective owners. Project-specific
+documentation and site work must not erase upstream authorship or licensing.

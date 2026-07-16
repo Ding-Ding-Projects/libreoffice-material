@@ -10,6 +10,7 @@
 $(eval $(call gb_Package_Package,vcl_theme_definitions,$(SRCDIR)/vcl/uiconfig/theme_definitions))
 
 $(eval $(call gb_Package_add_files_with_dir,vcl_theme_definitions,$(LIBO_SHARE_FOLDER)/theme_definitions,\
+	material/definition.xml \
 	ios/definition.xml \
 	ios/switch-off.svg \
 	ios/switch-off-disabled.svg \

@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#f9f7ff">
+    <meta
+      name="description"
+      content="LibreOffice Material is an early engineering fork with an initial native Material source slice and a suite-wide roadmap."
+    >
+    <link rel="canonical" href="https://codingmachineedge.github.io/libreoffice-material/">
+    <link rel="stylesheet" href="styles.css">
+    <title>LibreOffice Material — native office UI, thoughtfully renewed</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <header class="top-app-bar">
+      <a class="brand" href="#top" aria-label="LibreOffice Material home">
+        <span class="brand-mark" aria-hidden="true">LM</span>
+        <span class="brand-copy">
+          <strong>LibreOffice Material</strong>
+          <span>Engineering preview</span>
+        </span>
+      </a>
+
+      <nav aria-label="Primary navigation">
+        <ul class="nav-list">
+          <li><a href="#direction">Direction</a></li>
+          <li><a href="#evidence">Evidence</a></li>
+          <li><a href="#roadmap">Roadmap</a></li>
+          <li><a href="#provenance">Provenance</a></li>
+        </ul>
+      </nav>
+
+      <a
+        class="button button-tonal header-action"
+        href="https://github.com/codingmachineedge/libreoffice-material"
+      >View source</a>
+    </header>
+
+    <main id="main-content">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span>Milestone 0 · native source slice</p>
+          <h1 id="hero-title">The LibreOffice desktop, thoughtfully renewed.</h1>
+          <p class="hero-lede">
+            A native, suite-wide exploration of Material Design 3—built on
+            LibreOffice’s existing C++, VCL, UNO, and XML foundations rather
+            than replacing the document engine with a web shell.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-filled" href="#roadmap">Explore the roadmap</a>
+            <a
+              class="button button-outlined"
+              href="https://github.com/codingmachineedge/libreoffice-material/blob/main/MATERIAL_DESIGN.md"
+            >Read the design contract</a>
+          </div>
+          <p class="truth-note">
+            Native Material and Start Center changes now exist locally, but
+            LibreOffice has not been built or run with them. The whole GUI is
+            incomplete, and verified application screenshots remain at zero.
+          </p>
+        </div>
+
+        <aside class="readiness-card" aria-labelledby="readiness-title">
+          <div class="readiness-header">
+            <div>
+              <p class="card-kicker">Repository readiness</p>
+              <h2 id="readiness-title">What exists now</h2>
+            </div>
+            <span class="milestone-badge">M0</span>
+          </div>
+          <dl class="readiness-list">
+            <div>
+              <dt>Upstream source</dt>
+              <dd><span class="state state-verified">Imported</span></dd>
+            </div>
+            <div>
+              <dt>Native source slice</dt>
+              <dd><span class="state state-progress">Coded locally</span></dd>
+            </div>
+            <div>
+              <dt>Headless harness</dt>
+              <dd><span class="state state-verified">Preflight passed</span></dd>
+            </div>
+            <div>
+              <dt>Whole-suite UI</dt>
+              <dd><span class="state state-planned">Incomplete</span></dd>
+            </div>
+            <div>
+              <dt>Verified captures</dt>
+              <dd><span class="metric">0</span></dd>
+            </div>
+          </dl>
+          <div class="readiness-footer">
+            <span aria-hidden="true">Evidence gate</span>
+            <strong>Code + build + interaction + capture</strong>
+          </div>
+        </aside>
+      </section>
+
+      <section class="status-band" aria-label="Project facts">
+        <div>
+          <strong>Source slice</strong>
+          <span>Implemented locally · unbuilt</span>
+        </div>
+        <div>
+          <strong>Harness preflight</strong>
+          <span>Off-screen create → capture → cleanup</span>
+        </div>
+        <div>
+          <strong>Whole-suite status</strong>
+          <span>Incomplete · Writer through Math</span>
+        </div>
+        <div>
+          <strong>LibreOffice captures</strong>
+          <span>0 verified files</span>
+        </div>
+      </section>
+
+      <section class="section slice-section" aria-labelledby="slice-title">
+        <div class="slice-heading">
+          <div>
+            <p class="eyebrow">First native implementation</p>
+            <h2 id="slice-title">Shared Material plumbing is now in source.</h2>
+            <p>
+              This is meaningful implementation progress, with a strict runtime
+              caveat: the local C++ and XML changes have not yet been compiled,
+              launched, or captured as LibreOffice.
+            </p>
+          </div>
+          <div class="slice-status" aria-label="Implementation status">
+            <span class="state state-progress">Source present</span>
+            <span class="state state-planned">Build pending</span>
+          </div>
+        </div>
+
+        <div class="slice-grid">
+          <article>
+            <span aria-hidden="true">01</span>
+            <h3>Material definition</h3>
+            <p>Packaged control, focus, menu, tab, surface, and progress states.</p>
+          </article>
+          <article>
+            <span aria-hidden="true">02</span>
+            <h3>Safe VCL selection</h3>
+            <p>Restricted theme names, keyed cache, online fallback, and unsupported-part fallback.</p>
+          </article>
+          <article>
+            <span aria-hidden="true">03</span>
+            <h3>Reader coverage</h3>
+            <p>Expanded palette mapping and Material definition assertions, still unexecuted.</p>
+          </article>
+          <article>
+            <span aria-hidden="true">04</span>
+            <h3>Start Center</h3>
+            <p>New spacing, Home header, surfaces, and VCL-derived recent/template colors.</p>
+          </article>
+        </div>
+
+        <div class="activation-card">
+          <div>
+            <p class="card-kicker">Future runtime opt-in</p>
+            <h3>Both environment gates are required.</h3>
+            <p>
+              The Windows non-printer backend reaches the file-widget path only
+              when the existing draw-from-file gate is present; the second value
+              selects the packaged Material definition.
+            </p>
+          </div>
+          <pre aria-label="Material theme environment variables"><code>VCL_DRAW_WIDGETS_FROM_FILE=1
+VCL_FILE_WIDGET_THEME=material</code></pre>
+        </div>
+        <p class="blocker-note">
+          <strong>Current build blocker:</strong> no installed WSL distribution
+          or configured LibreOffice WSL helper, plus unavailable Windows-native
+          prerequisites. The C++ unit target and real app run remain pending.
+        </p>
+      </section>
+
+      <section class="section" id="direction" aria-labelledby="direction-title">
+        <div class="section-heading">
+          <p class="eyebrow">Design direction</p>
+          <h2 id="direction-title">Material hierarchy without losing desktop power.</h2>
+          <p>
+            The goal is a coherent interaction system, not a layer of rounded
+            corners. Shared primitives come first, then common chrome, then the
+            specialized workflows professionals depend on.
+          </p>
+        </div>
+
+        <div class="principle-grid">
+          <article class="principle-card accent-primary">
+            <span class="card-index" aria-hidden="true">01</span>
+            <h3>Semantic by default</h3>
+            <p>
+              Color, type, shape, elevation, state, density, and motion resolve
+              from shared roles instead of application-local constants.
+            </p>
+            <span class="supporting-label">Tokens → VCL → suite</span>
+          </article>
+          <article class="principle-card accent-secondary">
+            <span class="card-index" aria-hidden="true">02</span>
+            <h3>Dense when it matters</h3>
+            <p>
+              Compact and comfortable profiles preserve Calc throughput,
+              keyboard fluency, touch access, and high-zoom legibility.
+            </p>
+            <span class="supporting-label">Adaptive, not diluted</span>
+          </article>
+          <article class="principle-card accent-tertiary">
+            <span class="card-index" aria-hidden="true">03</span>
+            <h3>Accessible at the core</h3>
+            <p>
+              Focus, roles, high contrast, reduced motion, bidirectional layout,
+              and long translations belong in every component contract.
+            </p>
+            <span class="supporting-label">No screenshot-only approvals</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="section suite-section" aria-labelledby="suite-title">
+        <div class="section-heading compact-heading">
+          <p class="eyebrow">One system, every workspace</p>
+          <h2 id="suite-title">A whole-suite commitment.</h2>
+          <p>Application workspaces remain planned while shared VCL and Start Center source work is underway. None is complete.</p>
+        </div>
+
+        <div class="suite-grid">
+          <article class="suite-card">
+            <span class="suite-monogram" aria-hidden="true">W</span>
+            <div><h3>Writer</h3><p>Authoring, review, styles, navigation</p></div>
+            <span class="state state-planned">Planned</span>
+          </article>
+          <article class="suite-card">
+            <span class="suite-monogram" aria-hidden="true">C</span>
+            <div><h3>Calc</h3><p>Dense grids, formulas, data, charts</p></div>
+            <span class="state state-planned">Planned</span>
+          </article>
+          <article class="suite-card">
+            <span class="suite-monogram" aria-hidden="true">I</span>
+            <div><h3>Impress</h3><p>Slides, animation, presenting</p></div>
+            <span class="state state-planned">Planned</span>
+          </article>
+          <article class="suite-card">
+            <span class="suite-monogram" aria-hidden="true">D</span>
+            <div><h3>Draw</h3><p>Canvas, objects, alignment, layers</p></div>
+            <span class="state state-planned">Planned</span>
+          </article>
+          <article class="suite-card">
+            <span class="suite-monogram" aria-hidden="true">B</span>
+            <div><h3>Base</h3><p>Data, queries, forms, reports</p></div>
+            <span class="state state-planned">Planned</span>
+          </article>
+          <article class="suite-card">
+            <span class="suite-monogram" aria-hidden="true">M</span>
+            <div><h3>Math</h3><p>Formula editor, symbols, shared dialogs</p></div>
+            <span class="state state-planned">Planned</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="section evidence-section" id="evidence" aria-labelledby="evidence-title">
+        <div class="section-heading evidence-heading">
+          <div>
+            <p class="eyebrow">Verified visual record</p>
+            <h2 id="evidence-title">A gallery that starts honestly empty.</h2>
+            <p>
+              These are evidence slots, not mock screenshots. A slot gains an
+              image only after a real fork build is captured headlessly and its
+              manifest, commit, scenario, and hash pass review. A successful
+              Notepad-only harness preflight was temporary and is not shown here.
+            </p>
+          </div>
+          <a
+            class="button button-outlined"
+            href="https://github.com/codingmachineedge/libreoffice-material/blob/main/docs/SCREENSHOTS.md"
+          >Open evidence registry</a>
+        </div>
+
+        <div class="evidence-grid">
+          <article class="evidence-card">
+            <div class="evidence-slot" aria-label="No start center screenshot committed">
+              <span aria-hidden="true">+</span><strong>Awaiting verified capture</strong>
+            </div>
+            <div class="evidence-meta"><div><h3>Start center</h3><p>E-START-001 · shared shell</p></div><span>0 files</span></div>
+          </article>
+          <article class="evidence-card">
+            <div class="evidence-slot" aria-label="No Writer screenshot committed">
+              <span aria-hidden="true">+</span><strong>Awaiting verified capture</strong>
+            </div>
+            <div class="evidence-meta"><div><h3>Writer</h3><p>E-WRITER-001 · authoring</p></div><span>0 files</span></div>
+          </article>
+          <article class="evidence-card">
+            <div class="evidence-slot" aria-label="No Calc screenshot committed">
+              <span aria-hidden="true">+</span><strong>Awaiting verified capture</strong>
+            </div>
+            <div class="evidence-meta"><div><h3>Calc</h3><p>E-CALC-001 · data grid</p></div><span>0 files</span></div>
+          </article>
+          <article class="evidence-card">
+            <div class="evidence-slot" aria-label="No Impress screenshot committed">
+              <span aria-hidden="true">+</span><strong>Awaiting verified capture</strong>
+            </div>
+            <div class="evidence-meta"><div><h3>Impress</h3><p>E-IMPRESS-001 · slide editing</p></div><span>0 files</span></div>
+          </article>
+          <article class="evidence-card">
+            <div class="evidence-slot" aria-label="No shared dialog screenshot committed">
+              <span aria-hidden="true">+</span><strong>Awaiting verified capture</strong>
+            </div>
+            <div class="evidence-meta"><div><h3>Shared dialogs</h3><p>E-DIALOG-001 · focus + errors</p></div><span>0 files</span></div>
+          </article>
+          <article class="evidence-card">
+            <div class="evidence-slot" aria-label="No accessibility mode screenshot committed">
+              <span aria-hidden="true">+</span><strong>Awaiting verified capture</strong>
+            </div>
+            <div class="evidence-meta"><div><h3>Accessibility modes</h3><p>E-A11Y-001 · contrast + scale</p></div><span>0 files</span></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="roadmap" aria-labelledby="roadmap-title">
+        <div class="section-heading roadmap-heading">
+          <div>
+            <p class="eyebrow">Phased delivery</p>
+            <h2 id="roadmap-title">Shared foundations before surface-by-surface polish.</h2>
+          </div>
+          <a
+            class="text-link"
+            href="https://github.com/codingmachineedge/libreoffice-material/blob/main/ROADMAP.md"
+          >Read every acceptance gate <span aria-hidden="true">→</span></a>
+        </div>
+
+        <ol class="roadmap-list">
+          <li class="roadmap-item current">
+            <span class="phase-number">0</span>
+            <div><p class="phase-state">In progress</p><h3>Reproducible foundation</h3><p>Provenance, design contract, site, and a passed harness preflight; native build remains blocked.</p></div>
+          </li>
+          <li class="roadmap-item">
+            <span class="phase-number">1</span>
+            <div><p class="phase-state">Source in progress</p><h3>VCL Material primitives</h3><p>Initial definition, selection, fallback, palette mapping, and component states exist but are unbuilt.</p></div>
+          </li>
+          <li class="roadmap-item">
+            <span class="phase-number">2</span>
+            <div><p class="phase-state">Source in progress</p><h3>Shared shell and dialogs</h3><p>An initial Start Center treatment exists in source; remaining shell work and all runtime proof are pending.</p></div>
+          </li>
+          <li class="roadmap-item">
+            <span class="phase-number">3–6</span>
+            <div><p class="phase-state">Planned</p><h3>Every suite application</h3><p>Writer, Calc, Impress, Draw, Base, Math, charts, and remaining registered UI.</p></div>
+          </li>
+          <li class="roadmap-item">
+            <span class="phase-number">7–8</span>
+            <div><p class="phase-state">Planned</p><h3>Hardening and release proof</h3><p>Accessibility, locales, performance, compatibility, packaging, and upstreamability.</p></div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="section proof-section" aria-labelledby="proof-title">
+        <div class="proof-intro">
+          <p class="eyebrow">Headless proof loop</p>
+          <h2 id="proof-title">A real desktop. Off screen. Fully attributable.</h2>
+          <p>
+            The low-level driver has already passed a Notepad-only off-screen
+            create, enumerate, capture, and cleanup preflight. Once LibreOffice
+            can be built, the same mechanics will target the real binary and
+            record attributable checkpoints without disturbing the operator’s
+            session.
+          </p>
+          <p class="preflight-note">
+            <strong>Harness proof, not UI proof:</strong> driver commit
+            <code>806d9ba85e4a…</code> passed on 2026-07-16. Its temporary Notepad
+            capture was discarded and the accepted Material evidence count
+            remains zero.
+          </p>
+          <a
+            class="button button-tonal"
+            href="https://github.com/codingmachineedge/libreoffice-material/blob/main/docs/HEADLESS_UI_EVIDENCE.md"
+          >Review the evidence plan</a>
+        </div>
+
+        <ol class="proof-flow">
+          <li><span>1</span><div><strong>Build</strong><p>Record commit, configuration, artifact, and clean-state facts.</p></div></li>
+          <li><span>2</span><div><strong>Launch</strong><p>Use an isolated profile on a run-scoped headless desktop.</p></div></li>
+          <li><span>3</span><div><strong>Exercise</strong><p>Drive keyboard and pointer scenarios against identified windows.</p></div></li>
+          <li><span>4</span><div><strong>Capture</strong><p>Save raw images, results, logs, dimensions, and cryptographic hashes.</p></div></li>
+          <li><span>5</span><div><strong>Review</strong><p>Reject blank, stale, sensitive, unrelated, or unrepeatable evidence.</p></div></li>
+        </ol>
+      </section>
+
+      <section class="section provenance-section" id="provenance" aria-labelledby="provenance-title">
+        <div class="provenance-card">
+          <div>
+            <p class="eyebrow">Upstream provenance</p>
+            <h2 id="provenance-title">LibreOffice at the core.</h2>
+            <p>
+              This independent experiment begins with an exact source-tree
+              import from <a href="https://github.com/LibreOffice/core">LibreOffice/core</a>,
+              maintained by The Document Foundation and its contributor community.
+              No endorsement is implied.
+            </p>
+          </div>
+          <dl class="commit-facts">
+            <div><dt>Upstream commit</dt><dd><code>63584e7f9f0c…</code></dd></div>
+            <div><dt>Fork import</dt><dd><code>44d393283e77…</code></dd></div>
+            <div><dt>Tree object</dt><dd><code>68ccb73abac4…</code></dd></div>
+            <div><dt>Import diff</dt><dd>Empty at baseline</dd></div>
+          </dl>
+          <a
+            class="button button-outlined"
+            href="https://github.com/codingmachineedge/libreoffice-material/blob/main/docs/PROVENANCE.md"
+          >Verify provenance</a>
+        </div>
+      </section>
+
+      <section class="final-cta" aria-labelledby="cta-title">
+        <p class="eyebrow">Build the system, then prove it</p>
+        <h2 id="cta-title">Follow the work from first primitive to final suite surface.</h2>
+        <div>
+          <a class="button button-filled" href="https://github.com/codingmachineedge/libreoffice-material">Browse the repository</a>
+          <a class="button button-outlined" href="https://github.com/codingmachineedge/libreoffice-material/blob/main/README.md">Read project status</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <a class="brand footer-brand" href="#top">
+        <span class="brand-mark" aria-hidden="true">LM</span>
+        <span class="brand-copy"><strong>LibreOffice Material</strong><span>Independent engineering fork</span></span>
+      </a>
+      <p>
+        Upstream LibreOffice attribution and license notices are preserved in
+        the repository. LibreOffice and The Document Foundation names and marks
+        belong to their respective owners.
+      </p>
+      <nav aria-label="Footer navigation">
+        <a href="https://github.com/codingmachineedge/libreoffice-material/blob/main/ROADMAP.md">Roadmap</a>
+        <a href="https://github.com/codingmachineedge/libreoffice-material/blob/main/docs/SCREENSHOTS.md">Evidence</a>
+        <a href="https://github.com/LibreOffice/core">Upstream</a>
+      </nav>
+    </footer>
+  </body>
+</html>

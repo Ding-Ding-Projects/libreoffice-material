@@ -205,7 +205,7 @@
 ## D-017 — preserve level meaning while adding full-track indicators
 
 - Date: 2026-07-16
-- State: implemented source; build verification pending
+- State: published source; native build verification pending
 - Decision: model `TrackHorzArea` as an optional full-width part for Progress
   and LevelBar, draw it before the existing `Entire` fill, and keep fill width
   clipped to the caller's numeric value. A zero value succeeds after painting

@@ -12,8 +12,8 @@ licensing and provenance.
 
 ## Current milestone
 
-**Phase 1 — eighth Material VCL source milestone, in progress. Phase 0's native
-build/evidence gate remains open.**
+**Phase 1 — eighth Material VCL source milestone published; suite-wide work
+continues. Phase 0's native build/evidence gate remains open.**
 
 The repository contains an imported LibreOffice source baseline, eight native
 Material source milestones, a design contract, roadmap, published GitHub Pages
@@ -69,7 +69,9 @@ prove a whole-GUI rewrite or any completed application surface.
   `3fe772f6068f6820f37c8297f431b39127f4e4d1`.
 - Seventh Material VCL source milestone commit:
   `2ce2cfd3e7489dc0acd6ce09f7e5461546fbb731`.
-- The two commits shared tree object
+- Eighth Material VCL source milestone commit:
+  `291d134ceea2dd6fa354e2d319b043ffe42aa396`.
+- The imported upstream and fork import commits shared tree object
   `68ccb73abac4f7da67f894f11b0802627e90b474` when verified.
 - Initial native source slice: packaged Material definition; opt-in file-widget
   theme selection/cache/fallback; definition-aware support; palette reader
@@ -156,9 +158,14 @@ prove a whole-GUI rewrite or any completed application surface.
   seventh-milestone commit `2ce2cfd3e7489dc0acd6ce09f7e5461546fbb731`;
   semantic theme validation, all 22 validator unittests, and Start Center lint
   each passed.
+- GitHub Actions source-validation run `29530112458` completed successfully for
+  eighth-milestone commit `291d134ceea2dd6fa354e2d319b043ffe42aa396`;
+  semantic theme validation, all 24 validator unittests, and Start Center lint
+  each passed. Pages deployment run `29530112004` also completed successfully
+  for that exact source commit.
 - A detached build worktree exists at
   `C:\Users\Administrator\Documents\GitHub\libreoffice-material-build`, pinned
-  to `2ce2cfd3e7489dc0acd6ce09f7e5461546fbb731`. The validator and all 22
+  to `291d134ceea2dd6fa354e2d319b043ffe42aa396`. The validator and all 24
   unittest methods pass from that clean LF worktree.
 - Required runtime opt-in: `VCL_DRAW_WIDGETS_FROM_FILE=1` and
   `VCL_FILE_WIDGET_THEME=material`.

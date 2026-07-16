@@ -629,3 +629,37 @@ Scope conclusion: repository-side semantic validation, 24 validator unittests,
 formatting, and diff checks pass for the eighth slice at this entry. No affected
 C++ target or LibreOffice binary ran, the low-level headless driver has no fork
 binary to launch, and accepted application screenshots remain **0**.
+
+## 2026-07-16 — eighth Material milestone publication
+
+- Source commit `291d134ceea2dd6fa354e2d319b043ffe42aa396` was pushed directly to
+  remote `main`; an authenticated `gh api` query reported the identical SHA for
+  the remote branch.
+- GitHub Actions run `29530112458` (`Validate Material UI source`) completed
+  successfully for that exact commit. Semantic theme validation, all 24
+  validator unittests, and Start Center UI lint each reported `success`.
+- GitHub Pages run `29530112004` completed successfully for the same source
+  commit. Configure, upload, and deploy steps each reported `success`.
+- Direct requests to the published index and stylesheet returned HTTP `200`.
+  The index contains the eighth-milestone label, exact `77 parts · 199 states ·
+  unbuilt` source tuple, indicator milestone heading, and truthful zero-capture
+  statements. This is an HTTP/content check, not a browser-render claim.
+- The clean detached LF worktree at
+  `C:\Users\Administrator\Documents\GitHub\libreoffice-material-build` moved
+  without reset from `2ce2cfd3e7489dc0acd6ce09f7e5461546fbb731` to
+  `291d134ceea2dd6fa354e2d319b043ffe42aa396`. The validator again reported the
+  exact `2/23/3/8/15/72/77/199` tuple, all 24 unittest methods passed, and the
+  seven indicator source/fixture files checked were UTF-8, LF-only, and without
+  byte-order marks.
+- Six narrow independent audit-agent attempts and one final consolidated retry
+  ended in the same remote `stream disconnected` service error before returning
+  findings. The primary release review therefore inspected the complete staged
+  C++/validator/XML/documentation diff directly; no independent-agent result is
+  claimed.
+- The short-lived GitHub CLI tunnel process was terminated and port `18765` was
+  confirmed not listening after verification.
+
+Scope conclusion: the eighth source milestone is published, its repository
+static CI and project site are green, and the prepared LF build worktree is
+pinned to the exact source commit. No C++ target or LibreOffice binary ran, and
+accepted application screenshots remain **0**.

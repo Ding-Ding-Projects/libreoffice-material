@@ -72,36 +72,47 @@ Implemented source milestones:
   resolution; 146 rounded Material rectangles now use one role reference each,
   11 square rectangles remain implicit, and legacy numeric `rx`/`ry` themes
   retain their existing path;
+- 15 semantic native integer metric roles with strict, order-independent native
+  reader resolution; 331 existing integer uses now reference those roles—292
+  drawing strokes, 34 explicit part dimensions/margins, and 5 numeric
+  settings—while generic legacy themes retain literal numeric compatibility;
+- exact geometry preservation across that conversion: the 676 normalized
+  fractional drawing coordinates stay literal, implicit dimensions remain
+  implicit, and typography scale and corner radius keep their separate token
+  contracts;
 - Qt proxy/no-native high-contrast signal handling and explicit dark-profile
   selection when headless VCL has no operating-system appearance signal;
 - support reporting limited to definition-backed parts so unsupported parts
   preserve their existing fallback;
-- order-independent semantic color and shape `@token` resolution with strict
-  rejection of invalid colors or radii, invalid or duplicate token sections,
-  mismatched palette schemas, ambiguous radius attributes, unknown references,
-  and unknown or duplicate parts;
+- order-independent semantic color, shape, and metric `@token` resolution with
+  strict rejection of invalid colors, radii, or integer metrics, invalid
+  or duplicate token sections, mismatched palette schemas, ambiguous radius
+  attributes, unknown references, and unknown or duplicate parts;
 - expanded mixed/disabled controls, flat buttons, selected-hover/focus tabs,
   toolbar buttons and grips, list nodes, edit variants, scrollbars, sliders,
   menus, progress, surfaces, and standalone vertical/horizontal spin buttons;
 - composite combo/RTL geometry, native-region and slider sizing corrections,
   exact standalone spin geometry/direction, and native graphics line/fill cache
   invalidation;
-- local static validation for color/shape token discipline, an exact 72-slot
-  Material style schema, required parts/states, unused tokens, light/dark schema
-  parity, and selected contrast pairs, with reader and headless drawing C++
-  targets plus negative fixtures; the headless target now includes source
-  coverage that dispatches settings through the real file renderer.
+- local static validation for color/shape/metric token discipline, an exact
+  72-slot Material style schema, required parts/states, unused tokens,
+  light/dark schema parity, exact geometry closure, and selected contrast pairs,
+  with reader and headless drawing C++ targets plus negative fixtures; the
+  headless target includes source coverage that dispatches settings through the
+  real file renderer.
 
 The standalone validator passes with 2 schemes, 23 color tokens each, 3
-typography roles, 8 shape tokens, 72 style slots, 74 parts, and 190 states. No
-affected C++ target has been compiled or executed, and none of this source has
-run in LibreOffice yet.
+typography roles, 8 shape tokens, 15 metric roles, 72 style slots, 74 parts, and
+190 states. No affected C++ target has been compiled or executed, and none of
+this source has run in LibreOffice yet. The metric roles preserve the current
+integers and existing downstream native conversions; they add no density
+profile or new DPI-aware, `dp`, fractional-scale, or touch-sizing policy.
 
 - build/runtime verification of light/dark, focus, and high-contrast routing,
   plus complete forced-color and platform-signal coverage;
-- remaining typography properties (line height and letter spacing), spacing,
-  density-aware/full shape semantics, elevation, opacity, motion, and density
-  tokens;
+- remaining typography properties (line height and letter spacing),
+  density-aware spacing/metric profiles, density-aware/full shape semantics,
+  elevation, opacity, motion, and density selection;
 - remaining dragged, read-only, invalid, and platform-specific state layers;
 - reusable focus rings and keyboard modality handling;
 - core button, icon button, checkbox, radio, switch, text field, list, tab,

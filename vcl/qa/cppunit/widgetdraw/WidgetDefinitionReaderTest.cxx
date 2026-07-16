@@ -69,6 +69,7 @@ public:
     void testReadColorTokens();
     void testReadColorPalettes();
     void testReadShapeTokens();
+    void testReadMetricTokens();
     void testRejectInvalidDefinitions();
     void testReadMaterialTheme();
 
@@ -79,6 +80,7 @@ public:
     CPPUNIT_TEST(testReadColorTokens);
     CPPUNIT_TEST(testReadColorPalettes);
     CPPUNIT_TEST(testReadShapeTokens);
+    CPPUNIT_TEST(testReadMetricTokens);
     CPPUNIT_TEST(testRejectInvalidDefinitions);
     CPPUNIT_TEST(testReadMaterialTheme);
     CPPUNIT_TEST_SUITE_END();
@@ -129,6 +131,65 @@ void WidgetDefinitionReaderTest::testReadShapeTokens()
         CPPUNIT_ASSERT_EQUAL(aExpectedRadii[i], rRect.mnRx);
         CPPUNIT_ASSERT_EQUAL(aExpectedRadii[i], rRect.mnRy);
     }
+}
+
+void WidgetDefinitionReaderTest::testReadMetricTokens()
+{
+    vcl::WidgetDefinition aDefinition;
+    vcl::WidgetDefinitionReader aReader(getFullUrl(u"definitionMetricTokens.xml"), getFullUrl(u""));
+    CPPUNIT_ASSERT(aReader.read(aDefinition));
+
+    auto pPushButton = aDefinition.getDefinition(ControlType::Pushbutton, ControlPart::Entire);
+    CPPUNIT_ASSERT(pPushButton);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(24), pPushButton->mnWidth);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(36), pPushButton->mnHeight);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(12), pPushButton->mnMarginWidth);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(8), pPushButton->mnMarginHeight);
+
+    const auto aStates = pPushButton->getStates(ControlType::Pushbutton, ControlPart::Entire,
+                                                ControlState::ENABLED, PushButtonValue());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), aStates.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(3), aStates[0]->mpWidgetDrawActions.size());
+
+    CPPUNIT_ASSERT_EQUAL(vcl::WidgetDrawActionType::RECTANGLE,
+                         aStates[0]->mpWidgetDrawActions[0]->maType);
+    const auto& rTokenRectangle
+        = static_cast<const vcl::WidgetDrawActionRectangle&>(*aStates[0]->mpWidgetDrawActions[0]);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(0), rTokenRectangle.mnStrokeWidth);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.125, rTokenRectangle.mfX1, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.25, rTokenRectangle.mfY1, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.875, rTokenRectangle.mfX2, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.75, rTokenRectangle.mfY2, 0.001);
+
+    CPPUNIT_ASSERT_EQUAL(vcl::WidgetDrawActionType::LINE,
+                         aStates[0]->mpWidgetDrawActions[1]->maType);
+    const auto& rTokenLine
+        = static_cast<const vcl::WidgetDrawActionLine&>(*aStates[0]->mpWidgetDrawActions[1]);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(4), rTokenLine.mnStrokeWidth);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.2, rTokenLine.mfX1, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.3, rTokenLine.mfY1, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.8, rTokenLine.mfX2, 0.001);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.7, rTokenLine.mfY2, 0.001);
+
+    CPPUNIT_ASSERT_EQUAL(vcl::WidgetDrawActionType::RECTANGLE,
+                         aStates[0]->mpWidgetDrawActions[2]->maType);
+    const auto& rLiteralRectangle
+        = static_cast<const vcl::WidgetDrawActionRectangle&>(*aStates[0]->mpWidgetDrawActions[2]);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(1), rLiteralRectangle.mnStrokeWidth);
+
+    auto pLiteralPart = aDefinition.getDefinition(ControlType::Pushbutton, ControlPart::Focus);
+    CPPUNIT_ASSERT(pLiteralPart);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(17), pLiteralPart->mnWidth);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(19), pLiteralPart->mnHeight);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(5), pLiteralPart->mnMarginWidth);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(6), pLiteralPart->mnMarginHeight);
+
+    CPPUNIT_ASSERT_EQUAL("6"_ostr, aDefinition.mpSettings->msListBoxEntryMargin);
+    CPPUNIT_ASSERT_EQUAL("18"_ostr, aDefinition.mpSettings->msTitleHeight);
+    CPPUNIT_ASSERT_EQUAL("14"_ostr, aDefinition.mpSettings->msFloatTitleHeight);
+    CPPUNIT_ASSERT_EQUAL("15"_ostr, aDefinition.mpSettings->msListBoxPreviewDefaultLogicWidth);
+    CPPUNIT_ASSERT_EQUAL("7"_ostr, aDefinition.mpSettings->msListBoxPreviewDefaultLogicHeight);
+    CPPUNIT_ASSERT_EQUAL("11"_ostr, aDefinition.mpSettings->msDefaultFontSize);
 }
 
 void WidgetDefinitionReaderTest::testReadColorPalettes()
@@ -279,6 +340,56 @@ void WidgetDefinitionReaderTest::testRejectInvalidDefinitions()
         u"definitionRadiusWithRy.xml",
     };
     for (const auto aFileName : aInvalidShapeDefinitions)
+    {
+        const OUString aDefinitionUrl = getFullUrl(aFileName);
+        osl::DirectoryItem aItem;
+        CPPUNIT_ASSERT_EQUAL(osl::DirectoryItem::E_None,
+                             osl::DirectoryItem::get(aDefinitionUrl, aItem));
+        vcl::WidgetDefinition aDefinition;
+        vcl::WidgetDefinitionReader aReader(aDefinitionUrl, getFullUrl(u""));
+        CPPUNIT_ASSERT(!aReader.read(aDefinition));
+    }
+
+    constexpr std::array<std::u16string_view, 37> aInvalidMetricDefinitions = {
+        u"definitionDuplicateMetricsSection.xml",
+        u"definitionMisplacedMetricElement.xml",
+        u"definitionNestedMetricsSection.xml",
+        u"definitionDuplicateMetricToken.xml",
+        u"definitionEmptyMetrics.xml",
+        u"definitionMetricsSectionAttribute.xml",
+        u"definitionMissingMetricName.xml",
+        u"definitionMissingMetricValue.xml",
+        u"definitionEmptyMetricValue.xml",
+        u"definitionExtraMetricAttribute.xml",
+        u"definitionInvalidMetricName.xml",
+        u"definitionInvalidMetricValue.xml",
+        u"definitionFractionalMetricValue.xml",
+        u"definitionLeadingZeroMetricValue.xml",
+        u"definitionOverflowMetricValue.xml",
+        u"definitionAliasedMetricValue.xml",
+        u"definitionUnknownMetricElement.xml",
+        u"definitionMetricsText.xml",
+        u"definitionMetricsProcessingInstruction.xml",
+        u"definitionMetricTokenText.xml",
+        u"definitionNestedMetricToken.xml",
+        u"definitionMetricTokenProcessingInstruction.xml",
+        u"definitionUnknownMetricPartReference.xml",
+        u"definitionEmptyMetricPartReference.xml",
+        u"definitionUnknownMetricDrawingReference.xml",
+        u"definitionEmptyMetricDrawingReference.xml",
+        u"definitionUnknownMetricLineReference.xml",
+        u"definitionEmptyMetricLineReference.xml",
+        u"definitionUnknownMetricSettingReference.xml",
+        u"definitionEmptyMetricSettingReference.xml",
+        u"definitionMetricReferenceInRadius.xml",
+        u"definitionMetricReferenceInLegacyRadius.xml",
+        u"definitionMetricReferenceInLiteralSetting.xml",
+        u"definitionRadiusReferenceInMetric.xml",
+        u"definitionMetricReferenceInColor.xml",
+        u"definitionColorReferenceInMetric.xml",
+        u"definitionMetricReferenceInCoordinate.xml",
+    };
+    for (const auto aFileName : aInvalidMetricDefinitions)
     {
         const OUString aDefinitionUrl = getFullUrl(aFileName);
         osl::DirectoryItem aItem;

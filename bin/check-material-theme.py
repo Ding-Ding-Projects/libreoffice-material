@@ -10,10 +10,12 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import math
 import re
 import sys
 import xml.etree.ElementTree as ET
+from collections import Counter
 from pathlib import Path
 
 
@@ -21,6 +23,7 @@ TOKEN_NAME = re.compile(r"^[a-z][a-z0-9-]*$")
 HEX_COLOR = re.compile(r"^#[0-9A-Fa-f]{6}$")
 TOKEN_REFERENCE = re.compile(r"^@([a-z][a-z0-9-]*)$")
 RADIUS_VALUE = re.compile(r"^(?:0|[1-9][0-9]*)$")
+METRIC_VALUE = re.compile(r"^(?:0|[1-9][0-9]*)$")
 REQUIRED_SCHEMES = {"light", "dark"}
 ALLOWED_TYPOGRAPHY_WEIGHTS = {"preserve", "normal", "medium", "semibold", "bold"}
 REQUIRED_TYPOGRAPHY = {
@@ -38,6 +41,96 @@ REQUIRED_SHAPES = {
     "corner-toolbar": 18,
     "corner-pill": 20,
 }
+REQUIRED_METRICS = {
+    "stroke-none": 0,
+    "stroke-thin": 1,
+    "stroke-standard": 2,
+    "stroke-track": 4,
+    "space-list-entry": 12,
+    "space-tab-inline": 12,
+    "height-floating-title": 14,
+    "size-menu-indicator": 18,
+    "height-window-title": 18,
+    "size-list-preview": 18,
+    "size-tree-node": 20,
+    "size-selection-control": 24,
+    "size-compact-control": 28,
+    "size-standard-control": 36,
+    "height-tab": 40,
+}
+REQUIRED_METRIC_USAGE = {
+    "stroke-none": 86,
+    "stroke-thin": 45,
+    "stroke-standard": 153,
+    "stroke-track": 8,
+    "space-list-entry": 1,
+    "space-tab-inline": 1,
+    "height-floating-title": 1,
+    "size-menu-indicator": 6,
+    "height-window-title": 1,
+    "size-list-preview": 2,
+    "size-tree-node": 2,
+    "size-selection-control": 4,
+    "size-compact-control": 12,
+    "size-standard-control": 8,
+    "height-tab": 1,
+}
+REQUIRED_SETTING_METRICS = {
+    "listBoxEntryMargin": "space-list-entry",
+    "titleHeight": "height-window-title",
+    "floatTitleHeight": "height-floating-title",
+    "listBoxPreviewDefaultLogicWidth": "size-list-preview",
+    "listBoxPreviewDefaultLogicHeight": "size-list-preview",
+}
+REQUIRED_PART_METRICS = {
+    ("radiobutton", "Entire", "width"): "size-selection-control",
+    ("radiobutton", "Entire", "height"): "size-selection-control",
+    ("checkbox", "Entire", "width"): "size-selection-control",
+    ("checkbox", "Entire", "height"): "size-selection-control",
+    ("combobox", "ButtonDown", "width"): "size-standard-control",
+    ("combobox", "ButtonDown", "height"): "size-standard-control",
+    ("editbox", "Entire", "height"): "size-standard-control",
+    ("editboxnoborder", "Entire", "height"): "size-standard-control",
+    ("listbox", "ButtonDown", "width"): "size-standard-control",
+    ("listbox", "ButtonDown", "height"): "size-standard-control",
+    ("spinbox", "ButtonDown", "width"): "size-standard-control",
+    ("spinbox", "ButtonDown", "height"): "size-compact-control",
+    ("spinbox", "ButtonUp", "width"): "size-standard-control",
+    ("spinbox", "ButtonUp", "height"): "size-compact-control",
+    ("spinbuttons", "ButtonUp", "width"): "size-compact-control",
+    ("spinbuttons", "ButtonUp", "height"): "size-compact-control",
+    ("spinbuttons", "ButtonDown", "width"): "size-compact-control",
+    ("spinbuttons", "ButtonDown", "height"): "size-compact-control",
+    ("spinbuttons", "ButtonLeft", "width"): "size-compact-control",
+    ("spinbuttons", "ButtonLeft", "height"): "size-compact-control",
+    ("spinbuttons", "ButtonRight", "width"): "size-compact-control",
+    ("spinbuttons", "ButtonRight", "height"): "size-compact-control",
+    ("slider", "Button", "width"): "size-compact-control",
+    ("slider", "Button", "height"): "size-compact-control",
+    ("tabitem", "Entire", "height"): "height-tab",
+    ("tabitem", "Entire", "margin-width"): "space-tab-inline",
+    ("listnode", "Entire", "width"): "size-tree-node",
+    ("listnode", "Entire", "height"): "size-tree-node",
+    ("menupopup", "MenuItemCheckMark", "width"): "size-menu-indicator",
+    ("menupopup", "MenuItemCheckMark", "height"): "size-menu-indicator",
+    ("menupopup", "MenuItemRadioMark", "width"): "size-menu-indicator",
+    ("menupopup", "MenuItemRadioMark", "height"): "size-menu-indicator",
+    ("menupopup", "SubmenuArrow", "width"): "size-menu-indicator",
+    ("menupopup", "SubmenuArrow", "height"): "size-menu-indicator",
+}
+STROKE_METRICS = {
+    "stroke-none",
+    "stroke-thin",
+    "stroke-standard",
+    "stroke-track",
+}
+METRIC_PART_ATTRIBUTES = ("width", "height", "margin-width", "margin-height")
+METRIC_GEOMETRY_SHA256 = (
+    "33d4dea20362213e99c3e931d0b238de5904608d8f80cb5b9ce4142705135de0"
+)
+NORMALIZED_COORDINATE_SHA256 = (
+    "0979f2b3d1d4dff15278fb6b1d1d708795d207045cb339d3ad42a9dcb331ed2e"
+)
 
 REQUIRED_FEEDBACK_COLORS = {
     "light": {
@@ -494,6 +587,297 @@ def read_shapes(root: ET.Element) -> dict[str, int]:
     return radii
 
 
+def read_metrics(root: ET.Element) -> dict[str, int]:
+    sections = root.findall("metrics")
+    if len(sections) != 1:
+        fail(f"expected exactly one <metrics> section, found {len(sections)}")
+    metrics_element = sections[0]
+    if metrics_element.attrib:
+        fail("metrics section must not have attributes")
+    if (metrics_element.text or "").strip():
+        fail("metrics section must not contain text")
+
+    metrics: dict[str, int] = {}
+    for element in metrics_element:
+        if not isinstance(element.tag, str):
+            fail("metrics section must not contain processing instructions")
+        if element.tag != "metric":
+            fail(f"metrics has unknown element <{element.tag}>")
+        if list(element) or (element.text or "").strip():
+            fail(f"metric token {element.get('name', '')!r} must not have content")
+        if (element.tail or "").strip():
+            fail("metrics section must not contain text")
+
+        unknown_attributes = sorted(set(element.attrib) - {"name", "value"})
+        if unknown_attributes:
+            fail("metric token has unknown attributes: " + ", ".join(unknown_attributes))
+        if set(element.attrib) != {"name", "value"}:
+            fail("metric tokens require exactly name and value attributes")
+
+        name = element.get("name", "")
+        if not TOKEN_NAME.fullmatch(name):
+            fail(f"invalid metric token name {name!r}")
+        if name not in REQUIRED_METRICS:
+            fail(f"unknown metric token {name!r}")
+        if name in metrics:
+            fail(f"duplicate metric token {name!r}")
+
+        value_text = element.get("value", "")
+        if not METRIC_VALUE.fullmatch(value_text):
+            fail(f"invalid metric value {value_text!r} for {name!r}")
+        value = int(value_text)
+        if value > 2_147_483_647:
+            fail(f"metric value for {name!r} exceeds sal_Int32")
+        expected = REQUIRED_METRICS[name]
+        if value != expected:
+            fail(f"metric token {name!r} must be {expected}, found {value}")
+        metrics[name] = value
+
+    if not metrics:
+        fail("metrics section is empty")
+    missing = sorted(REQUIRED_METRICS.keys() - metrics.keys())
+    if missing:
+        fail(f"missing metric tokens: {', '.join(missing)}")
+
+    metric_elements = set(metrics_element.iter())
+    for element in root.iter():
+        if (
+            isinstance(element.tag, str)
+            and element.tag in {"metrics", "metric"}
+            and element not in metric_elements
+        ):
+            fail(f"<{element.tag}> must appear only in the root <metrics> section")
+    return metrics
+
+
+def _element_paths(root: ET.Element) -> dict[ET.Element, str]:
+    paths = {root: "widgets[0]"}
+
+    def visit(parent: ET.Element) -> None:
+        seen: dict[str, int] = {}
+        for child in parent:
+            if not isinstance(child.tag, str):
+                continue
+            index = seen.get(child.tag, 0)
+            seen[child.tag] = index + 1
+            paths[child] = f"{paths[parent]}/{child.tag}[{index}]"
+            visit(child)
+
+    visit(root)
+    return paths
+
+
+def _metric_reference(
+    element: ET.Element,
+    attribute: str,
+    label: str,
+    metrics: dict[str, int],
+) -> tuple[str, int]:
+    value = element.get(attribute)
+    if value is None:
+        fail(f"{label} must reference a metric token")
+    match = TOKEN_REFERENCE.fullmatch(value)
+    if match is None:
+        fail(f"{label} must reference a metric token")
+    name = match.group(1)
+    if name not in metrics:
+        fail(f"{label} references unknown metric token {name!r}")
+    return name, metrics[name]
+
+
+def validate_metric_usage(
+    root: ET.Element, metrics: dict[str, int]
+) -> tuple[Counter[str], str]:
+    paths = _element_paths(root)
+    references: Counter[str] = Counter()
+    geometry_rows: list[str] = []
+    consumed: set[tuple[ET.Element, str]] = set()
+
+    settings = root.find("settings")
+    if settings is None:
+        fail("missing settings section")
+    for setting_name, expected_name in REQUIRED_SETTING_METRICS.items():
+        elements = settings.findall(setting_name)
+        if len(elements) != 1:
+            fail(
+                f"expected exactly one settings/{setting_name}, found {len(elements)}"
+            )
+        element = elements[0]
+        if set(element.attrib) != {"value"}:
+            fail(f"settings/{setting_name} requires exactly one value attribute")
+        if list(element) or (element.text or "").strip():
+            fail(f"settings/{setting_name} must not have content")
+        name, value = _metric_reference(
+            element, "value", f"settings/{setting_name}/@value", metrics
+        )
+        if name != expected_name:
+            fail(f"settings/{setting_name}/@value must reference @{expected_name}")
+        references[name] += 1
+        consumed.add((element, "value"))
+        geometry_rows.append(f"{paths[element]}@value={value}")
+
+    actual_part_slots: set[tuple[str, str, str]] = set()
+    for control in root:
+        if not isinstance(control.tag, str):
+            continue
+        for part in control.findall("part"):
+            part_name = part.get("value", "")
+            for attribute in METRIC_PART_ATTRIBUTES:
+                if attribute not in part.attrib:
+                    continue
+                slot = (control.tag, part_name, attribute)
+                label = f"{control.tag}/{part_name}/@{attribute}"
+                if slot in actual_part_slots:
+                    fail(f"duplicate Material metric slot {label}")
+                actual_part_slots.add(slot)
+                expected_name = REQUIRED_PART_METRICS.get(slot)
+                if expected_name is None:
+                    fail(f"unexpected Material metric slot {label}")
+                name, value = _metric_reference(part, attribute, label, metrics)
+                if name != expected_name:
+                    fail(f"{label} must reference @{expected_name}")
+                references[name] += 1
+                consumed.add((part, attribute))
+                geometry_rows.append(f"{paths[part]}@{attribute}={value}")
+
+    missing_part_slots = sorted(REQUIRED_PART_METRICS.keys() - actual_part_slots)
+    if missing_part_slots:
+        control, part, attribute = missing_part_slots[0]
+        fail(f"missing Material metric slot {control}/{part}/@{attribute}")
+
+    for element in root.iter():
+        if element.tag not in {"rect", "line"}:
+            continue
+        label = f"{element.tag}/@stroke-width"
+        name, value = _metric_reference(element, "stroke-width", label, metrics)
+        if name not in STROKE_METRICS:
+            fail(f"{label} must reference a stroke metric token")
+        references[name] += 1
+        consumed.add((element, "stroke-width"))
+        geometry_rows.append(f"{paths[element]}@stroke-width={value}")
+
+    coordinate_count = 0
+    coordinate_patterns: set[tuple[float, float, float, float]] = set()
+    coordinate_rows: list[str] = []
+    allowed_non_metric_references: set[tuple[ET.Element, str]] = set()
+    style = root.find("style")
+    if style is not None:
+        allowed_non_metric_references.update((element, "value") for element in style)
+    for element in root.iter():
+        if element.tag == "rect":
+            allowed_non_metric_references.update(
+                (element, attribute)
+                for attribute in ("stroke", "fill")
+                if attribute in element.attrib
+            )
+        elif element.tag == "line" and "stroke" in element.attrib:
+            allowed_non_metric_references.add((element, "stroke"))
+        if element.tag == "rect" and "radius" in element.attrib:
+            allowed_non_metric_references.add((element, "radius"))
+
+    coordinate_attributes = ("x1", "y1", "x2", "y2")
+    for element in root.iter():
+        if not isinstance(element.tag, str):
+            continue
+        if element.tag in {"rect", "line"}:
+            present = {
+                attribute
+                for attribute in coordinate_attributes
+                if attribute in element.attrib
+            }
+            if element.tag == "line" or present:
+                missing = set(coordinate_attributes) - present
+                if missing:
+                    fail(
+                        f"{element.tag} coordinate set is incomplete: "
+                        f"missing {', '.join(sorted(missing))}"
+                    )
+                coordinates: dict[str, float] = {}
+                for attribute in coordinate_attributes:
+                    value = element.get(attribute, "")
+                    if value.startswith("@"):
+                        fail(
+                            f"{element.tag}/@{attribute} must remain a normalized "
+                            "numeric coordinate"
+                        )
+                    try:
+                        coordinate = float(value)
+                    except ValueError:
+                        fail(
+                            f"{element.tag}/@{attribute} must be a normalized "
+                            "numeric coordinate"
+                        )
+                    if not math.isfinite(coordinate) or not 0.0 <= coordinate <= 1.0:
+                        fail(
+                            f"{element.tag}/@{attribute} must be between 0 and 1"
+                        )
+                    coordinates[attribute] = coordinate
+                    coordinate_rows.append(
+                        f"{paths[element]}@{attribute}={value}"
+                    )
+                if element.tag == "rect" and (
+                    coordinates["x1"] > coordinates["x2"]
+                    or coordinates["y1"] > coordinates["y2"]
+                ):
+                    fail(
+                        "rect normalized coordinates must be ordered x1 <= x2 and y1 <= y2"
+                    )
+                coordinate_count += 4
+                coordinate_patterns.add(
+                    tuple(coordinates[name] for name in coordinate_attributes)
+                )
+        for attribute, value in element.attrib.items():
+            slot = (element, attribute)
+            if (
+                value.startswith("@")
+                and slot not in consumed
+                and slot not in allowed_non_metric_references
+            ):
+                match = TOKEN_REFERENCE.fullmatch(value)
+                if match is not None and match.group(1) in metrics:
+                    fail(f"{element.tag}/@{attribute} must not reference a metric token")
+                fail(f"{element.tag}/@{attribute} must not reference a token")
+
+    if coordinate_count != 676:
+        fail(f"expected 676 normalized coordinate scalars, found {coordinate_count}")
+    if len(coordinate_patterns) != 45:
+        fail(
+            "expected 45 normalized coordinate patterns, "
+            f"found {len(coordinate_patterns)}"
+        )
+    coordinate_digest = hashlib.sha256(
+        "\n".join(sorted(coordinate_rows)).encode("utf-8")
+    ).hexdigest()
+    if coordinate_digest != NORMALIZED_COORDINATE_SHA256:
+        fail(
+            "normalized coordinate geometry changed: "
+            f"expected {NORMALIZED_COORDINATE_SHA256}, found {coordinate_digest}"
+        )
+
+    unused = sorted(metrics.keys() - references.keys())
+    if unused:
+        fail(f"unused metric tokens: {', '.join(unused)}")
+    expected_usage = Counter(REQUIRED_METRIC_USAGE)
+    if references != expected_usage:
+        fail(
+            "metric reference counts changed: "
+            f"expected {dict(sorted(expected_usage.items()))}, "
+            f"found {dict(sorted(references.items()))}"
+        )
+    if len(geometry_rows) != 331:
+        fail(f"expected 331 resolved metric geometry rows, found {len(geometry_rows)}")
+
+    geometry_digest = hashlib.sha256(
+        "\n".join(sorted(geometry_rows)).encode("utf-8")
+    ).hexdigest()
+    if geometry_digest != METRIC_GEOMETRY_SHA256:
+        fail(
+            "resolved Material metric geometry changed: "
+            f"expected {METRIC_GEOMETRY_SHA256}, found {geometry_digest}"
+        )
+    return references, geometry_digest
+
+
 def read_style(root: ET.Element, token_names: set[str]) -> dict[str, str]:
     sections = root.findall("style")
     if len(sections) != 1:
@@ -533,9 +917,21 @@ def read_style(root: ET.Element, token_names: set[str]) -> dict[str, str]:
     return references
 
 
+CPP_RAW_STRING = re.compile(
+    r'(?:u8|u|U|L)?R"(?P<delimiter>[^ ()\\\t\r\n]{0,16})\('
+    r'.*?\)(?P=delimiter)"',
+    re.DOTALL,
+)
+
+
+def strip_cpp_non_code(source: str) -> str:
+    source = CPP_RAW_STRING.sub("", source)
+    return re.sub(r"//[^\n]*|/\*.*?\*/", "", source, flags=re.DOTALL)
+
+
 def validate_native_typography_source(paths: tuple[Path, ...]) -> None:
     source = "\n".join(path.read_text(encoding="utf-8") for path in paths)
-    source = re.sub(r"//[^\n]*|/\*.*?\*/", "", source, flags=re.DOTALL)
+    source = strip_cpp_non_code(source)
     for forbidden in (
         "Liberation Sans",
         "FAMILY_SWISS",
@@ -566,7 +962,7 @@ def validate_native_typography_source(paths: tuple[Path, ...]) -> None:
 
 def validate_native_style_source(paths: tuple[Path, ...]) -> None:
     source = "\n".join(path.read_text(encoding="utf-8") for path in paths)
-    source = re.sub(r"//[^\n]*|/\*.*?\*/", "", source, flags=re.DOTALL)
+    source = strip_cpp_non_code(source)
 
     required: list[str] = []
     for xml_name, (member, setter) in STYLE_SOURCE_CLOSURE.items():
@@ -594,7 +990,7 @@ def validate_native_style_source(paths: tuple[Path, ...]) -> None:
 
 def validate_native_shape_source(paths: tuple[Path, ...]) -> None:
     source = "\n".join(path.read_text(encoding="utf-8") for path in paths)
-    source = re.sub(r"//[^\n]*|/\*.*?\*/", "", source, flags=re.DOTALL)
+    source = strip_cpp_non_code(source)
     required = (
         r"bool\s+readShapeTokens\s*\(",
         r"bool\s+readRadiusReference\s*\(",
@@ -602,14 +998,73 @@ def validate_native_shape_source(paths: tuple[Path, ...]) -> None:
         r'rWalker\.attribute\(\s*"radius"_ostr\s*\)',
         r"if\s*\(\s*bHasRx\s*\|\|\s*bHasRy\s*\)",
         r"nRx\s*=\s*nRy\s*=\s*nRadius",
-        r"readDefinition\s*\([^;]*aRadiusTokens\s*\)",
+        r"readDefinition\s*\([^;]*aRadiusTokens\s*[,)]",
     )
     for pattern in required:
         if re.search(pattern, source) is None:
             fail(f"native shape source is missing pattern {pattern!r}")
 
 
-def validate(path: Path) -> tuple[int, int, int, int, int, int, int]:
+def validate_native_metric_source(paths: tuple[Path, ...]) -> None:
+    source = "\n".join(path.read_text(encoding="utf-8") for path in paths)
+    source = strip_cpp_non_code(source)
+    required = (
+        r"bool\s+readMetricTokens\s*\(",
+        r"bool\s+readMetricReference\s*\(",
+        r"bool\s+readMetricSetting\s*\(",
+        r"bool\s+readLiteralSetting\s*\(",
+        r"bool\s+readLegacyRadius\s*\(",
+        r"bool\s+readDrawingCoordinate\s*\(",
+        r'aPaletteWalker\.name\(\)\s*==\s*"metrics"',
+        r"if\s*\(\s*!\s*readMetricTokens\s*\(\s*aPaletteWalker\s*,\s*"
+        r"aTokens\s*\)\s*\)\s*m_bValid\s*=\s*false",
+        r"readMetricReference\s*\(\s*sStrokeWidth\s*,\s*rMetricTokens\s*,",
+        r"readMetricReference\s*\(\s*sWidth\s*,\s*rMetricTokens\s*,",
+        r"readMetricReference\s*\(\s*sHeight\s*,\s*rMetricTokens\s*,",
+        r"readMetricReference\s*\(\s*sMarginHeight\s*,\s*rMetricTokens\s*,",
+        r"readMetricReference\s*\(\s*sMarginWidth\s*,\s*rMetricTokens\s*,",
+        r"readLegacyRadius\s*\(\s*sRx\s*,\s*nRx\s*\)",
+        r"readLegacyRadius\s*\(\s*sRy\s*,\s*nRy\s*\)",
+        r"readMetricSetting\s*\(\s*aWalker\.attribute\(\s*"
+        r'"value"_ostr\s*\)\s*,\s*aMetricTokens\s*,',
+        r"readLiteralSetting\s*\(\s*aWalker\.attribute\(\s*"
+        r'"value"_ostr\s*\)\s*,',
+        r'readDrawingCoordinate\s*\(\s*rWalker\.attribute\(\s*"x1"_ostr\s*\)',
+        r'readDrawingCoordinate\s*\(\s*rWalker\.attribute\(\s*"y1"_ostr\s*\)',
+        r'readDrawingCoordinate\s*\(\s*rWalker\.attribute\(\s*"x2"_ostr\s*\)',
+        r'readDrawingCoordinate\s*\(\s*rWalker\.attribute\(\s*"y2"_ostr\s*\)',
+        r"readPart\s*\([^;]*rRadiusTokens\s*,\s*rMetricTokens\s*\)",
+        r"readDrawingDefinition\s*\([^;]*rRadiusTokens\s*,\s*rMetricTokens\s*\)",
+        r"readDefinition\s*\([^;]*aRadiusTokens\s*,\s*aMetricTokens\s*\)",
+    )
+    for setting_name, member_name in (
+        ("listBoxEntryMargin", "msListBoxEntryMargin"),
+        ("titleHeight", "msTitleHeight"),
+        ("floatTitleHeight", "msFloatTitleHeight"),
+        ("listBoxPreviewDefaultLogicWidth", "msListBoxPreviewDefaultLogicWidth"),
+        ("listBoxPreviewDefaultLogicHeight", "msListBoxPreviewDefaultLogicHeight"),
+    ):
+        required += (
+            rf'\{{\s*"{setting_name}"\s*,\s*'
+            rf"&rWidgetDefinition\.mpSettings->{member_name}\s*\}}",
+        )
+    for pattern in required:
+        if re.search(pattern, source) is None:
+            fail(f"native metric source is missing pattern {pattern!r}")
+
+    direct_conversion = re.search(
+        r"\b(sStrokeWidth|sWidth|sHeight|sMarginHeight|sMarginWidth)\s*"
+        r"\.\s*toInt32\s*\(",
+        source,
+    )
+    if direct_conversion is not None:
+        fail(
+            "native metric source contains direct consumer conversion "
+            f"{direct_conversion.group(1)!r}"
+        )
+
+
+def validate(path: Path) -> tuple[int, int, int, int, int, int, int, int]:
     parser = ET.XMLParser(target=ET.TreeBuilder(insert_pis=True))
     root = ET.parse(path, parser=parser).getroot()
     if root.tag != "widgets":
@@ -619,6 +1074,7 @@ def validate(path: Path) -> tuple[int, int, int, int, int, int, int]:
     token_names = set(palettes["light"])
     typography = read_typography(root)
     shapes = read_shapes(root)
+    metrics = read_metrics(root)
 
     settings_sections = root.findall("settings")
     if len(settings_sections) != 1:
@@ -670,6 +1126,7 @@ def validate(path: Path) -> tuple[int, int, int, int, int, int, int]:
     unused_shapes = sorted(shapes.keys() - shape_references)
     if unused_shapes:
         fail(f"unused shape tokens: {', '.join(unused_shapes)}")
+    validate_metric_usage(root, metrics)
 
     for control_name, required_parts in REQUIRED_PARTS.items():
         control = root.find(control_name)
@@ -771,14 +1228,19 @@ def validate(path: Path) -> tuple[int, int, int, int, int, int, int]:
                 f"{disabled_ratio:.2f}:1"
             )
 
-    part_count = sum(len(control.findall("part")) for control in root
-                     if control.tag not in {"palette", "shapes", "style", "settings", "typography"})
+    part_count = sum(
+        len(control.findall("part"))
+        for control in root
+        if control.tag
+        not in {"palette", "shapes", "metrics", "style", "settings", "typography"}
+    )
     state_count = sum(1 for _ in root.iter("state"))
     return (
         len(palettes),
         len(token_names),
         len(typography),
         len(shapes),
+        len(metrics),
         len(style_references),
         part_count,
         state_count,
@@ -811,6 +1273,7 @@ def main() -> int:
             token_count,
             typography_count,
             shape_count,
+            metric_count,
             style_count,
             part_count,
             state_count,
@@ -833,12 +1296,19 @@ def main() -> int:
                 repository / "vcl/source/gdi/WidgetDefinitionReader.cxx",
             )
         )
+        validate_native_metric_source(
+            (
+                repository / "vcl/inc/widgetdraw/WidgetDefinitionReader.hxx",
+                repository / "vcl/source/gdi/WidgetDefinitionReader.cxx",
+            )
+        )
     except (ET.ParseError, OSError, ValidationError) as error:
         print(f"{args.definition}: {error}", file=sys.stderr)
         return 1
     print(
-        f"Material theme OK: {scheme_count} schemes, {token_count} tokens each, "
+        f"Material theme OK: {scheme_count} schemes, {token_count} color tokens each, "
         f"{typography_count} typography roles, {shape_count} shape tokens, "
+        f"{metric_count} metric tokens, "
         f"{style_count} style slots, "
         f"{part_count} parts, {state_count} states"
     )

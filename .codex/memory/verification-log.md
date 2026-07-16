@@ -487,3 +487,76 @@ Scope conclusion: the sixth source milestone is published, its repository-side
 CI and project site are green, and the line-ending-safe build worktree is pinned
 to the exact source commit. No C++ target or LibreOffice binary ran, and accepted
 application screenshots remain **0**.
+
+## 2026-07-16 — seventh semantic metric source and documentation inventory
+
+- The in-progress source worktree is based on metadata commit
+  `dede94fa450446746b7dae4a1c4c3534841dfd92`; seventh-milestone changes are
+  uncommitted at this inventory point, so publication evidence is not yet
+  recorded.
+- The Material definition declares exactly 15 semantic native integer roles:
+  four stroke roles, two spacing roles, three title/preview roles, and six fixed
+  control-size roles. Equal current values retain separate semantic names where
+  future density or component policy must be independently adjustable.
+- Exactly 331 existing integer uses reference those roles: all 292 explicit
+  drawing `stroke-width` attributes, all 34 explicit part
+  width/height/margin attributes, and all 5 numeric settings. The conversion
+  preserves the prior integers and does not materialize any absent dimension,
+  margin, coordinate, or setting.
+- Exactly 676 normalized coordinate scalars remain literal across 169 drawing
+  actions and 45 complete coordinate patterns. They are proportional component
+  geometry, not integer metrics. The 8 shape roles/146 rounded rectangle
+  references and 3 typography roles retain their separate contracts.
+- The optional generic reader path is designed to resolve metric references
+  into existing integer fields or decimal setting strings while keeping literal
+  numeric geometry compatible for older bundled and out-of-tree definitions.
+  No draw-action, part, settings, or renderer ABI is claimed to change.
+- Public and durable project documentation labels this source milestone seven,
+  keeps the whole-GUI roadmap incomplete, and states that the token layer keeps
+  existing downstream native conversions but adds no density profile or new
+  DPI-aware, `dp`, fractional-scale, or touch-sizing policy.
+- A read-only closure check counted 15 exact declarations and 331 references
+  with the expected per-role distribution, plus 292 strokes, 34 part geometry
+  attributes, 5 settings, and 676 unchanged coordinate scalars. Scoped `git
+  diff --check` passed; all 8 changed documentation/site/memory files were UTF-8
+  without a byte-order mark and LF-only. Static HTML inspection found 16 unique
+  IDs and validated all 22 links; 36 local targets across 11 authored Markdown
+  files resolved.
+
+Scope conclusion: this entry records source structure and documentation scope,
+not successful seventh-milestone validation or runtime behavior. No affected
+C++ target has been compiled or executed, no LibreOffice binary or window has
+run, and accepted application screenshots remain **0**.
+
+## 2026-07-16 — seventh semantic metric source validation
+
+- The standalone validator reports exactly 2 palette schemes, 23 color tokens
+  per scheme, 3 typography roles, 8 shape tokens, 15 metric tokens, 72 style
+  slots, 74 parts, and 190 states. Both the workspace Python 3.9 launcher and
+  the low-level driver's isolated Python environment passed the same checks.
+- All 22 Python unittest methods pass. Mutations cover the strict metric schema,
+  exact semantic contexts and counts, equal-valued role swaps, balanced
+  different-valued swaps, reserved-reference separation, normalized coordinate
+  bounds/completeness, raw-string/comment source decoys, and parser-call failure
+  propagation.
+- The 331 resolved setting/part/stroke rows hash to
+  `33d4dea20362213e99c3e931d0b238de5904608d8f80cb5b9ce4142705135de0`.
+  Their sequence matches the prior literal values exactly. The 676 unchanged
+  path-bound normalized coordinate rows hash to
+  `0979f2b3d1d4dff15278fb6b1d1d708795d207045cb339d3ad42a9dcb331ed2e`.
+- Native reader coverage contains 38 metric fixtures: one positive
+  declaration-after-use case and 37 rejection cases. All are well-formed XML,
+  referenced exactly once, UTF-8 without a byte-order mark, and LF-only.
+- Independent compile-risk, validator-adversarial, and truth/site audits found
+  no remaining static blocker. The truth audit corrected an overbroad
+  `device-space` description: the 15 roles now accurately preserve existing
+  native integer values and downstream conversions, including list-preview
+  `MapAppFont` logic-to-pixel behavior, without claiming a new density/DPI/dp
+  policy.
+- Clang-format dry-run for the affected C++ files, Start Center UI lint, all 91
+  reader XML fixture parses, repository diff checks, documentation links, site
+  IDs/links, and UTF-8/LF/no-BOM checks pass.
+
+Scope conclusion: the seventh source slice passes repository-side static gates
+but is not yet published at this entry. No C++ target or LibreOffice binary ran,
+and accepted application screenshots remain **0**.

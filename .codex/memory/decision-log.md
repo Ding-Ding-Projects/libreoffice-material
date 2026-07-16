@@ -175,3 +175,29 @@
   changing the draw-action/renderer ABI. A synthetic zero token would alter the
   existing implicit-square `-1` path, and strict parsing of old numeric values
   would create an unrelated compatibility break.
+
+## D-016 — centralize exact native integer metrics without claiming density
+
+- Date: 2026-07-16
+- State: implemented source; build verification pending
+- Decision: define 15 used semantic roles in an optional root `metrics`
+  section and resolve them before settings or drawing definitions. Convert the
+  Material definition's 292 explicit stroke widths, 34 explicit part
+  dimensions/margins, and 5 numeric settings to 331 role references while
+  preserving their exact integer values. Resolve drawing and part references
+  into the existing integer fields and setting references back to the existing
+  decimal-string representation. Keep literal numeric values valid for older
+  bundled and out-of-tree definitions, and leave all absent dimensions and
+  defaults absent.
+- Decision: keep all 676 normalized `x1`/`y1`/`x2`/`y2` values literal and keep
+  typography scale and corner radius under their existing separate contracts.
+  Preserve the existing downstream native conversions, including the list
+  preview's `MapAppFont` logic-to-pixel path. The metric layer adds no density
+  profile or new DPI-aware, `dp`, fractional-scale, or comfortable/touch policy.
+- Reason: these 331 integers are the complete repeated native integer geometry
+  boundary that can be centralized without changing action, part, settings, or
+  renderer representations. The normalized coordinates form 45 complete local
+  drawing patterns; naming individual scalar fractions would obscure those
+  patterns rather than create reusable geometry primitives. Separate names for
+  equal-valued title, preview, menu, size, and spacing roles avoid coupling
+  future density work merely because their current integers match.

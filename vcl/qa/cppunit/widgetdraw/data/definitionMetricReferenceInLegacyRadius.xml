@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <metrics>
+        <metric name="radius-axis" value="3"/>
+    </metrics>
+    <pushbutton>
+        <part value="Entire">
+            <state><rect stroke="#000000" fill="#FFFFFF" stroke-width="1" rx="@radius-axis"/></state>
+        </part>
+    </pushbutton>
+</widgets>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <metrics>
+        <metric name="setting-value" value="1"/>
+    </metrics>
+    <settings>
+        <centeredTabs value="@setting-value"/>
+    </settings>
+</widgets>

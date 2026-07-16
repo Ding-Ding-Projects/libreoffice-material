@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <metrics><metric name="coordinate-start" value="0"/></metrics>
+    <pushbutton>
+        <part value="Entire">
+            <state><rect stroke="#123456" fill="#ABCDEF" stroke-width="1" x1="@coordinate-start"/></state>
+        </part>
+    </pushbutton>
+</widgets>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <pushbutton>
+        <part value="Entire" width="@part-width" height="@part-height" margin-width="@margin-inline" margin-height="@margin-block">
+            <state enabled="true">
+                <rect stroke="#123456" fill="#ABCDEF" stroke-width="@stroke-none" x1="0.125" y1="0.25" x2="0.875" y2="0.75"/>
+                <line stroke="#123456" stroke-width="@stroke-strong" x1="0.2" y1="0.3" x2="0.8" y2="0.7"/>
+                <rect stroke="#123456" fill="#ABCDEF" stroke-width="1.0"/>
+            </state>
+        </part>
+        <part value="Focus" width="17" height="19" margin-width="5" margin-height="6">
+            <state><rect stroke="#123456" fill="#ABCDEF" stroke-width="1"/></state>
+        </part>
+    </pushbutton>
+    <settings>
+        <listBoxEntryMargin value="@list-entry-margin"/>
+        <defaultFontSize value="11"/>
+        <titleHeight value="@title-height"/>
+        <floatTitleHeight value="@float-title-height"/>
+        <listBoxPreviewDefaultLogicWidth value="@preview-width"/>
+        <listBoxPreviewDefaultLogicHeight value="@preview-height"/>
+    </settings>
+    <!-- Intentionally after every use to prove metric-token resolution is order-independent. -->
+    <metrics>
+        <metric name="part-width" value="24"/>
+        <metric name="part-height" value="36"/>
+        <metric name="margin-inline" value="12"/>
+        <metric name="margin-block" value="8"/>
+        <metric name="stroke-none" value="0"/>
+        <metric name="stroke-strong" value="4"/>
+        <metric name="list-entry-margin" value="6"/>
+        <metric name="title-height" value="18"/>
+        <metric name="float-title-height" value="14"/>
+        <metric name="preview-width" value="15"/>
+        <metric name="preview-height" value="7"/>
+    </metrics>
+</widgets>

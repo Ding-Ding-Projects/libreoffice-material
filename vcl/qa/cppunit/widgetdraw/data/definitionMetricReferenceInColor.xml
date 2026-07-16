@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <metrics><metric name="outline" value="2"/></metrics>
+    <pushbutton>
+        <part value="Entire"><state><rect stroke="@outline" fill="#ABCDEF" stroke-width="1"/></state></part>
+    </pushbutton>
+</widgets>

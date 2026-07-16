@@ -6,7 +6,7 @@ implements these rules.
 
 ## Current implementation status
 
-Six native source milestones now exist. They package an opt-in Material
+Seven native source milestones now exist. They package an opt-in Material
 file-widget definition, add safe keyed theme selection and definition-aware
 fallback in VCL, begin the Start Center surface/header treatment, and implement
 matched light and dark palettes of 23 semantic roles each. The reader resolves
@@ -46,12 +46,31 @@ rectangles keep their prior implicit geometry. Existing themes that use numeric
 `rx` and `ry` attributes retain that legacy path, while mixing the new and old
 forms is rejected as ambiguous.
 
+The seventh milestone introduces 15 semantic native integer metric roles. Four
+stroke roles, two spacing roles, three title/preview roles, and six control/tab
+size roles preserve the exact existing integer geometry while removing
+331 repeated literals: 292 `stroke-width` values, 34 explicit part
+width/height/margin values, and 5 numeric settings. The optional `metrics`
+section is resolved before settings and drawing definitions, but older bundled
+or out-of-tree themes may continue using literal numeric values. The reader
+resolves setting roles back to the existing decimal-string representation and
+part/drawing roles into the existing integer fields, so no public draw-action,
+part, settings, or renderer ABI is added for this source slice.
+
+The 676 normalized fractional drawing coordinates remain component-local
+literals. They describe proportional glyph and inset geometry rather than
+integer metrics; giving individual scalars shared names would obscure the
+45 complete coordinate patterns instead of creating reusable primitives.
+Typography scaling remains under the typed role contract, and corner radii
+remain under the separate shape contract.
+
 The shared renderer also contains source corrections for composite combo and
 RTL geometry, toolbar grip regions, slider sizing, definition-backed regions,
 and native line/fill cache invalidation. A standalone validator checks token
-discipline, the exact shape and 72-slot style schemas, light/dark schema parity,
-unused roles, required control/state coverage, list/selection/feedback contrast
-pairs, and native font-preservation invariants;
+discipline, the exact shape, metric, and 72-slot style schemas, light/dark
+schema parity, unused roles, required control/state coverage,
+list/selection/feedback contrast pairs, and native font/geometry-preservation
+invariants;
 dedicated XML-walker, reader, and headless draw C++ coverage plus negative
 fixtures are present but have not executed.
 
@@ -102,6 +121,7 @@ should cover:
 | Color | primary, on-primary, primary-container, surface, surface-container, outline, error, inverse-surface |
 | Type | display, headline, title, body, label, code/data; each with size, weight, line height, and letter spacing |
 | Shape | none, extra-small, small, medium, large, extra-large, full |
+| Metric | stroke thickness, fixed control size, title/preview height, and local spacing roles |
 | Elevation | level 0–5 expressed through native shadow/surface treatment |
 | Spacing | a compact desktop scale with density-aware increments |
 | State | hover, focus, pressed, dragged, selected, disabled, read-only, invalid |
@@ -113,17 +133,21 @@ preferences, high-contrast/forced-color requirements, display scale, and the
 active density profile. Contrast and legibility outrank brand palette matching.
 
 The current definition contains matched light and dark semantic palettes, an
-exact 72-slot style mapping, three native-preserving typography roles, and eight
-semantic corner roles.
+exact 72-slot style mapping, three native-preserving typography roles, eight
+semantic corner roles, and 15 semantic native integer metric roles.
 Source selects between them from resolved dark mode; resolved high contrast
 takes precedence, restores the captured native style/framework baseline, and
 bypasses Material drawing for native or generic fallback. Controls refresh
 native-focus suppression when the profile changes so generic fallback can
 retain a visible VCL focus indicator. Headless VCL maps an explicit dark
 preference because it has no operating-system appearance signal. This routing
-is unbuilt and unverified. Forced-color/platform signal completeness, density,
-line-height and letter-spacing typography, density-aware/full radius behavior,
-elevation, and motion resolution remain planned.
+is unbuilt and unverified. The metric layer preserves the existing integer
+values and downstream native unit conversions; it does not add density
+selection or a new DPI-aware, `dp`, fractional-scale, or comfortable/touch
+sizing policy.
+Forced-color/platform signal completeness, density, line-height and
+letter-spacing typography, density-aware/full radius behavior, elevation, and
+motion resolution remain planned.
 
 ## Component behavior
 
@@ -154,6 +178,11 @@ LibreOffice needs at least two intentional density profiles:
 Minimum target size and spacing may vary by input modality, but focus visibility
 and hit-area predictability may not. Calc's grid, Writer's rulers, and dense
 property panels need component-specific rules rather than global padding.
+
+The seventh source milestone centralizes the current values without replacing
+their existing downstream native conversions, but it does not satisfy this
+density contract. Compact/comfortable profiles and any new DPI, `dp`, zoom, or
+input-modality mapping must be implemented and verified separately.
 
 ## Adaptive layout
 

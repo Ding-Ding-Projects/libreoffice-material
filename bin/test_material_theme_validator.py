@@ -66,7 +66,7 @@ class MaterialThemeValidatorTest(unittest.TestCase):
 
     def test_canonical_theme_and_native_sources_pass(self) -> None:
         self.assertEqual(
-            VALIDATOR.validate(DEFINITION_PATH), (2, 23, 3, 8, 72, 74, 190)
+            VALIDATOR.validate(DEFINITION_PATH), (2, 23, 3, 8, 15, 72, 74, 190)
         )
         VALIDATOR.validate_native_typography_source(
             (RENDERER_PATH, TYPOGRAPHY_SOURCE_PATH)
@@ -83,6 +83,9 @@ class MaterialThemeValidatorTest(unittest.TestCase):
             )
         )
         VALIDATOR.validate_native_shape_source(
+            (READER_HEADER_PATH, READER_SOURCE_PATH)
+        )
+        VALIDATOR.validate_native_metric_source(
             (READER_HEADER_PATH, READER_SOURCE_PATH)
         )
 
@@ -328,7 +331,7 @@ class MaterialThemeValidatorTest(unittest.TestCase):
     def test_shape_references_are_strict_and_complete(self) -> None:
         rounded = (
             '                <rect stroke="@primary-container" '
-            'fill="@primary-container" stroke-width="1" '
+            'fill="@primary-container" stroke-width="@stroke-thin" '
             'radius="@corner-pill"/>'
         )
         cases = {
@@ -462,7 +465,428 @@ class MaterialThemeValidatorTest(unittest.TestCase):
         moved = self.definition[:start] + self.definition[end:]
         moved = moved.replace("</widgets>", f"{section}\n\n</widgets>", 1)
         self.assertEqual(
-            self.validate_definition(moved), (2, 23, 3, 8, 72, 74, 190)
+            self.validate_definition(moved), (2, 23, 3, 8, 15, 72, 74, 190)
+        )
+
+    def test_metric_structure_is_strict(self) -> None:
+        metric = '        <metric name="stroke-none" value="0"/>'
+        missing_section = self.replace_once(
+            "    <metrics>", "    <ignoredMetrics>"
+        ).replace("    </metrics>", "    </ignoredMetrics>", 1)
+        section_start = self.definition.index("    <metrics>")
+        section_end = self.definition.index("    </metrics>", section_start) + len(
+            "    </metrics>"
+        )
+        section = self.definition[section_start:section_end]
+        cases = {
+            "missing section": (
+                missing_section,
+                "expected exactly one <metrics> section, found 0",
+            ),
+            "duplicate section": (
+                self.replace_once(
+                    "    </metrics>", "    </metrics>\n\n    <metrics/>"
+                ),
+                "expected exactly one <metrics> section, found 2",
+            ),
+            "empty section": (
+                self.definition.replace(section, "    <metrics/>", 1),
+                "metrics section is empty",
+            ),
+            "section attribute": (
+                self.replace_once("    <metrics>", '    <metrics mode="material">'),
+                "metrics section must not have attributes",
+            ),
+            "section text": (
+                self.replace_once("    <metrics>", "    <metrics>invalid"),
+                "metrics section must not contain text",
+            ),
+            "processing instruction": (
+                self.replace_once(
+                    "    <metrics>", "    <metrics>\n        <?material metrics?>"
+                ),
+                "metrics section must not contain processing instructions",
+            ),
+            "unknown element": (
+                self.replace_once(metric, "        <measure/>"),
+                "metrics has unknown element <measure>",
+            ),
+            "missing name": (
+                self.replace_once(metric, '        <metric value="0"/>'),
+                "metric tokens require exactly name and value attributes",
+            ),
+            "missing value": (
+                self.replace_once(metric, '        <metric name="stroke-none"/>'),
+                "metric tokens require exactly name and value attributes",
+            ),
+            "extra attribute": (
+                self.replace_once(
+                    metric,
+                    '        <metric name="stroke-none" value="0" mode="fixed"/>',
+                ),
+                "metric token has unknown attributes: mode",
+            ),
+            "invalid uppercase name": (
+                self.replace_once(metric, metric.replace("stroke", "Stroke", 1)),
+                "invalid metric token name 'Stroke-none'",
+            ),
+            "invalid underscore name": (
+                self.replace_once(metric, metric.replace("stroke-", "stroke_", 1)),
+                "invalid metric token name 'stroke_none'",
+            ),
+            "unknown name": (
+                self.replace_once(
+                    metric, metric.replace("stroke-none", "stroke-mystery")
+                ),
+                "unknown metric token 'stroke-mystery'",
+            ),
+            "duplicate token": (
+                self.replace_once(metric, f"{metric}\n{metric}"),
+                "duplicate metric token 'stroke-none'",
+            ),
+            "missing token": (
+                self.replace_once(metric, ""),
+                "missing metric tokens: stroke-none",
+            ),
+            "token text": (
+                self.replace_once(
+                    metric,
+                    '        <metric name="stroke-none" value="0">invalid</metric>',
+                ),
+                "metric token 'stroke-none' must not have content",
+            ),
+            "nested element": (
+                self.replace_once(
+                    metric,
+                    '        <metric name="stroke-none" value="0"><extra/></metric>',
+                ),
+                "metric token 'stroke-none' must not have content",
+            ),
+            "nested processing instruction": (
+                self.replace_once(
+                    metric,
+                    '        <metric name="stroke-none" value="0">'
+                    "<?material metric?></metric>",
+                ),
+                "metric token 'stroke-none' must not have content",
+            ),
+            "token tail": (
+                self.replace_once(metric, metric + "invalid"),
+                "metrics section must not contain text",
+            ),
+            "misplaced metric": (
+                self.replace_once(
+                    "    <settings>",
+                    "    <settings>\n"
+                    '        <metric name="outside" value="1"/>',
+                ),
+                "<metric> must appear only in the root <metrics> section",
+            ),
+            "nested metrics": (
+                self.replace_once("    <settings>", "    <settings><metrics/>"),
+                "<metrics> must appear only in the root <metrics> section",
+            ),
+        }
+        for name, (definition, message) in cases.items():
+            with self.subTest(name=name):
+                self.assert_definition_fails(definition, message)
+
+    def test_metric_values_are_bounded_canonical_and_exact(self) -> None:
+        metric = '        <metric name="stroke-thin" value="1"/>'
+        invalid_values = ("", "thin", "+1", "-1", "1.0", " 1", "01", "@stroke-none")
+        for value in invalid_values:
+            with self.subTest(value=value):
+                definition = self.replace_once(
+                    metric, metric.replace('value="1"', f'value="{value}"')
+                )
+                self.assert_definition_fails(
+                    definition,
+                    f"invalid metric value {value!r} for 'stroke-thin'",
+                )
+
+        overflow = self.replace_once(
+            metric, metric.replace('value="1"', 'value="2147483648"')
+        )
+        self.assert_definition_fails(
+            overflow, "metric value for 'stroke-thin' exceeds sal_Int32"
+        )
+
+        wrong_value = self.replace_once(
+            metric, metric.replace('value="1"', 'value="2"')
+        )
+        self.assert_definition_fails(
+            wrong_value, "metric token 'stroke-thin' must be 1, found 2"
+        )
+
+    def test_metric_references_are_strict_complete_and_family_safe(self) -> None:
+        rounded = (
+            '                <rect stroke="@primary-container" '
+            'fill="@primary-container" stroke-width="@stroke-thin" '
+            'radius="@corner-pill"/>'
+        )
+        radio_part = (
+            "    <radiobutton>\n"
+            '        <part value="Entire" width="@size-selection-control" '
+            'height="@size-selection-control">'
+        )
+        list_margin = '        <listBoxEntryMargin value="@space-list-entry"/>'
+        menu_indicator = (
+            '        <part value="MenuItemCheckMark" '
+            'width="@size-menu-indicator" height="@size-menu-indicator">'
+        )
+        track_line = (
+            '<line stroke="@primary" stroke-width="@stroke-track" '
+            'x1="0" y1="0.5" x2="1" y2="0.5"/>'
+        )
+        cases = {
+            "literal stroke": (
+                self.replace_once(
+                    rounded, rounded.replace("@stroke-thin", "1")
+                ),
+                "rect/@stroke-width must reference a metric token",
+            ),
+            "empty stroke": (
+                self.replace_once(
+                    rounded, rounded.replace("@stroke-thin", "")
+                ),
+                "rect/@stroke-width must reference a metric token",
+            ),
+            "double marker": (
+                self.replace_once(
+                    rounded, rounded.replace("@stroke-thin", "@@stroke-thin")
+                ),
+                "rect/@stroke-width must reference a metric token",
+            ),
+            "uppercase reference": (
+                self.replace_once(
+                    rounded, rounded.replace("@stroke-thin", "@Stroke-thin")
+                ),
+                "rect/@stroke-width must reference a metric token",
+            ),
+            "reference whitespace": (
+                self.replace_once(
+                    rounded, rounded.replace("@stroke-thin", "@stroke-thin ")
+                ),
+                "rect/@stroke-width must reference a metric token",
+            ),
+            "unknown metric": (
+                self.replace_once(
+                    rounded, rounded.replace("@stroke-thin", "@stroke-mystery")
+                ),
+                "rect/@stroke-width references unknown metric token 'stroke-mystery'",
+            ),
+            "color token as metric": (
+                self.replace_once(
+                    rounded, rounded.replace("@stroke-thin", "@primary")
+                ),
+                "rect/@stroke-width references unknown metric token 'primary'",
+            ),
+            "shape token as metric": (
+                self.replace_once(
+                    rounded, rounded.replace("@stroke-thin", "@corner-pill")
+                ),
+                "rect/@stroke-width references unknown metric token 'corner-pill'",
+            ),
+            "metric token as color": (
+                self.replace_once(
+                    rounded,
+                    rounded.replace('stroke="@primary-container"', 'stroke="@stroke-thin"'),
+                ),
+                "rect/@stroke references unknown token 'stroke-thin'",
+            ),
+            "metric token as radius": (
+                self.replace_once(
+                    rounded, rounded.replace("@corner-pill", "@stroke-thin")
+                ),
+                "rect/@radius references unknown shape token 'stroke-thin'",
+            ),
+            "literal part metric": (
+                self.replace_once(
+                    radio_part,
+                    radio_part.replace('width="@size-selection-control"', 'width="24"'),
+                ),
+                "radiobutton/Entire/@width must reference a metric token",
+            ),
+            "wrong part metric": (
+                self.replace_once(
+                    radio_part,
+                    radio_part.replace("@size-selection-control", "@size-compact-control", 1),
+                ),
+                "radiobutton/Entire/@width must reference @size-selection-control",
+            ),
+            "literal setting metric": (
+                self.replace_once(
+                    list_margin, '        <listBoxEntryMargin value="12"/>'
+                ),
+                "settings/listBoxEntryMargin/@value must reference a metric token",
+            ),
+            "wrong setting metric": (
+                self.replace_once(
+                    list_margin,
+                    '        <listBoxEntryMargin value="@space-tab-inline"/>',
+                ),
+                "settings/listBoxEntryMargin/@value must reference @space-list-entry",
+            ),
+            "missing part slot": (
+                self.replace_once(
+                    radio_part,
+                    "    <radiobutton>\n"
+                    '        <part value="Entire" height="@size-selection-control">',
+                ),
+                "missing Material metric slot radiobutton/Entire/@width",
+            ),
+            "unexpected part slot": (
+                self.replace_once(
+                    radio_part,
+                    radio_part[:-1] + ' margin-height="@space-tab-inline">',
+                ),
+                "unexpected Material metric slot radiobutton/Entire/@margin-height",
+            ),
+            "equal-valued role misuse": (
+                self.replace_once(
+                    menu_indicator,
+                    menu_indicator.replace("@size-menu-indicator", "@size-list-preview", 1),
+                ),
+                "menupopup/MenuItemCheckMark/@width must reference @size-menu-indicator",
+            ),
+            "unknown token in non-target attribute": (
+                self.replace_once(
+                    radio_part,
+                    radio_part[:-1] + ' orientation="@metric-mystery">',
+                ),
+                "part/@orientation must not reference a token",
+            ),
+            "unknown token in extra drawing attribute": (
+                self.replace_once(
+                    rounded,
+                    rounded[:-2] + ' metric-value="@metric-mystery"/>',
+                ),
+                "rect/@metric-value must not reference a token",
+            ),
+            "line cannot use fill token": (
+                self.replace_once(
+                    track_line,
+                    track_line[:-2] + ' fill="@primary"/>',
+                ),
+                "line/@fill must not reference a token",
+            ),
+        }
+        for name, (definition, message) in cases.items():
+            with self.subTest(name=name):
+                self.assert_definition_fails(definition, message)
+
+        vertical_line = (
+            '<line stroke="@primary" stroke-width="@stroke-track" '
+            'x1="0.5" y1="0" x2="0.5" y2="1"/>'
+        )
+        swapped = self.replace_once(track_line, "COORDINATE-SWAP")
+        swapped = swapped.replace(vertical_line, track_line, 1)
+        swapped = swapped.replace("COORDINATE-SWAP", vertical_line, 1)
+        self.assert_definition_fails(
+            swapped,
+            "normalized coordinate geometry changed",
+        )
+
+        coordinate_metric = self.definition.replace(
+            'stroke-width="@stroke-standard" x1="0.04"',
+            'stroke-width="@stroke-standard" x1="@size-standard-control"',
+            1,
+        )
+        self.assertNotEqual(coordinate_metric, self.definition)
+        self.assert_definition_fails(
+            coordinate_metric,
+            "line/@x1 must remain a normalized numeric coordinate",
+        )
+
+    def test_normalized_coordinates_are_numeric_complete_and_bounded(self) -> None:
+        line = (
+            '<line stroke="@primary" stroke-width="@stroke-track" '
+            'x1="0" y1="0.5" x2="1" y2="0.5"/>'
+        )
+        rect = (
+            '                <rect stroke="@on-surface-variant" fill="@surface" '
+            'stroke-width="@stroke-standard" radius="@corner-control" '
+            'x1="0.08" y1="0.08" x2="0.92" y2="0.92"/>'
+        )
+        cases = {
+            "not numeric": (
+                self.replace_once(line, line.replace('x1="0"', 'x1="invalid"')),
+                "line/@x1 must be a normalized numeric coordinate",
+            ),
+            "above one": (
+                self.replace_once(line, line.replace('x1="0"', 'x1="1.5"')),
+                "line/@x1 must be between 0 and 1",
+            ),
+            "below zero": (
+                self.replace_once(line, line.replace('x1="0"', 'x1="-0.1"')),
+                "line/@x1 must be between 0 and 1",
+            ),
+            "incomplete": (
+                self.replace_once(line, line.replace(' y2="0.5"', "")),
+                "line coordinate set is incomplete: missing y2",
+            ),
+            "inverted rectangle": (
+                self.replace_once(rect, rect.replace('x1="0.08"', 'x1="0.95"')),
+                "rect normalized coordinates must be ordered x1 <= x2 and y1 <= y2",
+            ),
+        }
+        for name, (definition, message) in cases.items():
+            with self.subTest(name=name):
+                self.assert_definition_fails(definition, message)
+
+    def test_canonical_metric_usage_preserves_geometry_and_order_independence(
+        self,
+    ) -> None:
+        parser = ET.XMLParser(target=ET.TreeBuilder(insert_pis=True))
+        root = ET.parse(DEFINITION_PATH, parser=parser).getroot()
+        metrics = VALIDATOR.read_metrics(root)
+        references, digest = VALIDATOR.validate_metric_usage(root, metrics)
+        self.assertEqual(references, Counter(VALIDATOR.REQUIRED_METRIC_USAGE))
+        self.assertEqual(sum(references.values()), 331)
+        self.assertEqual(digest, VALIDATOR.METRIC_GEOMETRY_SHA256)
+        self.assertFalse(
+            any(
+                element.get(attribute, "").startswith("@")
+                for element in root.iter()
+                if element.tag in {"rect", "line"}
+                for attribute in ("x1", "y1", "x2", "y2")
+            )
+        )
+
+        start = self.definition.index("    <metrics>")
+        end = self.definition.index("    </metrics>", start) + len("    </metrics>")
+        section = self.definition[start:end]
+        moved = self.definition[:start] + self.definition[end:]
+        moved = moved.replace("</widgets>", f"{section}\n\n</widgets>", 1)
+        self.assertEqual(
+            self.validate_definition(moved), (2, 23, 3, 8, 15, 72, 74, 190)
+        )
+
+        swapped = self.definition.replace(
+            'stroke-width="@stroke-thin"', 'stroke-width="@metric-swap"', 1
+        )
+        swapped = swapped.replace(
+            'stroke-width="@stroke-standard"', 'stroke-width="@stroke-thin"', 1
+        )
+        swapped = swapped.replace(
+            'stroke-width="@metric-swap"', 'stroke-width="@stroke-standard"', 1
+        )
+        self.assert_definition_fails(
+            swapped, "resolved Material metric geometry changed"
+        )
+
+        equal_value_swap = self.definition.replace(
+            'value="@size-list-preview"', 'value="@metric-swap"', 1
+        )
+        equal_value_swap = equal_value_swap.replace(
+            'width="@size-menu-indicator"', 'width="@size-list-preview"', 1
+        )
+        equal_value_swap = equal_value_swap.replace(
+            'value="@metric-swap"', 'value="@size-menu-indicator"', 1
+        )
+        self.assert_definition_fails(
+            equal_value_swap,
+            "settings/listBoxPreviewDefaultLogicWidth/@value must reference @size-list-preview",
         )
 
     def test_feedback_tokens_are_scheme_specific_and_exact(self) -> None:
@@ -762,6 +1186,112 @@ class MaterialThemeValidatorTest(unittest.TestCase):
                 "native shape source is missing pattern",
             ):
                 VALIDATOR.validate_native_shape_source((source,))
+
+    def test_required_native_metric_patterns_cannot_hide_in_comments(self) -> None:
+        comments = "\n".join(
+            (
+                "// bool readMetricTokens();",
+                "// bool readMetricReference();",
+                "// bool readMetricSetting();",
+                "// bool readDrawingCoordinate();",
+                '// aPaletteWalker.name() == "metrics";',
+                "// readMetricReference(sStrokeWidth, rMetricTokens, nStrokeWidth);",
+                "// readMetricReference(sWidth, rMetricTokens, nWidth);",
+                "// readMetricReference(sHeight, rMetricTokens, nHeight);",
+                "// readMetricReference(sMarginHeight, rMetricTokens, nMarginHeight);",
+                "// readMetricReference(sMarginWidth, rMetricTokens, nMarginWidth);",
+                '// readMetricSetting(aWalker.attribute("value"_ostr), aMetricTokens, value);',
+                '// readDrawingCoordinate(rWalker.attribute("x1"_ostr), 0.0, x);',
+                '// readDrawingCoordinate(rWalker.attribute("y1"_ostr), 0.0, y);',
+                '// readDrawingCoordinate(rWalker.attribute("x2"_ostr), 1.0, x);',
+                '// readDrawingCoordinate(rWalker.attribute("y2"_ostr), 1.0, y);',
+                "// readDefinition(aWalker, definition, type, aRadiusTokens, aMetricTokens);",
+                '// { "listBoxEntryMargin", &rWidgetDefinition.mpSettings->msListBoxEntryMargin },',
+                '// { "titleHeight", &rWidgetDefinition.mpSettings->msTitleHeight },',
+                '// { "floatTitleHeight", &rWidgetDefinition.mpSettings->msFloatTitleHeight },',
+                '// { "listBoxPreviewDefaultLogicWidth", &rWidgetDefinition.mpSettings->msListBoxPreviewDefaultLogicWidth },',
+                '// { "listBoxPreviewDefaultLogicHeight", &rWidgetDefinition.mpSettings->msListBoxPreviewDefaultLogicHeight },',
+            )
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "metric-source.cxx"
+            source.write_text(comments, encoding="utf-8")
+            with self.assertRaisesRegex(
+                VALIDATOR.ValidationError,
+                "native metric source is missing pattern",
+            ):
+                VALIDATOR.validate_native_metric_source((source,))
+
+        reader_source = READER_SOURCE_PATH.read_text(encoding="utf-8")
+        combined_source = (
+            READER_HEADER_PATH.read_text(encoding="utf-8") + "\n" + reader_source
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "metric-source.cxx"
+            source.write_text(
+                'R"codex(' + combined_source + ')codex"\n', encoding="utf-8"
+            )
+            with self.assertRaisesRegex(
+                VALIDATOR.ValidationError,
+                "native metric source is missing pattern",
+            ):
+                VALIDATOR.validate_native_metric_source((source,))
+
+        missing_call = reader_source.replace(
+            "if (!readMetricTokens(aPaletteWalker, aTokens))",
+            "if (aTokens.empty())",
+            1,
+        )
+        self.assertNotEqual(missing_call, reader_source)
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "metric-source.cxx"
+            source.write_text(
+                READER_HEADER_PATH.read_text(encoding="utf-8")
+                + "\n"
+                + missing_call,
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                VALIDATOR.ValidationError,
+                "native metric source is missing pattern",
+            ):
+                VALIDATOR.validate_native_metric_source((source,))
+
+        missing_failure_propagation = reader_source.replace(
+            "if (!readMetricTokens(aPaletteWalker, aTokens))\n"
+            "                    m_bValid = false;",
+            "readMetricTokens(aPaletteWalker, aTokens);",
+            1,
+        )
+        self.assertNotEqual(missing_failure_propagation, reader_source)
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "metric-source.cxx"
+            source.write_text(
+                READER_HEADER_PATH.read_text(encoding="utf-8")
+                + "\n"
+                + missing_failure_propagation,
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                VALIDATOR.ValidationError,
+                "native metric source is missing pattern",
+            ):
+                VALIDATOR.validate_native_metric_source((source,))
+
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "metric-source.cxx"
+            source.write_text(
+                READER_HEADER_PATH.read_text(encoding="utf-8")
+                + "\n"
+                + READER_SOURCE_PATH.read_text(encoding="utf-8")
+                + "\nsWidth.toInt32();\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                VALIDATOR.ValidationError,
+                "native metric source contains direct consumer conversion 'sWidth'",
+            ):
+                VALIDATOR.validate_native_metric_source((source,))
 
     def test_native_source_guard_rejects_fixed_identity_setters(self) -> None:
         valid_source = "\n".join(

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <pushbutton>
+        <part value="Entire"><state><rect stroke="#123456" fill="#ABCDEF" stroke-width="@missing"/></state></part>
+    </pushbutton>
+    <metrics><metric name="stroke-standard" value="2"/></metrics>
+</widgets>

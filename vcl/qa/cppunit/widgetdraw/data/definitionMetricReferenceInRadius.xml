@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <metrics><metric name="corner-small" value="8"/></metrics>
+    <pushbutton>
+        <part value="Entire"><state><rect stroke="#123456" fill="#ABCDEF" radius="@corner-small"/></state></part>
+    </pushbutton>
+</widgets>

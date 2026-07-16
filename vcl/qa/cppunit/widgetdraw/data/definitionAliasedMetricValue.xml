@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <metrics>
+        <metric name="base-size" value="24"/>
+        <metric name="control-size" value="@base-size"/>
+    </metrics>
+</widgets>

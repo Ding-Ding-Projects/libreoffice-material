@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets>
+    <metrics><metric name="first" value="1"/></metrics>
+    <metrics><metric name="second" value="2"/></metrics>
+</widgets>

@@ -12,10 +12,10 @@ licensing and provenance.
 
 ## Current milestone
 
-**Phase 1 — sixth Material VCL source milestone, in progress. Phase 0's native
+**Phase 1 — seventh Material VCL source milestone, in progress. Phase 0's native
 build/evidence gate remains open.**
 
-The repository contains an imported LibreOffice source baseline, six native
+The repository contains an imported LibreOffice source baseline, seven native
 Material source milestones, a design contract, roadmap, published GitHub Pages
 site, screenshot registry, and headless evidence plan. The third milestone adds
 matched light/dark profiles, source-level high-contrast fallback routing,
@@ -31,6 +31,13 @@ The sixth milestone adds eight semantic corner roles, resolves a single named
 radius into both existing native rectangle axes, converts all 146 rounded
 Material rectangles, and preserves the 11 implicit square rectangles plus the
 legacy numeric `rx`/`ry` path.
+The seventh milestone adds 15 semantic native integer metric roles and converts
+331 existing integer uses—292 drawing strokes, 34 explicit part dimensions or
+margins, and 5 numeric settings—without changing their values. All 676
+normalized fractional coordinates stay literal, and the shape and typography
+contracts remain separate. Existing downstream native conversions remain
+unchanged; this source centralization adds no density profile or new DPI-aware,
+`dp`, fractional-scale, or touch-sizing policy.
 The native source has not been built or run as LibreOffice, so this does not
 prove a whole-GUI rewrite or any completed application surface.
 
@@ -88,11 +95,25 @@ prove a whole-GUI rewrite or any completed application surface.
   avoids exported reader-layout changes; 146 converted rounded rectangles and
   11 unchanged implicit squares; legacy numeric radius compatibility; and 23
   new malformed-shape reader fixtures.
-- Local source validation passes for 2 schemes, 23 color tokens each, 3
-  typography roles, 8 shape tokens, 72 style slots, 74 parts, 190 states,
-  selected WCAG contrast pairs, native font/shape source invariants, XML
-  parsing, and whitespace. All 16 Python validator unittest methods pass. The
-  affected C++ targets remain unexecuted.
+- Seventh Material VCL source milestone: 15 strict semantic native integer metric
+  roles; optional order-independent `metrics` parsing; reference resolution into
+  the existing stroke, part, and decimal setting representations; 331 converted
+  integer uses split into 292 strokes, 34 part geometry attributes, and 5
+  settings; 676 unchanged normalized coordinates; and legacy literal numeric
+  compatibility for bundled and out-of-tree definitions.
+- Local seventh-milestone validation passes for the full
+  `2/23/3/8/15/72/74/190` schema. All 22 Python validator tests pass; 38 metric
+  reader fixtures exist (1 positive and 37 negative); the resolved 331-row
+  metric geometry hash is `33d4dea2...5135de0`; and the exact 676-row normalized
+  coordinate hash is `0979f2b3...331ed2e`. These are static source checks only;
+  the C++ reader and fixtures remain uncompiled and unexecuted.
+- Published sixth-milestone source validation passes for 2 schemes, 23 color
+  tokens each, 3 typography roles, 8 shape tokens, 72 style slots, 74 parts,
+  190 states, selected WCAG contrast pairs, native font/shape source
+  invariants, XML parsing, and whitespace. All 16 Python validator unittest
+  methods passed at that published source commit. Seventh-milestone validation
+  and publication evidence must be recorded separately; the affected C++
+  targets remain unexecuted.
 - GitHub Actions source-validation run `29517978358` completed successfully for
   third-milestone commit `ddeec51e886f4642718eaa626ea2f48cdd9aa6a8`.
 - GitHub Actions source-validation run `29522004268` completed successfully for
@@ -164,9 +185,10 @@ prove a whole-GUI rewrite or any completed application surface.
    profile on the proven headless desktop;
 4. preserve the first LibreOffice baseline manifest, result, logs, and reviewed
    screenshot;
-5. build/runtime-verify light/dark, focus, shape geometry, and high-contrast
-   routing, complete forced-color/platform signal coverage, and implement the
-   remaining token families and VCL primitives;
+5. build/runtime-verify light/dark, focus, shape and metric geometry, and
+   high-contrast routing; complete forced-color/platform signal coverage; and
+   implement density-aware metric resolution plus the remaining token families
+   and VCL primitives;
 6. continue through every phase in `ROADMAP.md` without skipping suite surfaces.
 
 ## Known evidence gaps

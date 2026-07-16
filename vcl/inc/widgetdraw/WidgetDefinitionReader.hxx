@@ -35,15 +35,18 @@ private:
 
     SAL_DLLPRIVATE void readDefinition(tools::XmlWalker& rWalker,
                                        WidgetDefinition& rWidgetDefinition, ControlType eType,
-                                       const std::map<OString, sal_Int32>& rRadiusTokens);
+                                       const std::map<OString, sal_Int32>& rRadiusTokens,
+                                       const std::map<OString, sal_Int32>& rMetricTokens);
 
     SAL_DLLPRIVATE void readPart(tools::XmlWalker& rWalker,
                                  const std::shared_ptr<WidgetDefinitionPart>& rpPart,
-                                 const std::map<OString, sal_Int32>& rRadiusTokens);
+                                 const std::map<OString, sal_Int32>& rRadiusTokens,
+                                 const std::map<OString, sal_Int32>& rMetricTokens);
 
     SAL_DLLPRIVATE void readDrawingDefinition(tools::XmlWalker& rWalker,
                                               const std::shared_ptr<WidgetDefinitionState>& rStates,
-                                              const std::map<OString, sal_Int32>& rRadiusTokens);
+                                              const std::map<OString, sal_Int32>& rRadiusTokens,
+                                              const std::map<OString, sal_Int32>& rMetricTokens);
 
 public:
     WidgetDefinitionReader(OUString aDefinitionFile, OUString aResourcePath,

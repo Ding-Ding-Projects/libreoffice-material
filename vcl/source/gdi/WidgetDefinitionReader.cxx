@@ -231,6 +231,74 @@ bool readShapeTokens(tools::XmlWalker& rWalker, std::map<OString, sal_Int32>& rR
     return bValid;
 }
 
+bool readMetricTokens(tools::XmlWalker& rWalker, std::map<OString, sal_Int32>& rMetricTokens)
+{
+    bool bValid = true;
+    if (!rWalker.attributeNames().empty())
+    {
+        SAL_WARN("vcl.gdi", "File-widget metrics section must not have attributes");
+        bValid = false;
+    }
+
+    rWalker.children();
+    while (rWalker.isValid())
+    {
+        if (!rWalker.isElement())
+        {
+            if (!rWalker.isBlank() && !rWalker.isComment())
+            {
+                SAL_WARN("vcl.gdi", "Unexpected content in file-widget metrics section");
+                bValid = false;
+            }
+            rWalker.next();
+            continue;
+        }
+        if (rWalker.name() != "metric")
+        {
+            SAL_WARN("vcl.gdi", "Unsupported file-widget metric element: " << rWalker.name());
+            bValid = false;
+            rWalker.next();
+            continue;
+        }
+
+        const auto aAttributes = rWalker.attributeNames();
+        if (aAttributes.size() != 2 || !haveOnlyAttributes(rWalker, { "name", "value" }))
+        {
+            SAL_WARN("vcl.gdi", "File-widget metric tokens require name and value");
+            bValid = false;
+        }
+
+        const OString aName = rWalker.attribute("name"_ostr);
+        const OString aValue = rWalker.attribute("value"_ostr);
+        const auto nValue = readNonNegativeInteger(aValue);
+        if (!isTokenName(aName) || !nValue)
+        {
+            SAL_WARN("vcl.gdi", "Invalid file-widget metric token: " << aName);
+            bValid = false;
+        }
+        else if (!rMetricTokens.emplace(aName, *nValue).second)
+        {
+            SAL_WARN("vcl.gdi", "Duplicate file-widget metric token: " << aName);
+            bValid = false;
+        }
+
+        if (hasUnexpectedChildContent(rWalker))
+        {
+            SAL_WARN("vcl.gdi", "File-widget metric tokens must not have content");
+            bValid = false;
+        }
+        rWalker.next();
+    }
+    rWalker.parent();
+
+    if (rMetricTokens.empty())
+    {
+        SAL_WARN("vcl.gdi", "Empty file-widget metrics section");
+        bValid = false;
+    }
+    return bValid;
+}
+
 bool readRadiusReference(OString const& rValue, const std::map<OString, sal_Int32>& rRadiusTokens,
                          sal_Int32& rRadius)
 {
@@ -247,6 +315,75 @@ bool readRadiusReference(OString const& rValue, const std::map<OString, sal_Int3
         return false;
     }
     rRadius = aToken->second;
+    return true;
+}
+
+bool readMetricReference(OString const& rValue, const std::map<OString, sal_Int32>& rMetricTokens,
+                         sal_Int32& rMetric)
+{
+    if (!rValue.startsWith("@"))
+    {
+        rMetric = rValue.toInt32();
+        return true;
+    }
+
+    const auto aToken = rMetricTokens.find(rValue.copy(1));
+    if (aToken == rMetricTokens.end())
+    {
+        SAL_WARN("vcl.gdi", "Unknown file-widget metric token: " << rValue);
+        return false;
+    }
+    rMetric = aToken->second;
+    return true;
+}
+
+bool readMetricSetting(OString const& rValue, const std::map<OString, sal_Int32>& rMetricTokens,
+                       OString& rSetting)
+{
+    if (!rValue.startsWith("@"))
+        return readSetting(rValue, rSetting);
+
+    sal_Int32 nMetric = 0;
+    if (!readMetricReference(rValue, rMetricTokens, nMetric))
+        return false;
+    rSetting = OString::number(nMetric);
+    return true;
+}
+
+bool readLiteralSetting(OString const& rValue, OString& rSetting)
+{
+    if (rValue.startsWith("@"))
+    {
+        SAL_WARN("vcl.gdi", "File-widget setting does not accept token references: " << rValue);
+        return false;
+    }
+    return readSetting(rValue, rSetting);
+}
+
+bool readLegacyRadius(OString const& rValue, sal_Int32& rRadius)
+{
+    if (rValue.startsWith("@"))
+    {
+        SAL_WARN("vcl.gdi", "Legacy file-widget radius axes do not accept tokens: " << rValue);
+        return false;
+    }
+    rRadius = rValue.toInt32();
+    return true;
+}
+
+bool readDrawingCoordinate(OString const& rValue, float fDefault, float& rCoordinate)
+{
+    if (rValue.isEmpty())
+    {
+        rCoordinate = fDefault;
+        return true;
+    }
+    if (rValue.startsWith("@"))
+    {
+        SAL_WARN("vcl.gdi", "File-widget drawing coordinates cannot reference tokens: " << rValue);
+        return false;
+    }
+    rCoordinate = rValue.toFloat();
     return true;
 }
 
@@ -565,12 +702,18 @@ bool WidgetDefinitionReader::readColorPalette(tools::XmlWalker& rWalker,
 
 void WidgetDefinitionReader::readDrawingDefinition(
     tools::XmlWalker& rWalker, const std::shared_ptr<WidgetDefinitionState>& rpState,
-    const std::map<OString, sal_Int32>& rRadiusTokens)
+    const std::map<OString, sal_Int32>& rRadiusTokens,
+    const std::map<OString, sal_Int32>& rMetricTokens)
 {
     rWalker.children();
     while (rWalker.isValid())
     {
-        if (rWalker.name() == "rect")
+        if (rWalker.name() == "metrics" || rWalker.name() == "metric")
+        {
+            SAL_WARN("vcl.gdi", "Misplaced file-widget metric element: " << rWalker.name());
+            m_bValid = false;
+        }
+        else if (rWalker.name() == "rect")
         {
             Color aStrokeColor;
             if (!readColor(rWalker.attribute("stroke"_ostr), aStrokeColor))
@@ -580,8 +723,11 @@ void WidgetDefinitionReader::readDrawingDefinition(
                 m_bValid = false;
             OString sStrokeWidth = rWalker.attribute("stroke-width"_ostr);
             sal_Int32 nStrokeWidth = -1;
-            if (!sStrokeWidth.isEmpty())
-                nStrokeWidth = sStrokeWidth.toInt32();
+            if (!sStrokeWidth.isEmpty()
+                && !readMetricReference(sStrokeWidth, rMetricTokens, nStrokeWidth))
+            {
+                m_bValid = false;
+            }
 
             sal_Int32 nRx = -1;
             sal_Int32 nRy = -1;
@@ -608,25 +754,25 @@ void WidgetDefinitionReader::readDrawingDefinition(
             else
             {
                 OString sRx = rWalker.attribute("rx"_ostr);
-                if (!sRx.isEmpty())
-                    nRx = sRx.toInt32();
+                if (!sRx.isEmpty() && !readLegacyRadius(sRx, nRx))
+                    m_bValid = false;
 
                 OString sRy = rWalker.attribute("ry"_ostr);
-                if (!sRy.isEmpty())
-                    nRy = sRy.toInt32();
+                if (!sRy.isEmpty() && !readLegacyRadius(sRy, nRy))
+                    m_bValid = false;
             }
 
-            OString sX1 = rWalker.attribute("x1"_ostr);
-            float fX1 = sX1.isEmpty() ? 0.0 : sX1.toFloat();
-
-            OString sY1 = rWalker.attribute("y1"_ostr);
-            float fY1 = sY1.isEmpty() ? 0.0 : sY1.toFloat();
-
-            OString sX2 = rWalker.attribute("x2"_ostr);
-            float fX2 = sX2.isEmpty() ? 1.0 : sX2.toFloat();
-
-            OString sY2 = rWalker.attribute("y2"_ostr);
-            float fY2 = sY2.isEmpty() ? 1.0 : sY2.toFloat();
+            float fX1 = 0.0;
+            float fY1 = 0.0;
+            float fX2 = 1.0;
+            float fY2 = 1.0;
+            if (!readDrawingCoordinate(rWalker.attribute("x1"_ostr), 0.0, fX1)
+                || !readDrawingCoordinate(rWalker.attribute("y1"_ostr), 0.0, fY1)
+                || !readDrawingCoordinate(rWalker.attribute("x2"_ostr), 1.0, fX2)
+                || !readDrawingCoordinate(rWalker.attribute("y2"_ostr), 1.0, fY2))
+            {
+                m_bValid = false;
+            }
 
             rpState->addDrawRectangle(aStrokeColor, nStrokeWidth, aFillColor, fX1, fY1, fX2, fY2,
                                       nRx, nRy);
@@ -639,20 +785,23 @@ void WidgetDefinitionReader::readDrawingDefinition(
 
             OString sStrokeWidth = rWalker.attribute("stroke-width"_ostr);
             sal_Int32 nStrokeWidth = -1;
-            if (!sStrokeWidth.isEmpty())
-                nStrokeWidth = sStrokeWidth.toInt32();
+            if (!sStrokeWidth.isEmpty()
+                && !readMetricReference(sStrokeWidth, rMetricTokens, nStrokeWidth))
+            {
+                m_bValid = false;
+            }
 
-            OString sX1 = rWalker.attribute("x1"_ostr);
-            float fX1 = sX1.isEmpty() ? -1.0 : sX1.toFloat();
-
-            OString sY1 = rWalker.attribute("y1"_ostr);
-            float fY1 = sY1.isEmpty() ? -1.0 : sY1.toFloat();
-
-            OString sX2 = rWalker.attribute("x2"_ostr);
-            float fX2 = sX2.isEmpty() ? -1.0 : sX2.toFloat();
-
-            OString sY2 = rWalker.attribute("y2"_ostr);
-            float fY2 = sY2.isEmpty() ? -1.0 : sY2.toFloat();
+            float fX1 = -1.0;
+            float fY1 = -1.0;
+            float fX2 = -1.0;
+            float fY2 = -1.0;
+            if (!readDrawingCoordinate(rWalker.attribute("x1"_ostr), -1.0, fX1)
+                || !readDrawingCoordinate(rWalker.attribute("y1"_ostr), -1.0, fY1)
+                || !readDrawingCoordinate(rWalker.attribute("x2"_ostr), -1.0, fX2)
+                || !readDrawingCoordinate(rWalker.attribute("y2"_ostr), -1.0, fY2))
+            {
+                m_bValid = false;
+            }
 
             rpState->addDrawLine(aStrokeColor, nStrokeWidth, fX1, fY1, fX2, fY2);
         }
@@ -675,12 +824,18 @@ void WidgetDefinitionReader::readDrawingDefinition(
 
 void WidgetDefinitionReader::readDefinition(tools::XmlWalker& rWalker,
                                             WidgetDefinition& rWidgetDefinition, ControlType eType,
-                                            const std::map<OString, sal_Int32>& rRadiusTokens)
+                                            const std::map<OString, sal_Int32>& rRadiusTokens,
+                                            const std::map<OString, sal_Int32>& rMetricTokens)
 {
     rWalker.children();
     while (rWalker.isValid())
     {
-        if (rWalker.name() == "part")
+        if (rWalker.name() == "metrics" || rWalker.name() == "metric")
+        {
+            SAL_WARN("vcl.gdi", "Misplaced file-widget metric element: " << rWalker.name());
+            m_bValid = false;
+        }
+        else if (rWalker.name() == "part")
         {
             OString sPart = rWalker.attribute("value"_ostr);
             auto const oPart = xmlStringToControlPart(sPart);
@@ -698,29 +853,29 @@ void WidgetDefinitionReader::readDefinition(tools::XmlWalker& rWalker,
             OString sWidth = rWalker.attribute("width"_ostr);
             if (!sWidth.isEmpty())
             {
-                sal_Int32 nWidth = sWidth.isEmpty() ? 0 : sWidth.toInt32();
-                pPart->mnWidth = nWidth;
+                if (!readMetricReference(sWidth, rMetricTokens, pPart->mnWidth))
+                    m_bValid = false;
             }
 
             OString sHeight = rWalker.attribute("height"_ostr);
             if (!sHeight.isEmpty())
             {
-                sal_Int32 nHeight = sHeight.isEmpty() ? 0 : sHeight.toInt32();
-                pPart->mnHeight = nHeight;
+                if (!readMetricReference(sHeight, rMetricTokens, pPart->mnHeight))
+                    m_bValid = false;
             }
 
             OString sMarginHeight = rWalker.attribute("margin-height"_ostr);
             if (!sMarginHeight.isEmpty())
             {
-                sal_Int32 nMarginHeight = sMarginHeight.isEmpty() ? 0 : sMarginHeight.toInt32();
-                pPart->mnMarginHeight = nMarginHeight;
+                if (!readMetricReference(sMarginHeight, rMetricTokens, pPart->mnMarginHeight))
+                    m_bValid = false;
             }
 
             OString sMarginWidth = rWalker.attribute("margin-width"_ostr);
             if (!sMarginWidth.isEmpty())
             {
-                sal_Int32 nMarginWidth = sMarginWidth.isEmpty() ? 0 : sMarginWidth.toInt32();
-                pPart->mnMarginWidth = nMarginWidth;
+                if (!readMetricReference(sMarginWidth, rMetricTokens, pPart->mnMarginWidth))
+                    m_bValid = false;
             }
 
             OString sOrientation = rWalker.attribute("orientation"_ostr);
@@ -735,7 +890,7 @@ void WidgetDefinitionReader::readDefinition(tools::XmlWalker& rWalker,
                 SAL_WARN("vcl.gdi", "Duplicate file-widget control part: " << sPart);
                 m_bValid = false;
             }
-            readPart(rWalker, pPart, rRadiusTokens);
+            readPart(rWalker, pPart, rRadiusTokens, rMetricTokens);
         }
         rWalker.next();
     }
@@ -744,12 +899,18 @@ void WidgetDefinitionReader::readDefinition(tools::XmlWalker& rWalker,
 
 void WidgetDefinitionReader::readPart(tools::XmlWalker& rWalker,
                                       const std::shared_ptr<WidgetDefinitionPart>& rpPart,
-                                      const std::map<OString, sal_Int32>& rRadiusTokens)
+                                      const std::map<OString, sal_Int32>& rRadiusTokens,
+                                      const std::map<OString, sal_Int32>& rMetricTokens)
 {
     rWalker.children();
     while (rWalker.isValid())
     {
-        if (rWalker.name() == "state")
+        if (rWalker.name() == "metrics" || rWalker.name() == "metric")
+        {
+            SAL_WARN("vcl.gdi", "Misplaced file-widget metric element: " << rWalker.name());
+            m_bValid = false;
+        }
+        else if (rWalker.name() == "state")
         {
             OString sEnabled = getValueOrAny(rWalker.attribute("enabled"_ostr));
             OString sFocused = getValueOrAny(rWalker.attribute("focused"_ostr));
@@ -764,7 +925,7 @@ void WidgetDefinitionReader::readPart(tools::XmlWalker& rWalker,
                 sEnabled, sFocused, sPressed, sRollover, sDefault, sSelected, sButtonValue, sExtra);
 
             rpPart->maStates.push_back(pState);
-            readDrawingDefinition(rWalker, pState, rRadiusTokens);
+            readDrawingDefinition(rWalker, pState, rRadiusTokens, rMetricTokens);
         }
         rWalker.next();
     }
@@ -787,7 +948,9 @@ bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
     // is selected for this read.
     std::map<OString, std::map<OString, Color>> aColorPalettes;
     std::map<OString, sal_Int32> aRadiusTokens;
+    std::map<OString, sal_Int32> aMetricTokens;
     bool bHasShapes = false;
+    bool bHasMetrics = false;
     {
         SvFileStream aPaletteStream(m_rDefinitionFile, StreamMode::READ);
         tools::XmlWalker aPaletteWalker;
@@ -822,6 +985,20 @@ bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
                 else
                     aRadiusTokens = std::move(aShapeTokens);
                 bHasShapes = true;
+            }
+            else if (aPaletteWalker.name() == "metrics")
+            {
+                std::map<OString, sal_Int32> aTokens;
+                if (!readMetricTokens(aPaletteWalker, aTokens))
+                    m_bValid = false;
+                if (bHasMetrics)
+                {
+                    SAL_WARN("vcl.gdi", "Duplicate file-widget metrics section");
+                    m_bValid = false;
+                }
+                else
+                    aMetricTokens = std::move(aTokens);
+                bHasMetrics = true;
             }
             aPaletteWalker.next();
         }
@@ -954,8 +1131,11 @@ bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
     std::unordered_map<std::string_view, OString*> aSettingMap = {
         { "noActiveTabTextRaise", &rWidgetDefinition.mpSettings->msNoActiveTabTextRaise },
         { "centeredTabs", &rWidgetDefinition.mpSettings->msCenteredTabs },
-        { "listBoxEntryMargin", &rWidgetDefinition.mpSettings->msListBoxEntryMargin },
         { "defaultFontSize", &rWidgetDefinition.mpSettings->msDefaultFontSize },
+    };
+
+    std::unordered_map<std::string_view, OString*> aMetricSettingMap = {
+        { "listBoxEntryMargin", &rWidgetDefinition.mpSettings->msListBoxEntryMargin },
         { "titleHeight", &rWidgetDefinition.mpSettings->msTitleHeight },
         { "floatTitleHeight", &rWidgetDefinition.mpSettings->msFloatTitleHeight },
         { "listBoxPreviewDefaultLogicWidth",
@@ -986,27 +1166,44 @@ bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
         {
             // Parsed in the order-independent first pass.
         }
+        else if (aWalker.name() == "metrics")
+        {
+            // Parsed in the order-independent first pass.
+        }
+        else if (aWalker.name() == "metric")
+        {
+            SAL_WARN("vcl.gdi", "Misplaced file-widget metric element");
+            m_bValid = false;
+        }
         else if (aWalker.name() == "style")
         {
             aWalker.children();
             while (aWalker.isValid())
             {
-                auto aOptional = aOptionalStyleColorMap.find(aWalker.name());
-                if (aOptional != aOptionalStyleColorMap.end())
+                if (aWalker.name() == "metrics" || aWalker.name() == "metric")
                 {
-                    Color aColor;
-                    if (readColor(aWalker.attribute("value"_ostr), aColor))
-                        *aOptional->second = aColor;
-                    else
-                        m_bValid = false;
+                    SAL_WARN("vcl.gdi", "Misplaced file-widget metric element: " << aWalker.name());
+                    m_bValid = false;
                 }
                 else
                 {
-                    auto aColor = aStyleColorMap.find(aWalker.name());
-                    if (aColor != aStyleColorMap.end()
-                        && !readColor(aWalker.attribute("value"_ostr), *aColor->second))
+                    auto aOptional = aOptionalStyleColorMap.find(aWalker.name());
+                    if (aOptional != aOptionalStyleColorMap.end())
                     {
-                        m_bValid = false;
+                        Color aColor;
+                        if (readColor(aWalker.attribute("value"_ostr), aColor))
+                            *aOptional->second = aColor;
+                        else
+                            m_bValid = false;
+                    }
+                    else
+                    {
+                        auto aColor = aStyleColorMap.find(aWalker.name());
+                        if (aColor != aStyleColorMap.end()
+                            && !readColor(aWalker.attribute("value"_ostr), *aColor->second))
+                        {
+                            m_bValid = false;
+                        }
                     }
                 }
                 aWalker.next();
@@ -1018,10 +1215,32 @@ bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
             aWalker.children();
             while (aWalker.isValid())
             {
-                auto pair = aSettingMap.find(aWalker.name());
-                if (pair != aSettingMap.end())
+                if (aWalker.name() == "metrics" || aWalker.name() == "metric")
                 {
-                    readSetting(aWalker.attribute("value"_ostr), *pair->second);
+                    SAL_WARN("vcl.gdi", "Misplaced file-widget metric element: " << aWalker.name());
+                    m_bValid = false;
+                }
+                else
+                {
+                    auto aMetric = aMetricSettingMap.find(aWalker.name());
+                    if (aMetric != aMetricSettingMap.end())
+                    {
+                        if (!readMetricSetting(aWalker.attribute("value"_ostr), aMetricTokens,
+                                               *aMetric->second))
+                        {
+                            m_bValid = false;
+                        }
+                    }
+                    else
+                    {
+                        auto aSetting = aSettingMap.find(aWalker.name());
+                        if (aSetting != aSettingMap.end()
+                            && !readLiteralSetting(aWalker.attribute("value"_ostr),
+                                                   *aSetting->second))
+                        {
+                            m_bValid = false;
+                        }
+                    }
                 }
                 aWalker.next();
             }
@@ -1043,7 +1262,7 @@ bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
         }
         else if (getControlTypeForXmlString(aWalker.name(), eType))
         {
-            readDefinition(aWalker, rWidgetDefinition, eType, aRadiusTokens);
+            readDefinition(aWalker, rWidgetDefinition, eType, aRadiusTokens, aMetricTokens);
         }
         aWalker.next();
     }

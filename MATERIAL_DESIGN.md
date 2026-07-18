@@ -4,6 +4,17 @@ This document translates Material Design 3 ideas into LibreOffice's native
 desktop architecture. It is a starting contract, not proof that the current UI
 implements these rules.
 
+The canonical visual and interaction reference is the interactive prototype at
+[`site/prototype.html`](site/prototype.html): a hand-built, dependency-free HTML
+rendering of the whole suite (Start Center, Writer, Calc, Impress, Draw, Base,
+Math, a component gallery, the full command catalog, version history, and shared
+dialogs) across light/dark/high-contrast themes, compact/comfortable density,
+and classic/ribbon chrome. Its color, shape, type, and metric values are drawn
+from the same semantic roles as
+[`vcl/uiconfig/theme_definitions/material/definition.xml`](vcl/uiconfig/theme_definitions/material/definition.xml).
+It specifies the target design; it is a mockup, not a screenshot of a compiled
+LibreOffice, and it is not build or accessibility evidence.
+
 ## Current implementation status
 
 Ten native source milestones now exist. They package an opt-in Material

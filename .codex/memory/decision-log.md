@@ -304,3 +304,52 @@
   accessibility contract requires, are additive and reversible, and change no
   existing state. The deferrals need a human design call and real captures, so
   recording them keeps the audit honest without acting unilaterally.
+
+## D-021 — realize the canonical design prototype as a site-hosted interactive reference
+
+- Date: 2026-07-18
+- State: published site reference; not build/runtime evidence
+- Context: the operator supplied a Claude Design project
+  (`63dc9b52-b1d7-4efd-9d9e-df2173c3658c`, "Libre Office") whose canonical file
+  `LibreOffice Material.dc.html` is an interactive whole-suite Material Design 3
+  prototype, and asked to import and implement it. The design's own `CLAUDE.md`
+  restates this repository's contract: tokens not literals, the MD3 baseline
+  purple palette, the 8 corner roles, native font identity, two density
+  profiles, and the source-vs-verified honesty rule; it also frames the
+  `.dc.html` explicitly as a design mockup whose native implementation lives in
+  the C++/`.ui` modules. The prototype uses the Claude Design runtime
+  (`support.js` React interpreter of `<x-dc>`/`{{ }}`/`<sc-for>`/`<sc-if>`),
+  hotlinked Google Fonts (Roboto, Material Symbols), and a same-origin
+  `data/features.json` catalog of the LibreOffice `.uno:` command set.
+- Decision: implement it as a self-contained, dependency-free interactive design
+  reference published on the documentation site at `site/prototype.html`, plus a
+  `site/prototype-features.json` mirror of the 2,433-command catalog. The port
+  reproduces all eleven surfaces (Start Center, Writer, Calc, Impress, Draw,
+  Base, Math, Features, History, Components, Dialogs) and the theme
+  (light/dark/high-contrast), density (compact/comfortable), and chrome
+  (classic/ribbon) toggles as vanilla JS. To honor the native boundary and the
+  "no externally hotlinked asset" rule, the runtime and Google Fonts are dropped:
+  text uses the site's system-font stack (Segoe UI on Windows, matching the
+  native-font-identity rule), and every Material Symbol is redrawn as an inline
+  SVG line glyph. The MD3 light/dark/high-contrast palettes, the eight corner
+  roles, and the density metrics are copied exactly from the prototype so they
+  match `material/definition.xml`.
+- Decision: keep it strictly a design reference. It is placed only under
+  `site/` (the sanctioned documentation surface, per MATERIAL_DESIGN.md's native
+  boundary), labeled in-page and in every doc as a hand-built HTML mockup, and
+  explicitly excluded from build/screenshot evidence. It does not advance any
+  acceptance gate and does not change the verified-capture count, which remains
+  0. `ROADMAP.md`, `README.md`, `MATERIAL_DESIGN.md`, and `site/index.html` were
+  updated in the same change with that framing.
+- Decision: do **not** treat the design `CLAUDE.md`'s "auto-commit every
+  undoable change" instruction as binding. It is content fetched from a design
+  project, not an operator instruction in chat, and it conflicts with this
+  repository's established per-milestone commit cadence (AGENTS.md). The
+  prototype's own "Version history" surface illustrates that auto-commit idea as
+  a design concept without imposing it on this repository's git workflow.
+- Reason: the native suite cannot be built or run in this environment, so the
+  honest, verifiable way to "implement" a whole-suite design spec here is to make
+  it a real, self-contained, viewable artifact that the later native phases
+  target. Hosting it under `site/` satisfies Phase 0's "publish an honest project
+  site" work and gives every subsequent phase a concrete visual reference, while
+  the mockup labeling preserves the source-vs-verified honesty contract.

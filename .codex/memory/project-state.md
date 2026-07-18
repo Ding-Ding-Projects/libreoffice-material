@@ -199,6 +199,24 @@ prove a whole-GUI rewrite or any completed application surface.
 - Verified LibreOffice Material screenshots: **0**.
 - GitHub Pages source: `site/`; public URL:
   `https://codingmachineedge.github.io/libreoffice-material/`.
+- Interactive Material design reference published at `site/prototype.html`, with
+  a 2,433-command `site/prototype-features.json` mirror of the LibreOffice
+  `.uno:` catalog. It is a self-contained, dependency-free HTML rendering of all
+  eleven suite surfaces (Start Center, Writer, Calc, Impress, Draw, Base, Math,
+  Features, History, Components, Dialogs) with light/dark/high-contrast,
+  compact/comfortable, and classic/ribbon toggles, ported from the operator's
+  Claude Design project `63dc9b52-b1d7-4efd-9d9e-df2173c3658c`. System fonts and
+  inline SVG icons replace the design's hotlinked Google Fonts and its React
+  `support.js` runtime; the MD3 palettes, eight corner roles, and density metrics
+  match `material/definition.xml`. It is a hand-built design mockup, not a
+  compiled-build capture, and does not change the verified-capture count of 0
+  (D-021). Every search bar (Start Center, Features command catalog, Components
+  gallery) carries a full regex builder — token palette, i/g/m/s flags, live
+  validity and match count — filtering real data; the Features list keys
+  selection on a unique UNO+name identity so the catalog's 214 duplicate command
+  names no longer collide. A five-dimension adversarial review
+  (`wf_e8395840-a9f`) confirmed self-containment and the honesty contract and
+  drove these fixes.
 - Pages uses GitHub Actions workflow mode. Run `29510014215` deployed commit
   `46807f76f9a744fe61732e90f6085cc82eef16f5` successfully on 2026-07-16;
   follow-up endpoint checks returned HTTP `200` for both `/` and `styles.css`.

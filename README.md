@@ -14,6 +14,7 @@ document engine, file-format support, and accessibility foundations.
 > Material-complete.
 
 [Project site](https://codingmachineedge.github.io/libreoffice-material/) ·
+[Interactive preview](https://codingmachineedge.github.io/libreoffice-material/prototype.html) ·
 [Roadmap](ROADMAP.md) ·
 [Material specification](MATERIAL_DESIGN.md) ·
 [Headless UI evidence plan](docs/HEADLESS_UI_EVIDENCE.md) ·
@@ -190,6 +191,18 @@ See [`MATERIAL_DESIGN.md`](MATERIAL_DESIGN.md) for component rules and
 No screenshot is shown until it is captured from a build of this repository and
 registered with its commit, environment, test scenario, and result. Empty cards
 on the project site are **evidence slots**, not mockups or generated UI claims.
+
+The interactive reference at
+[`site/prototype.html`](site/prototype.html) is the intended Material look and
+interaction drawn as a self-contained, dependency-free HTML page (system fonts,
+inline SVG icons, no web fonts or CDN). Every search bar in it carries a full
+regex builder — token palette, `i`/`g`/`m`/`s` flags, live validity and match
+count — filtering the real Start Center, command-catalog, and gallery data. Every color, corner, and metric mirrors
+the semantic roles in
+[`vcl/uiconfig/theme_definitions/material/definition.xml`](vcl/uiconfig/theme_definitions/material/definition.xml).
+It is a design specification aid, **not** a screenshot of a compiled LibreOffice
+and **not** build evidence; it does not change the verified-capture count, which
+remains 0.
 
 The verification driver is the sibling
 [`lowlevel-computer-use-mcp`](https://github.com/codingmachineedge/lowlevel-computer-use-mcp)

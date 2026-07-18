@@ -22,6 +22,9 @@ No phase is currently marked verified.
 - preserve and document the exact LibreOffice upstream baseline;
 - establish the Material design contract and token vocabulary;
 - publish an honest project site and screenshot registry;
+- publish an interactive, dependency-free Material design reference on the site
+  as the whole-suite visual and interaction target (explicitly a hand-built
+  mockup, not a build screenshot);
 - define native build profiles and artifact retention rules;
 - preflight the low-level computer-use driver and an off-screen desktop;
 - connect that proven harness to a built LibreOffice binary and isolated profile;
@@ -34,6 +37,13 @@ LibreOffice build profile: WSL 2.7.10 has no installed distribution/helper, the
 selectable Visual Studio instance lacks ATL and its configured CMake, SDK 28000
 is selected despite missing required desktop files, and supporting build tools
 remain incomplete.
+
+An interactive, dependency-free Material design reference for the whole suite is
+published at [`site/prototype.html`](site/prototype.html). It is a hand-built
+HTML rendering of the target look and interaction whose tokens mirror
+`material/definition.xml`; it specifies the design the native work targets and is
+**not** a capture of a compiled build, so it does not advance any acceptance
+gate or the verified-capture count.
 
 Exit gate:
 

@@ -31,7 +31,7 @@
 </style>
 </head>
 <body>
-<a class="skip" href="#stage">Skip to the prototype</a>
+<a class="skip" href="#window">Skip to the prototype</a>
 <div id="app" aria-label="LibreOffice Material interactive prototype"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <script>
@@ -160,7 +160,11 @@ function ic(name, size, color){
   return '<span class="ic" aria-hidden="true" style="' + st + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg></span>';
 }
 
-/* ---- exact MD3 palettes from definition.xml (light / dark / high contrast) ---- */
+/* ---- exact MD3 palettes from the canonical design + definition.xml (light / dark / high contrast) ----
+   Note: --inv-s / --on-inv-s intentionally follow the source design's choice of a dark
+   control bar and snackbar in every theme (dark surface, light text), rather than the
+   MD3 convention where dark-mode inverse-surface is a light color. This is deliberate
+   fidelity to LibreOffice Material.dc.html, not an oversight. */
 var PAL = {
   light:{p:'#6750A4',onP:'#FFFFFF',pc:'#E8DEF8',onPc:'#1D192B',pHover:'#D0BCFF',pPressed:'#CCC2DC',paHover:'#7965AF',paPressed:'#5B3F91',surface:'#FFFBFE',sc:'#F3EDF7',scl:'#F7F2FA',onS:'#1D1B20',onSv:'#49454F',outline:'#79747E',outlineV:'#CAC4D0',disabled:'#E6E0E9',invS:'#313033',onInvS:'#F4EFF4',warn:'#FFDDB3',onWarn:'#2A1800',err:'#F9DEDC',onErr:'#410E0B',errBase:'#B3261E',visited:'#7D5260',desk:'#E7E0EC',scrim:'rgba(20,18,24,.38)'},
   dark:{p:'#D0BCFF',onP:'#381E72',pc:'#4F378B',onPc:'#EADDFF',pHover:'#4F378B',pPressed:'#625B71',paHover:'#C4AEFF',paPressed:'#B69DF8',surface:'#141218',sc:'#211F26',scl:'#1D1B20',onS:'#E6E0E9',onSv:'#CAC4D0',outline:'#938F99',outlineV:'#49454F',disabled:'#36343B',invS:'#2B2930',onInvS:'#E6E0E9',warn:'#5F4100',onWarn:'#FFDDB3',err:'#8C1D18',onErr:'#F9DEDC',errBase:'#F2B8B5',visited:'#EFB8C8',desk:'#0B0A0E',scrim:'rgba(0,0,0,.6)'},
@@ -280,10 +284,16 @@ var S = {
   gCheck:true, gRadio:'balanced', gSwitch:true, gTab:1, gSlider:64,
   gChip:{design:true,native:false,a11y:true},
   calcSel:'B2', sheet:0, slide:1, layout:1, dialog:'options', baseSel:0, printRange:'all',
-  featCat:'all', featQuery:'', featSel:'Find & Replace', features:null,
+  featCat:'all', featSel:'', features:null,
   fmt:{bold:true,italic:false,underline:false,strike:false,align:'left'},
   histSel:0, histScope:'doc',
-  _focusSearch:false
+  // one independent regex-search state per search bar in the suite
+  rx:{
+    start:   {q:'',flags:'i',regex:false,open:false,caret:null},
+    features:{q:'',flags:'i',regex:false,open:false,caret:null},
+    gallery: {q:'',flags:'i',regex:false,open:false,caret:null}
+  },
+  _focusRx:null
 };
 
 /* ---- helpers ---- */
@@ -297,6 +307,74 @@ function toast(msg){
   setTimeout(function(){ if(t===toastTok) el.classList.remove('show'); },1900);
 }
 function set(k,v){ S[k]=v; S.menuOpen=null; render(); }
+
+/* =========================================================================
+   Fully-featured regex builder — attached to every search bar in the suite.
+   Each search bar has independent state in S.rx[id] = {q, flags, regex, open,
+   caret}. In literal mode q is a case-insensitive substring; in regex mode q is
+   a JavaScript RegExp with i/g/m/s flags. The builder inserts tokens at the
+   caret, toggles flags, validates live, and reports a match count.
+   ========================================================================= */
+var RX_FLAGS = [['i','Ignore case'],['g','Global'],['m','Multiline (^ $ per line)'],['s','Dotall (. matches newline)']];
+// token groups: [label, tooltip, insert, caretBack] — caretBack lands the caret inside brackets/groups
+var RX_TOKENS = [
+  { g:'Anchors', t:[['^','Start of line','^',0],['$','End of line','$',0],['\\b','Word boundary','\\b',0],['\\B','Non-boundary','\\B',0]] },
+  { g:'Classes', t:[['.','Any character','.',0],['\\d','Digit','\\d',0],['\\D','Non-digit','\\D',0],['\\w','Word char','\\w',0],['\\W','Non-word','\\W',0],['\\s','Whitespace','\\s',0],['\\S','Non-space','\\S',0],['[ ]','Character set','[]',1],['[^ ]','Negated set','[^]',1],['a-z','Range','[a-z]',1]] },
+  { g:'Quantifiers', t:[['*','0 or more','*',0],['+','1 or more','+',0],['?','Optional','?',0],['{n}','Exactly n','{}',1],['{n,}','n or more','{,}',2],['{n,m}','Between','{,}',2],['*?','Lazy','*?',0]] },
+  { g:'Groups', t:[['( )','Capture group','()',1],['(?: )','Non-capturing','(?:)',1],['|','Alternation','|',0],['(?= )','Lookahead','(?=)',1],['(?! )','Negative lookahead','(?!)',1]] },
+  { g:'Escapes', t:[['\\.','Literal dot','\\.',0],['\\/','Slash','\\/',0],['\\(','Paren','\\(',0],['\\t','Tab','\\t',0],['\\n','Newline','\\n',0]] }
+];
+function compileRx(st){
+  if(st.q===''){ return {ok:true, empty:true, test:function(){return true;}}; }
+  if(!st.regex){ var q=st.q.toLowerCase(); return {ok:true, test:function(s){ return String(s).toLowerCase().indexOf(q)>=0; }}; }
+  try{
+    var fl=(st.flags||'').replace(/[^gimsuy]/g,'').replace('g',''); // g is stateful for .test(); strip it
+    var re=new RegExp(st.q, fl);
+    return {ok:true, re:re, test:function(s){ return re.test(String(s)); }};
+  }catch(e){ return {ok:false, error:e.message, test:function(){return false;}}; }
+}
+function rxPredicate(id){ return compileRx(S.rx[id]); }
+
+function renderSearch(id, placeholder, total, matched, wrapStyle){
+  var st=S.rx[id], pred=compileRx(st);
+  var invalid = st.regex && st.q!=='' && !pred.ok;
+  var border = invalid ? '2px solid var(--err-base)' : 'var(--bw) solid var(--outline-v)';
+  var mono = st.regex ? ";font-family:'Cascadia Code',Consolas,monospace" : '';
+  var clearBtn = st.q ? '<button title="Clear" data-act="rxclear:'+id+'" data-hov="background:var(--outline-v)" style="width:28px;height:28px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center;flex:0 0 auto">'+ic('close',16)+'</button>' : '';
+  var modeBtn = '<button title="Regular-expression mode" aria-pressed="'+st.regex+'" data-act="rxmode:'+id+'" style="height:28px;padding:0 9px;border:'+(st.regex?'none':'var(--bw) solid var(--outline)')+';background:'+(st.regex?'var(--p)':'transparent')+';color:'+(st.regex?'var(--on-p)':'var(--on-sv)')+';border-radius:var(--r-sm);cursor:pointer;font:700 12px/1 monospace;flex:0 0 auto">.*</button>';
+  var buildBtn = '<button title="Regex builder" aria-expanded="'+st.open+'" data-act="rxtoggle:'+id+'" data-hov="background:var(--pc);color:var(--on-pc)" style="width:30px;height:30px;border:none;background:'+(st.open?'var(--pc)':'transparent')+';color:'+(st.open?'var(--on-pc)':'var(--on-sv)')+';border-radius:var(--r-sm);cursor:pointer;display:grid;place-items:center;flex:0 0 auto">'+ic('tune',20)+'</button>';
+  var row = '<div style="height:44px;display:flex;align-items:center;gap:8px;padding:0 8px 0 14px;border-radius:var(--r-pill);background:var(--sc);border:'+border+'">'
+    + ic('search',20,'var(--on-sv)')
+    + '<input id="rxin-'+id+'" value="'+esc(st.q)+'" aria-label="'+esc(placeholder)+'" placeholder="'+esc(placeholder)+'" spellcheck="false" autocomplete="off" autocapitalize="off" style="flex:1;min-width:0;border:none;background:transparent;outline:none;color:var(--on-s);font:400 14px/1 inherit'+mono+'">'
+    + clearBtn + modeBtn + buildBtn
+    + '</div>';
+  var pop = st.open ? rxBuilder(id, pred, total, matched) : '';
+  return '<div data-silent="1" style="position:relative;'+(wrapStyle||'flex:1')+'">'+row+pop+'</div>';
+}
+function rxBuilder(id, pred, total, matched){
+  var st=S.rx[id];
+  var flagsHtml='';
+  for(var i=0;i<RX_FLAGS.length;i++){ var f=RX_FLAGS[i][0], on=st.flags.indexOf(f)>=0;
+    flagsHtml+='<button title="'+esc(RX_FLAGS[i][1])+'" data-act="rxflag:'+id+':'+f+'" aria-pressed="'+on+'" style="width:30px;height:30px;border:'+(on?'none':'var(--bw) solid var(--outline)')+';background:'+(on?'var(--p)':'transparent')+';color:'+(on?'var(--on-p)':'var(--on-s)')+';border-radius:var(--r-sm);cursor:pointer;font:700 13px/1 monospace">'+f+'</button>'; }
+  var tokHtml='';
+  for(var g=0;g<RX_TOKENS.length;g++){ var grp=RX_TOKENS[g];
+    tokHtml+='<div style="margin-top:10px"><div style="font:700 10px/1 inherit;letter-spacing:.07em;text-transform:uppercase;color:var(--on-sv);margin-bottom:6px">'+esc(grp.g)+'</div><div style="display:flex;flex-wrap:wrap;gap:5px">';
+    for(var t=0;t<grp.t.length;t++){ var tk=grp.t[t];
+      tokHtml+='<button title="'+esc(tk[1])+'" data-act="rxtok:'+id+':'+g+':'+t+'" data-hov="background:var(--pc);color:var(--on-pc);border-color:var(--p)" class="mono" style="height:28px;padding:0 9px;border:var(--bw) solid var(--outline-v);background:var(--surface);color:var(--on-s);border-radius:var(--r-sm);cursor:pointer;font-size:12px">'+esc(tk[0])+'</button>'; }
+    tokHtml+='</div></div>';
+  }
+  var status;
+  if(st.q==='') status='<span style="color:var(--on-sv)">Type or build a pattern — '+total+' items</span>';
+  else if(st.regex && !pred.ok) status='<span style="color:var(--err-base);font-weight:600">Invalid pattern: '+esc(pred.error)+'</span>';
+  else status='<span style="color:var(--p);font-weight:700">'+matched+'</span><span style="color:var(--on-sv)"> of '+total+' match'+(st.regex?' &nbsp;/'+esc(st.q)+'/'+esc((st.flags||'').replace(/[^gimsuy]/g,'')):'')+'</span>';
+  var preview = st.q!=='' ? esc(st.q) : '<span style="color:var(--on-sv)">(empty)</span>';
+  return '<div class="lo-scroll" style="position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:70;max-height:340px;overflow:auto;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);box-shadow:0 16px 40px rgba(0,0,0,.28);padding:14px;animation:lo-pop .12s ease">'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font:600 13px/1 inherit;color:var(--on-s)">Regex builder</span><span style="font:400 11px/1 inherit;color:var(--on-sv)">insert tokens · toggle flags · live matches</span><button title="Close" data-act="rxclose:'+id+'" data-hov="background:var(--outline-v)" style="margin-left:auto;width:28px;height:28px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('close',16)+'</button></div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="mono" style="color:var(--on-sv)">/</span><div class="mono" style="flex:1;min-width:0;height:34px;display:flex;align-items:center;padding:0 10px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);overflow:hidden;white-space:nowrap;font-size:13px">'+preview+'</div><span class="mono" style="color:var(--on-sv)">/</span><div style="display:flex;gap:4px">'+flagsHtml+'</div></div>'
+    + tokHtml
+    + '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:10px;border-top:var(--bw) solid var(--outline-v);font:400 12px/1.3 inherit">'+status+'<button data-act="rxclear:'+id+'" data-hov="background:var(--pc)" style="margin-left:auto;flex:0 0 auto;height:30px;padding:0 12px;border:var(--bw) solid var(--outline);background:transparent;color:var(--p);border-radius:var(--r-pill);cursor:pointer;font:600 12px/1 inherit">Clear</button></div>'
+    + '</div>';
+}
 
 /* ---- render ---- */
 function render(){
@@ -325,10 +403,11 @@ function render(){
   app.setAttribute('style',cssText);
   app.innerHTML=html;
 
-  if(scr==='code' && st._focusSearch){
-    var inp=document.getElementById('featSearch');
-    if(inp){ inp.focus(); var v=inp.value; inp.setSelectionRange(v.length,v.length); }
-    st._focusSearch=false;
+  if(st._focusRx){
+    var rin=document.getElementById('rxin-'+st._focusRx);
+    if(rin){ rin.focus(); var rst=S.rx[st._focusRx]; var c=(rst && rst.caret!=null)?rst.caret:rin.value.length;
+      try{ rin.setSelectionRange(c,c); }catch(_){} }
+    st._focusRx=null;
   }
 }
 
@@ -385,7 +464,7 @@ function windowShell(isApp, meta){
   var body=screenBody();
   var status = isApp ? statusBar() : '';
 
-  return '<div style="width:100%;display:flex;justify-content:center;padding:24px 20px 8px"><div style="width:min(1200px,97vw);border-radius:11px;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 30px 70px rgba(0,0,0,.30),0 6px 16px rgba(0,0,0,.16);overflow:hidden;position:relative">'
+  return '<div style="width:100%;display:flex;justify-content:center;padding:24px 20px 8px"><div id="window" tabindex="-1" style="width:min(1200px,97vw);border-radius:11px;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 30px 70px rgba(0,0,0,.30),0 6px 16px rgba(0,0,0,.16);overflow:hidden;position:relative">'
     + titleBar + command + body + status
     + '</div></div>';
 }
@@ -527,11 +606,16 @@ function startBody(){
 
   var RECENT=[['Q3 Board Report.odt','writer','2 hours ago'],['2026 Operating Budget.ods','calc','Yesterday'],['Product Launch.odp','impress','Yesterday'],['Brand Guidelines.odg','draw','2 days ago'],['Research Notes.odt','writer','Last week'],['Sales Pipeline.ods','calc','Last week'],['Onboarding Deck.odp','impress','Last week'],['Symbols.odf','math','2 weeks ago']];
   var TEMPL=[['Modern Résumé','writer'],['Invoice','calc'],['Pitch Deck','impress'],['Newsletter','writer'],['Budget Planner','calc'],['Event Poster','draw'],['Meeting Minutes','writer'],['Quarterly Report','calc']];
+  var srcList = S.scView==='recent'
+    ? RECENT.map(function(x){ return {icon:APP[x[1]].icon, name:x[0], meta:APP[x[1]].label+' · '+x[2]}; })
+    : TEMPL.map(function(x){ return {icon:APP[x[1]].icon, name:x[0], meta:APP[x[1]].label+' template'}; });
+  var scPred=rxPredicate('start');
+  var scShown=srcList.filter(function(it){ return scPred.test(it.name+' '+it.meta); });
   var cards='';
-  if(S.scView==='recent'){ for(var r=0;r<RECENT.length;r++){ var rr=RECENT[r]; cards+=startCard(APP[rr[1]].icon,rr[0],APP[rr[1]].label+' · '+rr[2]); } }
-  else { for(var t=0;t<TEMPL.length;t++){ var tt=TEMPL[t]; cards+=startCard(APP[tt[1]].icon,tt[0],APP[tt[1]].label+' template'); } }
+  for(var ci=0;ci<scShown.length;ci++){ cards+=startCard(scShown[ci].icon,scShown[ci].name,scShown[ci].meta); }
   var filterLabel = S.scView==='recent' ? 'All Documents' : 'All Templates';
   var viewWord = S.scView;
+  if(!scShown.length){ cards='<div style="grid-column:1/-1;padding:34px;text-align:center;color:var(--on-sv);font:400 13px/1.5 inherit">No '+esc(viewWord)+' match this pattern.</div>'; }
 
   return '<div style="display:flex;height:600px">'
     + '<div style="width:236px;flex:0 0 auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);display:flex;flex-direction:column;padding:10px">'
@@ -548,7 +632,7 @@ function startBody(){
       + '<p style="margin:0 0 20px;color:var(--on-sv);font:400 14px/1.5 inherit">Open recent work, explore templates, or create a new document.</p>'
       + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">'
         + '<div style="height:38px;display:flex;align-items:center;gap:10px;padding:0 10px 0 14px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);font:400 13px/1 inherit">'+esc(filterLabel)+ic('expand_more',18,'var(--on-sv)')+'</div>'
-        + '<div style="flex:1;height:38px;display:flex;align-items:center;gap:8px;padding:0 14px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-pill);color:var(--on-sv);background:var(--sc);font:400 13px/1 inherit">'+ic('search',18)+'Search '+esc(viewWord)+'</div>'
+        + renderSearch('start','Search '+viewWord, srcList.length, scShown.length)
         + '<button title="Actions" data-hov="background:var(--pc);color:var(--on-pc)" style="width:38px;height:38px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('more_vert',20)+'</button>'
       + '</div>'
       + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(184px,1fr));gap:16px">'+cards+'</div>'
@@ -724,6 +808,9 @@ function mathBody(){
 /* ---- Component gallery ---- */
 function galleryBody(){
   var st=S, P=PAL[st.theme];
+  var galP=rxPredicate('gallery');
+  var GFEAT=(st.features&&st.features.length)?st.features:FEATURES_FALLBACK;
+  var galMatched=0; for(var gmi=0;gmi<GFEAT.length;gmi++){ if(galP.test(GFEAT[gmi][0]+' '+GFEAT[gmi][2])) galMatched++; }
   var SW=[['primary',P.p,P.onP],['primary-container',P.pc,P.onPc],['surface',P.surface,P.onS],['surface-container',P.sc,P.onS],['on-surface-variant',P.onSv,P.surface],['outline',P.outline,P.surface],['error-container',P.err,P.onErr],['warning-container',P.warn,P.onWarn],['inverse-surface',P.invS,P.onInvS],['visited-link',P.visited,'#ffffff']];
   var swHtml='';
   for(var i=0;i<SW.length;i++){ var s=SW[i];
@@ -735,7 +822,7 @@ function galleryBody(){
 
   var chipDefs=[['design','Design'],['native','Native'],['a11y','Accessible']], chipHtml='';
   for(var c=0;c<chipDefs.length;c++){ var ca=st.gChip[chipDefs[c][0]];
-    chipHtml+='<button data-act="chip:'+chipDefs[c][0]+'" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 '+(ca?'14px':'16px')+' 0 '+(ca?'10px':'16px')+';border-radius:var(--r-sm);cursor:pointer;font:500 13px/1 inherit;border:var(--bw) solid '+(ca?'var(--p)':'var(--outline)')+';background:'+(ca?'var(--pc)':'transparent')+';color:'+(ca?'var(--on-pc)':'var(--on-s)')+'"><span class="ic" style="font-size:18px;opacity:'+(ca?1:0)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICONS.check+'</svg></span>'+chipDefs[c][1]+'</button>'; }
+    chipHtml+='<button data-act="chip:'+chipDefs[c][0]+'" aria-pressed="'+ca+'" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 '+(ca?'14px':'16px')+' 0 '+(ca?'10px':'16px')+';border-radius:var(--r-sm);cursor:pointer;font:500 13px/1 inherit;border:var(--bw) solid '+(ca?'var(--p)':'var(--outline)')+';background:'+(ca?'var(--pc)':'transparent')+';color:'+(ca?'var(--on-pc)':'var(--on-s)')+'"><span class="ic" aria-hidden="true" style="font-size:18px;opacity:'+(ca?1:0)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICONS.check+'</svg></span>'+chipDefs[c][1]+'</button>'; }
 
   var GTABS=['Overview','Tokens','States'], galHtml='';
   for(var g=0;g<GTABS.length;g++){ var ga=g===st.gTab;
@@ -746,7 +833,7 @@ function galleryBody(){
   for(var l=0;l<listItems.length;l++){ var it=listItems[l];
     liHtml+='<div style="display:flex;align-items:center;gap:12px;height:44px;padding:0 14px;cursor:pointer;background:'+(it[2]?'var(--pc)':'transparent')+';border-bottom:'+(l<2?'var(--bw) solid var(--outline-v)':'none')+'">'+ic(it[0],20,'var(--on-sv)')+'<span style="flex:1;font:400 13px/1 inherit;color:var(--on-s)">'+it[1]+'</span>'+(it[2]?ic('check',18,'var(--p)'):'')+'</div>'; }
 
-  var shapeScale=[['corner-checkbox',3],['corner-indicator',4],['corner-small',8],['corner-control',10],['corner-container',12],['corner-toolbar',18],['corner-pill',20]], shHtml='';
+  var shapeScale=[['corner-checkbox',3],['corner-indicator',4],['corner-focus',6],['corner-small',8],['corner-control',10],['corner-container',12],['corner-toolbar',18],['corner-pill',20]], shHtml='';
   for(var sp=0;sp<shapeScale.length;sp++){ shHtml+='<div style="display:flex;align-items:center;gap:14px"><div style="width:56px;height:36px;background:var(--pc);border:var(--bw) solid var(--outline-v);border-radius:'+shapeScale[sp][1]+'px;flex:0 0 auto"></div><span style="font:500 12px/1 inherit;color:var(--on-s);flex:1">'+shapeScale[sp][0]+'</span><span class="mono" style="font-size:12px;color:var(--on-sv)">'+shapeScale[sp][1]+'px</span></div>'; }
 
   var checkOp=st.gCheck?1:0;
@@ -765,7 +852,7 @@ function galleryBody(){
     + '</div>';
 
   var selection='<div style="display:flex;flex-direction:column;gap:14px">'
-    + '<label data-act="toggle:gCheck" style="display:flex;align-items:center;gap:12px;cursor:pointer"><span style="display:grid;place-items:center;width:20px;height:20px;border-radius:var(--r-check);flex:0 0 auto;background:'+(st.gCheck?'var(--p)':'transparent')+';border:2px solid '+(st.gCheck?'var(--p)':'var(--on-sv)')+'"><span class="ic" style="font-size:18px;color:var(--on-p);opacity:'+checkOp+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">'+ICONS.check+'</svg></span></span><span style="font:400 14px/1 inherit;color:var(--on-s)">Enable Material widgets</span></label>'
+    + '<label data-act="toggle:gCheck" style="display:flex;align-items:center;gap:12px;cursor:pointer"><span style="display:grid;place-items:center;width:20px;height:20px;border-radius:var(--r-check);flex:0 0 auto;background:'+(st.gCheck?'var(--p)':'transparent')+';border:2px solid '+(st.gCheck?'var(--p)':'var(--on-sv)')+'"><span class="ic" aria-hidden="true" style="font-size:18px;color:var(--on-p);opacity:'+checkOp+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">'+ICONS.check+'</svg></span></span><span style="font:400 14px/1 inherit;color:var(--on-s)">Enable Material widgets</span></label>'
     + '<div style="display:flex;gap:18px">'+radHtml+'</div>'
     + '<div data-act="toggle:gSwitch" style="display:flex;align-items:center;gap:12px;cursor:pointer"><span style="'+swTrack+'"><span style="'+swThumb+'"></span></span><span style="font:400 14px/1 inherit;color:var(--on-s)">Comfortable density</span></div>'
     + '<div style="display:flex;flex-wrap:wrap;gap:8px">'+chipHtml+'</div>'
@@ -775,7 +862,8 @@ function galleryBody(){
     + '<div style="position:relative"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--p);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 inherit">Q3 Board Report</div><span style="position:absolute;top:-8px;left:12px;padding:0 4px;background:var(--surface);color:var(--p);font:500 12px/1 inherit">Document name</span></div>'
     + '<div style="position:relative"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);color:var(--on-sv);font:400 14px/1 inherit">Optional subtitle</div><span style="position:absolute;top:-8px;left:12px;padding:0 4px;background:var(--surface);color:var(--on-sv);font:500 12px/1 inherit">Subtitle</span></div>'
     + '<div><div style="position:relative"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--err-base);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 inherit">/backups/old</div><span style="position:absolute;top:-8px;left:12px;padding:0 4px;background:var(--surface);color:var(--err-base);font:500 12px/1 inherit">Backup path</span><span style="position:absolute;right:12px;top:50%;transform:translateY(-50%)">'+ic('error',20,'var(--err-base)')+'</span></div><div style="font:400 12px/1.3 inherit;color:var(--err-base);padding:6px 14px 0">The path does not exist.</div></div>'
-    + '<div style="height:44px;display:flex;align-items:center;gap:10px;padding:0 16px;border-radius:var(--r-pill);background:var(--sc);color:var(--on-sv);font:400 14px/1 inherit">'+ic('search',20)+'Search commands</div>'
+    + renderSearch('gallery','Search commands', GFEAT.length, galMatched, 'width:100%')
+    + '<div style="margin-top:4px;font:400 12px/1.35 inherit;color:var(--on-sv)"><span style="color:var(--p);font-weight:700">'+galMatched+'</span> of '+GFEAT.length+' commands match — open the builder for tokens &amp; flags</div>'
     + '</div>';
 
   var tabsCard='<div style="display:inline-flex;gap:6px;padding:4px;border-radius:var(--r-pill);background:var(--sc);margin-bottom:16px">'+galHtml+'</div><div style="font:400 13px/1.5 inherit;color:var(--on-sv)">'+galBody+'</div>';
@@ -871,30 +959,33 @@ function featuresBody(){
   var st=S;
   var FEATURES=(st.features&&st.features.length)?st.features:FEATURES_FALLBACK;
   var FSCOPES=[['all','All features','apps'],['shared','Common','description'],['writer','Writer','article'],['calc','Calc','table_chart'],['sd','Draw & Impress','co_present'],['chart','Charts','insert_chart'],['math','Math','functions'],['dbu','Base','database'],['report','Reports','summarize'],['basic','Basic IDE','category'],['biblio','Bibliography','menu_book']];
-  var fq=(st.featQuery||'').trim().toLowerCase();
-  function fMatch(f){ return (st.featCat==='all'||f[1]===st.featCat) && (!fq || (f[0]+' '+f[2]+' '+f[3]).toLowerCase().indexOf(fq)>=0); }
+  var fPred=rxPredicate('features');
+  function fKey(f){ return f[3]+'␟'+f[0]; } // unique id: UNO command + name (names alone repeat across modules)
+  var byCat=FEATURES.filter(function(f){ return st.featCat==='all'||f[1]===st.featCat; });
   function scopeCount(id){ if(id==='all') return FEATURES.length; var n=0; for(var i=0;i<FEATURES.length;i++) if(FEATURES[i][1]===id) n++; return n; }
   var scopeHtml='';
   for(var s=0;s<FSCOPES.length;s++){ var a=st.featCat===FSCOPES[s][0];
     scopeHtml+='<button data-act="set:featCat:'+FSCOPES[s][0]+'" style="display:flex;align-items:center;gap:10px;width:100%;height:36px;padding:0 10px;border:none;border-radius:var(--r-cont);cursor:pointer;font:500 13px/1 inherit;background:'+(a?'var(--pc)':'transparent')+';color:'+(a?'var(--on-pc)':'var(--on-s)')+'">'+ic(FSCOPES[s][2],20)+'<span style="flex:1;text-align:left">'+esc(FSCOPES[s][1])+'</span><span class="mono" style="font-size:11px;opacity:.7">'+scopeCount(FSCOPES[s][0])+'</span></button>'; }
 
-  var filtered=FEATURES.filter(fMatch);
-  var FCAP=400, shown=filtered.slice(0,FCAP), itemsHtml='';
-  for(var i=0;i<shown.length;i++){ var f=shown[i], sel=st.featSel===f[0];
-    itemsHtml+='<div data-act="feat:'+encodeURIComponent(f[0])+'" style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:var(--r-cont);cursor:pointer;background:'+(sel?'var(--pc)':'transparent')+';color:'+(sel?'var(--on-pc)':'var(--on-s)')+'"><span style="width:8px;height:8px;border-radius:2px;background:var(--p);flex:0 0 auto"></span><span style="flex:1;font:500 13px/1.3 inherit;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(f[0])+'</span><span style="font:500 11px/1 inherit;color:var(--on-sv);padding:3px 8px;border-radius:var(--r-pill);background:var(--sc);flex:0 0 auto">'+esc(SCOPELABEL[f[1]]||'Common')+'</span></div>'; }
-  if(filtered.length>FCAP) itemsHtml+='<div style="padding:14px 12px;text-align:center;color:var(--on-sv);font:400 12px/1.4 inherit">Showing the first 400 matches — refine your search to narrow further.</div>';
-
+  var filtered=byCat.filter(function(f){ return fPred.test(f[0]+' '+f[2]+' '+f[3]); });
+  // resolve the selected row by its unique key first, then reconcile so a stale
+  // or transport-missing selection falls back to a real, uniquely-keyed row
   var selF=null;
-  for(var a1=0;a1<filtered.length;a1++){ if(filtered[a1][0]===st.featSel){ selF=filtered[a1]; break; } }
-  if(!selF){ for(var a2=0;a2<FEATURES.length;a2++){ if(FEATURES[a2][0]===st.featSel){ selF=FEATURES[a2]; break; } } }
+  for(var a1=0;a1<filtered.length;a1++){ if(fKey(filtered[a1])===st.featSel){ selF=filtered[a1]; break; } }
+  if(!selF){ for(var a2=0;a2<FEATURES.length;a2++){ if(fKey(FEATURES[a2])===st.featSel){ selF=FEATURES[a2]; break; } } }
   if(!selF) selF=filtered[0]||FEATURES[0];
+  if(selF) st.featSel=fKey(selF);
+  var FCAP=400, shown=filtered.slice(0,FCAP), itemsHtml='';
+  for(var i=0;i<shown.length;i++){ var f=shown[i], sel=st.featSel===fKey(f);
+    itemsHtml+='<div data-act="feat:'+encodeURIComponent(fKey(f))+'" style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:var(--r-cont);cursor:pointer;background:'+(sel?'var(--pc)':'transparent')+';color:'+(sel?'var(--on-pc)':'var(--on-s)')+'"><span style="width:8px;height:8px;border-radius:2px;background:var(--p);flex:0 0 auto"></span><span style="flex:1;font:500 13px/1.3 inherit;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(f[0])+'</span><span style="font:500 11px/1 inherit;color:var(--on-sv);padding:3px 8px;border-radius:var(--r-pill);background:var(--sc);flex:0 0 auto">'+esc(SCOPELABEL[f[1]]||'Common')+'</span></div>'; }
+  if(filtered.length>FCAP) itemsHtml+='<div style="padding:14px 12px;text-align:center;color:var(--on-sv);font:400 12px/1.4 inherit">Showing the first 400 matches — refine your search to narrow further.</div>';
   var note='Semantic Material tokens — color roles, 12–20 px corner roles and compact / comfortable density — resolve this control at runtime.';
 
   return '<div style="display:flex;height:600px">'
     + '<div data-silent="1" class="lo-scroll" style="width:220px;flex:0 0 auto;overflow:auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);padding:12px 8px"><div style="font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;color:var(--on-sv);padding:6px 10px 10px">Applications</div>'+scopeHtml+'<div style="height:1px;background:var(--outline-v);margin:10px 8px"></div><div style="padding:4px 10px;font:400 11px/1.5 inherit;color:var(--on-sv)">Every command adopts the shared Material controls.</div></div>'
     + '<div style="flex:1;display:flex;flex-direction:column;min-width:0">'
       + '<div style="padding:16px 18px 12px;border-bottom:var(--bw) solid var(--outline-v)"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px"><h1 style="margin:0;font:700 24px/1.1 inherit;letter-spacing:-.02em;color:var(--on-s)">Features</h1><span style="font:400 13px/1 inherit;color:var(--on-sv)">'+filtered.length+' of '+FEATURES.length+' commands</span></div>'
-      + '<div style="height:44px;display:flex;align-items:center;gap:10px;padding:0 14px;border-radius:var(--r-pill);background:var(--sc);border:var(--bw) solid var(--outline-v)">'+ic('search',20,'var(--on-sv)')+'<input id="featSearch" value="'+esc(st.featQuery)+'" placeholder="Search every command…" style="flex:1;min-width:0;border:none;background:transparent;outline:none;color:var(--on-s);font:400 14px/1 inherit"></div></div>'
+      + renderSearch('features','Search every command…', byCat.length, filtered.length, 'width:100%') + '</div>'
       + '<div class="lo-scroll" style="flex:1;overflow:auto;padding:8px 12px">'+itemsHtml+'</div>'
     + '</div>'
     + '<div class="lo-scroll" style="width:300px;flex:0 0 auto;overflow:auto;background:var(--sc);border-left:var(--bw) solid var(--outline-v);padding:18px"><span style="font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv)">'+esc(SCOPELABEL[selF[1]]||'Common')+' · '+esc(selF[2])+'</span><div style="font:700 22px/1.2 inherit;color:var(--on-s);margin:8px 0 14px;letter-spacing:-.01em">'+esc(selF[0])+'</div><div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--r-cont);background:var(--surface);border:var(--bw) solid var(--outline-v);margin-bottom:16px">'+ic('keyboard_command_key',18,'var(--on-sv)')+'<span class="mono" style="font-size:12px;line-height:1.3;color:var(--on-s)">'+esc(selF[3])+'</span></div><div style="padding:14px;border-radius:var(--r-cont);background:var(--pc);color:var(--on-pc);font:400 13px/1.5 inherit;margin-bottom:18px">'+note+'</div><button title="Run command" data-hov="background:var(--pa-hover)" style="width:100%;height:44px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:600 14px/1 inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">'+ic('play_arrow',20)+'Run command</button></div>'
@@ -1022,6 +1113,17 @@ app.addEventListener('click', function(e){
     case 'chip': S.gChip[arg]=!S.gChip[arg]; render(); break;
     case 'slider': S.gSlider = S.gSlider>=90 ? 20 : S.gSlider+15; render(); break;
     case 'feat': set('featSel', decodeURIComponent(arg)); break;
+    case 'rxtoggle': S.rx[arg].open=!S.rx[arg].open; render(); break;
+    case 'rxclose': S.rx[arg].open=false; render(); break;
+    case 'rxmode': S.rx[arg].regex=!S.rx[arg].regex; S._focusRx=arg; render(); break;
+    case 'rxclear': S.rx[arg].q=''; S.rx[arg].caret=0; S._focusRx=arg; render(); break;
+    case 'rxflag': { var pf=arg.indexOf(':'); var fid=arg.slice(0,pf), fl=arg.slice(pf+1);
+      var cur=S.rx[fid].flags; S.rx[fid].flags = cur.indexOf(fl)>=0 ? cur.split(fl).join('') : (cur+fl);
+      render(); break; }
+    case 'rxtok': { var tp=arg.split(':'); var tid=tp[0], gi=+tp[1], ti=+tp[2];
+      var tk=RX_TOKENS[gi].t[ti], rs=S.rx[tid]; var cc=(rs.caret==null?rs.q.length:rs.caret);
+      rs.q = rs.q.slice(0,cc)+tk[2]+rs.q.slice(cc); rs.caret = cc + tk[2].length - (tk[3]||0);
+      rs.regex=true; S._focusRx=tid; render(); break; }
   }
 });
 
@@ -1036,9 +1138,11 @@ app.addEventListener('click', function(e){
   if(label) toast(label);
 }, true);
 
-/* features search (live filter, keeps focus) */
+/* regex search inputs (live filter; preserves focus + caret across re-render) */
 app.addEventListener('input', function(e){
-  if(e.target && e.target.id==='featSearch'){ S.featQuery=e.target.value; S._focusSearch=true; render(); }
+  var t=e.target; if(!t || !t.id || t.id.indexOf('rxin-')!==0) return;
+  var id=t.id.slice(5); if(!S.rx[id]) return;
+  S.rx[id].q=t.value; S.rx[id].caret=t.selectionStart; S._focusRx=id; render();
 });
 
 /* hover system (mirrors the design's style-hover attribute) */
@@ -1055,7 +1159,9 @@ app.addEventListener('mouseout', function(e){
 /* load the full command catalog (same-origin); fall back to the embedded subset */
 try{
   fetch('prototype-features.json').then(function(r){ return r.ok?r.json():null; }).then(function(d){
-    if(Array.isArray(d)&&d.length){ S.features=d; if(S.screen==='code') render(); }
+    if(Array.isArray(d)&&d.length){ S.features=d;
+      var ae=document.activeElement; if(ae&&ae.id&&ae.id.indexOf('rxin-')===0){ S._focusRx=ae.id.slice(5); }
+      if(S.screen==='code'||S.screen==='gallery') render(); }
   }).catch(function(){});
 }catch(_){}
 

@@ -60,6 +60,13 @@ references; these changes remain uncompiled and unexecuted.
 The native source has not been built or run as LibreOffice, so this does not
 prove a whole-GUI rewrite or any completed application surface.
 
+The latest automated build attempt, commit `d6f66b686551b0d03cc3317fb18a80e74879cce1`
+in Actions run `29662095462`, stopped during configure because Perl
+`Archive::Zip` was missing. No native build, required C++ regression target,
+package, installer, or capture resulted. The workflow is being repaired to
+enforce required dependencies and tests. A public assetless release/tag `e`
+points at that commit, but contains no build and is not accepted evidence.
+
 ## Recorded facts
 
 - GitHub repository: `codingmachineedge/libreoffice-material`.
@@ -83,6 +90,10 @@ prove a whole-GUI rewrite or any completed application surface.
   `2ce2cfd3e7489dc0acd6ce09f7e5461546fbb731`.
 - Eighth Material VCL source milestone commit:
   `291d134ceea2dd6fa354e2d319b043ffe42aa396`.
+- Ninth Material VCL source milestone commit:
+  `1e2dca2f76c5f7481451ad0f419a7053222e55df`.
+- Tenth Material VCL source milestone commit:
+  `18714cc1c7421225dd66b925e6295e13b56a7a7a`.
 - The imported upstream and fork import commits shared tree object
   `68ccb73abac4f7da67f894f11b0802627e90b474` when verified.
 - Initial native source slice: packaged Material definition; opt-in file-widget
@@ -175,10 +186,26 @@ prove a whole-GUI rewrite or any completed application surface.
   semantic theme validation, all 24 validator unittests, and Start Center lint
   each passed. Pages deployment run `29530112004` also completed successfully
   for that exact source commit.
-- A detached build worktree exists at
-  `C:\Users\Administrator\Documents\GitHub\libreoffice-material-build`, pinned
-  to `291d134ceea2dd6fa354e2d319b043ffe42aa396`. The validator and all 24
-  unittest methods pass from that clean LF worktree.
+- GitHub Actions source-validation run `29648977365` completed successfully for
+  ninth-milestone commit `1e2dca2f76c5f7481451ad0f419a7053222e55df`;
+  semantic theme validation, all 26 validator unittests, and Start Center lint
+  each passed. Pages deployment run `29648977400` also completed successfully
+  for that exact source commit.
+- GitHub Actions source-validation run `29650136950` completed successfully for
+  tenth-milestone commit `18714cc1c7421225dd66b925e6295e13b56a7a7a`;
+  semantic theme validation, all 27 validator unittests, and Start Center lint
+  each passed. Pages deployment run `29650136963` also completed successfully
+  for that exact source commit.
+- The detached LF worktree formerly prepared at
+  `C:\Users\Administrator\Documents\GitHub\libreoffice-material-build` is no
+  longer present. A fresh detached worktree with `core.autocrlf=false` must be
+  created and pinned to the intended source commit before a native build.
+- Build-installer run `29662095462` at
+  `d6f66b686551b0d03cc3317fb18a80e74879cce1` stopped during configure because
+  Perl `Archive::Zip` was missing. Build, native regression tests, packaging,
+  and artifact staging did not run; no installer was produced.
+- Public release/tag `e` is assetless and points at `d6f66b686`; it is not a
+  genuine build release and does not change the accepted evidence count.
 - Required runtime opt-in: `VCL_DRAW_WIDGETS_FROM_FILE=1` and
   `VCL_FILE_WIDGET_THEME=material`.
 - UI driver: sibling repository `lowlevel-computer-use-mcp`, preflighted at
@@ -258,8 +285,9 @@ prove a whole-GUI rewrite or any completed application surface.
 
 ## Required next gates
 
-1. complete a supported LibreOffice build profile and document a reproducible
-   native build from the prepared detached LF worktree;
+1. recreate a clean detached LF worktree with `core.autocrlf=false`, complete a
+   supported LibreOffice build profile, and document a reproducible native
+   build;
 2. run `tools_test`, `vcl_widget_definition_reader_test`, and
    `vcl_file_definition_widget_draw_test` against the local Material changes;
 3. launch the built start center with the two opt-in variables and an isolated
@@ -278,12 +306,14 @@ prove a whole-GUI rewrite or any completed application surface.
 - no headless LibreOffice Material scenario is registered;
 - no screenshot is registered;
 - no application surface is verified Material-complete;
-- the detached LF worktree is clean, but the host has no complete supported
-  LibreOffice build profile: WSL 2.7.10 has zero distributions; selectable VS
-  2022 lacks ATL and its configured CMake; registry-selected SDK 28000 lacks
-  required desktop/MSI files that installed SDK 26100 contains; OpenJDK 21 is
-  outside `PATH`; and Ant/JUnit plus other helpers are absent. The C++ unit
-  targets and real application capture have not run.
+- no prepared detached LF build worktree currently exists, and the host has no
+  complete supported LibreOffice build profile: WSL 2.7.10 has zero
+  distributions; selectable VS 2022 lacks ATL and its configured CMake;
+  registry-selected SDK 28000 lacks required desktop/MSI files that installed
+  SDK 26100 contains; OpenJDK 21 is outside `PATH`; and Ant/JUnit plus other
+  helpers are absent. Automated run `29662095462` also stopped at configure on
+  missing Perl `Archive::Zip`. The C++ unit targets and real application capture
+  have not run.
 
 ## Multi-repository boundary
 

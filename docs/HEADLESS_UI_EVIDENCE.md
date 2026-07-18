@@ -67,15 +67,22 @@ These are audited capabilities and constraints, not a LibreOffice run result.
 
 ## Current LibreOffice build blocker
 
-A clean detached LF worktree exists, but no complete supported LibreOffice
-build profile or LibreOffice executable exists. WSL 2.7.10 has zero installed
-distributions. The selectable Visual Studio 2022 instance lacks ATL and its
-configured bundled CMake. The Windows SDK registry selects SDK 28000, which
-lacks required desktop headers and MSI tools, while installed SDK 26100 has
-those files but is not selected by the current configure path. A complete
-OpenJDK 21 exists outside `PATH`; Ant, JUnit, and other build helpers remain
-absent. No affected C++ target, `soffice` process, or real LibreOffice capture
-has run.
+The previously prepared detached LF worktree is no longer present and must be
+recreated with `core.autocrlf=false` before a local native build attempt. No
+complete supported LibreOffice build profile or LibreOffice executable exists.
+WSL 2.7.10 has zero installed distributions. The selectable Visual Studio 2022
+instance lacks ATL and its configured bundled CMake. The Windows SDK registry
+selects SDK 28000, which lacks required desktop headers and MSI tools, while
+installed SDK 26100 has those files but is not selected by the current
+configure path. A complete OpenJDK 21 exists outside `PATH`; Ant, JUnit, and
+other build helpers remain absent.
+
+The latest automated Linux attempt, commit `d6f66b686` in Actions run
+`29662095462`, stopped during configure because Perl `Archive::Zip` was missing.
+The workflow is being repaired to enforce required dependencies and the named
+native regression targets before packaging. That failed configure attempt
+produced no build, installer, affected C++ test result, `soffice` process, or
+real LibreOffice capture.
 
 ## Evidence principles
 

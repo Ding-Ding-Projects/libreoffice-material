@@ -4,6 +4,8 @@ Accepted LibreOffice Material build/UI evidence entries: **0**.
 
 No native build, headless interaction run, or screenshot has been accepted yet.
 Planned scenarios and empty gallery slots are not evidence.
+The public assetless release/tag `e` contains no build and does not change this
+ledger.
 
 ## Accepted runs
 
@@ -23,6 +25,15 @@ The discarded preflight image reported `rendered_ok: true`, dimensions
 Its hash is retained only to identify the temporary observation; it is not a
 link, gallery artifact, or accepted visual result.
 
+## Non-accepted build attempts
+
+| Date | Source / run | Result | Evidence effect |
+| --- | --- | --- | --- |
+| 2026-07-18 | `d6f66b686551b0d03cc3317fb18a80e74879cce1` / Actions `29662095462` | Configure stopped because Perl `Archive::Zip` was missing; build, required native regression targets, packaging, and artifact staging did not run | No binary, installer, test result, interaction result, or visual evidence; workflow repair and rerun remain pending |
+
+Release/tag `e` points at the same commit but has no assets. It is a non-build
+remote marker, not a successful release or accepted artifact.
+
 ## Non-run environment audits
 
 | Date | Scope | Result | Evidence effect |
@@ -34,8 +45,8 @@ link, gallery artifact, or accepted visual result.
 | 2026-07-16 | Sixth-milestone source audit | Validator reports 8 exact shape roles across 146 rounded and 11 implicit-square rectangles; 16 Python tests and static source checks pass; the C++ reader/tests remain uncompiled | Source consistency only; no renderer or UI evidence |
 | 2026-07-16 | Seventh-milestone source audit | Published source `2ce2cfd3e7489dc0acd6ce09f7e5461546fbb731` defines 15 native integer roles for 331 existing uses; exact metric/coordinate hashes, 22 validator tests, 38 reader fixtures, Actions run `29527917064`, and Pages run `29527917148` pass | Source consistency only; no compiled, runtime, interaction, or visual evidence |
 | 2026-07-16 | Eighth-milestone source audit | Published source `291d134ceea2dd6fa354e2d319b043ffe42aa396` defines full-track progress and four-band level indicators; exact `2/23/3/8/15/72/77/199` validation, 24 Python tests, and 340-row metric closure pass; Actions `29530112458`, Pages `29530112004`, and direct HTTP checks pass; C++ pixel tests are source-only | Source consistency and publication only; no compiled, runtime, interaction, or visual evidence |
-| 2026-07-18 | Ninth-milestone source audit | Defines the outlined `Frame`/`Border` container (with a 2px native content-region inset satisfying D-017, see D-018) and the net-less `ListNet`/`Entire` state (D-019); exact `2/23/3/8/15/72/79/201` validation, 26 Python tests, 341-row metric closure (geometry hash `f70697ac…bc714082`; unchanged 676-coordinate hash `0979f2b3…331ed2e`), a new native container source guard, and Start Center UI lint pass on portable CPython 3.12.7; C++ renderer/reader changes are source-only | Source consistency only; no compiled, runtime, interaction, or visual evidence — Actions/Pages verification follows the push |
-| 2026-07-18 | Tenth-milestone source audit | A 14-agent coverage audit confirms inventory completeness; adds three disabled-affordance corrections (dimmed `SubmenuArrow`, disabled+checked `toolbar`/`Button`, disabled+selected `tabitem` `Entire`/`MenuItem`) and defers three design-decision gaps (D-020). Exact `2/23/3/8/15/72/79/205` validation, 27 Python tests, 346-row metric closure (geometry hash `dc16a577…65c60515`, coordinate hash `8345cd28…a13c402e8`, 45 patterns), and UI lint pass on portable CPython 3.12.7; XML-only change | Source consistency only; no compiled, runtime, interaction, or visual evidence — Actions/Pages verification follows the push |
+| 2026-07-18 | Ninth-milestone source audit | Published source `1e2dca2f76c5f7481451ad0f419a7053222e55df` defines the outlined `Frame`/`Border` container (with a 2px native content-region inset satisfying D-017, see D-018) and the net-less `ListNet`/`Entire` state (D-019); exact `2/23/3/8/15/72/79/201` validation, 26 Python tests, 341-row metric closure (geometry hash `f70697ac…bc714082`; unchanged 676-coordinate hash `0979f2b3…331ed2e`), source-validation run `29648977365`, and Pages run `29648977400` pass; C++ renderer/reader changes are source-only | Source consistency and publication only; no compiled, runtime, interaction, or visual evidence |
+| 2026-07-18 | Tenth-milestone source audit | Published source `18714cc1c7421225dd66b925e6295e13b56a7a7a` closes three disabled-affordance gaps and defers three design-decision gaps (D-020); exact `2/23/3/8/15/72/79/205` validation, 27 Python tests, 346-row metric closure (geometry hash `dc16a577…65c60515`, coordinate hash `8345cd28…a13c402e8`, 45 patterns), source-validation run `29650136950`, and Pages run `29650136963` pass; XML-only change | Source consistency and publication only; no compiled, runtime, interaction, or visual evidence |
 
 These audits are reproducibility facts, not accepted build, interaction, or
 visual runs. The verified LibreOffice Material screenshot count remains zero.

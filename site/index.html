@@ -62,6 +62,8 @@
             Native Material and Start Center changes are present in source, but
             LibreOffice has not been built or run with them. The whole GUI is
             incomplete, and verified application screenshots remain at zero.
+            The public assetless release/tag <code>e</code> contains no build
+            and is not an installer or accepted evidence.
           </p>
         </div>
 
@@ -89,6 +91,10 @@
             <div>
               <dt>Design reference</dt>
               <dd><span class="state state-verified">Published</span></dd>
+            </div>
+            <div>
+              <dt>Build / installer</dt>
+              <dd><span class="state state-planned">No genuine artifact</span></dd>
             </div>
             <div>
               <dt>Whole-suite UI</dt>
@@ -185,7 +191,11 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
           <strong>Current build gate:</strong> no complete supported profile
           exists. WSL has no distribution; selectable VS 2022 lacks ATL and its
           configured CMake; and the registry selects incomplete SDK 28000 over
-          usable SDK 26100. The C++ targets and real app run remain pending.
+          usable SDK 26100. The latest automated attempt, commit
+          <code>d6f66b686</code> in Actions run <code>29662095462</code>, stopped
+          during configure because Perl <code>Archive::Zip</code> was missing.
+          The workflow is being repaired to require its dependencies and native
+          regression targets; no build, installer, or real app run resulted.
         </p>
       </section>
 

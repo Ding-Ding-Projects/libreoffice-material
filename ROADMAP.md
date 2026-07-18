@@ -44,6 +44,13 @@ selectable Visual Studio instance lacks ATL and its configured CMake, SDK 28000
 is selected despite missing required desktop files, and supporting build tools
 remain incomplete.
 
+The latest automated build attempt, commit `d6f66b686` in Actions run
+`29662095462`, stopped during configure because Perl `Archive::Zip` was absent.
+The build, required native regression targets, packaging, and artifact staging
+therefore did not run. The workflow is being repaired to enforce its required
+dependencies and the `tools_test`, `vcl_widget_definition_reader_test`, and
+`vcl_file_definition_widget_draw_test` gates before packaging.
+
 An interactive, dependency-free Material design reference for the whole suite is
 published at [`site/prototype.html`](site/prototype.html): a hand-built HTML
 rendering of all eleven surfaces (Start Center, Writer, Calc, Impress, Draw,
@@ -55,8 +62,10 @@ every search bar, and a Find & Replace dialog. Its tokens mirror
 [`bin/validate-prototype.mjs`](bin/validate-prototype.mjs) guards its invariants
 (7/7). It specifies the design the native work targets and is **not** a capture
 of a compiled build, so it does not advance any acceptance gate or the
-verified-capture count; there is no installer, and `build-installer.yml` would
-publish one only if a real build succeeds.
+verified-capture count. No genuine build or installer release exists; the
+public assetless release/tag `e` contains no build and does not satisfy any
+release or evidence gate. `build-installer.yml` would publish artifacts only if
+a real build produces them.
 
 Exit gate:
 

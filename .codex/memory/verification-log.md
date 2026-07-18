@@ -732,3 +732,46 @@ Scope conclusion: repository-side semantic validation, 27 validator unittests,
 and the UI lint pass for the tenth slice. No affected C++ target or LibreOffice
 binary was compiled or run, and accepted application screenshots remain **0**.
 GitHub Actions and Pages verification follow the push to `main`.
+
+## 2026-07-18 — ninth and tenth milestone publication closure
+
+- Ninth-milestone source commit
+  `1e2dca2f76c5f7481451ad0f419a7053222e55df` is published on `main`.
+  GitHub Actions source-validation run `29648977365` completed successfully;
+  semantic theme validation, all 26 validator unittests, and Start Center UI
+  lint each reported `success`.
+- GitHub Pages run `29648977400` completed successfully for the same ninth
+  milestone commit. This closes repository-side publication only; it is not a
+  native build or runtime result.
+- Tenth-milestone source commit
+  `18714cc1c7421225dd66b925e6295e13b56a7a7a` is published on `main`.
+  GitHub Actions source-validation run `29650136950` completed successfully;
+  semantic theme validation, all 27 validator unittests, and Start Center UI
+  lint each reported `success`.
+- GitHub Pages run `29650136963` completed successfully for the same tenth
+  milestone commit. This closes repository-side publication only; it is not a
+  native build or runtime result.
+
+Scope conclusion: the ninth and tenth source milestones have successful source
+validation and Pages publication records. No affected C++ target or LibreOffice
+binary ran, and accepted application screenshots remain **0**.
+
+## 2026-07-18 — build gate inventory before workflow repair
+
+- The detached LF worktree previously recorded at
+  `C:\Users\Administrator\Documents\GitHub\libreoffice-material-build` is no
+  longer present. A fresh detached worktree with `core.autocrlf=false` must be
+  created and pinned before a local native build attempt.
+- Build-installer Actions run `29662095462` at commit
+  `d6f66b686551b0d03cc3317fb18a80e74879cce1` completed with `failure` during
+  configure because Perl `Archive::Zip` was missing. Build, required native
+  regression targets, packaging, and artifact staging did not run.
+- The workflow is being repaired to enforce required dependencies and the
+  `tools_test`, `vcl_widget_definition_reader_test`, and
+  `vcl_file_definition_widget_draw_test` gates before packaging. This entry is
+  the pre-rerun state, not a claim that the repair or a build has passed.
+- Public release/tag `e` points at `d6f66b686` but contains no assets. It is not
+  a genuine build or installer release and does not enter the evidence ledger.
+
+Scope conclusion: no native LibreOffice build, installer, C++ test result,
+headless application run, or accepted capture exists at this inventory point.

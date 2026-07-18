@@ -18,9 +18,12 @@ document engine, file-format support, and accessibility foundations.
 > from [libreoffice.org](https://www.libreoffice.org/download/), which does not
 > include these Material changes. An automated pipeline
 > ([`build-installer.yml`](.github/workflows/build-installer.yml)) attempts a
-> from-source build on each source push and manual dispatch and would publish a
-> release **only** if a build actually produces installer artifacts — so the
-> absence of releases faithfully reflects that no build has yet succeeded.
+> from-source build on each source push and manual dispatch and would publish
+> artifacts **only** if a build actually produces them. The latest attempt,
+> commit `d6f66b686` in Actions run `29662095462`, stopped during configure
+> because Perl `Archive::Zip` was missing; no build, test, package, or installer
+> resulted. A public assetless release/tag named `e` exists, but it contains no
+> build and does not satisfy the project's build, release, or evidence gates.
 
 [Project site](https://codingmachineedge.github.io/libreoffice-material/) ·
 [Interactive preview](https://codingmachineedge.github.io/libreoffice-material/prototype.html) ·
@@ -41,7 +44,7 @@ document engine, file-format support, and accessibility foundations.
 | Verified UI screenshots | None yet | The truthful empty registry is in [`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md) |
 | Headless harness | Preflight passed; LibreOffice not run | A temporary Notepad-only driver preflight proved the off-screen mechanics, not this UI; see [`docs/HEADLESS_UI_EVIDENCE.md`](docs/HEADLESS_UI_EVIDENCE.md) |
 | Interactive design reference | Published mockup | [`site/prototype.html`](site/prototype.html) — 11 suite surfaces, a regex builder on every search bar, and a Find & Replace dialog; guarded by [`bin/validate-prototype.mjs`](bin/validate-prototype.mjs) (7/7) and the `prototype-check` CI |
-| Installer / release | None | [`build-installer.yml`](.github/workflows/build-installer.yml) publishes a release only if a real from-source build produces one; none has succeeded |
+| Installer / release | No genuine build artifact | [`build-installer.yml`](.github/workflows/build-installer.yml) has not completed a build; the assetless `e` release/tag is not an installer or accepted evidence |
 
 This table is deliberately conservative. A roadmap item changes state only when
 its code, build result, interaction checks, and committed visual evidence agree.
@@ -240,13 +243,18 @@ cross-platform native project; consult The Document Foundation's current
 [platform build instructions](https://wiki.documentfoundation.org/Development/How_to_build)
 and the imported build files before configuring a machine.
 
-> **Current build gate:** the detached LF worktree is clean, but no complete
-> supported LibreOffice build profile exists. WSL 2.7.10 has no distribution;
-> the selectable Visual Studio 2022 instance lacks ATL and its configured
-> bundled CMake; and the Windows SDK registry selects incomplete SDK 28000
-> instead of the usable 26100 desktop SDK. A complete OpenJDK 21 exists outside
-> `PATH`, while Ant/JUnit and other required build helpers remain absent. No
-> native C++ test or LibreOffice application run has occurred.
+> **Current build gate:** the previously prepared detached LF worktree is no
+> longer present and must be recreated before a native build attempt. No
+> complete supported local LibreOffice build profile exists: WSL 2.7.10 has no
+> distribution; the selectable Visual Studio 2022 instance lacks ATL and its
+> configured bundled CMake; and the Windows SDK registry selects incomplete SDK
+> 28000 instead of the usable 26100 desktop SDK. A complete OpenJDK 21 exists
+> outside `PATH`, while Ant/JUnit and other required build helpers remain
+> absent. The latest automated Linux attempt, Actions run `29662095462` at
+> `d6f66b686`, stopped during configure because Perl `Archive::Zip` was missing.
+> The workflow is being repaired to require its build dependencies and the
+> named native regression targets. No native C++ test, LibreOffice application
+> run, installer, or accepted capture has occurred.
 
 The imported checkout was also materialized mostly with CRLF worktree endings.
 Use a fresh detached worktree created with `core.autocrlf=false` for any native

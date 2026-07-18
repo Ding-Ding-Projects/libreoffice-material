@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f9f7ff">
+<meta name="description" content="Interactive design reference for LibreOffice Material — a hand-built HTML mockup of the target Material Design 3 suite. Not a screenshot of a compiled build.">
+<link rel="canonical" href="https://codingmachineedge.github.io/libreoffice-material/prototype.html">
+<title>LibreOffice Material — interactive design reference</title>
+<style>
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--desk,#e7e0ec);font-family:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,Roboto,sans-serif;color:#1d1b20}
+  button{font-family:inherit}
+  a{color:var(--p)}
+  .mono{font-family:"Cascadia Code","SFMono-Regular",Consolas,"Roboto Mono",monospace}
+  .ic{display:inline-flex;align-items:center;justify-content:center;line-height:0;flex:0 0 auto}
+  .ic svg{width:1em;height:1em;display:block}
+  .lo-scroll::-webkit-scrollbar{width:12px;height:12px}
+  .lo-scroll::-webkit-scrollbar-thumb{background:var(--outline);border-radius:8px;border:3px solid transparent;background-clip:padding-box}
+  .lo-scroll::-webkit-scrollbar-track{background:transparent}
+  @keyframes lo-pop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:120;display:none;align-items:center;gap:12px;padding:13px 20px;border-radius:8px;background:var(--inv-s);color:var(--on-inv-s);box-shadow:0 10px 30px rgba(0,0,0,.4);font:500 13px/1 inherit}
+  #toast.show{display:flex;animation:lo-pop .16s ease}
+  a.skip{position:fixed;left:8px;top:8px;z-index:200;padding:10px 14px;border-radius:8px;background:#5d3fc0;color:#fff;transform:translateY(-160%);transition:transform .15s}
+  a.skip:focus{transform:none}
+  :focus-visible{outline:3px solid var(--p);outline-offset:2px}
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+  @media (forced-colors: active){[data-hov],button{border:1px solid ButtonText}}
+</style>
+</head>
+<body>
+<a class="skip" href="#stage">Skip to the prototype</a>
+<div id="app" aria-label="LibreOffice Material interactive prototype"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+"use strict";
+/* =========================================================================
+   LibreOffice Material — interactive design reference (self-contained).
+
+   A faithful vanilla-JS port of the canonical "LibreOffice Material.dc.html"
+   design prototype. Every color, corner and metric below mirrors the semantic
+   roles in vcl/uiconfig/theme_definitions/material/definition.xml.
+
+   This is a HAND-BUILT HTML MOCKUP of the intended Material design. It is NOT a
+   screenshot of a compiled LibreOffice and NOT verified runtime behavior; the
+   native suite has not yet been built or run with these changes.
+
+   No external dependencies: system fonts (Segoe UI on Windows, matching the
+   design's native-font-identity rule), inline SVG icons, no web fonts, no CDN.
+   ========================================================================= */
+
+/* ---- inline SVG icon registry (line glyphs, 24px grid, currentColor) ----- */
+var ICONS = {
+  add:'<path d="M12 5v14M5 12h14"/>',
+  remove:'<path d="M5 12h14"/>',
+  close:'<path d="M6 6l12 12M18 6L6 18"/>',
+  menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',
+  search:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/>',
+  expand_more:'<path d="M6 9l6 6 6-6"/>',
+  chevron_right:'<path d="M9 6l6 6-6 6"/>',
+  chevron_left:'<path d="M15 6l-6 6 6 6"/>',
+  check:'<path d="M5 12l5 5 9-11"/>',
+  error:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6"/><circle cx="12" cy="16.5" r="1" fill="currentColor" stroke="none"/>',
+  warning:'<path d="M12 4l10 17H2z"/><path d="M12 10v4"/><circle cx="12" cy="17.5" r="1" fill="currentColor" stroke="none"/>',
+  bolt:'<path fill="currentColor" stroke="none" d="M13 3L5 13h5l-1 8 8-11h-5z"/>',
+  more_vert:'<g fill="currentColor" stroke="none"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></g>',
+  apps:'<g fill="currentColor" stroke="none"><circle cx="6" cy="6" r="1.7"/><circle cx="12" cy="6" r="1.7"/><circle cx="18" cy="6" r="1.7"/><circle cx="6" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18" cy="12" r="1.7"/><circle cx="6" cy="18" r="1.7"/><circle cx="12" cy="18" r="1.7"/><circle cx="18" cy="18" r="1.7"/></g>',
+  grid_view:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  article:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/>',
+  table_chart:'<rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M4 9h16M9 9v10"/>',
+  co_present:'<rect x="3" y="4" width="18" height="11" rx="1.5"/><circle cx="12" cy="9" r="2"/><path d="M9 19a3 3 0 016 0"/>',
+  brush:'<path d="M4 20c2 0 3-1 3-3l7-7-3-3-7 7c-2 0-3 1-3 3z"/><path d="M14 7l3-3a2 2 0 013 3l-3 3"/>',
+  database:'<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/>',
+  functions:'<path d="M15 5h-2a3 3 0 00-3 3v11M8 11h7"/>',
+  folder:'<path d="M3 6h6l2 2h10v11H3z"/>',
+  folder_open:'<path d="M3 7h6l2 2h9v2H6l-3 8z"/><path d="M3 19l3-8h17l-3 8z"/>',
+  cloud:'<path d="M7 18h10a4 4 0 000-8 5 5 0 00-9.6-1A3.5 3.5 0 007 18z"/>',
+  history:'<path d="M4 12a8 8 0 108-8 8 8 0 00-7 4"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/>',
+  restore:'<path d="M4 12a8 8 0 108-8 8 8 0 00-7 4"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/>',
+  person:'<circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0114 0"/>',
+  tag:'<path d="M9 4L7 20M17 4l-2 16M5 9h15M4 15h15"/>',
+  keyboard_command_key:'<path d="M9 9h6v6H9z"/><path d="M9 9a2 2 0 10-2-2 2 2 0 002 2zM15 9a2 2 0 112-2 2 2 0 01-2 2zM9 15a2 2 0 10-2 2 2 2 0 002-2zM15 15a2 2 0 112 2 2 2 0 01-2-2z"/>',
+  play_arrow:'<path d="M8 5l11 7-11 7z" fill="currentColor" stroke="none"/>',
+  lightbulb:'<path d="M9 18h6M10 21h4M8 14a5 5 0 118 0c-1 1-1.4 2-1.5 3h-5c-.1-1-.5-2-1.5-3z"/>',
+  note_add:'<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M12 12v5M9.5 14.5h5"/>',
+  save:'<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>',
+  picture_as_pdf:'<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><rect x="9" y="12" width="6" height="5" rx="1"/>',
+  local_printshop:'<path d="M7 9V4h10v5"/><path d="M7 17H5a1 1 0 01-1-1v-5a1 1 0 011-1h14a1 1 0 011 1v5a1 1 0 01-1 1h-2"/><rect x="7" y="14" width="10" height="6"/>',
+  undo:'<path d="M9 7L4 12l5 5"/><path d="M4 12h9a6 6 0 016 6"/>',
+  redo:'<path d="M15 7l5 5-5 5"/><path d="M20 12h-9a6 6 0 00-6 6"/>',
+  content_cut:'<circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8.5L20 18M8 15.5L20 6"/>',
+  content_copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 011-1h11"/>',
+  content_paste:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/>',
+  format_paint:'<rect x="4" y="4" width="12" height="6" rx="1"/><path d="M16 7h3v4h-7v3M12 14v6h2v-6"/>',
+  image:'<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M5 18l5-5 4 4 3-3 3 3"/>',
+  table:'<rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M4 10h16M4 15h16M10 5v14"/>',
+  insert_chart:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 16v-3M12 16v-6M16 16v-4"/>',
+  spellcheck:'<path d="M4 15l3-9 3 9M5 12h4"/><path d="M13 14l3 3 5-6"/>',
+  format_bold:'<path d="M7 5h6a3.5 3.5 0 010 7H7zM7 12h7a3.5 3.5 0 010 7H7z"/>',
+  format_italic:'<path d="M10 5h6M8 19h6M14 5l-4 14"/>',
+  format_underlined:'<path d="M7 4v7a5 5 0 0010 0V4M5 21h14"/>',
+  format_strikethrough:'<path d="M6 7c0-2 2-3 4-3s4 1 4 3M4 12h16M8 12c3 1 6 2 6 5 0 2-2 3-4 3s-4-1-4-3"/>',
+  strikethrough_s:'<path d="M6 7c0-2 2-3 4-3s4 1 4 3M4 12h16M8 12c3 1 6 2 6 5 0 2-2 3-4 3s-4-1-4-3"/>',
+  format_color_text:'<path d="M6 18L11 6h2l5 12M8 14h8"/><path d="M4 21h16"/>',
+  format_color_fill:'<path d="M6 11l6-6 6 6-6 6z"/><path d="M20 15c1 1.4 1 3 0 3s-1-1.6 0-3z" fill="currentColor" stroke="none"/><path d="M3 21h18"/>',
+  format_ink_highlighter:'<path d="M9 16l-4 1 1-4 8-8 3 3z"/><path d="M13 5l3 3"/><path d="M4 21h16"/>',
+  format_align_left:'<path d="M4 6h16M4 12h10M4 18h13"/>',
+  format_align_center:'<path d="M4 6h16M7 12h10M5 18h14"/>',
+  format_align_right:'<path d="M4 6h16M10 12h10M7 18h13"/>',
+  format_align_justify:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+  format_list_bulleted:'<g fill="currentColor" stroke="none"><circle cx="5" cy="7" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="5" cy="17" r="1.5"/></g><path d="M9 7h11M9 12h11M9 17h11"/>',
+  format_list_numbered:'<path d="M9 7h11M9 12h11M9 17h11"/><path d="M4 5v4M4 11h2l-2 3h2"/>',
+  format_indent_increase:'<path d="M4 6h16M10 10h10M10 14h10M4 18h16"/><path d="M4 9l3 3-3 3"/>',
+  format_indent_decrease:'<path d="M4 6h16M10 10h10M10 14h10M4 18h16"/><path d="M7 9l-3 3 3 3"/>',
+  format_size:'<path d="M4 8V6h9v2M8.5 6v12M6 18h5"/><path d="M14 12v-1.5h6V12M17 10.5V18M15.5 18h3"/>',
+  attach_money:'<path d="M12 3v18M16 7c0-1.7-1.8-3-4-3s-4 1.3-4 3 1.8 3 4 3 4 1.3 4 3-1.8 3-4 3-4-1.3-4-3"/>',
+  percent:'<path d="M6 18L18 6"/><circle cx="7.5" cy="7.5" r="2"/><circle cx="16.5" cy="16.5" r="2"/>',
+  decimal_increase:'<path d="M4 10h5M4 14h5"/><circle cx="12" cy="15" r="1" fill="currentColor" stroke="none"/><path d="M17 8l4 4-4 4"/>',
+  decimal_decrease:'<path d="M4 10h5M4 14h5"/><circle cx="12" cy="15" r="1" fill="currentColor" stroke="none"/><path d="M21 8l-4 4 4 4"/>',
+  cell_merge:'<rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M3 12h6M15 12h6M9 6v12M15 6v12"/>',
+  crop_square:'<rect x="5" y="5" width="14" height="14" rx="1.5"/>',
+  circle:'<circle cx="12" cy="12" r="8"/>',
+  horizontal_rule:'<path d="M4 12h16"/>',
+  text_fields:'<path d="M4 7V5h8v2M8 5v12M6 17h4"/><path d="M13 11V9h7v2M16.5 9v8M15 17h3"/>',
+  near_me:'<path d="M4 4l16 6-7 3-3 7z" fill="currentColor" stroke="none"/>',
+  open_with:'<path d="M12 4v16M4 12h16M9 7l3-3 3 3M9 17l3 3 3-3M7 9l-3 3 3 3M17 9l3 3-3 3"/>',
+  polyline:'<path d="M5 18l6-8 5 4 5-8"/><rect x="3" y="16" width="4" height="4" rx="1"/><rect x="18" y="4" width="4" height="4" rx="1"/>',
+  change_history:'<path d="M12 5L21 20H3z"/>',
+  flip:'<path d="M12 4v16"/><path d="M9 8L4 12l5 4z" fill="currentColor" stroke="none"/><path d="M15 8l5 4-5 4z"/>',
+  rotate_right:'<path d="M20 8a8 8 0 10.5 5"/><path d="M20 3v5h-5"/>',
+  quiz:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9.5 10a2.5 2.5 0 113 2.5V14"/><circle cx="12.5" cy="17" r="0.9" fill="currentColor" stroke="none"/>',
+  description:'<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>',
+  summarize:'<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 12h6M10 15h6M10 18h3"/>',
+  edit:'<path d="M4 20h4L20 8l-4-4L4 16z"/><path d="M14 6l4 4"/>',
+  edit_note:'<path d="M4 7h11M4 12h7M4 17h7"/><path d="M14 20l6-6-2-2-6 6z"/>',
+  delete:'<path d="M5 7h14M10 4h4M6 7l1 13h10l1-13M10 11v6M14 11v6"/>',
+  sort:'<path d="M4 7h16M6 12h12M9 17h6"/>',
+  filter_alt:'<path d="M4 5h16l-6 7v6l-4-2v-4z"/>',
+  subject:'<path d="M5 6h14M5 10h14M5 14h10M5 18h10"/>',
+  title:'<path d="M5 7V5h14v2M12 5v13M9 18h6"/>',
+  table_rows:'<rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M4 10h16M4 14h16"/>',
+  view_agenda:'<rect x="4" y="4" width="16" height="7" rx="1.5"/><rect x="4" y="13" width="16" height="7" rx="1.5"/>',
+  category:'<path d="M12 3l4 6H8z"/><rect x="4" y="13" width="7" height="7" rx="1"/><circle cx="17.5" cy="16.5" r="3.5"/>',
+  tune:'<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+  palette:'<path d="M12 3a9 9 0 000 18c1.5 0 2-1 2-2 0-1.5 1-2 2-2h1a4 4 0 004-4 9 9 0 00-9-8z"/><g fill="currentColor" stroke="none"><circle cx="8" cy="10" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10" r="1"/></g>',
+  explore:'<circle cx="12" cy="12" r="9"/><path d="M15 9l-2 4-4 2 2-4z" fill="currentColor" stroke="none"/>',
+  refresh:'<path d="M19 12a7 7 0 11-2-5"/><path d="M17 3v4h-4"/>',
+  keyboard:'<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.5M11 10h.5M15 10h.5M8 14h8"/>',
+  menu_book:'<path d="M12 6C10 4 6 4 4 5v13c2-1 6-1 8 1 2-2 6-2 8-1V5c-2-1-6-1-8 1zM12 6v13"/>',
+  line_weight:'<path d="M4 6h16" stroke-width="1"/><path d="M4 11h16" stroke-width="2"/><path d="M4 17.5h16" stroke-width="3.5"/>',
+  fit_screen:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 9l-2 2 2 2M16 9l2 2-2 2"/>',
+  zoom_in:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.3-4.3M11 8v6M8 11h6"/>',
+  zoom_out:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.3-4.3M8 11h6"/>'
+};
+function ic(name, size, color){
+  var inner = ICONS[name] || '<rect x="4" y="4" width="16" height="16" rx="3"/>';
+  var st = 'font-size:' + (size||20) + 'px' + (color ? (';color:' + color) : '');
+  return '<span class="ic" aria-hidden="true" style="' + st + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg></span>';
+}
+
+/* ---- exact MD3 palettes from definition.xml (light / dark / high contrast) ---- */
+var PAL = {
+  light:{p:'#6750A4',onP:'#FFFFFF',pc:'#E8DEF8',onPc:'#1D192B',pHover:'#D0BCFF',pPressed:'#CCC2DC',paHover:'#7965AF',paPressed:'#5B3F91',surface:'#FFFBFE',sc:'#F3EDF7',scl:'#F7F2FA',onS:'#1D1B20',onSv:'#49454F',outline:'#79747E',outlineV:'#CAC4D0',disabled:'#E6E0E9',invS:'#313033',onInvS:'#F4EFF4',warn:'#FFDDB3',onWarn:'#2A1800',err:'#F9DEDC',onErr:'#410E0B',errBase:'#B3261E',visited:'#7D5260',desk:'#E7E0EC',scrim:'rgba(20,18,24,.38)'},
+  dark:{p:'#D0BCFF',onP:'#381E72',pc:'#4F378B',onPc:'#EADDFF',pHover:'#4F378B',pPressed:'#625B71',paHover:'#C4AEFF',paPressed:'#B69DF8',surface:'#141218',sc:'#211F26',scl:'#1D1B20',onS:'#E6E0E9',onSv:'#CAC4D0',outline:'#938F99',outlineV:'#49454F',disabled:'#36343B',invS:'#2B2930',onInvS:'#E6E0E9',warn:'#5F4100',onWarn:'#FFDDB3',err:'#8C1D18',onErr:'#F9DEDC',errBase:'#F2B8B5',visited:'#EFB8C8',desk:'#0B0A0E',scrim:'rgba(0,0,0,.6)'},
+  hc:{p:'#3800A0',onP:'#FFFFFF',pc:'#E4D6FF',onPc:'#10004D',pHover:'#280078',pPressed:'#1C0056',paHover:'#280078',paPressed:'#1C0056',surface:'#FFFFFF',sc:'#FFFFFF',scl:'#F0F0F0',onS:'#000000',onSv:'#141414',outline:'#000000',outlineV:'#000000',disabled:'#C4C4C4',invS:'#000000',onInvS:'#FFFFFF',warn:'#FFE0A3',onWarn:'#3A2500',err:'#FFD6D2',onErr:'#5A0000',errBase:'#B3000C',visited:'#4A0052',desk:'#000000',scrim:'rgba(0,0,0,.65)'}
+};
+
+/* ---- command data ---- */
+function M(l,k,sub){return {item:true,l:l,k:k||'',subOp:sub?1:0};}
+var SEP={sep:true};
+var MENUS={
+  File:[M('New',' ',true),M('Open…','Ctrl+O'),M('Open Remote…'),M('Recent Documents',' ',true),SEP,M('Save','Ctrl+S'),M('Save As…','Ctrl+Shift+S'),M('Save a Copy…'),SEP,M('Export…'),M('Export as PDF…'),SEP,M('Print…','Ctrl+P'),SEP,M('Exit','Ctrl+Q')],
+  Edit:[M('Undo','Ctrl+Z'),M('Redo','Ctrl+Y'),SEP,M('Cut','Ctrl+X'),M('Copy','Ctrl+C'),M('Paste','Ctrl+V'),SEP,M('Find & Replace…','Ctrl+H'),SEP,M('Select All','Ctrl+A')],
+  View:[M('Normal'),M('Web'),SEP,M('Zoom…'),M('User Interface…'),SEP,M('Sidebar'),M('Status Bar')],
+  Insert:[M('Image…'),M('Chart…'),M('Table…','Ctrl+F12'),SEP,M('Header and Footer',' ',true),M('Page Break','Ctrl+Enter'),SEP,M('Special Character…'),M('Hyperlink…')],
+  Format:[M('Character…'),M('Paragraph…'),M('Bullets and Numbering…'),SEP,M('Page Style…'),SEP,M('Clear Direct Formatting','Ctrl+M')],
+  Styles:[M('Default Paragraph Style'),M('Heading 1'),M('Heading 2'),SEP,M('Manage Styles','F11')],
+  Table:[M('Insert Table…','Ctrl+F12'),M('Insert Row Above'),M('Insert Column Before'),SEP,M('Merge Cells'),M('Split Cells…')],
+  Form:[M('Design Mode'),M('Text Box'),M('Check Box'),M('Push Button')],
+  Sheet:[M('Insert Rows Above'),M('Insert Columns Before'),SEP,M('Delete Rows'),M('Named Ranges…')],
+  Data:[M('Sort…'),M('AutoFilter','Ctrl+Shift+L'),M('Standard Filter…'),SEP,M('Pivot Table…'),M('Group and Outline',' ',true)],
+  Slide:[M('New Slide','Ctrl+M'),M('Duplicate Slide'),SEP,M('Slide Properties…'),M('Slide Layout',' ',true)],
+  'Slide Show':[M('Start from First Slide','F5'),M('Start from Current Slide','Shift+F5'),SEP,M('Slide Show Settings…')],
+  Page:[M('Page Properties…'),M('Insert Page'),SEP,M('Rename Page…')],
+  Shape:[M('Rotate or Flip',' ',true),M('Arrange',' ',true),SEP,M('Group',' ',true)],
+  Tools:[M('Spelling…','F7'),M('Word Count…'),SEP,M('AutoCorrect Options…'),SEP,M('Macros',' ',true),SEP,M('Options…','Alt+F12')],
+  Window:[M('New Window'),M('Close Window','Ctrl+W')],
+  Help:[M('LibreOffice Help','F1'),SEP,M("What's This?"),SEP,M('About LibreOffice')]
+};
+function B(icon,tip){return {isBtn:true,icon:icon,tip:tip};}
+var S_=  {isSep:true};
+function CB(text,w){return {isCombo:true,text:text,w:w||120};}
+var STD=[B('note_add','New'),B('folder_open','Open'),B('save','Save'),B('picture_as_pdf','Export as PDF'),B('local_printshop','Print'),S_,B('undo','Undo'),B('redo','Redo'),S_,B('content_cut','Cut'),B('content_copy','Copy'),B('content_paste','Paste'),B('format_paint','Clone Formatting'),S_,B('image','Insert Image'),B('table','Insert Table'),B('insert_chart','Insert Chart'),S_,B('search','Find & Replace'),B('spellcheck','Spelling')];
+var FMT={
+  writer:[CB('Default Paragraph Style',180),CB('Liberation Serif',140),CB('12',54),S_,B('format_bold','Bold'),B('format_italic','Italic'),B('format_underlined','Underline'),B('format_strikethrough','Strikethrough'),S_,B('format_color_text','Font Color'),B('format_ink_highlighter','Highlighting'),S_,B('format_align_left','Left'),B('format_align_center','Center'),B('format_align_right','Right'),B('format_align_justify','Justified'),S_,B('format_list_bulleted','Bulleted List'),B('format_list_numbered','Numbered List'),S_,B('format_indent_increase','Increase Indent'),B('format_indent_decrease','Decrease Indent')],
+  calc:[CB('Liberation Sans',150),CB('10',54),S_,B('format_bold','Bold'),B('format_italic','Italic'),B('format_underlined','Underline'),S_,B('format_color_text','Font Color'),B('format_color_fill','Background Color'),S_,B('format_align_left','Left'),B('format_align_center','Center'),B('format_align_right','Right'),S_,B('attach_money','Currency'),B('percent','Percent'),B('decimal_increase','Add Decimal'),B('decimal_decrease','Delete Decimal'),S_,B('cell_merge','Merge Cells')],
+  impress:[CB('Liberation Sans',150),CB('18',54),S_,B('format_bold','Bold'),B('format_italic','Italic'),B('format_underlined','Underline'),S_,B('format_color_text','Font Color'),S_,B('format_align_left','Left'),B('format_align_center','Center'),B('format_align_right','Right'),S_,B('crop_square','Rectangle'),B('circle','Ellipse'),B('horizontal_rule','Line'),B('text_fields','Text Box'),S_,B('play_arrow','Start from First Slide')],
+  draw:[B('near_me','Select'),B('crop_square','Rectangle'),B('circle','Ellipse'),B('change_history','Basic Shapes'),B('horizontal_rule','Line'),B('polyline','Curve'),B('text_fields','Insert Text Box'),S_,B('format_color_fill','Fill Color'),B('line_weight','Line Width'),B('palette','Line Color'),S_,B('flip','Flip'),B('rotate_right','Rotate')],
+  base:[B('table','New Table'),B('quiz','New Query'),B('description','New Form'),B('summarize','New Report'),S_,B('edit','Edit'),B('delete','Delete'),S_,B('sort','Sort'),B('filter_alt','Filter')],
+  math:[B('functions','Elements'),S_,B('zoom_in','Zoom In'),B('zoom_out','Zoom Out'),B('fit_screen','Show All'),S_,B('refresh','Update')]
+};
+var APP={
+  writer:{icon:'article',label:'Writer',doc:'Q3 Board Report.odt'},
+  calc:{icon:'table_chart',label:'Calc',doc:'2026 Operating Budget.ods'},
+  impress:{icon:'co_present',label:'Impress',doc:'Product Launch.odp'},
+  draw:{icon:'brush',label:'Draw',doc:'Brand Guidelines.odg'},
+  base:{icon:'database',label:'Base',doc:'CRM.odb'},
+  math:{icon:'functions',label:'Math',doc:'Formula.odf'}
+};
+var MENUSET={
+  writer:['File','Edit','View','Insert','Format','Styles','Table','Form','Tools','Window','Help'],
+  calc:['File','Edit','View','Insert','Format','Sheet','Data','Tools','Window','Help'],
+  impress:['File','Edit','View','Insert','Format','Slide','Slide Show','Tools','Window','Help'],
+  draw:['File','Edit','View','Insert','Format','Page','Shape','Tools','Window','Help'],
+  base:['File','Edit','View','Insert','Tools','Window','Help'],
+  math:['File','Edit','View','Format','Tools','Window','Help']
+};
+var RIBBONTABS={
+  writer:['File','Home','Insert','Layout','References','Review','View'],
+  calc:['File','Home','Insert','Layout','Data','Review','View'],
+  impress:['File','Home','Insert','Slide Show','Review','View'],
+  draw:['File','Home','Insert','Page','Review','View'],
+  base:['File','Home','Insert','Tools','View'],
+  math:['File','Home','View']
+};
+/* Curated fallback command list used only when the same-origin catalog cannot
+   be fetched (e.g. opened via file://). Production fetches the full 2,433-row
+   prototype-features.json mirror of the LibreOffice command inventory. */
+var FEATURES_FALLBACK=[
+['New Document','shared','File','File ▸ New'],['Open','shared','File','File ▸ Open'],['Open Remote','shared','File','File ▸ Open Remote'],['Save','shared','File','Ctrl+S'],['Save As','shared','File','Ctrl+Shift+S'],['Export as PDF','shared','File','File ▸ Export As ▸ PDF'],['Print','shared','File','Ctrl+P'],['Digital Signatures','shared','File','File ▸ Digital Signatures'],['Templates Manager','shared','File','File ▸ Templates'],['Document Properties','shared','Document','File ▸ Properties'],['Close','shared','File','Ctrl+W'],['Exit','shared','File','Ctrl+Q'],
+['Undo','shared','Edit','Ctrl+Z'],['Redo','shared','Edit','Ctrl+Y'],['Cut','shared','Edit','Ctrl+X'],['Copy','shared','Edit','Ctrl+C'],['Paste','shared','Edit','Ctrl+V'],['Paste Special','shared','Edit','Ctrl+Shift+V'],['Select All','shared','Edit','Ctrl+A'],['Find','shared','Edit','Ctrl+F'],['Find & Replace','shared','Edit','Ctrl+H'],['Track Changes','shared','Review','Edit ▸ Track Changes'],['Comments','shared','Review','Insert ▸ Comment'],
+['Sidebar','shared','View','View ▸ Sidebar'],['Status Bar','shared','View','View ▸ Status Bar'],['Rulers','shared','View','View ▸ Rulers'],['Full Screen','shared','View','Ctrl+Shift+J'],['Zoom','shared','View','View ▸ Zoom'],['User Interface','shared','View','View ▸ User Interface'],['Dark Mode','shared','View','Tools ▸ Options ▸ Application Colors'],
+['Insert Image','shared','Insert','Insert ▸ Image'],['Insert Chart','shared','Insert','Insert ▸ Chart'],['Insert Table','shared','Insert','Insert ▸ Table'],['Insert Special Character','shared','Insert','Insert ▸ Special Character'],['Insert Hyperlink','shared','Insert','Insert ▸ Hyperlink'],['Insert Text Box','shared','Insert','Insert ▸ Text Box'],['Insert Header & Footer','shared','Insert','Insert ▸ Header and Footer'],['Insert Page Break','shared','Insert','Ctrl+Enter'],
+['Spelling','shared','Tools','F7'],['Thesaurus','shared','Tools','Ctrl+F7'],['Word Count','shared','Tools','Tools ▸ Word Count'],['AutoCorrect','shared','Tools','Tools ▸ AutoCorrect Options'],['Macros','shared','Macros','Tools ▸ Macros'],['Extension Manager','shared','Tools','Tools ▸ Extension Manager'],['Customize','shared','Tools','Tools ▸ Customize'],['Options','shared','Tools','Alt+F12'],['Accessibility Check','shared','Accessibility','Tools ▸ Accessibility Check'],['Help','shared','Tools','F1'],['About','shared','Tools','Help ▸ About'],
+['Paragraph Styles','writer','Styles','F11'],['Clone Formatting','writer','Format','Standard ▸ Clone'],['Clear Direct Formatting','writer','Format','Ctrl+M'],['Bold','writer','Format','Ctrl+B'],['Italic','writer','Format','Ctrl+I'],['Underline','writer','Format','Ctrl+U'],['Font Color','writer','Format','Format ▸ Character'],['Align Left','writer','Format','Ctrl+L'],['Align Center','writer','Format','Ctrl+E'],['Justified','writer','Format','Ctrl+J'],['Bullets & Numbering','writer','Format','Format ▸ Bullets and Numbering'],['Page Style','writer','Format','Format ▸ Page Style'],['Table of Contents','writer','Insert','Insert ▸ Table of Contents'],['Footnote / Endnote','writer','Insert','Insert ▸ Footnote'],['Mail Merge','writer','Tools','Tools ▸ Mail Merge Wizard'],['Navigator','writer','View','F5'],['Track Changes','writer','Review','Edit ▸ Track Changes'],
+['Number Format','calc','Format','Ctrl+1'],['Conditional Formatting','calc','Format','Format ▸ Conditional'],['Merge Cells','calc','Format','Format ▸ Merge Cells'],['Freeze Rows & Columns','calc','View','View ▸ Freeze'],['Function Wizard','calc','Formula','Ctrl+F2'],['AutoSum','calc','Formula','Formula ▸ Sum'],['Sort','calc','Data','Data ▸ Sort'],['AutoFilter','calc','Data','Ctrl+Shift+L'],['Pivot Table','calc','Data','Data ▸ Pivot Table'],['Goal Seek','calc','Data','Tools ▸ Goal Seek'],['Solver','calc','Data','Tools ▸ Solver'],['Sparklines','calc','Insert','Insert ▸ Sparkline'],
+['New Slide','impress','Slides','Ctrl+M'],['Slide Layout','impress','Slides','Slide ▸ Layout'],['Master Slide','impress','Slides','View ▸ Master Slide'],['Custom Animation','impress','Show','Slide ▸ Animation'],['Slide Transition','impress','Show','Slide ▸ Transition'],['Start Slide Show','impress','Show','F5'],['Presenter Console','impress','Show','Slide Show ▸ Presenter Console'],
+['Rectangle','draw','Draw','Toolbar ▸ Rectangle'],['Ellipse','draw','Draw','Toolbar ▸ Ellipse'],['Curve','draw','Draw','Toolbar ▸ Curve'],['Connectors','draw','Draw','Toolbar ▸ Connectors'],['Area Fill','draw','Objects','Format ▸ Area'],['Align Objects','draw','Objects','Format ▸ Align'],['Arrange','draw','Objects','Shape ▸ Arrange'],['Position & Size','draw','Objects','F4'],['Layers','draw','View','Insert ▸ Layer'],
+['Table Design','base','Database','Tables ▸ Create in Design'],['Query Design','base','Database','Queries ▸ Create in Design'],['SQL View','base','Database','Queries ▸ Create in SQL'],['Form Wizard','base','Database','Forms ▸ Use Wizard'],['Report Builder','base','Database','Reports ▸ Report Builder'],['Relationships','base','Database','Tools ▸ Relationships'],
+['Formula Editor','math','Formula','Insert ▸ Object ▸ Formula'],['Elements Panel','math','Formula','View ▸ Elements'],['Symbol Catalog','math','Formula','Tools ▸ Catalog'],['Matrices','math','Formula','Elements ▸ Formats'],['Integrals & Sums','math','Formula','Elements ▸ Operators'],
+['Column Chart','chart','Chart','Insert ▸ Chart ▸ Column'],['Pie Chart','chart','Chart','Chart ▸ Pie'],['XY Scatter','chart','Chart','Chart ▸ XY (Scatter)'],['Trend Lines','chart','Chart','Insert ▸ Trend Line'],['3D View','chart','Chart','Format ▸ 3D View'],
+['Register Database','dbu','Database','Tools ▸ Options ▸ Databases'],['Report Wizard','report','Database','Reports ▸ Use Wizard'],['BASIC IDE','basic','Command','Tools ▸ Macros ▸ Edit Macros'],['Bibliography Table','biblio','Insert','Insert ▸ Bibliography']
+];
+
+var DOCS=(function(){
+  var b2=[['h','Executive summary'],['p','Revenue grew 18% quarter over quarter, driven by strong adoption across the enterprise segment and disciplined expansion of the direct sales team.']];
+  var b3=b2.concat([['p','The remainder of this report details performance by business unit and outlines three strategic initiatives proposed for the coming fiscal year.']]);
+  var b4=b3.concat([['h','Highlights'],['p','Two flagship accounts renewed early at expanded scope, and the partner channel contributed a growing share of qualified pipeline.']]);
+  var b5=b4.concat([['p','Net retention reached a record 121%.']]);
+  return [
+    {title:'Untitled 1',sub:'Text Document — draft',blocks:[]},
+    {title:'Untitled 1',sub:'Text Document — draft',blocks:[['h','Executive summary'],['p','Revenue grew this quarter across the enterprise segment.']]},
+    {title:'Q3 Board Report',sub:'Prepared for the Board of Directors · Confidential',blocks:b2},
+    {title:'Q3 Board Report',sub:'Prepared for the Board of Directors · Confidential',blocks:b3},
+    {title:'Q3 Board Report',sub:'Prepared for the Board of Directors · Confidential',blocks:b4},
+    {title:'Q3 Board Report',sub:'Prepared for the Board of Directors · Confidential',blocks:b5}
+  ];
+})();
+var HISTORY=[
+ {id:0,time:'Now',group:'Today',action:'Working copy',icon:'edit',hash:'e9c4f2a',author:'Alex Rivera',added:0,removed:0,file:'Q3 Board Report.odt',docIx:5,current:true},
+ {id:1,time:'2:41 PM',group:'Today',action:'Bold applied to “record 121%”',icon:'format_bold',hash:'7b1d0c8',author:'Alex Rivera',added:1,removed:1,file:'Q3 Board Report.odt',docIx:5},
+ {id:2,time:'2:39 PM',group:'Today',action:'Typed “Net retention reached a record 121%.”',icon:'keyboard',hash:'3a9f5e1',author:'Alex Rivera',added:11,removed:0,file:'Q3 Board Report.odt',docIx:5},
+ {id:3,time:'2:32 PM',group:'Today',action:'Inserted “Highlights” section',icon:'title',hash:'c22a7b4',author:'Alex Rivera',added:34,removed:0,file:'Q3 Board Report.odt',docIx:4},
+ {id:4,time:'2:20 PM',group:'Today',action:'Paragraph aligned justified',icon:'format_align_justify',hash:'0d84f60',author:'Alex Rivera',added:0,removed:0,file:'Q3 Board Report.odt',docIx:3},
+ {id:5,time:'2:02 PM',group:'Today',action:'Recalculated “2026 Operating Budget.ods”',icon:'table_chart',hash:'55e1aa9',author:'Alex Rivera',added:6,removed:6,file:'2026 Operating Budget.ods'},
+ {id:6,time:'1:58 PM',group:'Today',action:'Typed second paragraph',icon:'keyboard',hash:'9f3c2d7',author:'Alex Rivera',added:42,removed:0,file:'Q3 Board Report.odt',docIx:3},
+ {id:7,time:'1:44 PM',group:'Today',action:'Title changed to “Q3 Board Report”',icon:'edit',hash:'2b7e884',author:'Alex Rivera',added:3,removed:1,file:'Q3 Board Report.odt',docIx:2},
+ {id:8,time:'11:20 AM',group:'Today',action:'Applied Heading 1 style',icon:'format_size',hash:'a1c9f30',author:'Alex Rivera',added:0,removed:0,file:'Q3 Board Report.odt',docIx:1},
+ {id:9,time:'Yesterday 4:12 PM',group:'Yesterday',action:'Added “Executive summary”',icon:'title',hash:'6e0b512',author:'Alex Rivera',added:12,removed:0,file:'Q3 Board Report.odt',docIx:1},
+ {id:10,time:'Yesterday 3:50 PM',group:'Yesterday',action:'Updated slide 3 layout in “Product Launch.odp”',icon:'co_present',hash:'44d3928',author:'Priya Shah',added:0,removed:0,file:'Product Launch.odp'},
+ {id:11,time:'Yesterday 3:50 PM',group:'Yesterday',action:'Document created',icon:'note_add',hash:'0000001',author:'Alex Rivera',added:0,removed:0,file:'Q3 Board Report.odt',docIx:0}
+];
+
+/* ---- state ---- */
+var S = {
+  screen:'start', theme:'light', density:'comfortable', chrome:'classic',
+  scView:'recent', menuOpen:null, nbTab:'Home',
+  gCheck:true, gRadio:'balanced', gSwitch:true, gTab:1, gSlider:64,
+  gChip:{design:true,native:false,a11y:true},
+  calcSel:'B2', sheet:0, slide:1, layout:1, dialog:'options', baseSel:0, printRange:'all',
+  featCat:'all', featQuery:'', featSel:'Find & Replace', features:null,
+  fmt:{bold:true,italic:false,underline:false,strike:false,align:'left'},
+  histSel:0, histScope:'doc',
+  _focusSearch:false
+};
+
+/* ---- helpers ---- */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+var toastTok=0;
+function toast(msg){
+  var el=document.getElementById('toast');
+  el.innerHTML=ic('bolt',20,'var(--p)')+'<span>'+esc(msg)+'</span>';
+  el.classList.add('show');
+  var t=++toastTok;
+  setTimeout(function(){ if(t===toastTok) el.classList.remove('show'); },1900);
+}
+function set(k,v){ S[k]=v; S.menuOpen=null; render(); }
+
+/* ---- render ---- */
+function render(){
+  var st=S, P=PAL[st.theme];
+  var D = st.density==='compact'
+    ? {ctrl:34,row:26,tb:38,menu:30,item:30,fs:13,lh:1.35}
+    : {ctrl:40,row:32,tb:48,menu:38,item:40,fs:14,lh:1.45};
+  var bw = st.theme==='hc' ? '2px' : '1px';
+  var vars = {
+    '--p':P.p,'--on-p':P.onP,'--pc':P.pc,'--on-pc':P.onPc,'--p-hover':P.pHover,'--p-pressed':P.pPressed,'--pa-hover':P.paHover,'--pa-pressed':P.paPressed,
+    '--surface':P.surface,'--sc':P.sc,'--scl':P.scl,'--on-s':P.onS,'--on-sv':P.onSv,'--outline':P.outline,'--outline-v':P.outlineV,'--disabled':P.disabled,'--inv-s':P.invS,'--on-inv-s':P.onInvS,'--warn':P.warn,'--on-warn':P.onWarn,'--err':P.err,'--on-err':P.onErr,'--err-base':P.errBase,'--visited':P.visited,'--desk':P.desk,'--scrim':P.scrim,'--bw':bw,
+    '--r-check':'3px','--r-ind':'4px','--r-focus':'6px','--r-sm':'8px','--r-ctrl':'10px','--r-cont':'12px','--r-tb':'18px','--r-pill':'20px',
+    '--ctrl':D.ctrl+'px','--row':D.row+'px','--tb':D.tb+'px','--menu':D.menu+'px','--item':D.item+'px','--fs':D.fs+'px'
+  };
+
+  var scr=st.screen;
+  var isApp=['writer','calc','impress','draw','base','math'].indexOf(scr)>=0;
+  var meta=APP[scr]||APP.writer;
+
+  var html = controlBar() + windowShell(isApp, meta) + footerNote() + menuAway();
+
+  var app=document.getElementById('app');
+  var cssText='';
+  for(var k in vars) cssText+=k+':'+vars[k]+';';
+  cssText+="font-family:'Segoe UI Variable Text','Segoe UI',system-ui,Roboto,sans-serif;color:var(--on-s);min-height:100vh;width:100%;background:var(--desk);display:flex;flex-direction:column;align-items:center;font-size:var(--fs);line-height:"+D.lh+";padding-bottom:40px";
+  app.setAttribute('style',cssText);
+  app.innerHTML=html;
+
+  if(scr==='code' && st._focusSearch){
+    var inp=document.getElementById('featSearch');
+    if(inp){ inp.focus(); var v=inp.value; inp.setSelectionRange(v.length,v.length); }
+    st._focusSearch=false;
+  }
+}
+
+/* ===== control bar ===== */
+function seg(list,key){
+  var out='';
+  for(var i=0;i<list.length;i++){
+    var o=list[i], active=S[key]===o[0];
+    var stl="appearance:none;border:none;cursor:pointer;padding:6px 13px;border-radius:16px;font:600 13px/1 inherit;white-space:nowrap;transition:background .12s,color .12s;background:"+(active?'var(--p)':'transparent')+";color:"+(active?'var(--on-p)':'rgba(255,255,255,.72)');
+    out+='<button data-act="set:'+key+':'+o[0]+'" aria-pressed="'+active+'" style="'+stl+'">'+esc(o[1])+'</button>';
+  }
+  return out;
+}
+function segGroup(label,inner){
+  return '<div style="display:flex;flex-direction:column;gap:5px"><span style="font:700 10px/1 inherit;letter-spacing:.09em;text-transform:uppercase;opacity:.5">'+label+'</span><div style="display:inline-flex;gap:2px;padding:3px;border-radius:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);flex-wrap:wrap">'+inner+'</div></div>';
+}
+function controlBar(){
+  var isApp=['writer','calc','impress','draw','base','math'].indexOf(S.screen)>=0;
+  var screens=[['start','Start'],['writer','Writer'],['calc','Calc'],['impress','Impress'],['draw','Draw'],['base','Base'],['math','Math'],['code','Features'],['history','History'],['gallery','Components'],['dialogs','Dialogs']];
+  var themes=[['light','Light'],['dark','Dark'],['hc','High contrast']];
+  var densities=[['compact','Compact'],['comfortable','Comfortable']];
+  var chromes=[['classic','Classic'],['ribbon','Ribbon']];
+  var chromeGroup = isApp ? segGroup('Chrome', seg(chromes,'chrome')) : '';
+  return '<div data-silent="1" style="width:100%;background:var(--inv-s);color:var(--on-inv-s);display:flex;flex-wrap:wrap;align-items:center;gap:18px 22px;padding:12px 22px;position:sticky;top:0;z-index:80;box-shadow:0 2px 10px rgba(0,0,0,.25)">'
+    + '<div style="display:flex;align-items:center;gap:10px;margin-right:6px">'+ic('grid_view',26,'var(--p)')+'<div style="display:flex;flex-direction:column;line-height:1.1"><strong style="font:700 14px/1.1 inherit;letter-spacing:-.01em">LibreOffice Material</strong><span style="font:500 11px/1.3 inherit;opacity:.62">Material Design 3 · suite prototype</span></div></div>'
+    + '<div id="stage" tabindex="-1" style="outline:none">'+segGroup('Surface', seg(screens,'screen'))+'</div>'
+    + segGroup('Theme', seg(themes,'theme'))
+    + segGroup('Density', seg(densities,'density'))
+    + chromeGroup
+    + '</div>';
+}
+
+/* ===== window shell ===== */
+function winMeta(){
+  var scr=S.screen, meta=APP[scr]||APP.writer;
+  var icon = scr==='start'?'grid_view':scr==='gallery'?'palette':scr==='dialogs'?'tune':scr==='code'?'category':scr==='history'?'history':meta.icon;
+  var title = scr==='start'?'LibreOffice Material — Start Center':scr==='gallery'?'Material components — LibreOffice':scr==='dialogs'?'Dialogs — LibreOffice':scr==='code'?'All Features — LibreOffice':scr==='history'?'Version history — LibreOffice':(meta.doc+' — LibreOffice '+meta.label);
+  return {icon:icon,title:title};
+}
+function windowShell(isApp, meta){
+  var wm=winMeta();
+  var titleBar='<div style="height:42px;display:flex;align-items:center;gap:10px;padding:0 0 0 14px;background:var(--sc);border-bottom:var(--bw) solid var(--outline-v)">'
+    + ic(wm.icon,20,'var(--p)')
+    + '<span style="font:500 13px/1 inherit;color:var(--on-s)">'+esc(wm.title)+'</span><div style="flex:1"></div>'
+    + '<button title="Minimize" data-hov="background:var(--outline-v)" style="width:46px;height:42px;border:none;background:transparent;color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('remove',18)+'</button>'
+    + '<button title="Maximize" data-hov="background:var(--outline-v)" style="width:46px;height:42px;border:none;background:transparent;color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('crop_square',15)+'</button>'
+    + '<button title="Close" data-hov="background:#e81123;color:#fff" style="width:46px;height:42px;border:none;background:transparent;color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('close',18)+'</button>'
+    + '</div>';
+
+  var command='';
+  if(isApp && S.chrome==='classic') command=classicCommand();
+  else if(isApp && S.chrome==='ribbon') command=ribbonCommand();
+
+  var body=screenBody();
+  var status = isApp ? statusBar() : '';
+
+  return '<div style="width:100%;display:flex;justify-content:center;padding:24px 20px 8px"><div style="width:min(1200px,97vw);border-radius:11px;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 30px 70px rgba(0,0,0,.30),0 6px 16px rgba(0,0,0,.16);overflow:hidden;position:relative">'
+    + titleBar + command + body + status
+    + '</div></div>';
+}
+
+/* ---- classic command area ---- */
+function classicCommand(){
+  var scr=S.screen;
+  var menusArr=MENUSET[scr]||[];
+  var menuHtml='';
+  for(var i=0;i<menusArr.length;i++){
+    var l=menusArr[i], open=S.menuOpen===l;
+    var mstl="appearance:none;border:none;background:"+(open?'var(--pc)':'transparent')+";color:"+(open?'var(--on-pc)':'var(--on-s)')+";cursor:pointer;padding:5px 11px;border-radius:8px;font:400 13px/1 inherit";
+    var drop='';
+    if(open){
+      var items=MENUS[l]||[M('(commands)')];
+      var inner='';
+      for(var j=0;j<items.length;j++){
+        var it=items[j];
+        if(it.sep){ inner+='<div style="height:1px;background:var(--outline-v);margin:6px 8px"></div>'; }
+        else{
+          var chev='<span class="ic" aria-hidden="true" style="font-size:18px;color:var(--on-sv);opacity:'+it.subOp+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICONS.chevron_right+'</svg></span>';
+          inner+='<div data-act="menuitem:'+encodeURIComponent(it.l)+'" data-hov="background:var(--pc);color:var(--on-pc)" style="display:flex;align-items:center;gap:14px;height:var(--item);padding:0 10px;border-radius:8px;cursor:pointer;color:var(--on-s)"><span style="flex:1;font:400 13px/1 inherit">'+esc(it.l)+'</span><span class="mono" style="font-size:12px;color:var(--on-sv)">'+esc(it.k)+'</span>'+chev+'</div>';
+        }
+      }
+      drop='<div style="position:absolute;top:calc(100% + 4px);left:0;min-width:248px;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.24);padding:6px;z-index:60;animation:lo-pop .12s ease">'+inner+'</div>';
+    }
+    menuHtml+='<div style="position:relative"><button data-act="menu:'+encodeURIComponent(l)+'" style="'+mstl+'">'+esc(l)+'</button>'+drop+'</div>';
+  }
+  var menuBar='<div data-silent="1" style="display:flex;align-items:center;height:var(--menu);padding:0 6px;background:var(--surface);border-bottom:var(--bw) solid var(--outline-v);position:relative;z-index:30">'+menuHtml+'</div>';
+
+  var stdBar='<div class="lo-scroll" style="display:flex;align-items:center;gap:2px;height:var(--tb);padding:0 8px;background:var(--surface);border-bottom:var(--bw) solid var(--outline-v);overflow:hidden">'+toolbarItems(STD)+'</div>';
+  var fmtBar='<div class="lo-scroll" style="display:flex;align-items:center;gap:3px;height:var(--tb);padding:0 8px;background:var(--surface);border-bottom:var(--bw) solid var(--outline-v);overflow:hidden">'+fmtToolbar()+'</div>';
+
+  var formula='';
+  if(scr==='calc') formula=calcFormulaBar();
+  return menuBar+stdBar+fmtBar+formula;
+}
+function toolbarItems(list){
+  var out='';
+  for(var i=0;i<list.length;i++){
+    var it=list[i];
+    if(it.isSep){ out+='<div style="width:1px;height:22px;background:var(--outline-v);margin:0 6px;flex:0 0 auto"></div>'; }
+    else if(it.isBtn){ out+='<button title="'+esc(it.tip)+'" data-hov="background:var(--pc);color:var(--on-pc)" style="width:34px;height:34px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center;flex:0 0 auto">'+ic(it.icon,20)+'</button>'; }
+  }
+  return out;
+}
+var FTGL={format_bold:'bold',format_italic:'italic',format_underlined:'underline',format_strikethrough:'strike'};
+var FALIGN={format_align_left:'left',format_align_center:'center',format_align_right:'right',format_align_justify:'justify'};
+function fmtToolbar(){
+  var list=FMT[S.screen]||[];
+  var out='';
+  for(var i=0;i<list.length;i++){
+    var it=list[i];
+    if(it.isSep){ out+='<div style="width:1px;height:22px;background:var(--outline-v);margin:0 6px;flex:0 0 auto"></div>'; continue; }
+    if(it.isCombo){ out+='<div data-act="toast:'+encodeURIComponent(it.text)+'" style="height:30px;display:flex;align-items:center;gap:8px;padding:0 8px 0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);background:var(--surface);font:400 13px/1 inherit;flex:0 0 auto;width:'+it.w+'px;white-space:nowrap;overflow:hidden;cursor:pointer"><span style="flex:1;overflow:hidden;text-overflow:ellipsis">'+esc(it.text)+'</span>'+ic('expand_more',18,'var(--on-sv)')+'</div>'; continue; }
+    if(it.isBtn){
+      var tg=FTGL[it.icon], al=FALIGN[it.icon], active=false, act='';
+      if(tg){ active=!!(S.fmt&&S.fmt[tg]); act='fmt:'+tg; }
+      else if(al){ active=(S.fmt&&S.fmt.align===al); act='align:'+al; }
+      else { act='toast:'+encodeURIComponent(it.tip); }
+      var stl='width:34px;height:34px;border:none;border-radius:var(--r-sm);cursor:pointer;display:grid;place-items:center;flex:0 0 auto;background:'+(active?'var(--pc)':'transparent')+';color:'+(active?'var(--on-pc)':'var(--on-sv)');
+      out+='<button title="'+esc(it.tip)+'" data-act="'+act+'" data-hov="background:var(--pc);color:var(--on-pc)" aria-pressed="'+active+'" style="'+stl+'">'+ic(it.icon,20)+'</button>';
+    }
+  }
+  return out;
+}
+function calcFormulaBar(){
+  var CDATA=calcData();
+  var f = CDATA[S.calcSel] ? (/^[0-9(]/.test(CDATA[S.calcSel]) ? '='+CDATA[S.calcSel].replace(/,/g,'') : CDATA[S.calcSel]) : '';
+  return '<div style="display:flex;align-items:center;gap:8px;height:var(--tb);padding:0 8px;background:var(--surface);border-bottom:var(--bw) solid var(--outline-v)">'
+    + '<div style="height:30px;width:96px;display:flex;align-items:center;gap:6px;padding:0 8px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);font:500 13px/1 inherit;flex:0 0 auto">'+esc(S.calcSel)+'<span style="margin-left:auto">'+ic('expand_more',18,'var(--on-sv)')+'</span></div>'
+    + '<button title="Function Wizard" data-hov="background:var(--pc)" style="width:32px;height:30px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--p);cursor:pointer;font:700 14px/1 inherit;flex:0 0 auto">fx</button>'
+    + '<button title="Sum" data-hov="background:var(--pc);color:var(--on-pc)" style="width:32px;height:30px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;font:500 17px/1 inherit;flex:0 0 auto">&#931;</button>'
+    + '<div style="flex:1;height:30px;display:flex;align-items:center;padding:0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);background:var(--surface);font:400 13px/1 inherit">'+esc(f)+'</div>'
+    + '</div>';
+}
+
+/* ---- ribbon command area ---- */
+function ribbonCommand(){
+  var scr=S.screen;
+  var tabs=RIBBONTABS[scr]||[];
+  var tabHtml='';
+  for(var i=0;i<tabs.length;i++){
+    var l=tabs[i], a=(S.nbTab||'Home')===l;
+    var stl="appearance:none;border:none;cursor:pointer;padding:6px 16px;border-radius:16px 16px 0 0;font:"+(a?'600':'400')+" 13px/1 inherit;background:"+(a?'var(--surface)':'transparent')+";color:"+(a?'var(--p)':'var(--on-sv)')+";border-bottom:"+(a?'2px solid var(--p)':'2px solid transparent');
+    tabHtml+='<button data-act="set:nbTab:'+encodeURIComponent(l)+'" aria-pressed="'+a+'" style="'+stl+'">'+esc(l)+'</button>';
+  }
+  var tabRow='<div data-silent="1" style="display:flex;align-items:center;gap:2px;height:38px;padding:0 8px;background:var(--sc);border-bottom:var(--bw) solid var(--outline-v)">'+tabHtml+'<div style="flex:1"></div><button title="Toggle Menu Bar" data-hov="background:var(--pc);color:var(--on-pc)" style="width:32px;height:30px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('menu',20)+'</button></div>';
+
+  var groups=[
+    {name:'Clipboard',items:[{big:true,icon:'content_paste',label:'Paste',tip:'Paste'},{small:true,icon:'content_cut',tip:'Cut'},{small:true,icon:'content_copy',tip:'Copy'},{small:true,icon:'format_paint',tip:'Clone'}]},
+    {name:'Font',items:[{chip:true,label:'Liberation Serif  12'},{small:true,icon:'format_bold',tip:'Bold'},{small:true,icon:'format_italic',tip:'Italic'},{small:true,icon:'format_underlined',tip:'Underline'},{small:true,icon:'format_color_text',tip:'Color'}]},
+    {name:'Paragraph',items:[{small:true,icon:'format_list_bulleted',tip:'Bullets'},{small:true,icon:'format_list_numbered',tip:'Numbered'},{small:true,icon:'format_align_left',tip:'Left'},{small:true,icon:'format_align_center',tip:'Center'},{small:true,icon:'format_align_right',tip:'Right'}]},
+    {name:'Styles',items:[{chip:true,label:'Default'},{chip:true,label:'Heading 1'},{chip:true,label:'Heading 2'}]}
+  ];
+  var gHtml='';
+  for(var g=0;g<groups.length;g++){
+    var grp=groups[g], items='';
+    for(var k=0;k<grp.items.length;k++){
+      var it=grp.items[k];
+      if(it.big) items+='<button title="'+esc(it.tip)+'" data-hov="background:var(--pc);color:var(--on-pc)" style="display:flex;flex-direction:column;align-items:center;gap:4px;width:64px;height:72px;border:none;background:transparent;border-radius:var(--r-cont);color:var(--on-s);cursor:pointer;padding-top:8px">'+ic(it.icon,28)+'<span style="font:400 11px/1.1 inherit;text-align:center">'+esc(it.label)+'</span></button>';
+      else if(it.small) items+='<button title="'+esc(it.tip)+'" data-hov="background:var(--pc);color:var(--on-pc)" style="width:34px;height:34px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic(it.icon,20)+'</button>';
+      else if(it.chip) items+='<div data-act="toast:'+encodeURIComponent(it.label)+'" data-hov="background:var(--pc);color:var(--on-pc)" style="height:30px;display:flex;align-items:center;padding:0 12px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-pill);color:var(--on-s);background:var(--sc);font:400 12px/1 inherit;margin:2px 0;cursor:pointer;white-space:nowrap">'+esc(it.label)+'</div>';
+    }
+    gHtml+='<div style="display:flex;flex-direction:column;align-items:center;padding:0 12px;border-right:var(--bw) solid var(--outline-v)"><div style="flex:1;display:flex;align-items:center;gap:6px">'+items+'</div><span style="font:400 11px/1 inherit;color:var(--on-sv);padding-bottom:2px">'+esc(grp.name)+'</span></div>';
+  }
+  return tabRow+'<div class="lo-scroll" style="display:flex;align-items:stretch;gap:0;height:96px;padding:8px;background:var(--surface);border-bottom:var(--bw) solid var(--outline-v);overflow:hidden">'+gHtml+'</div>';
+}
+
+/* ===== bodies ===== */
+function screenBody(){
+  switch(S.screen){
+    case 'start': return startBody();
+    case 'writer': return writerBody();
+    case 'calc': return calcBody();
+    case 'impress': return impressBody();
+    case 'draw': return drawBody();
+    case 'base': return baseBody();
+    case 'math': return mathBody();
+    case 'gallery': return galleryBody();
+    case 'history': return historyBody();
+    case 'code': return featuresBody();
+    case 'dialogs': return dialogsBody();
+  }
+  return '';
+}
+
+/* ---- Start Center ---- */
+function startBody(){
+  var scNavStyle=function(a){return "display:flex;align-items:center;gap:14px;height:40px;padding:0 12px;border:none;border-radius:var(--r-pill);cursor:pointer;font:500 13px/1 inherit;background:"+(a?'var(--pc)':'transparent')+";color:"+(a?'var(--on-pc)':'var(--on-s)');};
+  var scNav=[['recent','Recent Documents','history'],['templates','Templates','grid_view']];
+  var navHtml='';
+  for(var i=0;i<scNav.length;i++){ var n=scNav[i], a=S.scView===n[0];
+    navHtml+='<button data-act="set:scView:'+n[0]+'" style="'+scNavStyle(a)+'">'+ic(n[2],20,a?'var(--on-pc)':'var(--on-sv)')+esc(n[1])+'</button>'; }
+  var createApps=[['writer','Writer Document','article'],['calc','Calc Spreadsheet','table_chart'],['impress','Impress Presentation','co_present'],['draw','Draw Drawing','brush'],['math','Math Formula','functions'],['base','Base Database','database']];
+  var createHtml='';
+  for(var c=0;c<createApps.length;c++){ var a2=createApps[c];
+    createHtml+='<button data-act="nav:'+a2[0]+'" data-hov="background:var(--pc);color:var(--on-pc)" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 10px;border:none;border-radius:var(--r-cont);background:transparent;color:var(--on-s);cursor:pointer;font:500 13px/1 inherit;text-align:left"><span style="display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);background:var(--pc);color:var(--on-pc);flex:0 0 auto">'+ic(a2[2],18)+'</span>'+esc(a2[1])+'</button>'; }
+
+  var RECENT=[['Q3 Board Report.odt','writer','2 hours ago'],['2026 Operating Budget.ods','calc','Yesterday'],['Product Launch.odp','impress','Yesterday'],['Brand Guidelines.odg','draw','2 days ago'],['Research Notes.odt','writer','Last week'],['Sales Pipeline.ods','calc','Last week'],['Onboarding Deck.odp','impress','Last week'],['Symbols.odf','math','2 weeks ago']];
+  var TEMPL=[['Modern Résumé','writer'],['Invoice','calc'],['Pitch Deck','impress'],['Newsletter','writer'],['Budget Planner','calc'],['Event Poster','draw'],['Meeting Minutes','writer'],['Quarterly Report','calc']];
+  var cards='';
+  if(S.scView==='recent'){ for(var r=0;r<RECENT.length;r++){ var rr=RECENT[r]; cards+=startCard(APP[rr[1]].icon,rr[0],APP[rr[1]].label+' · '+rr[2]); } }
+  else { for(var t=0;t<TEMPL.length;t++){ var tt=TEMPL[t]; cards+=startCard(APP[tt[1]].icon,tt[0],APP[tt[1]].label+' template'); } }
+  var filterLabel = S.scView==='recent' ? 'All Documents' : 'All Templates';
+  var viewWord = S.scView;
+
+  return '<div style="display:flex;height:600px">'
+    + '<div style="width:236px;flex:0 0 auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);display:flex;flex-direction:column;padding:10px">'
+      + '<button title="Open File" data-hov="background:var(--pa-hover)" style="display:flex;align-items:center;gap:14px;height:44px;padding:0 12px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);cursor:pointer;font:600 14px/1 inherit;margin-bottom:6px">'+ic('folder_open',20)+'Open File</button>'
+      + '<button title="Remote Files" data-hov="background:var(--pc);color:var(--on-pc)" style="display:flex;align-items:center;gap:14px;height:40px;padding:0 12px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--on-s);cursor:pointer;font:500 13px/1 inherit">'+ic('cloud',20,'var(--on-sv)')+'Remote Files</button>'
+      + '<div style="height:1px;background:var(--outline-v);margin:8px 6px"></div>'+navHtml
+      + '<div style="height:1px;background:var(--outline-v);margin:8px 6px"></div>'
+      + '<span style="font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;color:var(--on-sv);padding:6px 10px 8px">Create</span>'+createHtml
+      + '<div style="flex:1"></div>'
+      + '<div style="display:flex;gap:4px;padding-top:8px"><button data-hov="background:var(--pc);color:var(--on-pc)" style="flex:1;height:34px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--on-sv);cursor:pointer;font:500 12px/1 inherit">Help</button><button data-hov="background:var(--pc);color:var(--on-pc)" style="flex:1;height:34px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--on-sv);cursor:pointer;font:500 12px/1 inherit">Extensions</button></div>'
+    + '</div>'
+    + '<div class="lo-scroll" style="flex:1;overflow:auto;padding:26px 28px">'
+      + '<h1 style="margin:0 0 4px;font:700 30px/1.1 inherit;letter-spacing:-.02em;color:var(--on-s)">Home</h1>'
+      + '<p style="margin:0 0 20px;color:var(--on-sv);font:400 14px/1.5 inherit">Open recent work, explore templates, or create a new document.</p>'
+      + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">'
+        + '<div style="height:38px;display:flex;align-items:center;gap:10px;padding:0 10px 0 14px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);font:400 13px/1 inherit">'+esc(filterLabel)+ic('expand_more',18,'var(--on-sv)')+'</div>'
+        + '<div style="flex:1;height:38px;display:flex;align-items:center;gap:8px;padding:0 14px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-pill);color:var(--on-sv);background:var(--sc);font:400 13px/1 inherit">'+ic('search',18)+'Search '+esc(viewWord)+'</div>'
+        + '<button title="Actions" data-hov="background:var(--pc);color:var(--on-pc)" style="width:38px;height:38px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('more_vert',20)+'</button>'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(184px,1fr));gap:16px">'+cards+'</div>'
+    + '</div>'
+    + '</div>';
+}
+function startCard(icon,name,metaText){
+  return '<div data-hov="border-color:var(--p);box-shadow:0 6px 18px rgba(0,0,0,.12)" style="border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);overflow:hidden;cursor:pointer;background:var(--surface)">'
+    + '<div style="height:118px;background:var(--scl);position:relative;display:grid;place-items:center;border-bottom:var(--bw) solid var(--outline-v)">'
+      + '<div style="width:74px;height:92px;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:6px;box-shadow:0 3px 8px rgba(0,0,0,.10);display:flex;flex-direction:column;gap:5px;padding:10px 8px"><div style="height:5px;width:70%;background:var(--outline-v);border-radius:2px"></div><div style="height:4px;width:100%;background:var(--outline-v);border-radius:2px;opacity:.6"></div><div style="height:4px;width:92%;background:var(--outline-v);border-radius:2px;opacity:.6"></div><div style="height:4px;width:80%;background:var(--outline-v);border-radius:2px;opacity:.6"></div></div>'
+      + '<span style="position:absolute;top:8px;right:8px;display:grid;place-items:center;width:26px;height:26px;border-radius:var(--r-sm);background:var(--pc);color:var(--on-pc)">'+ic(icon,16)+'</span>'
+    + '</div>'
+    + '<div style="padding:10px 12px 12px"><div style="font:500 13px/1.3 inherit;color:var(--on-s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(name)+'</div><div style="font:400 11px/1.3 inherit;color:var(--on-sv);margin-top:2px">'+esc(metaText)+'</div></div>'
+  + '</div>';
+}
+
+/* ---- Writer ---- */
+function writerBody(){
+  var charBtns=[B('format_bold','Bold'),B('format_italic','Italic'),B('format_underlined','Underline'),B('strikethrough_s','Strikethrough'),B('format_color_text','Font Color'),B('format_ink_highlighter','Highlight')];
+  var paraBtns=[B('format_align_left','Left'),B('format_align_center','Center'),B('format_align_right','Right'),B('format_align_justify','Justified'),B('format_list_bulleted','Bulleted'),B('format_list_numbered','Numbered')];
+  var rail=[['edit_note','Properties'],['palette','Styles'],['image','Gallery'],['explore','Navigator'],['functions','Functions']];
+  function iconBtnRow(list){ var o=''; for(var i=0;i<list.length;i++){ o+='<button title="'+esc(list[i].tip)+'" data-hov="background:var(--pc);color:var(--on-pc)" style="width:34px;height:34px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic(list[i].icon,20)+'</button>'; } return o; }
+  var railHtml=''; for(var i=0;i<rail.length;i++){ var a=i===0; railHtml+='<button title="'+esc(rail[i][1])+'" data-hov="background:var(--pc);color:var(--on-pc)" style="width:38px;height:38px;border:none;border-radius:var(--r-sm);cursor:pointer;display:grid;place-items:center;background:'+(a?'var(--pc)':'transparent')+';color:'+(a?'var(--on-pc)':'var(--on-sv)')+'">'+ic(rail[i][0],22)+'</button>'; }
+
+  return '<div style="display:flex;height:560px">'
+    + '<div class="lo-scroll" style="flex:1;overflow:auto;background:var(--scl);padding:26px 0">'
+      + '<div style="width:640px;max-width:92%;margin:0 auto;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 4px 20px rgba(0,0,0,.10);padding:64px 72px;min-height:760px">'
+        + '<h1 style="margin:0 0 6px;font:700 26px/1.2 inherit;color:var(--on-s)">Q3 Board Report</h1>'
+        + '<p style="margin:0 0 22px;font:400 13px/1.4 inherit;color:var(--on-sv)">Prepared for the Board of Directors · Confidential</p>'
+        + '<h2 style="margin:0 0 8px;font:600 17px/1.3 inherit;color:var(--p)">Executive summary</h2>'
+        + '<p style="margin:0 0 14px;font:400 14px/1.7 inherit;color:var(--on-s);text-align:justify">Revenue grew 18% quarter over quarter, driven by strong adoption across the enterprise segment and disciplined expansion of the direct sales team. Gross margin held steady while operating expenses moderated relative to plan.</p>'
+        + '<p style="margin:0 0 14px;font:400 14px/1.7 inherit;color:var(--on-s);text-align:justify">The remainder of this report details performance by business unit, summarizes the updated hiring roadmap, and outlines three strategic initiatives proposed for the coming fiscal year.</p>'
+        + '<h2 style="margin:18px 0 8px;font:600 17px/1.3 inherit;color:var(--p)">Highlights</h2>'
+        + '<p style="margin:0;font:400 14px/1.7 inherit;color:var(--on-s);text-align:justify">Net retention reached a record 121%. Two flagship accounts renewed early at expanded scope, and the partner channel contributed a growing share of qualified pipeline.</p>'
+      + '</div>'
+    + '</div>'
+    + '<div style="width:300px;flex:0 0 auto;display:flex;border-left:var(--bw) solid var(--outline-v)">'
+      + '<div class="lo-scroll" style="flex:1;overflow:auto;background:var(--surface);padding:14px">'
+        + '<div style="font:600 14px/1 inherit;color:var(--on-s);margin-bottom:14px">Properties</div>'
+        + '<div style="font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv);margin-bottom:8px">Character</div>'
+        + '<div style="display:flex;gap:6px;margin-bottom:8px"><div style="flex:1;height:36px;display:flex;align-items:center;gap:6px;padding:0 8px 0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);font:400 13px/1 inherit">Liberation Serif<span style="margin-left:auto">'+ic('expand_more',18,'var(--on-sv)')+'</span></div><div style="width:56px;height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);font:400 13px/1 inherit">12'+ic('expand_more',16,'var(--on-sv)')+'</div></div>'
+        + '<div style="display:flex;gap:3px;margin-bottom:16px">'+iconBtnRow(charBtns)+'</div>'
+        + '<div style="font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv);margin-bottom:8px">Paragraph</div>'
+        + '<div style="display:flex;gap:3px;margin-bottom:10px">'+iconBtnRow(paraBtns)+'</div>'
+        + '<div style="display:flex;align-items:center;gap:10px;height:40px;padding:0 12px;border-radius:var(--r-cont);background:var(--pc);color:var(--on-pc);font:500 13px/1 inherit">'+ic('lightbulb',20)+'Spacing above paragraph: 0.00&quot;</div>'
+      + '</div>'
+      + '<div style="width:48px;flex:0 0 auto;background:var(--sc);border-left:var(--bw) solid var(--outline-v);display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:10px">'+railHtml+'</div>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ---- Calc ---- */
+function calcData(){
+  return {A1:'Category',B1:'Q1',C1:'Q2',D1:'Q3',E1:'Q4',F1:'Total',
+    A2:'Revenue',B2:'3,120',C2:'3,540',D2:'4,010',E2:'4,740',F2:'15,410',
+    A3:'Cost of sales',B3:'1,180',C3:'1,300',D3:'1,410',E3:'1,610',F3:'5,500',
+    A4:'Gross profit',B4:'1,940',C4:'2,240',D4:'2,600',E4:'3,130',F4:'9,910',
+    A5:'Marketing',B5:'640',C5:'700',D5:'760',E5:'880',F5:'2,980',
+    A6:'R&D',B6:'520',C6:'560',D6:'600',E6:'640',F6:'2,320',
+    A7:'G&A',B7:'410',C7:'430',D7:'450',E7:'470',F7:'1,760',
+    A8:'Operating income',B8:'370',C8:'550',D8:'790',E8:'1,140',F8:'2,850'};
+}
+function calcBody(){
+  var COLS=['A','B','C','D','E','F','G','H'];
+  var CDATA=calcData();
+  var selCol=S.calcSel.charAt(0), selRow=S.calcSel.slice(1);
+  var cw = S.density==='compact'?76:92;
+  var head='<div style="display:flex;position:sticky;top:0;z-index:5"><div style="width:44px;height:26px;flex:0 0 auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);border-bottom:var(--bw) solid var(--outline-v)"></div>';
+  for(var c=0;c<COLS.length;c++){ var cc=COLS[c], on=cc===selCol;
+    head+='<div style="width:'+cw+'px;height:26px;flex:0 0 auto;display:grid;place-items:center;font:500 12px/1 inherit;border-right:var(--bw) solid var(--outline-v);border-bottom:var(--bw) solid var(--outline-v);background:'+(on?'var(--pc)':'var(--sc)')+';color:'+(on?'var(--on-pc)':'var(--on-sv)')+'">'+cc+'</div>'; }
+  head+='</div>';
+  var rows='';
+  for(var r=1;r<=14;r++){
+    var ron=String(r)===selRow;
+    var row='<div style="display:flex"><div style="width:44px;flex:0 0 auto;display:grid;place-items:center;font:500 12px/1 inherit;border-right:var(--bw) solid var(--outline-v);border-bottom:var(--bw) solid var(--outline-v);background:'+(ron?'var(--pc)':'var(--sc)')+';color:'+(ron?'var(--on-pc)':'var(--on-sv)')+';height:var(--row)">'+r+'</div>';
+    for(var ci=0;ci<COLS.length;ci++){
+      var id=COLS[ci]+r, val=CDATA[id]||'', sel=id===S.calcSel, numeric=/^[0-9(]/.test(val)&&val!=='';
+      row+='<div data-act="set:calcSel:'+id+'" style="width:'+cw+'px;flex:0 0 auto;display:flex;align-items:center;justify-content:'+(numeric?'flex-end':'flex-start')+';padding:0 8px;font:400 13px/1 inherit;color:var(--on-s);height:var(--row);border-right:var(--bw) solid var(--outline-v);border-bottom:var(--bw) solid var(--outline-v);cursor:cell;overflow:hidden;white-space:nowrap;box-shadow:'+(sel?'inset 0 0 0 2px var(--p)':'none')+';background:'+(sel?'var(--surface)':'transparent')+'">'+esc(val)+'</div>';
+    }
+    row+='</div>'; rows+=row;
+  }
+  var tabs=['Income','Balance','Cash flow'], tabHtml='';
+  for(var t=0;t<tabs.length;t++){ var a=t===S.sheet;
+    tabHtml+='<button data-act="set:sheet:'+t+'" style="appearance:none;cursor:pointer;height:26px;padding:0 14px;border-radius:8px 8px 0 0;font:'+(a?'600':'400')+' 12px/1 inherit;background:'+(a?'var(--surface)':'transparent')+';color:'+(a?'var(--p)':'var(--on-sv)')+';border:'+(a?'var(--bw) solid var(--outline-v)':'var(--bw) solid transparent')+';border-bottom:none">'+tabs[t]+'</button>'; }
+
+  return '<div style="display:flex;flex-direction:column;height:560px">'
+    + '<div class="lo-scroll" style="flex:1;overflow:auto;background:var(--surface)"><div style="display:inline-block;min-width:100%">'+head+rows+'</div></div>'
+    + '<div data-silent="1" style="display:flex;align-items:center;gap:2px;height:34px;padding:0 8px;background:var(--sc);border-top:var(--bw) solid var(--outline-v)">'+tabHtml+'<button title="Add Sheet" data-hov="background:var(--pc);color:var(--on-pc)" style="width:28px;height:26px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('add',18)+'</button></div>'
+    + '</div>';
+}
+
+/* ---- Impress ---- */
+function impressBody(){
+  var STITLES=['Product Launch','Market Overview','Our Solution','Traction','Roadmap','Team','Pricing','Thank You'];
+  var thumbs='';
+  for(var i=0;i<STITLES.length;i++){ var a=(i+1)===S.slide;
+    thumbs+='<div data-act="set:slide:'+(i+1)+'" style="display:flex;gap:8px;align-items:flex-start;cursor:pointer"><span style="font:500 11px/1 inherit;color:var(--on-sv);width:12px;padding-top:20px;flex:0 0 auto">'+(i+1)+'</span><div style="width:120px;height:68px;background:var(--surface);border:'+(a?'2px solid var(--p)':'var(--bw) solid var(--outline-v)')+';border-radius:5px;overflow:hidden;flex:0 0 auto;box-shadow:'+(a?'0 2px 10px rgba(0,0,0,.14)':'none')+'"><div style="font:600 8px/1.2 inherit;color:var(--on-s);padding:8px 8px 0">'+esc(STITLES[i])+'</div></div></div>'; }
+  var slideTitle=STITLES[S.slide-1];
+  var layIcons=['title','subject','table_rows','view_agenda','grid_view','image'], layHtml='';
+  for(var l=0;l<layIcons.length;l++){ var la=l===S.layout;
+    layHtml+='<div data-act="set:layout:'+l+'" style="aspect-ratio:4/3;display:grid;place-items:center;border:'+(la?'2px solid var(--p)':'var(--bw) solid var(--outline-v)')+';border-radius:var(--r-sm);cursor:pointer;background:'+(la?'var(--pc)':'var(--surface)')+'">'+ic(layIcons[l],24,'var(--on-sv)')+'</div>'; }
+  function bullet(txt){ return '<div style="display:flex;gap:12px;align-items:center;font:400 16px/1.4 inherit;color:var(--on-sv)"><span style="width:8px;height:8px;border-radius:50%;background:var(--p);flex:0 0 auto"></span>'+txt+'</div>'; }
+
+  return '<div style="display:flex;height:560px">'
+    + '<div class="lo-scroll" style="width:172px;flex:0 0 auto;overflow:auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);padding:12px 10px;display:flex;flex-direction:column;gap:10px">'+thumbs+'</div>'
+    + '<div style="flex:1;background:var(--scl);display:grid;place-items:center;padding:24px">'
+      + '<div style="width:100%;max-width:640px;aspect-ratio:16/9;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 8px 30px rgba(0,0,0,.16);border-radius:6px;padding:44px 52px;display:flex;flex-direction:column">'
+        + '<div style="font:700 34px/1.1 inherit;color:var(--on-s);letter-spacing:-.02em">'+esc(slideTitle)+'</div>'
+        + '<div style="height:4px;width:96px;background:var(--p);border-radius:2px;margin:18px 0 26px"></div>'
+        + '<div style="display:flex;flex-direction:column;gap:14px">'+bullet('Record quarter across every product line')+bullet('Enterprise adoption up 40% year over year')+bullet('Three new strategic partnerships signed')+'</div>'
+      + '</div>'
+    + '</div>'
+    + '<div class="lo-scroll" style="width:248px;flex:0 0 auto;overflow:auto;background:var(--surface);border-left:var(--bw) solid var(--outline-v);padding:14px"><div style="font:600 14px/1 inherit;color:var(--on-s);margin-bottom:14px">Layouts</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'+layHtml+'</div></div>'
+    + '</div>';
+}
+
+/* ---- Draw ---- */
+function drawBody(){
+  var tools=[['near_me','Select'],['open_with','Move'],['crop_square','Rectangle'],['circle','Ellipse'],['horizontal_rule','Line'],['text_fields','Text'],['polyline','Curve']];
+  var toolHtml=''; for(var i=0;i<tools.length;i++){ var a=i===0; toolHtml+='<button title="'+esc(tools[i][1])+'" data-hov="background:var(--pc);color:var(--on-pc)" style="width:38px;height:38px;border:none;border-radius:var(--r-sm);cursor:pointer;display:grid;place-items:center;background:'+(a?'var(--pc)':'transparent')+';color:'+(a?'var(--on-pc)':'var(--on-sv)')+'">'+ic(tools[i][0],22)+'</button>'; }
+  return '<div style="display:flex;height:560px">'
+    + '<div style="width:48px;flex:0 0 auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:10px">'+toolHtml+'</div>'
+    + '<div style="flex:1;background:var(--scl);display:grid;place-items:center;padding:24px;position:relative;background-image:radial-gradient(var(--outline-v) 1px,transparent 1px);background-size:22px 22px">'
+      + '<div style="width:100%;max-width:620px;aspect-ratio:4/3;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 8px 30px rgba(0,0,0,.14);position:relative">'
+        + '<div style="position:absolute;left:60px;top:70px;width:180px;height:96px;border-radius:var(--r-cont);background:var(--pc);border:2px solid var(--p);display:grid;place-items:center;font:600 15px/1 inherit;color:var(--on-pc)">Concept</div>'
+        + '<div style="position:absolute;right:70px;top:120px;width:150px;height:150px;border-radius:50%;background:var(--surface);border:2px solid var(--outline);display:grid;place-items:center;font:500 14px/1 inherit;color:var(--on-sv)">Audience</div>'
+        + '<div style="position:absolute;left:200px;top:250px;width:200px;height:64px;border-radius:var(--r-cont);background:var(--warn);display:grid;place-items:center;font:600 14px/1 inherit;color:var(--on-warn)">Launch plan</div>'
+      + '</div>'
+    + '</div>'
+    + '<div class="lo-scroll" style="width:248px;flex:0 0 auto;overflow:auto;background:var(--surface);border-left:var(--bw) solid var(--outline-v);padding:14px">'
+      + '<div style="font:600 14px/1 inherit;color:var(--on-s);margin-bottom:14px">Properties</div>'
+      + '<div style="font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv);margin-bottom:8px">Fill</div>'
+      + '<div style="display:flex;gap:8px;margin-bottom:16px"><div style="width:40px;height:36px;border-radius:var(--r-sm);background:var(--pc);border:var(--bw) solid var(--outline-v)"></div><div style="flex:1;height:36px;display:flex;align-items:center;padding:0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);font:400 13px/1 inherit;color:var(--on-s)">Color</div></div>'
+      + '<div style="font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv);margin-bottom:8px">Line</div>'
+      + '<div style="display:flex;align-items:center;gap:12px;height:40px;padding:0 8px"><span style="font:400 13px/1 inherit;color:var(--on-sv)">Width</span><div style="flex:1;height:4px;border-radius:2px;background:var(--outline-v);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:40%;background:var(--p);border-radius:2px"></div><div style="position:absolute;left:40%;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:var(--p)"></div></div></div>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ---- Base ---- */
+function baseBody(){
+  var nav=[['Tables','table'],['Queries','quiz'],['Forms','description'],['Reports','summarize']], navHtml='';
+  for(var i=0;i<nav.length;i++){ var a=i===S.baseSel;
+    navHtml+='<button data-act="set:baseSel:'+i+'" style="display:flex;align-items:center;gap:12px;width:100%;height:40px;padding:0 12px;border:none;border-radius:var(--r-cont);cursor:pointer;font:500 13px/1 inherit;background:'+(a?'var(--pc)':'transparent')+';color:'+(a?'var(--on-pc)':'var(--on-s)')+'">'+ic(nav[i][1],20)+esc(nav[i][0])+'</button>'; }
+  var tables=['Customers','Orders','Products','Invoices'], tHtml='';
+  for(var t=0;t<tables.length;t++){ tHtml+='<div data-hov="border-color:var(--p);background:var(--pc)" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 12px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);cursor:pointer;background:var(--surface)"><span style="display:grid;place-items:center;width:44px;height:44px;border-radius:var(--r-cont);background:var(--pc);color:var(--on-pc)">'+ic('table',24)+'</span><span style="font:500 13px/1 inherit;color:var(--on-s)">'+esc(tables[t])+'</span></div>'; }
+  var BROWS=[['Acme Corp','Dana Lee','Seattle'],['Globex','Priya Shah','Austin'],['Initech','Marco Diaz','Denver'],['Umbra Co','Yuki Tan','Boston']], rHtml='';
+  for(var r=0;r<BROWS.length;r++){ var rr=BROWS[r];
+    rHtml+='<div style="display:flex;border-bottom:'+(r<BROWS.length-1?'var(--bw) solid var(--outline-v)':'none')+';background:'+(r%2?'var(--scl)':'transparent')+'"><div style="flex:2;padding:10px 14px;font:400 13px/1 inherit;color:var(--on-s)">'+esc(rr[0])+'</div><div style="flex:2;padding:10px 14px;font:400 13px/1 inherit;color:var(--on-s)">'+esc(rr[1])+'</div><div style="flex:1;padding:10px 14px;font:400 13px/1 inherit;color:var(--on-s)">'+esc(rr[2])+'</div></div>'; }
+  return '<div style="display:flex;height:560px">'
+    + '<div style="width:220px;flex:0 0 auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);padding:12px 8px"><div style="font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv);padding:6px 10px 10px">Database</div>'+navHtml+'</div>'
+    + '<div class="lo-scroll" style="flex:1;overflow:auto;background:var(--surface);padding:20px 24px">'
+      + '<div style="font:600 16px/1 inherit;color:var(--on-s);margin-bottom:16px">Tables</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:26px">'+tHtml+'</div>'
+      + '<div style="border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);overflow:hidden"><div style="display:flex;background:var(--sc);border-bottom:var(--bw) solid var(--outline-v)"><div style="flex:2;padding:10px 14px;font:600 12px/1 inherit;color:var(--on-sv)">Company</div><div style="flex:2;padding:10px 14px;font:600 12px/1 inherit;color:var(--on-sv)">Contact</div><div style="flex:1;padding:10px 14px;font:600 12px/1 inherit;color:var(--on-sv)">City</div></div>'+rHtml+'</div>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ---- Math ---- */
+function mathBody(){
+  var syms=['+','−','×','÷','±','√','∑','∫','≠','≤','≥','∞','π','θ','∂','α','β','Δ','∈','→'], sHtml='';
+  for(var i=0;i<syms.length;i++){ sHtml+='<div data-act="toast:'+encodeURIComponent(syms[i])+'" data-hov="background:var(--pc);color:var(--on-pc);border-color:var(--p)" style="aspect-ratio:1;display:grid;place-items:center;border:var(--bw) solid var(--outline-v);border-radius:var(--r-sm);font:400 18px/1 serif;color:var(--on-s);cursor:pointer;background:var(--surface)">'+syms[i]+'</div>'; }
+  return '<div style="display:flex;flex-direction:column;height:560px">'
+    + '<div style="flex:1;background:var(--scl);display:grid;place-items:center;padding:24px"><div style="background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:44px 60px;font:400 34px/1.4 serif;color:var(--on-s)">E = mc²  ·  &#8721;<span style="font-size:20px;vertical-align:sub">i=1</span><span style="font-size:20px;vertical-align:super">n</span> x<span style="font-size:20px;vertical-align:sub">i</span></div></div>'
+    + '<div style="display:flex;border-top:var(--bw) solid var(--outline-v)">'
+      + '<div class="lo-scroll" style="flex:1;padding:14px 18px"><div style="font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv);margin-bottom:8px">Commands</div><div class="mono" style="min-height:80px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);padding:12px 14px;font-size:15px;line-height:1.6;color:var(--on-s);background:var(--surface)">E = m c^2 newline sum from{i=1} to{n} x_i</div></div>'
+      + '<div style="width:240px;flex:0 0 auto;border-left:var(--bw) solid var(--outline-v);padding:14px"><div style="font:600 13px/1 inherit;color:var(--on-s);margin-bottom:12px">Elements</div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">'+sHtml+'</div></div>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ---- Component gallery ---- */
+function galleryBody(){
+  var st=S, P=PAL[st.theme];
+  var SW=[['primary',P.p,P.onP],['primary-container',P.pc,P.onPc],['surface',P.surface,P.onS],['surface-container',P.sc,P.onS],['on-surface-variant',P.onSv,P.surface],['outline',P.outline,P.surface],['error-container',P.err,P.onErr],['warning-container',P.warn,P.onWarn],['inverse-surface',P.invS,P.onInvS],['visited-link',P.visited,'#ffffff']];
+  var swHtml='';
+  for(var i=0;i<SW.length;i++){ var s=SW[i];
+    swHtml+='<div style="display:flex;flex-direction:column;justify-content:flex-end;gap:2px;height:58px;padding:8px 10px;border-radius:var(--r-sm);border:var(--bw) solid var(--outline-v);background:'+s[1]+';color:'+s[2]+'"><span style="font:600 11px/1.2 inherit">'+s[0]+'</span><span class="mono" style="font-size:10px;line-height:1;opacity:.85">'+s[1].toUpperCase()+'</span></div>'; }
+
+  var radios=[['balanced','Balanced'],['dense','Dense'],['spacious','Spacious']], radHtml='';
+  for(var r=0;r<radios.length;r++){ var a=st.gRadio===radios[r][0];
+    radHtml+='<label data-act="set:gRadio:'+radios[r][0]+'" style="display:flex;align-items:center;gap:8px;cursor:pointer"><span style="display:grid;place-items:center;width:20px;height:20px;border-radius:50%;flex:0 0 auto;background:'+(a?'var(--p)':'transparent')+';border:2px solid '+(a?'var(--p)':'var(--on-sv)')+'"><span style="width:10px;height:10px;border-radius:50%;background:var(--on-p);opacity:'+(a?1:0)+'"></span></span><span style="font:400 13px/1 inherit;color:var(--on-s)">'+radios[r][1]+'</span></label>'; }
+
+  var chipDefs=[['design','Design'],['native','Native'],['a11y','Accessible']], chipHtml='';
+  for(var c=0;c<chipDefs.length;c++){ var ca=st.gChip[chipDefs[c][0]];
+    chipHtml+='<button data-act="chip:'+chipDefs[c][0]+'" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 '+(ca?'14px':'16px')+' 0 '+(ca?'10px':'16px')+';border-radius:var(--r-sm);cursor:pointer;font:500 13px/1 inherit;border:var(--bw) solid '+(ca?'var(--p)':'var(--outline)')+';background:'+(ca?'var(--pc)':'transparent')+';color:'+(ca?'var(--on-pc)':'var(--on-s)')+'"><span class="ic" style="font-size:18px;opacity:'+(ca?1:0)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICONS.check+'</svg></span>'+chipDefs[c][1]+'</button>'; }
+
+  var GTABS=['Overview','Tokens','States'], galHtml='';
+  for(var g=0;g<GTABS.length;g++){ var ga=g===st.gTab;
+    galHtml+='<button data-act="set:gTab:'+g+'" aria-pressed="'+ga+'" style="appearance:none;border:none;cursor:pointer;padding:7px 16px;border-radius:16px;font:600 13px/1 inherit;background:'+(ga?'var(--p)':'transparent')+';color:'+(ga?'var(--on-p)':'var(--on-sv)')+'">'+GTABS[g]+'</button>'; }
+  var galBody=['A single interaction system across every surface of the suite.','23 color roles, 8 shape roles, 15 metric roles and 3 type roles per scheme.','Hover, focus, pressed, selected, disabled and error states are all defined.'][st.gTab];
+
+  var listItems=[['description','Text Document',true],['grid_view','Spreadsheet',false],['co_present','Presentation',false]], liHtml='';
+  for(var l=0;l<listItems.length;l++){ var it=listItems[l];
+    liHtml+='<div style="display:flex;align-items:center;gap:12px;height:44px;padding:0 14px;cursor:pointer;background:'+(it[2]?'var(--pc)':'transparent')+';border-bottom:'+(l<2?'var(--bw) solid var(--outline-v)':'none')+'">'+ic(it[0],20,'var(--on-sv)')+'<span style="flex:1;font:400 13px/1 inherit;color:var(--on-s)">'+it[1]+'</span>'+(it[2]?ic('check',18,'var(--p)'):'')+'</div>'; }
+
+  var shapeScale=[['corner-checkbox',3],['corner-indicator',4],['corner-small',8],['corner-control',10],['corner-container',12],['corner-toolbar',18],['corner-pill',20]], shHtml='';
+  for(var sp=0;sp<shapeScale.length;sp++){ shHtml+='<div style="display:flex;align-items:center;gap:14px"><div style="width:56px;height:36px;background:var(--pc);border:var(--bw) solid var(--outline-v);border-radius:'+shapeScale[sp][1]+'px;flex:0 0 auto"></div><span style="font:500 12px/1 inherit;color:var(--on-s);flex:1">'+shapeScale[sp][0]+'</span><span class="mono" style="font-size:12px;color:var(--on-sv)">'+shapeScale[sp][1]+'px</span></div>'; }
+
+  var checkOp=st.gCheck?1:0;
+  var swTrack='display:inline-flex;align-items:center;width:52px;height:32px;border-radius:16px;flex:0 0 auto;padding:2px;transition:background .15s;background:'+(st.gSwitch?'var(--p)':'var(--outline-v)')+';justify-content:'+(st.gSwitch?'flex-end':'flex-start')+';border:2px solid '+(st.gSwitch?'var(--p)':'var(--outline)');
+  var swThumb='width:24px;height:24px;border-radius:50%;background:'+(st.gSwitch?'var(--on-p)':'var(--outline)')+';box-shadow:0 1px 3px rgba(0,0,0,.3)';
+
+  function card(title,inner){ return '<div style="background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:18px"><div style="font:600 14px/1 inherit;color:var(--on-s);margin-bottom:14px">'+title+'</div>'+inner+'</div>'; }
+
+  var buttons='<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">'
+    + '<button data-hov="background:var(--pa-hover)" style="height:40px;padding:0 24px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:500 14px/1 inherit;cursor:pointer">Filled</button>'
+    + '<button data-hov="background:var(--p-hover)" style="height:40px;padding:0 24px;border:none;border-radius:var(--r-pill);background:var(--pc);color:var(--on-pc);font:500 14px/1 inherit;cursor:pointer">Tonal</button>'
+    + '<button data-hov="background:var(--pc)" style="height:40px;padding:0 24px;border:var(--bw) solid var(--outline);border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 14px/1 inherit;cursor:pointer">Outlined</button>'
+    + '<button data-hov="background:var(--pc)" style="height:40px;padding:0 16px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 14px/1 inherit;cursor:pointer">Text</button>'
+    + '<button disabled data-silent="1" style="height:40px;padding:0 24px;border:none;border-radius:var(--r-pill);background:var(--disabled);color:var(--outline);font:500 14px/1 inherit;cursor:not-allowed">Disabled</button>'
+    + '<button title="Add" data-hov="background:var(--p-hover)" style="width:56px;height:56px;border:none;border-radius:var(--r-cont);background:var(--pc);color:var(--on-pc);cursor:pointer;display:grid;place-items:center;box-shadow:0 3px 8px rgba(0,0,0,.16)">'+ic('add',24)+'</button>'
+    + '</div>';
+
+  var selection='<div style="display:flex;flex-direction:column;gap:14px">'
+    + '<label data-act="toggle:gCheck" style="display:flex;align-items:center;gap:12px;cursor:pointer"><span style="display:grid;place-items:center;width:20px;height:20px;border-radius:var(--r-check);flex:0 0 auto;background:'+(st.gCheck?'var(--p)':'transparent')+';border:2px solid '+(st.gCheck?'var(--p)':'var(--on-sv)')+'"><span class="ic" style="font-size:18px;color:var(--on-p);opacity:'+checkOp+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">'+ICONS.check+'</svg></span></span><span style="font:400 14px/1 inherit;color:var(--on-s)">Enable Material widgets</span></label>'
+    + '<div style="display:flex;gap:18px">'+radHtml+'</div>'
+    + '<div data-act="toggle:gSwitch" style="display:flex;align-items:center;gap:12px;cursor:pointer"><span style="'+swTrack+'"><span style="'+swThumb+'"></span></span><span style="font:400 14px/1 inherit;color:var(--on-s)">Comfortable density</span></div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px">'+chipHtml+'</div>'
+    + '</div>';
+
+  var fields='<div style="display:flex;flex-direction:column;gap:16px">'
+    + '<div style="position:relative"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--p);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 inherit">Q3 Board Report</div><span style="position:absolute;top:-8px;left:12px;padding:0 4px;background:var(--surface);color:var(--p);font:500 12px/1 inherit">Document name</span></div>'
+    + '<div style="position:relative"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);color:var(--on-sv);font:400 14px/1 inherit">Optional subtitle</div><span style="position:absolute;top:-8px;left:12px;padding:0 4px;background:var(--surface);color:var(--on-sv);font:500 12px/1 inherit">Subtitle</span></div>'
+    + '<div><div style="position:relative"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--err-base);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 inherit">/backups/old</div><span style="position:absolute;top:-8px;left:12px;padding:0 4px;background:var(--surface);color:var(--err-base);font:500 12px/1 inherit">Backup path</span><span style="position:absolute;right:12px;top:50%;transform:translateY(-50%)">'+ic('error',20,'var(--err-base)')+'</span></div><div style="font:400 12px/1.3 inherit;color:var(--err-base);padding:6px 14px 0">The path does not exist.</div></div>'
+    + '<div style="height:44px;display:flex;align-items:center;gap:10px;padding:0 16px;border-radius:var(--r-pill);background:var(--sc);color:var(--on-sv);font:400 14px/1 inherit">'+ic('search',20)+'Search commands</div>'
+    + '</div>';
+
+  var tabsCard='<div style="display:inline-flex;gap:6px;padding:4px;border-radius:var(--r-pill);background:var(--sc);margin-bottom:16px">'+galHtml+'</div><div style="font:400 13px/1.5 inherit;color:var(--on-sv)">'+galBody+'</div>';
+
+  var feedback='<div style="font:400 12px/1 inherit;color:var(--on-sv);margin-bottom:6px">Progress</div>'
+    + '<div style="height:4px;border-radius:var(--r-ind);background:var(--outline-v);margin-bottom:16px"><div style="width:64%;height:100%;border-radius:var(--r-ind);background:var(--p)"></div></div>'
+    + '<div style="font:400 12px/1 inherit;color:var(--on-sv);margin-bottom:6px">Slider — '+st.gSlider+'%</div>'
+    + '<div data-act="slider" style="height:20px;display:flex;align-items:center;margin-bottom:16px;cursor:pointer"><div style="flex:1;height:4px;border-radius:2px;background:var(--outline-v);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:'+st.gSlider+'%;background:var(--p);border-radius:2px"></div><div style="position:absolute;left:'+st.gSlider+'%;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:var(--p);box-shadow:0 1px 4px rgba(0,0,0,.3)"></div></div></div>'
+    + '<div style="font:400 12px/1 inherit;color:var(--on-sv);margin-bottom:6px">Level indicator</div>'
+    + '<div style="display:flex;gap:4px;margin-bottom:16px"><div style="flex:1;height:8px;border-radius:var(--r-ind);background:var(--err)"></div><div style="flex:1;height:8px;border-radius:var(--r-ind);background:var(--warn)"></div><div style="flex:1;height:8px;border-radius:var(--r-ind);background:var(--p-hover)"></div><div style="flex:1;height:8px;border-radius:var(--r-ind);background:var(--p)"></div></div>'
+    + '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--r-cont);background:var(--warn);color:var(--on-warn);font:400 13px/1.3 inherit">'+ic('warning',20)+'Document contains unsaved changes.</div>';
+
+  var listsMenu='<div style="border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);overflow:hidden;margin-bottom:14px">'+liHtml+'</div>'
+    + '<div style="border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.10)">'
+    + '<div style="display:flex;align-items:center;gap:12px;height:36px;padding:0 12px;border-radius:8px;background:var(--pc);color:var(--on-pc);font:400 13px/1 inherit">'+ic('content_paste',18)+'Paste<span class="mono" style="margin-left:auto;font-size:12px">Ctrl+V</span></div>'
+    + '<div style="display:flex;align-items:center;gap:12px;height:36px;padding:0 12px;border-radius:8px;color:var(--on-s);font:400 13px/1 inherit">'+ic('content_copy',18,'var(--on-sv)')+'Copy<span class="mono" style="margin-left:auto;font-size:12px;color:var(--on-sv)">Ctrl+C</span></div>'
+    + '</div>';
+
+  return '<div class="lo-scroll" style="height:600px;overflow:auto;background:var(--scl);padding:28px 30px">'
+    + '<h1 style="margin:0 0 4px;font:700 26px/1.1 inherit;letter-spacing:-.02em;color:var(--on-s)">Material components &amp; tokens</h1>'
+    + '<p style="margin:0 0 26px;color:var(--on-sv);font:400 14px/1.5 inherit">Every value below resolves from the semantic roles in <code class="mono" style="font-size:12px;background:var(--sc);padding:2px 6px;border-radius:6px">material/definition.xml</code>.</p>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;align-items:start">'
+      + card('Color roles','<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+swHtml+'</div>')
+      + card('Buttons',buttons)
+      + card('Selection',selection)
+      + card('Text fields',fields)
+      + card('Tabs',tabsCard)
+      + card('Feedback',feedback)
+      + card('Lists &amp; menu',listsMenu)
+      + card('Shape scale','<div style="display:flex;flex-direction:column;gap:10px">'+shHtml+'</div>')
+    + '</div>'
+    + '</div>';
+}
+
+/* ---- Version history ---- */
+function historyBody(){
+  var st=S;
+  var histAll = st.histScope==='doc' ? HISTORY.filter(function(h){return h.file==='Q3 Board Report.odt';}) : HISTORY.slice();
+  var scopes=[['doc','This document'],['project','Whole project']], scopeHtml='';
+  for(var i=0;i<scopes.length;i++){ var a=st.histScope===scopes[i][0];
+    scopeHtml+='<button data-act="set:histScope:'+scopes[i][0]+'" aria-pressed="'+a+'" style="appearance:none;border:none;cursor:pointer;padding:7px 14px;border-radius:16px;font:600 12px/1 inherit;background:'+(a?'var(--p)':'transparent')+';color:'+(a?'var(--on-p)':'var(--on-sv)')+'">'+scopes[i][1]+'</button>'; }
+
+  var lastG=null, rowsHtml='';
+  for(var r=0;r<histAll.length;r++){ var h=histAll[r];
+    if(h.group!==lastG){ lastG=h.group; rowsHtml+='<div style="font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;color:var(--on-sv);padding:14px 8px 6px">'+h.group+'</div>'; }
+    var sel=h.id===st.histSel;
+    rowsHtml+='<div data-act="set:histSel:'+h.id+'" style="display:flex;gap:12px;padding:8px 10px;border-radius:var(--r-cont);cursor:pointer;background:'+(sel?'var(--pc)':'transparent')+';color:'+(sel?'var(--on-pc)':'var(--on-s)')+'"><span style="width:12px;height:12px;border-radius:50%;flex:0 0 auto;margin-top:3px;background:'+((sel||h.current)?'var(--p)':'var(--surface)')+';border:2px solid '+((sel||h.current)?'var(--p)':'var(--outline)')+'"></span><div style="flex:1;min-width:0"><div style="font:500 13px/1.35 inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(h.action)+'</div><div style="font:400 11px/1 inherit;color:var(--on-sv);margin-top:3px">'+esc(h.time)+'</div></div>'+(h.current?'<span style="font:600 9px/1 inherit;letter-spacing:.05em;padding:3px 7px;border-radius:6px;background:var(--p);color:var(--on-p);height:fit-content">NOW</span>':'')+'</div>';
+  }
+
+  var hs=null; for(var k=0;k<histAll.length;k++){ if(histAll[k].id===st.histSel){ hs=histAll[k]; break; } }
+  if(!hs) hs=histAll[0]||HISTORY[0];
+  var hdoc=(hs.docIx!=null)?DOCS[hs.docIx]:null;
+  var EXTICON={odt:'article',ods:'table_chart',odp:'co_present',odg:'brush',odf:'functions'};
+  var appIcon=EXTICON[hs.file.split('.').pop()]||'description';
+
+  var docView;
+  if(hdoc){
+    var blocks='';
+    for(var b=0;b<hdoc.blocks.length;b++){ var bl=hdoc.blocks[b];
+      var stl = bl[0]==='h' ? "margin:16px 0 6px;font:600 16px/1.3 inherit;color:var(--p)" : "margin:0 0 12px;font:400 13px/1.7 inherit;color:var(--on-s);text-align:justify";
+      blocks+='<div style="'+stl+'">'+esc(bl[1])+'</div>'; }
+    docView='<div style="width:600px;max-width:94%;margin:0 auto;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 4px 20px rgba(0,0,0,.10);padding:52px 60px;min-height:520px"><h1 style="margin:0 0 6px;font:700 24px/1.2 inherit;color:var(--on-s)">'+esc(hdoc.title)+'</h1><p style="margin:0 0 22px;font:400 12px/1.4 inherit;color:var(--on-sv)">'+esc(hdoc.sub)+'</p>'+blocks+'</div>';
+  } else {
+    docView='<div style="width:420px;max-width:94%;margin:40px auto 0;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:36px;text-align:center"><span style="display:grid;place-items:center;width:64px;height:64px;margin:0 auto 16px;border-radius:var(--r-cont);background:var(--pc);color:var(--on-pc)">'+ic(appIcon,34)+'</span><div style="font:600 16px/1.3 inherit;color:var(--on-s)">'+esc(hs.file)+'</div><div style="font:400 13px/1.4 inherit;color:var(--on-sv);margin-top:6px">Snapshot from '+esc(hs.time)+'</div></div>';
+  }
+
+  var restoreBtn = hdoc ? '<button title="Restore this version" data-hov="background:var(--pa-hover)" style="width:100%;height:44px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:600 14px/1 inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px">'+ic('restore',20)+'Restore this version</button>' : '';
+  var currentBtn = hs.current ? '<div style="height:44px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:var(--r-pill);background:var(--disabled);color:var(--on-sv);font:600 14px/1 inherit;margin-bottom:8px">'+ic('check',20)+'Current version</div>' : '';
+
+  return '<div style="display:flex;flex-direction:column;height:600px">'
+    + '<div style="display:flex;align-items:center;gap:16px;padding:16px 20px;border-bottom:var(--bw) solid var(--outline-v)"><div style="flex:1;min-width:0"><h1 style="margin:0;font:700 22px/1.1 inherit;letter-spacing:-.02em;color:var(--on-s)">Version history</h1><p style="margin:4px 0 0;color:var(--on-sv);font:400 13px/1.4 inherit">Every undoable change is auto-committed — select any point to view the exact document at that time.</p></div><div data-silent="1" style="display:inline-flex;gap:2px;padding:3px;border-radius:20px;background:var(--sc);border:var(--bw) solid var(--outline-v);flex:0 0 auto">'+scopeHtml+'</div></div>'
+    + '<div style="display:flex;flex:1;min-height:0">'
+      + '<div class="lo-scroll" data-silent="1" style="width:308px;flex:0 0 auto;overflow:auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);padding:6px 10px 20px">'+rowsHtml+'</div>'
+      + '<div class="lo-scroll" style="flex:1;overflow:auto;background:var(--scl);padding:22px;min-width:0">'+docView+'</div>'
+      + '<div class="lo-scroll" style="width:300px;flex:0 0 auto;overflow:auto;background:var(--sc);border-left:var(--bw) solid var(--outline-v);padding:18px">'
+        + '<div style="font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv)">Snapshot</div>'
+        + '<div style="font:700 20px/1.2 inherit;color:var(--on-s);margin:8px 0 4px">'+esc(hs.time)+'</div>'
+        + '<div style="font:400 13px/1.45 inherit;color:var(--on-sv);margin-bottom:16px">'+esc(hs.action)+'</div>'
+        + '<div style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:var(--r-cont);background:var(--surface);border:var(--bw) solid var(--outline-v);margin-bottom:8px">'+ic('person',18,'var(--on-sv)')+'<span style="font:400 13px/1 inherit;color:var(--on-s)">'+esc(hs.author)+'</span></div>'
+        + '<div style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:var(--r-cont);background:var(--surface);border:var(--bw) solid var(--outline-v);margin-bottom:8px">'+ic('tag',18,'var(--on-sv)')+'<span class="mono" style="font-size:12px;color:var(--on-s)">'+esc(hs.hash)+'</span></div>'
+        + '<div style="display:flex;gap:8px;margin-bottom:18px"><span class="mono" style="flex:1;text-align:center;padding:7px;border-radius:var(--r-sm);background:var(--pc);color:var(--on-pc);font-size:12px;font-weight:600">+'+hs.added+' words</span><span class="mono" style="flex:1;text-align:center;padding:7px;border-radius:var(--r-sm);background:var(--err);color:var(--on-err);font-size:12px;font-weight:600">−'+hs.removed+'</span></div>'
+        + currentBtn + restoreBtn
+        + '<button title="Compare with current" data-hov="background:var(--pc)" style="width:100%;height:44px;border:var(--bw) solid var(--outline);border-radius:var(--r-pill);background:transparent;color:var(--p);font:600 14px/1 inherit;cursor:pointer;margin-bottom:8px">Compare with current</button>'
+        + '<div style="display:flex;gap:8px"><button title="Create branch" data-hov="background:var(--pc)" style="flex:1;height:40px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 13px/1 inherit;cursor:pointer">Branch</button><button title="Export snapshot" data-hov="background:var(--pc)" style="flex:1;height:40px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 13px/1 inherit;cursor:pointer">Export</button></div>'
+      + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ---- Features catalog ---- */
+var SCOPELABEL={shared:'Common',writer:'Writer',calc:'Calc',sd:'Draw & Impress',chart:'Charts',math:'Math',dbu:'Base',report:'Reports',basic:'Basic IDE',biblio:'Bibliography'};
+function featuresBody(){
+  var st=S;
+  var FEATURES=(st.features&&st.features.length)?st.features:FEATURES_FALLBACK;
+  var FSCOPES=[['all','All features','apps'],['shared','Common','description'],['writer','Writer','article'],['calc','Calc','table_chart'],['sd','Draw & Impress','co_present'],['chart','Charts','insert_chart'],['math','Math','functions'],['dbu','Base','database'],['report','Reports','summarize'],['basic','Basic IDE','category'],['biblio','Bibliography','menu_book']];
+  var fq=(st.featQuery||'').trim().toLowerCase();
+  function fMatch(f){ return (st.featCat==='all'||f[1]===st.featCat) && (!fq || (f[0]+' '+f[2]+' '+f[3]).toLowerCase().indexOf(fq)>=0); }
+  function scopeCount(id){ if(id==='all') return FEATURES.length; var n=0; for(var i=0;i<FEATURES.length;i++) if(FEATURES[i][1]===id) n++; return n; }
+  var scopeHtml='';
+  for(var s=0;s<FSCOPES.length;s++){ var a=st.featCat===FSCOPES[s][0];
+    scopeHtml+='<button data-act="set:featCat:'+FSCOPES[s][0]+'" style="display:flex;align-items:center;gap:10px;width:100%;height:36px;padding:0 10px;border:none;border-radius:var(--r-cont);cursor:pointer;font:500 13px/1 inherit;background:'+(a?'var(--pc)':'transparent')+';color:'+(a?'var(--on-pc)':'var(--on-s)')+'">'+ic(FSCOPES[s][2],20)+'<span style="flex:1;text-align:left">'+esc(FSCOPES[s][1])+'</span><span class="mono" style="font-size:11px;opacity:.7">'+scopeCount(FSCOPES[s][0])+'</span></button>'; }
+
+  var filtered=FEATURES.filter(fMatch);
+  var FCAP=400, shown=filtered.slice(0,FCAP), itemsHtml='';
+  for(var i=0;i<shown.length;i++){ var f=shown[i], sel=st.featSel===f[0];
+    itemsHtml+='<div data-act="feat:'+encodeURIComponent(f[0])+'" style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:var(--r-cont);cursor:pointer;background:'+(sel?'var(--pc)':'transparent')+';color:'+(sel?'var(--on-pc)':'var(--on-s)')+'"><span style="width:8px;height:8px;border-radius:2px;background:var(--p);flex:0 0 auto"></span><span style="flex:1;font:500 13px/1.3 inherit;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(f[0])+'</span><span style="font:500 11px/1 inherit;color:var(--on-sv);padding:3px 8px;border-radius:var(--r-pill);background:var(--sc);flex:0 0 auto">'+esc(SCOPELABEL[f[1]]||'Common')+'</span></div>'; }
+  if(filtered.length>FCAP) itemsHtml+='<div style="padding:14px 12px;text-align:center;color:var(--on-sv);font:400 12px/1.4 inherit">Showing the first 400 matches — refine your search to narrow further.</div>';
+
+  var selF=null;
+  for(var a1=0;a1<filtered.length;a1++){ if(filtered[a1][0]===st.featSel){ selF=filtered[a1]; break; } }
+  if(!selF){ for(var a2=0;a2<FEATURES.length;a2++){ if(FEATURES[a2][0]===st.featSel){ selF=FEATURES[a2]; break; } } }
+  if(!selF) selF=filtered[0]||FEATURES[0];
+  var note='Semantic Material tokens — color roles, 12–20 px corner roles and compact / comfortable density — resolve this control at runtime.';
+
+  return '<div style="display:flex;height:600px">'
+    + '<div data-silent="1" class="lo-scroll" style="width:220px;flex:0 0 auto;overflow:auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);padding:12px 8px"><div style="font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;color:var(--on-sv);padding:6px 10px 10px">Applications</div>'+scopeHtml+'<div style="height:1px;background:var(--outline-v);margin:10px 8px"></div><div style="padding:4px 10px;font:400 11px/1.5 inherit;color:var(--on-sv)">Every command adopts the shared Material controls.</div></div>'
+    + '<div style="flex:1;display:flex;flex-direction:column;min-width:0">'
+      + '<div style="padding:16px 18px 12px;border-bottom:var(--bw) solid var(--outline-v)"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px"><h1 style="margin:0;font:700 24px/1.1 inherit;letter-spacing:-.02em;color:var(--on-s)">Features</h1><span style="font:400 13px/1 inherit;color:var(--on-sv)">'+filtered.length+' of '+FEATURES.length+' commands</span></div>'
+      + '<div style="height:44px;display:flex;align-items:center;gap:10px;padding:0 14px;border-radius:var(--r-pill);background:var(--sc);border:var(--bw) solid var(--outline-v)">'+ic('search',20,'var(--on-sv)')+'<input id="featSearch" value="'+esc(st.featQuery)+'" placeholder="Search every command…" style="flex:1;min-width:0;border:none;background:transparent;outline:none;color:var(--on-s);font:400 14px/1 inherit"></div></div>'
+      + '<div class="lo-scroll" style="flex:1;overflow:auto;padding:8px 12px">'+itemsHtml+'</div>'
+    + '</div>'
+    + '<div class="lo-scroll" style="width:300px;flex:0 0 auto;overflow:auto;background:var(--sc);border-left:var(--bw) solid var(--outline-v);padding:18px"><span style="font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv)">'+esc(SCOPELABEL[selF[1]]||'Common')+' · '+esc(selF[2])+'</span><div style="font:700 22px/1.2 inherit;color:var(--on-s);margin:8px 0 14px;letter-spacing:-.01em">'+esc(selF[0])+'</div><div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--r-cont);background:var(--surface);border:var(--bw) solid var(--outline-v);margin-bottom:16px">'+ic('keyboard_command_key',18,'var(--on-sv)')+'<span class="mono" style="font-size:12px;line-height:1.3;color:var(--on-s)">'+esc(selF[3])+'</span></div><div style="padding:14px;border-radius:var(--r-cont);background:var(--pc);color:var(--on-pc);font:400 13px/1.5 inherit;margin-bottom:18px">'+note+'</div><button title="Run command" data-hov="background:var(--pa-hover)" style="width:100%;height:44px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:600 14px/1 inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">'+ic('play_arrow',20)+'Run command</button></div>'
+    + '</div>';
+}
+
+/* ---- Dialogs ---- */
+function dialogsBody(){
+  var st=S;
+  var pick=[['options','Options'],['save','Save As'],['print','Print']], pickHtml='';
+  for(var i=0;i<pick.length;i++){ var a=st.dialog===pick[i][0];
+    pickHtml+='<button data-act="set:dialog:'+pick[i][0]+'" aria-pressed="'+a+'" style="appearance:none;border:none;cursor:pointer;padding:7px 16px;border-radius:16px;font:600 13px/1 inherit;background:'+(a?'var(--p)':'transparent')+';color:'+(a?'var(--on-p)':'var(--on-sv)')+'">'+pick[i][1]+'</button>'; }
+
+  var dialog='';
+  if(st.dialog==='options') dialog=optionsDialog();
+  else if(st.dialog==='save') dialog=saveDialog();
+  else if(st.dialog==='print') dialog=printDialog();
+
+  return '<div style="position:relative;height:600px;background:var(--scl);overflow:hidden">'
+    + '<div style="position:absolute;inset:0;opacity:.4;filter:blur(1px);padding:40px 60px"><div style="height:100%;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:6px"></div></div>'
+    + '<div style="position:absolute;inset:0;background:var(--scrim)"></div>'
+    + '<div data-silent="1" style="position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:5;display:inline-flex;gap:2px;padding:3px;border-radius:20px;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 4px 12px rgba(0,0,0,.2)">'+pickHtml+'</div>'
+    + dialog
+    + '</div>';
+}
+function fieldLabel(label,color,bg){ return '<span style="position:absolute;top:-7px;left:10px;padding:0 4px;background:'+(bg||'var(--surface)')+';color:'+color+';font:500 11px/1 inherit">'+label+'</span>'; }
+function dlgFooter(buttons){ return '<div style="display:flex;align-items:center;gap:10px;padding:14px 20px;border-top:var(--bw) solid var(--outline-v)">'+buttons+'</div>'; }
+function ghostBtn(label){ return '<button data-hov="background:var(--pc)" style="height:40px;padding:0 20px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 14px/1 inherit;cursor:pointer">'+label+'</button>'; }
+function outBtn(label){ return '<button data-hov="background:var(--pc)" style="height:40px;padding:0 20px;border:var(--bw) solid var(--outline);border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 14px/1 inherit;cursor:pointer">'+label+'</button>'; }
+function fillBtn(label){ return '<button data-hov="background:var(--pa-hover)" style="height:40px;padding:0 28px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:500 14px/1 inherit;cursor:pointer">'+label+'</button>'; }
+function dlgHead(title){ return '<div style="display:flex;align-items:center;padding:18px 20px 14px"><span style="font:600 18px/1 inherit;color:var(--on-s)">'+title+'</span><button title="Close" data-hov="background:var(--outline-v)" style="margin-left:auto;width:34px;height:34px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('close',20)+'</button></div>'; }
+function dlgWrap(w,inner){ return '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min('+w+'px,94%);background:var(--sc);border:var(--bw) solid var(--outline-v);border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.4);overflow:hidden;animation:lo-pop .16s ease">'+inner+'</div>'; }
+function optionsDialog(){
+  var ON=[['LibreOffice',0,'chevron_right',0],['Load/Save',0,'chevron_right',0],['Language Settings',0,'chevron_right',0],['LibreOffice Writer',0,'expand_more',1],['General',16,'',0],['View',16,'',0]];
+  var nav='';
+  for(var i=0;i<ON.length;i++){ var o=ON[i], a=o[0]==='General';
+    var arrow = o[2] ? ic(o[2],18,'var(--on-sv)') : '';
+    nav+='<div style="display:flex;align-items:center;gap:6px;height:34px;padding:0 8px;border-radius:var(--r-sm);cursor:pointer;margin-top:2px;background:'+(a?'var(--pc)':'transparent')+';color:'+(a?'var(--on-pc)':'var(--on-s)')+'"><span style="width:'+o[1]+'px;flex:0 0 auto"></span>'+arrow+'<span style="font:400 13px/1 inherit">'+esc(o[0])+'</span></div>'; }
+  var content='<div class="lo-scroll" style="flex:1;overflow:auto;background:var(--surface);border-left:var(--bw) solid var(--outline-v);border-top-left-radius:12px;padding:20px 22px">'
+    + '<div style="font:600 14px/1 inherit;color:var(--on-s);margin-bottom:16px">User Data</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 14px">'
+    + '<div style="position:relative"><div style="height:44px;display:flex;align-items:center;padding:0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);color:var(--on-s);font:400 13px/1 inherit">Alex</div>'+fieldLabel('First name','var(--on-sv)')+'</div>'
+    + '<div style="position:relative"><div style="height:44px;display:flex;align-items:center;padding:0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);color:var(--on-s);font:400 13px/1 inherit">Rivera</div>'+fieldLabel('Last name','var(--on-sv)')+'</div>'
+    + '<div style="position:relative;grid-column:1/-1"><div style="height:44px;display:flex;align-items:center;padding:0 12px;border:2px solid var(--p);border-radius:var(--r-cont);color:var(--on-s);font:400 13px/1 inherit">alex.rivera@example.com<span style="width:2px;height:18px;background:var(--p);margin-left:2px"></span></div><span style="position:absolute;top:-7px;left:10px;padding:0 4px;background:var(--surface);color:var(--p);font:500 11px/1 inherit">Email <span style="color:var(--on-sv)">· focused</span></span></div>'
+    + '<div style="position:relative;grid-column:1/-1"><div style="height:44px;display:flex;align-items:center;padding:0 12px;border:2px solid var(--err-base);border-radius:var(--r-cont);color:var(--on-s);font:400 13px/1 inherit">/backups/old</div>'+fieldLabel('Backup path','var(--err-base)')+'</div>'
+    + '</div>'
+    + '<div style="font:400 12px/1.3 inherit;color:var(--err-base);padding:6px 2px 0">The path does not exist. Choose an existing folder.</div>'
+    + '</div>';
+  var body='<div style="display:flex;height:340px"><div class="lo-scroll" style="width:220px;flex:0 0 auto;overflow:auto;padding:0 8px 8px">'+nav+'</div>'+content+'</div>';
+  var footer=dlgFooter(outBtn('Help')+'<div style="flex:1"></div>'+ghostBtn('Reset')+outBtn('Cancel')+fillBtn('OK'));
+  return dlgWrap(760, dlgHead('Options — LibreOffice Writer')+body+footer);
+}
+function saveDialog(){
+  var body='<div style="padding:4px 20px 20px">'
+    + '<div style="display:flex;gap:6px;align-items:center;font:400 13px/1 inherit;color:var(--on-sv);margin-bottom:16px">'+ic('folder',18)+'Documents'+ic('chevron_right',16)+'<span style="color:var(--on-s)">Reports</span></div>'
+    + '<div style="position:relative;margin-bottom:16px"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--p);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 inherit;background:var(--surface)">Q3 Board Report</div>'+fieldLabel('File name','var(--p)','var(--sc)')+'</div>'
+    + '<div style="position:relative;margin-bottom:16px"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 inherit;background:var(--surface)">ODF Text Document (.odt)<span style="margin-left:auto">'+ic('expand_more',20,'var(--on-sv)')+'</span></div>'+fieldLabel('File type','var(--on-sv)','var(--sc)')+'</div>'
+    + '<label style="display:flex;align-items:center;gap:10px;cursor:pointer"><span style="width:20px;height:20px;border-radius:var(--r-check);background:var(--p);display:grid;place-items:center">'+ic('check',15,'var(--on-p)')+'</span><span style="font:400 13px/1 inherit;color:var(--on-s)">Save with password</span></label>'
+    + '</div>';
+  var footer=dlgFooter('<div style="flex:1"></div>'+outBtn('Cancel')+fillBtn('Save'));
+  return dlgWrap(560, dlgHead('Save As')+body+footer);
+}
+function printDialog(){
+  var st=S;
+  var ranges=[['all','All pages'],['pages','Pages: 1-3'],['sel','Selection']], rHtml='';
+  for(var i=0;i<ranges.length;i++){ var a=st.printRange===ranges[i][0];
+    rHtml+='<label data-act="set:printRange:'+ranges[i][0]+'" style="display:flex;align-items:center;gap:10px;cursor:pointer"><span style="display:grid;place-items:center;width:20px;height:20px;border-radius:50%;flex:0 0 auto;background:'+(a?'var(--p)':'transparent')+';border:2px solid '+(a?'var(--p)':'var(--on-sv)')+'"><span style="width:10px;height:10px;border-radius:50%;background:var(--on-p);opacity:'+(a?1:0)+'"></span></span><span style="font:400 13px/1 inherit;color:var(--on-s)">'+ranges[i][1]+'</span></label>'; }
+  var preview='<div style="width:220px;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:12px"><div style="width:170px;height:220px;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.14);padding:20px 18px;display:flex;flex-direction:column;gap:6px"><div style="height:9px;width:70%;background:var(--outline-v);border-radius:2px"></div><div style="height:5px;width:100%;background:var(--outline-v);border-radius:2px;opacity:.5;margin-top:6px"></div><div style="height:5px;width:96%;background:var(--outline-v);border-radius:2px;opacity:.5"></div><div style="height:5px;width:90%;background:var(--outline-v);border-radius:2px;opacity:.5"></div></div><div style="display:flex;align-items:center;gap:10px"><button data-hov="background:var(--pc)" style="width:32px;height:32px;border:var(--bw) solid var(--outline-v);background:var(--surface);border-radius:50%;color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('chevron_left',18)+'</button><span style="font:400 13px/1 inherit;color:var(--on-sv)">1 / 3</span><button data-hov="background:var(--pc)" style="width:32px;height:32px;border:var(--bw) solid var(--outline-v);background:var(--surface);border-radius:50%;color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('chevron_right',18)+'</button></div></div>';
+  var controls='<div style="flex:1;display:flex;flex-direction:column;gap:16px">'
+    + '<div style="position:relative"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 inherit;background:var(--surface)">HP LaserJet Pro M404<span style="margin-left:auto">'+ic('expand_more',20,'var(--on-sv)')+'</span></div>'+fieldLabel('Printer','var(--on-sv)','var(--sc)')+'</div>'
+    + '<div style="position:relative;width:120px"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--p);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 inherit;background:var(--surface)">1</div>'+fieldLabel('Copies','var(--p)','var(--sc)')+'</div>'
+    + '<div><div style="font:500 13px/1 inherit;color:var(--on-s);margin-bottom:10px">Range</div><div style="display:flex;flex-direction:column;gap:10px">'+rHtml+'</div></div>'
+    + '</div>';
+  var body='<div style="display:flex;gap:20px;padding:4px 20px 20px">'+preview+controls+'</div>';
+  var footer=dlgFooter('<div style="flex:1"></div>'+outBtn('Cancel')+fillBtn('Print'));
+  return dlgWrap(720, dlgHead('Print')+body+footer);
+}
+
+/* ---- status bar ---- */
+function statusBar(){
+  var STATUS={
+    writer:['Page 1 of 3','842 words, 5,120 characters','English (USA)','Default Paragraph Style'],
+    calc:['Sheet 1 of 3','Average: 1,926;  Sum: 15,410','English (USA)'],
+    impress:['Slide '+S.slide+' of 8','Default','English (USA)'],
+    draw:['Page 1 of 1','0 objects selected'],
+    base:['Table: Customers','24 records'],
+    math:['Formula','Elements docked']
+  };
+  var left=STATUS[S.screen]||[], lHtml='';
+  for(var i=0;i<left.length;i++){ lHtml+='<span style="font:400 12px/1 inherit;color:var(--on-sv)">'+esc(left[i])+'</span>'; }
+  return '<div style="display:flex;align-items:center;gap:16px;height:28px;padding:0 14px;background:var(--sc);border-top:var(--bw) solid var(--outline-v)">'+lHtml+'<div style="flex:1"></div><span style="font:400 12px/1 inherit;color:var(--on-sv)">100%</span><div style="width:120px;height:4px;border-radius:2px;background:var(--outline-v);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:50%;background:var(--p);border-radius:2px"></div><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:var(--p)"></div></div></div>';
+}
+
+/* ---- footer note + click-away ---- */
+function footerNote(){
+  return '<div style="text-align:center;color:var(--on-sv);font:400 12px/1.5 inherit;padding:6px 20px 0;max-width:900px">Interactive design reference — color, shape, type and metrics resolve from <span class="mono">vcl/uiconfig/theme_definitions/material/definition.xml</span>. Switch theme, density and chrome above; navigate the suite with the Surface control. This is a hand-built HTML mockup, not a screenshot of a compiled LibreOffice.</div>';
+}
+function menuAway(){
+  if(!S.menuOpen) return '';
+  return '<div data-act="closemenus" style="position:fixed;inset:0;z-index:20"></div>';
+}
+
+/* ===== events ===== */
+var app=document.getElementById('app');
+
+app.addEventListener('click', function(e){
+  var el=e.target.closest('[data-act]');
+  if(!el) return;
+  var act=el.getAttribute('data-act');
+  var ci=act.indexOf(':');
+  var cmd = ci<0 ? act : act.slice(0,ci);
+  var arg = ci<0 ? '' : act.slice(ci+1);
+  switch(cmd){
+    case 'nav': set('screen',arg); break;
+    case 'set': { var p=arg.indexOf(':'); var key=arg.slice(0,p); var val=decodeURIComponent(arg.slice(p+1));
+      if(key==='sheet'||key==='slide'||key==='layout'||key==='baseSel'||key==='gTab'||key==='histSel'){ val=parseInt(val,10); }
+      set(key,val); break; }
+    case 'toast': toast(decodeURIComponent(arg)); break;
+    case 'menu': { var l=decodeURIComponent(arg); S.menuOpen = S.menuOpen===l ? null : l; render(); break; }
+    case 'menuitem': { var lbl=decodeURIComponent(arg); S.menuOpen=null; render(); toast(lbl); break; }
+    case 'closemenus': S.menuOpen=null; render(); break;
+    case 'toggle': S[arg]=!S[arg]; render(); break;
+    case 'fmt': S.fmt[arg]=!S.fmt[arg]; render(); break;
+    case 'align': S.fmt.align=arg; render(); break;
+    case 'chip': S.gChip[arg]=!S.gChip[arg]; render(); break;
+    case 'slider': S.gSlider = S.gSlider>=90 ? 20 : S.gSlider+15; render(); break;
+    case 'feat': set('featSel', decodeURIComponent(arg)); break;
+  }
+});
+
+/* global toast-on-click (matches the design's behavior; skips silent zones) */
+app.addEventListener('click', function(e){
+  var b=e.target.closest('button');
+  if(!b || b.disabled || b.closest('[data-silent]')) return;
+  var act=b.getAttribute('data-act')||'';
+  // items that already produce their own toast / are pure navigation are skipped
+  if(/^(toast:|menuitem:|feat:|menu:|set:featCat)/.test(act)) return;
+  var label=(b.getAttribute('title')||b.textContent||'').trim();
+  if(label) toast(label);
+}, true);
+
+/* features search (live filter, keeps focus) */
+app.addEventListener('input', function(e){
+  if(e.target && e.target.id==='featSearch'){ S.featQuery=e.target.value; S._focusSearch=true; render(); }
+});
+
+/* hover system (mirrors the design's style-hover attribute) */
+app.addEventListener('mouseover', function(e){
+  var el=e.target.closest('[data-hov]'); if(!el) return;
+  if(el.dataset.base===undefined) el.dataset.base=el.getAttribute('style')||'';
+  el.setAttribute('style', el.dataset.base+';'+el.getAttribute('data-hov'));
+});
+app.addEventListener('mouseout', function(e){
+  var el=e.target.closest('[data-hov]'); if(!el) return;
+  if(el.dataset.base!==undefined) el.setAttribute('style', el.dataset.base);
+});
+
+/* load the full command catalog (same-origin); fall back to the embedded subset */
+try{
+  fetch('prototype-features.json').then(function(r){ return r.ok?r.json():null; }).then(function(d){
+    if(Array.isArray(d)&&d.length){ S.features=d; if(S.screen==='code') render(); }
+  }).catch(function(){});
+}catch(_){}
+
+render();
+</script>
+</body>
+</html>

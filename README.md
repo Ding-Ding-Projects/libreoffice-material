@@ -39,6 +39,8 @@ document engine, file-format support, and accessibility foundations.
 | Whole-suite implementation | Incomplete | Phased work remains in [`ROADMAP.md`](ROADMAP.md) |
 | Verified UI screenshots | None yet | The truthful empty registry is in [`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md) |
 | Headless harness | Preflight passed; LibreOffice not run | A temporary Notepad-only driver preflight proved the off-screen mechanics, not this UI; see [`docs/HEADLESS_UI_EVIDENCE.md`](docs/HEADLESS_UI_EVIDENCE.md) |
+| Interactive design reference | Published mockup | [`site/prototype.html`](site/prototype.html) — 11 suite surfaces, a regex builder on every search bar, and a Find & Replace dialog; guarded by [`bin/validate-prototype.mjs`](bin/validate-prototype.mjs) (7/7) and the `prototype-check` CI |
+| Installer / release | None | [`build-installer.yml`](.github/workflows/build-installer.yml) publishes a release only if a real from-source build produces one; none has succeeded |
 
 This table is deliberately conservative. A roadmap item changes state only when
 its code, build result, interaction checks, and committed visual evidence agree.

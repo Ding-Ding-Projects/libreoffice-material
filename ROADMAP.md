@@ -23,8 +23,14 @@ No phase is currently marked verified.
 - establish the Material design contract and token vocabulary;
 - publish an honest project site and screenshot registry;
 - publish an interactive, dependency-free Material design reference on the site
-  as the whole-suite visual and interaction target (explicitly a hand-built
-  mockup, not a build screenshot);
+  as the whole-suite visual and interaction target — 11 suite surfaces, a regex
+  builder on every search bar, and a Find & Replace dialog (explicitly a
+  hand-built mockup, not a build screenshot);
+- guard that reference and the build path in CI: a dependency-free validator
+  (`bin/validate-prototype.mjs`) and `prototype-check.yml` check its
+  self-containment, tokens, icons, and regex engine, while a best-effort
+  `build-installer.yml` attempts a from-source build and would publish an
+  installer only if one is actually produced;
 - define native build profiles and artifact retention rules;
 - preflight the low-level computer-use driver and an off-screen desktop;
 - connect that proven harness to a built LibreOffice binary and isolated profile;
@@ -39,11 +45,18 @@ is selected despite missing required desktop files, and supporting build tools
 remain incomplete.
 
 An interactive, dependency-free Material design reference for the whole suite is
-published at [`site/prototype.html`](site/prototype.html). It is a hand-built
-HTML rendering of the target look and interaction whose tokens mirror
-`material/definition.xml`; it specifies the design the native work targets and is
-**not** a capture of a compiled build, so it does not advance any acceptance
-gate or the verified-capture count.
+published at [`site/prototype.html`](site/prototype.html): a hand-built HTML
+rendering of all eleven surfaces (Start Center, Writer, Calc, Impress, Draw,
+Base, Math, Features, History, Components, Dialogs) with light/dark/high-contrast
+themes, compact/comfortable density, classic/ribbon chrome, a regex builder on
+every search bar, and a Find & Replace dialog. Its tokens mirror
+`material/definition.xml` (documented in
+[`docs/DESIGN_TOKENS.md`](docs/DESIGN_TOKENS.md)), and
+[`bin/validate-prototype.mjs`](bin/validate-prototype.mjs) guards its invariants
+(7/7). It specifies the design the native work targets and is **not** a capture
+of a compiled build, so it does not advance any acceptance gate or the
+verified-capture count; there is no installer, and `build-installer.yml` would
+publish one only if a real build succeeds.
 
 Exit gate:
 

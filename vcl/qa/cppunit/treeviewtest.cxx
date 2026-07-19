@@ -12,6 +12,8 @@
 
 #include <cppuhelper/implbase.hxx>
 #include <test/bootstrapfixture.hxx>
+#include <vcl/builder.hxx>
+#include <vcl/toolkit/button.hxx>
 #include <vcl/weld/Builder.hxx>
 #include <vcl/weld/TreeView.hxx>
 
@@ -27,9 +29,11 @@ public:
     void tearDown() override;
 
     void testIterPrevious();
+    void testSuggestedActionClassSetsPushButtonAction();
 
     CPPUNIT_TEST_SUITE(TreeViewTest);
     CPPUNIT_TEST(testIterPrevious);
+    CPPUNIT_TEST(testSuggestedActionClassSetsPushButtonAction);
     CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -76,6 +80,19 @@ void TreeViewTest::testIterPrevious()
     // overflow.
     m_xTreeView->iter_previous(*xIter);
     CPPUNIT_ASSERT_EQUAL(u"first"_ustr, m_xTreeView->get_text(*xIter));
+}
+
+void TreeViewTest::testSuggestedActionClassSetsPushButtonAction()
+{
+    OUString sDataDir = m_directories.getURLFromSrc(u"vcl/qa/cppunit/data/");
+    VclBuilder aBuilder(nullptr, sDataDir, u"suggestedaction.ui"_ustr);
+
+    PushButton* pSuggestedAction = aBuilder.get<PushButton>(u"suggested"_ustr);
+    PushButton* pPlainButton = aBuilder.get<PushButton>(u"plain"_ustr);
+    CPPUNIT_ASSERT(pSuggestedAction);
+    CPPUNIT_ASSERT(pPlainButton);
+    CPPUNIT_ASSERT(pSuggestedAction->isAction());
+    CPPUNIT_ASSERT(!pPlainButton->isAction());
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TreeViewTest);

@@ -240,7 +240,7 @@ jobs:
           printf 'NASM %s\n' "$nasm_version"
           test "$(printf '%s\n' 2.16 "$nasm_version" | sort -V | head -n 1)" = 2.16
 
-      - name: Configure lean Windows x64 LibreOfficeDev build
+      - name: Configure Windows x64 LibreOfficeDev build
         shell: cygbash --noprofile --norc -o igncr -eo pipefail {0}
         env:
           SOURCE_CHECKOUT: ${{ github.workspace }}
@@ -270,7 +270,6 @@ jobs:
             --without-java \
             --without-junit \
             --without-dotnet \
-            --disable-cli \
             --without-help \
             --without-helppack-integration \
             --without-myspell-dicts \
@@ -290,6 +289,9 @@ jobs:
           # supported desktop feature explicit and fail before the long native
           # targets if configure ever drops it.
           grep -Eq '^export BUILD_TYPE=.*[[:space:]]DBCONNECTIVITY([[:space:]]|$)' config_host.mk
+          # Windows MSI manifests include the legacy CLI bridge payload. Modern
+          # .NET remains disabled above; it is a separate build feature.
+          grep -qx 'export ENABLE_CLI=TRUE' config_host.mk
 
       - name: Link critical Windows desktop library
         shell: cygbash --noprofile --norc -o igncr -eo pipefail {0}
@@ -315,9 +317,30 @@ jobs:
             CppunitTest_tools_test \
             CppunitTest_extensions_test_update \
             CppunitTest_vcl_widget_definition_reader_test \
-            CppunitTest_vcl_file_definition_widget_draw_test
+            CppunitTest_vcl_file_definition_widget_draw_test \
+            CppunitTest_vcl_treeview
           do
             /opt/lo/bin/make.exe -j"$BUILD_JOBS" "$target"
+          done
+
+      - name: Build required legacy CLI installer payload
+        shell: cygbash --noprofile --norc -o igncr -eo pipefail {0}
+        run: |
+          export PATH="/opt/lo/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+          cd "$(cygpath -u "$LO_BUILD_DIR")"
+          for target in cli_ure unoil
+          do
+            /opt/lo/bin/make.exe -j"$BUILD_JOBS" "$target"
+          done
+          for file in \
+            cli_basetypes.dll cli_ure.dll cli_uretypes.dll cli_cppuhelper.dll cli_oootypes.dll \
+            policy.1.0.cli_basetypes.dll policy.1.0.cli_ure.dll \
+            policy.1.0.cli_uretypes.dll policy.1.0.cli_cppuhelper.dll \
+            policy.1.0.cli_oootypes.dll \
+            cli_basetypes.config cli_ure.config cli_uretypes.config \
+            cli_cppuhelper.config cli_oootypes.config
+          do
+            test -s "instdir/program/$file"
           done
 
       - name: Build LibreOfficeDev and emit Windows installation set

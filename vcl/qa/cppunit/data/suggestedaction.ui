@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Regression fixture for deferred Gtk suggested-action parsing. -->
+<interface domain="vcl">
+  <requires lib="gtk+" version="3.24"/>
+  <object class="GtkBox" id="root">
+    <property name="can-focus">False</property>
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkButton" id="suggested">
+        <property name="label">Suggested</property>
+        <style>
+          <class name="suggested-action"/>
+        </style>
+      </object>
+    </child>
+    <child>
+      <object class="GtkButton" id="plain">
+        <property name="label">Plain</property>
+      </object>
+    </child>
+  </object>
+</interface>

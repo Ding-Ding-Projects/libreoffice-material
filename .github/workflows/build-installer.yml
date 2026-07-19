@@ -110,7 +110,8 @@ jobs:
             CppunitTest_tools_test \
             CppunitTest_extensions_test_update \
             CppunitTest_vcl_widget_definition_reader_test \
-            CppunitTest_vcl_file_definition_widget_draw_test
+            CppunitTest_vcl_file_definition_widget_draw_test \
+            CppunitTest_vcl_treeview
           do
             make -j"$(nproc)" "$target"
           done

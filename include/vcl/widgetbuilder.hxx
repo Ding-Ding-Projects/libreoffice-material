@@ -214,6 +214,7 @@ protected:
             aProperties[u"visible"_ustr] = "True";
 
         WidgetPtr pCurrentChild = nullptr;
+        bool bSuggestedAction = false;
         while (true)
         {
             xmlreader::Span name;
@@ -244,7 +245,7 @@ protected:
                 {
                     int nPriority = 0;
                     std::vector<vcl::EnumContext::Context> aContext
-                        = handleStyle(reader, nPriority);
+                        = handleStyle(reader, nPriority, bSuggestedAction);
                     if (nPriority != 0)
                         setPriority(pCurrentChild, nPriority);
                     if (!aContext.empty())
@@ -291,6 +292,9 @@ protected:
             pCurrentChild = insertObject(pParent, sClass, sType, sID, aProperties, aPangoAttributes,
                                          aAtkAttributes);
         }
+
+        if (bSuggestedAction)
+            setSuggestedAction(pCurrentChild);
 
         if (!aItems.empty())
         {
@@ -342,7 +346,8 @@ protected:
                 else if (name == "style")
                 {
                     int nPriority = 0;
-                    context = handleStyle(reader, nPriority);
+                    bool bSuggestedAction = false;
+                    context = handleStyle(reader, nPriority, bSuggestedAction);
                     --nLevel;
                 }
                 else if (name == "property")
@@ -558,6 +563,7 @@ protected:
     virtual void setMnemonicWidget(const OUString& rLabelId, const OUString& rMnemonicWidgetId) = 0;
     virtual void setRadioButtonGroup(const OUString& rRadioButtonId, const OUString& rRadioGroupId)
         = 0;
+    virtual void setSuggestedAction(Widget*) {}
     virtual void setPriority(Widget* pWidget, int nPriority) = 0;
     virtual void setContext(Widget* pWidget, std::vector<vcl::EnumContext::Context>&& aContext) = 0;
 

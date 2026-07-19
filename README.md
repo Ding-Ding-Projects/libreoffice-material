@@ -245,18 +245,17 @@ cross-platform native project; consult The Document Foundation's current
 [platform build instructions](https://wiki.documentfoundation.org/Development/How_to_build)
 and the imported build files before configuring a machine.
 
-> **Current build gate:** the previously prepared detached LF worktree is no
-> longer present and must be recreated before a native build attempt. No
-> complete supported local LibreOffice build profile exists: WSL 2.7.10 has no
-> distribution; the selectable Visual Studio 2022 instance lacks ATL and its
-> configured bundled CMake; and the Windows SDK registry selects incomplete SDK
-> 28000 instead of the usable 26100 desktop SDK. A complete OpenJDK 21 exists
-> outside `PATH`, while Ant/JUnit and other required build helpers remain
-> absent. The latest automated Linux attempt, Actions run `29662095462` at
-> `d6f66b686`, stopped during configure because Perl `Archive::Zip` was missing.
-> The workflow is being repaired to require its build dependencies and the
-> named native regression targets. No native C++ test, LibreOffice application
-> run, installer, or accepted capture has occurred.
+> **Current build gate:** no complete supported *local* LibreOffice build
+> profile exists. The local Visual Studio 2022 Build Tools instance has MSVC
+> and CMake but lacks ATL and the CRT merge modules required for packaging; the
+> installed Windows SDK 26100 is complete, but no supported Cygwin or WSL helper
+> environment is installed. The manually dispatched hosted Windows workflow
+> supplies and validates those prerequisites against a clean LF checkout. The
+> latest completed Linux attempt, Actions run `29665678719` at `542e4077b`,
+> installed Perl `Archive::Zip` but stopped during prerequisite validation
+> because `nasm` was absent, before configure or any native target ran. No
+> completed native C++ test, LibreOffice application run, installer, or accepted
+> capture has occurred yet.
 
 The imported checkout was also materialized mostly with CRLF worktree endings.
 Use a fresh detached worktree created with `core.autocrlf=false` for any native

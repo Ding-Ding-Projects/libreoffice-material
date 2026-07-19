@@ -67,22 +67,19 @@ These are audited capabilities and constraints, not a LibreOffice run result.
 
 ## Current LibreOffice build blocker
 
-The previously prepared detached LF worktree is no longer present and must be
-recreated with `core.autocrlf=false` before a local native build attempt. No
-complete supported LibreOffice build profile or LibreOffice executable exists.
-WSL 2.7.10 has zero installed distributions. The selectable Visual Studio 2022
-instance lacks ATL and its configured bundled CMake. The Windows SDK registry
-selects SDK 28000, which lacks required desktop headers and MSI tools, while
-installed SDK 26100 has those files but is not selected by the current
-configure path. A complete OpenJDK 21 exists outside `PATH`; Ant, JUnit, and
-other build helpers remain absent.
+No complete supported *local* LibreOffice build profile or fork executable
+exists. The local Visual Studio 2022 Build Tools instance has MSVC and CMake but
+lacks ATL and the CRT merge modules required for packaging. Installed Windows
+SDK 26100 is complete, but no supported Cygwin or WSL helper environment is
+installed. The manually dispatched hosted Windows workflow supplies and
+validates those missing prerequisites against a clean LF checkout.
 
-The latest automated Linux attempt, commit `d6f66b686` in Actions run
-`29662095462`, stopped during configure because Perl `Archive::Zip` was missing.
-The workflow is being repaired to enforce required dependencies and the named
-native regression targets before packaging. That failed configure attempt
-produced no build, installer, affected C++ test result, `soffice` process, or
-real LibreOffice capture.
+The latest completed Linux attempt, commit `542e4077b` in Actions run
+`29665678719`, installed Perl `Archive::Zip` but stopped during prerequisite
+validation because `nasm` was absent. Configure, the required native regression
+targets, build, packaging, and artifact staging therefore did not run. The
+dependency list has since been corrected, but that failed run produced no
+installer, `soffice` process, or real LibreOffice capture.
 
 ## Evidence principles
 

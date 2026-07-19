@@ -309,14 +309,13 @@ release/tag `e` remains non-evidence.
 - no headless LibreOffice Material scenario is registered;
 - no screenshot is registered;
 - no application surface is verified Material-complete;
-- no prepared detached LF build worktree currently exists, and the host has no
-  complete supported LibreOffice build profile: WSL 2.7.10 has zero
-  distributions; selectable VS 2022 lacks ATL and its configured CMake;
-  registry-selected SDK 28000 lacks required desktop/MSI files that installed
-  SDK 26100 contains; OpenJDK 21 is outside `PATH`; and Ant/JUnit plus other
-  helpers are absent. Automated run `29662095462` also stopped at configure on
-  missing Perl `Archive::Zip`. The C++ unit targets and real application capture
-  have not run.
+- no complete supported local LibreOffice build profile exists: local VS 2022
+  Build Tools has MSVC and CMake but lacks ATL and CRT merge modules; SDK 26100
+  is complete; and no supported Cygwin or WSL helper is installed. The hosted
+  Windows workflow supplies those prerequisites. Completed Linux run
+  `29665678719` installed Perl `Archive::Zip` but stopped at prerequisite
+  validation because `nasm` was absent, before configure or native targets. The
+  C++ unit targets and real application capture have not completed.
 
 ## Multi-repository boundary
 

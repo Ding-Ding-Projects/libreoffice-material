@@ -190,14 +190,16 @@
 VCL_FILE_WIDGET_THEME=material</code></pre>
         </div>
         <p class="blocker-note">
-          <strong>Current build gate:</strong> no complete supported profile
-          exists. WSL has no distribution; selectable VS 2022 lacks ATL and its
-          configured CMake; and the registry selects incomplete SDK 28000 over
-          usable SDK 26100. The latest automated attempt, commit
-          <code>d6f66b686</code> in Actions run <code>29662095462</code>, stopped
-          during configure because Perl <code>Archive::Zip</code> was missing.
-          The workflow is being repaired to require its dependencies and native
-          regression targets; no build, installer, or real app run resulted.
+          <strong>Current build gate:</strong> no complete supported local
+          profile exists. Local VS 2022 Build Tools has MSVC and CMake but lacks
+          ATL and the CRT merge modules required for packaging; installed SDK
+          26100 is complete, but there is no supported local Cygwin or WSL helper.
+          The hosted Windows workflow supplies and validates those prerequisites.
+          The latest completed Linux attempt, commit <code>542e4077b</code> in
+          Actions run <code>29665678719</code>, installed Perl
+          <code>Archive::Zip</code> but stopped at prerequisite validation because
+          <code>nasm</code> was absent, before configure or native tests. No build,
+          installer, or real app run resulted from that attempt.
         </p>
       </section>
 

@@ -260,7 +260,8 @@ jobs:
             --with-package-format=msi \
             --with-external-tar=C:/lo/tarballs \
             --with-lang=en-US \
-            --disable-online-update \
+            --enable-online-update \
+            --with-privacy-policy-url=https://github.com/codingmachineedge/libreoffice-material/blob/main/PRIVACY.md \
             --enable-python=fully-internal \
             --without-java \
             --without-junit \
@@ -289,6 +290,7 @@ jobs:
           # internal dependency graph still uses BUILD_JOBS in parallel.
           for target in \
             CppunitTest_tools_test \
+            CppunitTest_extensions_test_update \
             CppunitTest_vcl_widget_definition_reader_test \
             CppunitTest_vcl_file_definition_widget_draw_test
           do
@@ -322,8 +324,8 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $installation = Join-Path $env:LO_BUILD_DIR 'workdir\installation'
           $msis = @(Get-ChildItem -LiteralPath $installation -Recurse -Filter '*.msi' -File -ErrorAction SilentlyContinue)
-          if ($msis.Count -eq 0) {
-            throw "No MSI was produced under $installation."
+          if ($msis.Count -ne 1) {
+            throw "Expected exactly one MSI under $installation, found $($msis.Count)."
           }
 
           $dist = Join-Path $env:GITHUB_WORKSPACE 'dist-windows'
@@ -346,12 +348,13 @@ jobs:
               throw "The MSI $($msi.Name) does not contain a soffice.exe payload."
             }
 
-            $destination = Join-Path $dist $msi.Name
+            $canonicalName = 'LibreOfficeMaterial-Windows-x64.msi'
+            $destination = Join-Path $dist $canonicalName
             Copy-Item -LiteralPath $msi.FullName -Destination $destination
             $hash = (Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash.ToLowerInvariant()
-            "$hash  $($msi.Name)" | Set-Content -LiteralPath "$destination.sha256" -Encoding ascii
+            "$hash  $canonicalName" | Set-Content -LiteralPath "$destination.sha256" -Encoding ascii
             $manifest += [ordered]@{
-              file = $msi.Name
+              file = $canonicalName
               bytes = $msi.Length
               sha256 = $hash
               source_commit = '${{ github.sha }}'
@@ -383,10 +386,38 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $short = '${{ github.sha }}'.Substring(0, 10)
           $tag = "windows-msi-${{ github.run_number }}-$short"
+          $repository = '${{ github.repository }}'
+          $releaseUrl = "https://github.com/$repository/releases/tag/$tag"
+          $installerName = 'LibreOfficeMaterial-Windows-x64.msi'
+          $releaseManifest = @(Get-Content -LiteralPath 'dist-windows\windows-msi-manifest.json' -Raw | ConvertFrom-Json)
+          if ($releaseManifest.Count -ne 1 -or $releaseManifest[0].file -ne $installerName) {
+            throw 'The staged release manifest does not describe exactly one canonical MSI.'
+          }
+          $installerHash = [string]$releaseManifest[0].sha256
+          $installerBytes = [long]$releaseManifest[0].bytes
+          if ($installerHash -notmatch '^[0-9a-f]{64}$' -or $installerBytes -le 0) {
+            throw 'The staged MSI release metadata is invalid.'
+          }
+          $installerUrl = "https://github.com/$repository/releases/download/$tag/$installerName"
+          $updateFeed = @"
+          <?xml version="1.0" encoding="utf-8"?>
+          <inst:description xmlns:inst="http://update.libreoffice.org/description">
+            <inst:id>LibreOffice Material Windows x64</inst:id>
+            <inst:version>Windows x64 $short</inst:version>
+            <inst:buildid>${{ github.sha }}</inst:buildid>
+            <inst:gitid>${{ github.sha }}</inst:gitid>
+            <inst:os>Windows</inst:os>
+            <inst:arch>X86_64</inst:arch>
+            <inst:update type="application/x-msi" src="$installerUrl" sha256="$installerHash" size="$installerBytes" release-tag="$tag" file-name="$installerName" />
+            <inst:relnote pos="1" src="$releaseUrl" />
+          </inst:description>
+          "@
+          $updateFeedPath = Join-Path 'dist-windows' 'windows-update-manifest.xml'
+          $updateFeed | Set-Content -LiteralPath $updateFeedPath -Encoding utf8
           $notes = @"
           Unofficial, unsigned LibreOfficeDev Windows x64 build from commit ${{ github.sha }}.
 
-          The MSI passed the required native C++ regression targets and an administrative extraction check, and it contains soffice.exe. Its low-level off-screen desktop interaction and screenshot result will be linked here after the release asset is exercised on Windows. Do not install it over an official LibreOffice release.
+          The MSI passed the required native C++ regression targets (including the verified updater), an administrative extraction check, and contains soffice.exe. The built-in updater follows only this repository's normal Latest release, checks the canonical MSI byte count and SHA-256 after download and again before launch, and requires explicit default-No consent before starting the interactive Windows Installer. The package is currently unsigned; these checks detect corruption but do not replace publisher code signing. Its low-level off-screen desktop interaction and screenshot result will be linked here after the release asset is exercised on Windows. Do not install it over an official LibreOffice release.
 
           Workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           "@
@@ -394,8 +425,9 @@ jobs:
             Get-ChildItem -LiteralPath dist-windows -Filter '*.msi' -File | ForEach-Object FullName
             Get-ChildItem -LiteralPath dist-windows -Filter '*.sha256' -File | ForEach-Object FullName
             (Resolve-Path -LiteralPath 'dist-windows\windows-msi-manifest.json').Path
+            (Resolve-Path -LiteralPath $updateFeedPath).Path
           )
-          if ($assets.Count -lt 3) {
+          if ($assets.Count -ne 4) {
             throw 'The release asset set is incomplete.'
           }
           gh release create $tag @assets `
@@ -405,6 +437,33 @@ jobs:
             --notes $notes
           if ($LASTEXITCODE -ne 0) {
             throw "Creating release $tag failed with exit code $LASTEXITCODE."
+          }
+
+          $release = gh release view $tag --json tagName,isDraft,isPrerelease,publishedAt,targetCommitish,url,assets | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $release.isDraft -or $release.isPrerelease `
+              -or -not $release.publishedAt -or $release.targetCommitish -ne '${{ github.sha }}') {
+            throw 'The published release is not a normal, public release for the built source commit.'
+          }
+          $expectedAssets = @(
+            'LibreOfficeMaterial-Windows-x64.msi',
+            'LibreOfficeMaterial-Windows-x64.msi.sha256',
+            'windows-msi-manifest.json',
+            'windows-update-manifest.xml'
+          )
+          $actualAssets = @($release.assets | ForEach-Object name | Sort-Object)
+          if (Compare-Object ($expectedAssets | Sort-Object) $actualAssets) {
+            throw "The public release asset set is not exact: $($actualAssets -join ', ')"
+          }
+          $publicMsi = $release.assets | Where-Object name -eq $installerName
+          if ([long]$publicMsi.size -ne $installerBytes) {
+            throw 'The public MSI asset size differs from the staged MSI.'
+          }
+          if ($publicMsi.digest -and $publicMsi.digest -ne "sha256:$installerHash") {
+            throw 'The public MSI asset digest differs from the staged MSI.'
+          }
+          $latest = gh api "repos/$repository/releases/latest" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $latest.tag_name -ne $tag -or $latest.draft -or $latest.prerelease) {
+            throw 'The new normal release is not the repository Latest release.'
           }
 
       - name: Stage Windows build diagnostics

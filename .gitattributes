@@ -9,5 +9,6 @@
 *.odp binary
 *.ods binary
 *.odt binary
+extensions/qa/update/LibreOfficeMaterial-Windows-x64.msi binary
 *.rtf diff
 schema/*/* export-ignore

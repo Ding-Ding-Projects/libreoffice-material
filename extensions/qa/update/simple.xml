@@ -8,11 +8,17 @@
  *
 -->
 <inst:description xmlns:inst="http://update.libreoffice.org/description">
-  <inst:id>LibreOffice 3.5.0 Beta2</inst:id>
-  <inst:version>3.5.0 Beta2</inst:version>
+  <inst:id>LibreOffice Material Windows x64</inst:id>
+  <inst:version>Windows x64 test</inst:version>
+  <inst:buildid>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</inst:buildid>
   <inst:gitid>123456-abcdef-1a2b3c-4d5e6f</inst:gitid>
-  <inst:os>Linux</inst:os>
-  <inst:arch>x86</inst:arch>
+  <inst:os>Windows</inst:os>
+  <inst:arch>X86_64</inst:arch>
 
-  <inst:update type="text/html" src="http://www.libreoffice.org/download/" />
+  <inst:update type="application/x-msi"
+               src="https://github.com/codingmachineedge/libreoffice-material/releases/download/windows-msi-test/LibreOfficeMaterial-Windows-x64.msi"
+               sha256="1b8743c701ccbb5839b6cc8dd25eec1ac4a6ca4c3094fd6a5b2a8a49e69e058e"
+               size="50"
+               release-tag="windows-msi-test"
+               file-name="LibreOfficeMaterial-Windows-x64.msi" />
 </inst:description>

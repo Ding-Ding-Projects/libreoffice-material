@@ -95,7 +95,7 @@ bool isTrustedMaterialUpdateSource(const DownloadSource& rSource)
     }
 
     const OUString aExpectedURL = OUString::Concat(MATERIAL_RELEASE_PREFIX)
-                                  + rSource.ReleaseTag + "/" + rSource.FileName;
+                                  + rSource.ReleaseTag + u"/"_ustr + rSource.FileName;
     return rSource.URL == aExpectedURL;
 }
 

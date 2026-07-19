@@ -72,7 +72,7 @@ constexpr OUString PROPERTY_SHOW_MENUICON = u"MenuIconVisible"_ustr;
 bool verifyUpdateFile(const OUString& rFileName, const DownloadSource& rSource)
 {
     if (!isTrustedMaterialUpdateSource(rSource) || rFileName.isEmpty()
-        || !rFileName.endsWith(OUString::Concat("/") + rSource.FileName))
+        || !rFileName.endsWith(OUString::Concat(u"/") + rSource.FileName))
         return false;
 
     osl::DirectoryItem aItem;
@@ -928,10 +928,11 @@ void UpdateCheck::install()
 #ifdef _WIN32
     wchar_t aSystemDirectory[MAX_PATH + 1] = {};
     const UINT nSystemDirectoryLength
-        = GetSystemDirectoryW(aSystemDirectory, std::size(aSystemDirectory));
+        = GetSystemDirectoryW(aSystemDirectory,
+                              static_cast<UINT>(std::size(aSystemDirectory)));
     OUString aInstallerPath;
     if (nSystemDirectoryLength == 0
-        || nSystemDirectoryLength >= std::size(aSystemDirectory)
+        || nSystemDirectoryLength >= static_cast<UINT>(std::size(aSystemDirectory))
         || osl::FileBase::getSystemPathFromFileURL(aInstallerURL, aInstallerPath)
                != osl::FileBase::E_None)
     {
@@ -940,9 +941,11 @@ void UpdateCheck::install()
         return;
     }
 
-    const OUString aMsiexecPath(o3tl::toU(aSystemDirectory), nSystemDirectoryLength);
+    const OUString aMsiexecPath(o3tl::toU(aSystemDirectory),
+                                static_cast<sal_Int32>(nSystemDirectoryLength));
     OUString aMsiexecURL;
-    if (osl::FileBase::getFileURLFromSystemPath(aMsiexecPath + "\\msiexec.exe", aMsiexecURL)
+    if (osl::FileBase::getFileURLFromSystemPath(aMsiexecPath + u"\\msiexec.exe"_ustr,
+                                                aMsiexecURL)
         != osl::FileBase::E_None)
     {
         downloadStalled(u"The trusted Windows Installer executable could not be resolved."_ustr);
@@ -954,7 +957,8 @@ void UpdateCheck::install()
     rtl_uString* aArguments[] = { aInstallSwitch.pData, aInstallerPath.pData };
     oslProcess hProcess = nullptr;
     const oslProcessError eError
-        = osl_executeProcess(aMsiexecURL.pData, aArguments, std::size(aArguments),
+        = osl_executeProcess(aMsiexecURL.pData, aArguments,
+                             static_cast<sal_uInt32>(std::size(aArguments)),
                              osl_Process_DETACHED, nullptr, nullptr, nullptr, 0, &hProcess);
     if (eError == osl_Process_E_None)
     {
@@ -1205,18 +1209,22 @@ UpdateCheck::downloadProgressAt(sal_Int8 nPercent)
 void
 UpdateCheck::downloadStarted(const OUString& rLocalFileName, sal_Int64 nFileSize)
 {
-    if ( nFileSize > 0 )
+    std::scoped_lock aGuard(m_aMutex);
+    if (!m_aUpdateInfo.Sources.empty()
+        && isTrustedMaterialUpdateSource(m_aUpdateInfo.Sources[0]))
     {
-        std::scoped_lock aGuard(m_aMutex);
-
         rtl::Reference< UpdateCheckConfig > aModel(UpdateCheckConfig::get(m_xContext));
-        aModel->storeLocalFileName(rLocalFileName, nFileSize);
+        // Persist the signed-off manifest size, not a potentially absent or
+        // misleading HTTP Content-Length. This makes resume/restart checks use
+        // the same immutable value as final verification.
+        aModel->storeLocalFileName(rLocalFileName, m_aUpdateInfo.Sources[0].Size);
 
         // Bring-up release note for position 1 ..
         const OUString aURL(getReleaseNote(m_aUpdateInfo, 1, aModel->isAutoDownloadEnabled()));
         if( !aURL.isEmpty() )
             showReleaseNote(aURL);
     }
+    (void)nFileSize;
 }
 
 

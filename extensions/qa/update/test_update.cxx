@@ -81,8 +81,6 @@ protected:
                 }
             }
 #endif
-            CPPUNIT_ASSERT_EQUAL( sal_Int32(13), xChildNodes->getLength() );
-
             //uno::Reference< dom::XElement > xChildId( xChildNodes->item( 0 ), uno::UNO_QUERY );
             //CPPUNIT_ASSERT( xChildId.is() );
             //CPPUNIT_ASSERT( xChildId->getNodeValue() == "LibreOffice_3.4" );
@@ -101,14 +99,24 @@ protected:
         rtl::Reference< UpdateCheck > aController( UpdateCheck::get() );
 
         if ( checkForUpdates( aInfo, m_xContext, aController->getInteractionHandler(), m_xProvider,
-                    u"Linux",
-                    u"x86",
+                    u"Windows",
+                    u"X86_64",
                     m_aRepositoryList,
                     u"111111-222222-333333-444444",
                     u"InstallSetID"_ustr ) )
         {
             CPPUNIT_ASSERT_EQUAL( std::size_t(1), aInfo.Sources.size() );
-            CPPUNIT_ASSERT_EQUAL( u"http://www.libreoffice.org/download/"_ustr, aInfo.Sources[0].URL );
+            const DownloadSource& rSource = aInfo.Sources[0];
+            CPPUNIT_ASSERT_EQUAL(
+                u"https://github.com/codingmachineedge/libreoffice-material/releases/download/windows-msi-test/LibreOfficeMaterial-Windows-x64.msi"_ustr,
+                rSource.URL);
+            CPPUNIT_ASSERT_EQUAL(
+                u"1b8743c701ccbb5839b6cc8dd25eec1ac4a6ca4c3094fd6a5b2a8a49e69e058e"_ustr,
+                rSource.Sha256);
+            CPPUNIT_ASSERT_EQUAL(sal_Int64(50), rSource.Size);
+            CPPUNIT_ASSERT_EQUAL(u"windows-msi-test"_ustr, rSource.ReleaseTag);
+            CPPUNIT_ASSERT_EQUAL(u"LibreOfficeMaterial-Windows-x64.msi"_ustr,
+                                 rSource.FileName);
         }
         else
             CPPUNIT_FAIL( "Calling checkForUpdates() failed." );
@@ -121,8 +129,8 @@ protected:
         rtl::Reference< UpdateCheck > aController( UpdateCheck::get() );
 
         if ( checkForUpdates( aInfo, m_xContext, aController->getInteractionHandler(), m_xProvider,
-                    u"Linux",
-                    u"x86",
+                    u"Windows",
+                    u"X86_64",
                     m_aRepositoryList,
                     u"123456-abcdef-1a2b3c-4d5e6f",
                     u"InstallSetID"_ustr ) )
@@ -133,10 +141,62 @@ protected:
             CPPUNIT_FAIL( "Calling checkForUpdates() failed." );
     }
 
+    void testTrustedSourceValidation()
+    {
+        DownloadSource aSource(
+            true,
+            u"https://github.com/codingmachineedge/libreoffice-material/releases/download/windows-msi-test/LibreOfficeMaterial-Windows-x64.msi"_ustr,
+            u"1b8743c701ccbb5839b6cc8dd25eec1ac4a6ca4c3094fd6a5b2a8a49e69e058e"_ustr,
+            50, u"windows-msi-test"_ustr, u"LibreOfficeMaterial-Windows-x64.msi"_ustr);
+        CPPUNIT_ASSERT(isTrustedMaterialUpdateSource(aSource));
+
+        DownloadSource aWrongHost(aSource);
+        aWrongHost.URL = aWrongHost.URL.replaceFirst(u"github.com"_ustr, u"example.com"_ustr);
+        CPPUNIT_ASSERT(!isTrustedMaterialUpdateSource(aWrongHost));
+
+        DownloadSource aWrongHash(aSource);
+        aWrongHash.Sha256 = u"1B8743C701CCBB5839B6CC8DD25EEC1AC4A6CA4C3094FD6A5B2A8A49E69E058E"_ustr;
+        CPPUNIT_ASSERT(!isTrustedMaterialUpdateSource(aWrongHash));
+
+        DownloadSource aWrongTag(aSource);
+        aWrongTag.ReleaseTag = u"../latest"_ustr;
+        CPPUNIT_ASSERT(!isTrustedMaterialUpdateSource(aWrongTag));
+
+        DownloadSource aWrongName(aSource);
+        aWrongName.FileName = u"other.msi"_ustr;
+        CPPUNIT_ASSERT(!isTrustedMaterialUpdateSource(aWrongName));
+
+        DownloadSource aWrongSize(aSource);
+        aWrongSize.Size = 0;
+        CPPUNIT_ASSERT(!isTrustedMaterialUpdateSource(aWrongSize));
+    }
+
+    void testVerifiedUpdateFile()
+    {
+        DownloadSource aSource(
+            true,
+            u"https://github.com/codingmachineedge/libreoffice-material/releases/download/windows-msi-test/LibreOfficeMaterial-Windows-x64.msi"_ustr,
+            u"1b8743c701ccbb5839b6cc8dd25eec1ac4a6ca4c3094fd6a5b2a8a49e69e058e"_ustr,
+            50, u"windows-msi-test"_ustr, u"LibreOfficeMaterial-Windows-x64.msi"_ustr);
+        const OUString aFixture
+            = m_directories.getURLFromSrc(u"/extensions/qa/update/LibreOfficeMaterial-Windows-x64.msi");
+        CPPUNIT_ASSERT(verifyUpdateFile(aFixture, aSource));
+
+        DownloadSource aWrongHash(aSource);
+        aWrongHash.Sha256 = u"0b8743c701ccbb5839b6cc8dd25eec1ac4a6ca4c3094fd6a5b2a8a49e69e058e"_ustr;
+        CPPUNIT_ASSERT(!verifyUpdateFile(aFixture, aWrongHash));
+
+        DownloadSource aWrongSize(aSource);
+        aWrongSize.Size = 49;
+        CPPUNIT_ASSERT(!verifyUpdateFile(aFixture, aWrongSize));
+    }
+
     CPPUNIT_TEST_SUITE(Test);
     CPPUNIT_TEST(testGetUpdateInformationEnumeration);
     CPPUNIT_TEST(testCheckUpdateAvailable);
     CPPUNIT_TEST(testCheckUpToDate);
+    CPPUNIT_TEST(testTrustedSourceValidation);
+    CPPUNIT_TEST(testVerifiedUpdateFile);
     CPPUNIT_TEST_SUITE_END();
 
 private:

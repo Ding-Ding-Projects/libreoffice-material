@@ -74,8 +74,9 @@ constexpr OUString PROPERTY_SHOW_MENUICON = u"MenuIconVisible"_ustr;
 
 bool verifyUpdateFile(const OUString& rFileName, const DownloadSource& rSource)
 {
+    const OUString aExpectedSuffix = OUString::Concat(u"/") + rSource.FileName;
     if (!isTrustedMaterialUpdateSource(rSource) || rFileName.isEmpty()
-        || !rFileName.endsWith(OUString::Concat(u"/") + rSource.FileName))
+        || !rFileName.endsWith(aExpectedSuffix))
         return false;
 
     osl::DirectoryItem aItem;

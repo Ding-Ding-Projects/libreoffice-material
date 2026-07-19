@@ -475,22 +475,60 @@ jobs:
 
           Workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           "@
+          $installerPath = Join-Path 'dist-windows' $installerName
           $assets = @(
-            Get-ChildItem -LiteralPath dist-windows -Filter '*.msi' -File | ForEach-Object FullName
-            Get-ChildItem -LiteralPath dist-windows -Filter '*.sha256' -File | ForEach-Object FullName
+            (Resolve-Path -LiteralPath $installerPath).Path
+            (Resolve-Path -LiteralPath "$installerPath.sha256").Path
             (Resolve-Path -LiteralPath 'dist-windows\windows-msi-manifest.json').Path
             (Resolve-Path -LiteralPath $updateFeedPath).Path
           )
           if ($assets.Count -ne 4) {
             throw 'The release asset set is incomplete.'
           }
+          $expectedAssetMetadata = @{}
+          foreach ($assetPath in $assets) {
+            $assetFile = Get-Item -LiteralPath $assetPath
+            if ($expectedAssetMetadata.ContainsKey($assetFile.Name)) {
+              throw "The staged release contains a duplicate asset name: $($assetFile.Name)"
+            }
+            $expectedAssetMetadata[$assetFile.Name] = [pscustomobject]@{
+              size = [long]$assetFile.Length
+              digest = "sha256:$((Get-FileHash -LiteralPath $assetFile.FullName -Algorithm SHA256).Hash.ToLowerInvariant())"
+            }
+          }
+          function Test-ExactReleaseAssets($releaseObject) {
+            $remoteAssets = @($releaseObject.assets)
+            if ($remoteAssets.Count -ne $expectedAssetMetadata.Count) {
+              return $false
+            }
+            $expectedNames = @($expectedAssetMetadata.Keys | Sort-Object)
+            $remoteNames = @($remoteAssets | ForEach-Object { [string]$_.name } | Sort-Object)
+            if (@(Compare-Object $expectedNames $remoteNames).Count -ne 0) {
+              return $false
+            }
+            foreach ($remoteAsset in $remoteAssets) {
+              $name = [string]$remoteAsset.name
+              if (-not $expectedAssetMetadata.ContainsKey($name)) {
+                return $false
+              }
+              $expected = $expectedAssetMetadata[$name]
+              if ([string]$remoteAsset.state -ne 'uploaded' `
+                  -or [long]$remoteAsset.size -ne $expected.size `
+                  -or [string]$remoteAsset.digest -ne $expected.digest) {
+                return $false
+              }
+            }
+            return $true
+          }
           gh release create $tag @assets `
             --title "LibreOffice Material Windows x64 — $short" `
             --target '${{ github.sha }}' `
-            --latest `
+            --draft `
+            --prerelease=false `
+            --latest=false `
             --notes $notes
           if ($LASTEXITCODE -ne 0) {
-            throw "Creating release $tag failed with exit code $LASTEXITCODE."
+            throw "Creating draft release $tag failed with exit code $LASTEXITCODE."
           }
 
           $release = $null
@@ -498,49 +536,48 @@ jobs:
             $releaseJson = gh release view $tag --json tagName,isDraft,isPrerelease,publishedAt,targetCommitish,url,assets
             if ($LASTEXITCODE -eq 0) {
               $candidate = ($releaseJson -join [Environment]::NewLine) | ConvertFrom-Json
-              $candidateMsi = @($candidate.assets | Where-Object name -eq $installerName)
-              $pendingAssets = @($candidate.assets | Where-Object { $_.state -ne 'uploaded' })
-              if ($candidateMsi.Count -eq 1 -and $pendingAssets.Count -eq 0 `
-                  -and [string]$candidateMsi[0].digest -eq "sha256:$installerHash") {
+              if ($candidate.tagName -eq $tag -and $candidate.isDraft `
+                  -and -not $candidate.isPrerelease -and -not $candidate.publishedAt `
+                  -and $candidate.targetCommitish -eq '${{ github.sha }}' `
+                  -and (Test-ExactReleaseAssets $candidate)) {
                 $release = $candidate
                 break
               }
             }
-            Write-Host "Waiting for uploaded release asset metadata ($attempt/12)."
+            Write-Host "Waiting for exact draft release metadata and assets ($attempt/12)."
             if ($attempt -lt 12) {
               Start-Sleep -Seconds 5
             }
           }
           if (-not $release) {
-            throw 'The release assets did not reach uploaded state with the expected MSI digest.'
+            throw 'The draft release did not reach the expected target and exact uploaded asset state.'
           }
-          if ($LASTEXITCODE -ne 0 -or $release.isDraft -or $release.isPrerelease `
-              -or -not $release.publishedAt -or $release.targetCommitish -ne '${{ github.sha }}') {
-            throw 'The published release is not a normal, public release for the built source commit.'
+
+          gh release edit $tag --draft=false --prerelease=false --latest --repo $repository
+          if ($LASTEXITCODE -ne 0) {
+            throw "Publishing verified draft release $tag failed with exit code $LASTEXITCODE."
           }
-          $expectedAssets = @(
-            'LibreOfficeMaterial-Windows-x64.msi',
-            'LibreOfficeMaterial-Windows-x64.msi.sha256',
-            'windows-msi-manifest.json',
-            'windows-update-manifest.xml'
-          )
-          $actualAssets = @($release.assets | ForEach-Object name | Sort-Object)
-          if (Compare-Object ($expectedAssets | Sort-Object) $actualAssets) {
-            throw "The public release asset set is not exact: $($actualAssets -join ', ')"
+
+          $publishedRelease = $null
+          for ($attempt = 1; $attempt -le 12; $attempt++) {
+            $publishedJson = gh release view $tag --repo $repository --json tagName,isDraft,isPrerelease,publishedAt,targetCommitish,url,assets
+            if ($LASTEXITCODE -eq 0) {
+              $candidate = ($publishedJson -join [Environment]::NewLine) | ConvertFrom-Json
+              if ($candidate.tagName -eq $tag -and -not $candidate.isDraft `
+                  -and -not $candidate.isPrerelease -and $candidate.publishedAt `
+                  -and $candidate.targetCommitish -eq '${{ github.sha }}' `
+                  -and (Test-ExactReleaseAssets $candidate)) {
+                $publishedRelease = $candidate
+                break
+              }
+            }
+            Write-Host "Waiting for normal published release metadata ($attempt/12)."
+            if ($attempt -lt 12) {
+              Start-Sleep -Seconds 5
+            }
           }
-          $notUploaded = @($release.assets | Where-Object { $_.state -ne 'uploaded' })
-          if ($notUploaded.Count -ne 0) {
-            throw "Release assets are not uploaded: $($notUploaded.name -join ', ')"
-          }
-          $publicMsi = @($release.assets | Where-Object name -eq $installerName)
-          if ($publicMsi.Count -ne 1) {
-            throw 'The public release does not contain exactly one canonical MSI.'
-          }
-          if ([long]$publicMsi.size -ne $installerBytes) {
-            throw 'The public MSI asset size differs from the staged MSI.'
-          }
-          if ([string]$publicMsi.digest -ne "sha256:$installerHash") {
-            throw 'The public MSI asset digest differs from the staged MSI.'
+          if (-not $publishedRelease) {
+            throw 'The verified draft did not become a normal published release with exact assets.'
           }
 
           $expectedFeedHash = (Get-FileHash -LiteralPath $updateFeedPath -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -551,7 +588,9 @@ jobs:
             $latestJson = gh api "repos/$repository/releases/latest"
             if ($LASTEXITCODE -eq 0) {
               $latest = ($latestJson -join [Environment]::NewLine) | ConvertFrom-Json
-              if ($latest.tag_name -eq $tag -and -not $latest.draft -and -not $latest.prerelease) {
+              if ($latest.tag_name -eq $tag -and -not $latest.draft -and -not $latest.prerelease `
+                  -and $latest.target_commitish -eq '${{ github.sha }}' `
+                  -and (Test-ExactReleaseAssets $latest)) {
                 Remove-Item -LiteralPath $publicFeedPath -Force -ErrorAction SilentlyContinue
                 curl.exe -fsSL --retry 2 --retry-delay 2 $latestFeedUrl -o $publicFeedPath
                 if ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $publicFeedPath -PathType Leaf)) {
@@ -571,6 +610,37 @@ jobs:
           if (-not $latestFeedVerified) {
             throw 'The public Latest update manifest did not resolve to the validated release asset.'
           }
+
+      - name: Clean up failed draft release
+        if: failure() && steps.stage.outputs.found == 'true' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $short = '${{ github.sha }}'.Substring(0, 10)
+          $tag = "windows-msi-${{ github.run_number }}-${{ github.run_attempt }}-$short"
+          $repository = '${{ github.repository }}'
+          $releaseJson = gh release view $tag --repo $repository --json tagName,isDraft,targetCommitish
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "No failed draft release exists for $tag."
+            exit 0
+          }
+          $failedRelease = ($releaseJson -join [Environment]::NewLine) | ConvertFrom-Json
+          if ($failedRelease.tagName -ne $tag `
+              -or $failedRelease.targetCommitish -ne '${{ github.sha }}') {
+            Write-Warning "Refusing to clean up release metadata that does not match this run."
+            exit 0
+          }
+          if (-not $failedRelease.isDraft) {
+            Write-Host "Release $tag is published; preserving it."
+            exit 0
+          }
+          gh release delete $tag --repo $repository --cleanup-tag --yes
+          if ($LASTEXITCODE -ne 0) {
+            throw "Deleting failed draft release $tag failed with exit code $LASTEXITCODE."
+          }
+          Write-Host "Deleted failed draft release and tag $tag."
 
       - name: Stage Windows build diagnostics
         if: always()

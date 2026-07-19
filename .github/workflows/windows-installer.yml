@@ -195,11 +195,18 @@ jobs:
             $hash = (Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash
             Write-Host "$($entry.Key) SHA-256 $hash"
           }
+          $cygwinBash = 'C:\cygwin64\bin\bash.exe'
+          $uniqueShell = 'C:\cygwin64\bin\cygbash.exe'
+          if (-not (Test-Path -LiteralPath $cygwinBash)) {
+            throw 'Cygwin bash was not installed.'
+          }
+          Copy-Item -LiteralPath $cygwinBash -Destination $uniqueShell -Force
           'C:\cygwin64\bin' | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
       - name: Validate Cygwin and LibreOffice build tools
-        shell: bash --noprofile --norc -eo pipefail {0}
+        shell: cygbash --noprofile --norc -eo pipefail {0}
         run: |
+          test "$(uname -o)" = Cygwin
           export PATH="/opt/lo/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
           for tool in autoconf automake bison flex gawk gperf patch perl python3 rsync unzip wget zip; do
             command -v "$tool"
@@ -212,7 +219,7 @@ jobs:
           /opt/lo/bin/nasm.exe -v
 
       - name: Configure lean Windows x64 LibreOfficeDev build
-        shell: bash --noprofile --norc -eo pipefail {0}
+        shell: cygbash --noprofile --norc -eo pipefail {0}
         env:
           SOURCE_CHECKOUT: ${{ github.workspace }}
         run: |
@@ -248,7 +255,7 @@ jobs:
             --disable-cairo-canvas
 
       - name: Run required native C++ regression tests
-        shell: bash --noprofile --norc -eo pipefail {0}
+        shell: cygbash --noprofile --norc -eo pipefail {0}
         run: |
           export PATH="/opt/lo/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
           cd "$(cygpath -u "$LO_BUILD_DIR")"
@@ -258,14 +265,14 @@ jobs:
             CppunitTest_vcl_file_definition_widget_draw_test
 
       - name: Build LibreOfficeDev and Windows installation set
-        shell: bash --noprofile --norc -eo pipefail {0}
+        shell: cygbash --noprofile --norc -eo pipefail {0}
         run: |
           export PATH="/opt/lo/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
           cd "$(cygpath -u "$LO_BUILD_DIR")"
           /opt/lo/bin/make.exe -j"$BUILD_JOBS" build
 
       - name: Materialize MSI packages
-        shell: bash --noprofile --norc -eo pipefail {0}
+        shell: cygbash --noprofile --norc -eo pipefail {0}
         run: |
           export PATH="/opt/lo/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
           cd "$(cygpath -u "$LO_BUILD_DIR")"

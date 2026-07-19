@@ -34,6 +34,7 @@
 #include <osl/diagnose.h>
 
 #include <algorithm>
+#include <utility>
 
 namespace container = css::container ;
 namespace deployment = css::deployment ;

@@ -109,6 +109,23 @@ bool verifyUpdateFile(const OUString& rFileName, const DownloadSource& rSource)
     return OStringToOUString(aActualHash, RTL_TEXTENCODING_ASCII_US) == rSource.Sha256;
 }
 
+OUString rejectedInstallerDisposition(const OUString& rFileURL, oslFileError eRemove)
+{
+    if (eRemove == osl_File_E_None)
+        return u"The file was deleted and was not opened."_ustr;
+    if (eRemove == osl_File_E_NOENT)
+        return u"No local installer remained and nothing was opened."_ustr;
+
+    OUString aDisplayPath;
+    if (osl::FileBase::getSystemPathFromFileURL(rFileURL, aDisplayPath)
+        != osl::FileBase::E_None)
+    {
+        aDisplayPath = rFileURL;
+    }
+    return u"The operating system could not delete the untrusted file. Do not open it: "_ustr
+           + aDisplayPath;
+}
+
 #ifdef _WIN32
 namespace
 {
@@ -156,7 +173,9 @@ bool stageVerifiedWindowsInstaller(const OUString& rSourceURL, const DownloadSou
 
     GUID aGuid;
     wchar_t aGuidBuffer[40] = {};
-    if (FAILED(CoCreateGuid(&aGuid)) || StringFromGUID2(aGuid, aGuidBuffer, std::size(aGuidBuffer)) == 0)
+    if (FAILED(CoCreateGuid(&aGuid))
+        || StringFromGUID2(aGuid, aGuidBuffer,
+                           static_cast<int>(std::size(aGuidBuffer))) == 0)
         return false;
 
     const OUString aDirectorySystemPath
@@ -245,9 +264,51 @@ bool stageVerifiedWindowsInstaller(const OUString& rSourceURL, const DownloadSou
     const OUString aActualHash
         = OStringToOUString(comphelper::hashToString(aHash.finalize()),
                             RTL_TEXTENCODING_ASCII_US);
-    LARGE_INTEGER aBeginning = {};
     if (nTotalBytes != rSource.Size || aActualHash != rSource.Sha256
-        || !FlushFileBuffers(hDestination)
+        || !FlushFileBuffers(hDestination))
+    {
+        return false;
+    }
+
+    // Downgrade the staging handle from write access to a read-only lock. Any
+    // replacement during the close/reopen transition is detected by hashing
+    // again through the final handle; after that open succeeds, Windows share
+    // rules exclude every writer and deleter while still allowing MSI readers.
+    CloseHandle(hDestination);
+    hDestination = CreateFileW(o3tl::toW(aInstallerSystemPath.getStr()), GENERIC_READ,
+                               FILE_SHARE_READ, nullptr, OPEN_EXISTING,
+                               FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+    if (hDestination == INVALID_HANDLE_VALUE)
+        return false;
+
+    LARGE_INTEGER aLockedSize;
+    if (!GetFileSizeEx(hDestination, &aLockedSize) || aLockedSize.QuadPart != rSource.Size)
+        return false;
+
+    comphelper::Hash aLockedHash(comphelper::HashType::SHA256);
+    sal_Int64 nLockedBytes = 0;
+    for (;;)
+    {
+        sal_uInt8 aBuffer[64 * 1024];
+        DWORD nRead = 0;
+        if (!ReadFile(hDestination, aBuffer, static_cast<DWORD>(sizeof(aBuffer)), &nRead,
+                      nullptr))
+        {
+            return false;
+        }
+        if (nRead == 0)
+            break;
+        aLockedHash.update(aBuffer, nRead);
+        nLockedBytes += nRead;
+        if (nLockedBytes > rSource.Size)
+            return false;
+    }
+
+    const OUString aLockedActualHash
+        = OStringToOUString(comphelper::hashToString(aLockedHash.finalize()),
+                            RTL_TEXTENCODING_ASCII_US);
+    LARGE_INTEGER aBeginning = {};
+    if (nLockedBytes != rSource.Size || aLockedActualHash != rSource.Sha256
         || !SetFilePointerEx(hDestination, aBeginning, nullptr, FILE_BEGIN))
     {
         return false;
@@ -938,7 +999,14 @@ UpdateCheck::initialize(const uno::Sequence< beans::NamedValue >& rValues,
             SAL_WARN("extensions.update",
                      "Discarding legacy or malformed persisted update state before resume");
             if (!aLocalFileName.isEmpty())
-                osl_removeFile(aLocalFileName.pData);
+            {
+                const oslFileError eRemove = osl_removeFile(aLocalFileName.pData);
+                if (eRemove != osl_File_E_None && eRemove != osl_File_E_NOENT)
+                {
+                    SAL_WARN("extensions.update",
+                             "Could not remove rejected persisted update: " << aLocalFileName);
+                }
+            }
             rtl::Reference<UpdateCheckConfig> aConfig = UpdateCheckConfig::get(xContext, *this);
             aConfig->clearUpdateFound();
             aConfig->clearLocalFileName();
@@ -982,7 +1050,13 @@ UpdateCheck::initialize(const uno::Sequence< beans::NamedValue >& rValues,
                             {
                                 SAL_WARN("extensions.update",
                                          "Discarding a completed update that failed release verification");
-                                osl_removeFile(aLocalFileName.pData);
+                                const oslFileError eRemove = osl_removeFile(aLocalFileName.pData);
+                                if (eRemove != osl_File_E_None && eRemove != osl_File_E_NOENT)
+                                {
+                                    SAL_WARN("extensions.update",
+                                             "Could not remove rejected completed update: "
+                                                 << aLocalFileName);
+                                }
                                 rtl::Reference<UpdateCheckConfig> aConfig
                                     = UpdateCheckConfig::get(xContext, *this);
                                 aConfig->clearLocalFileName();
@@ -1117,7 +1191,7 @@ void UpdateCheck::install()
     // exact copy while retaining a write/delete-excluding handle across launch.
     if (!verifyUpdateFile(aInstallerURL, aSource))
     {
-        osl_removeFile(aInstallerURL.pData);
+        const oslFileError eRemove = osl_removeFile(aInstallerURL.pData);
         rtl::Reference<UpdateCheckConfig> rModel = UpdateCheckConfig::get(m_xContext);
         rModel->clearLocalFileName();
         rModel->storeDownloadPaused(false);
@@ -1126,7 +1200,8 @@ void UpdateCheck::install()
             m_aImageName.clear();
         }
         downloadStalled(
-            u"Security verification failed immediately before installation. The installer was deleted and was not opened."_ustr);
+            u"Security verification failed immediately before installation. "_ustr
+            + rejectedInstallerDisposition(aInstallerURL, eRemove));
         getUpdateHandler()->setVisible(true);
         return;
     }
@@ -1380,7 +1455,13 @@ UpdateCheck::downloadTargetExists(const OUString& rFileName)
         {
             SAL_WARN("extensions.update",
                      "Replacing an existing update file that failed release verification");
-            cont = osl_removeFile(rFileName.pData) == osl_File_E_None;
+            const oslFileError eRemove = osl_removeFile(rFileName.pData);
+            cont = eRemove == osl_File_E_None || eRemove == osl_File_E_NOENT;
+            if (!cont)
+            {
+                SAL_WARN("extensions.update",
+                         "Could not remove rejected existing update: " << rFileName);
+            }
             rtl::Reference<UpdateCheckConfig> rModel = UpdateCheckConfig::get(m_xContext);
             rModel->clearLocalFileName();
             rModel->storeDownloadPaused(false);
@@ -1479,7 +1560,7 @@ UpdateCheck::downloadFinished(const OUString& rLocalFileName)
         || !verifyUpdateFile(rLocalFileName, aUpdateInfo.Sources[0]))
     {
         SAL_WARN("extensions.update", "Downloaded installer failed size or SHA-256 verification");
-        osl_removeFile(rLocalFileName.pData);
+        const oslFileError eRemove = osl_removeFile(rLocalFileName.pData);
         rtl::Reference<UpdateCheckConfig> rModel = UpdateCheckConfig::get(m_xContext);
         rModel->clearLocalFileName();
         rModel->storeDownloadPaused(false);
@@ -1489,7 +1570,8 @@ UpdateCheck::downloadFinished(const OUString& rLocalFileName)
             m_eState = DISABLED;
         }
         downloadStalled(
-            u"Security verification failed: the downloaded installer did not match the release size and SHA-256. The file was deleted and was not opened."_ustr);
+            u"Security verification failed: the downloaded installer did not match the release size and SHA-256. "_ustr
+            + rejectedInstallerDisposition(rLocalFileName, eRemove));
         return;
     }
 

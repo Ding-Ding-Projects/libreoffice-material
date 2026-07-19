@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <string_view>
 
+#include <osl/file.h>
 #include <test/bootstrapfixture.hxx>
 
 #include <com/sun/star/deployment/UpdateInformationEntry.hpp>
@@ -22,6 +23,8 @@
 
 using namespace com::sun::star;
 using namespace com::sun::star::xml;
+
+OUString rejectedInstallerDisposition(const OUString& rFileURL, oslFileError eRemove);
 
 namespace testupdate {
 
@@ -197,6 +200,10 @@ protected:
         DownloadSource aWrongSize(aSource);
         aWrongSize.Size = 0;
         CPPUNIT_ASSERT(!isTrustedMaterialUpdateSource(aWrongSize));
+
+        DownloadSource aQueryURL(aSource);
+        aQueryURL.URL += u"?unexpected=1"_ustr;
+        CPPUNIT_ASSERT(!isTrustedMaterialUpdateSource(aQueryURL));
     }
 
     void testVerifiedUpdateFile()
@@ -219,6 +226,19 @@ protected:
         CPPUNIT_ASSERT(!verifyUpdateFile(aFixture, aWrongSize));
     }
 
+    void testRejectedInstallerDisposition()
+    {
+        CPPUNIT_ASSERT_EQUAL(u"The file was deleted and was not opened."_ustr,
+                             rejectedInstallerDisposition(u"file:///tmp/rejected.msi"_ustr,
+                                                          osl_File_E_None));
+        const OUString aRetained
+            = rejectedInstallerDisposition(u"file:///tmp/rejected.msi"_ustr,
+                                           osl_File_E_ACCES);
+        CPPUNIT_ASSERT(aRetained.indexOf(u"could not delete"_ustr) >= 0);
+        CPPUNIT_ASSERT(aRetained.indexOf(u"Do not open"_ustr) >= 0);
+        CPPUNIT_ASSERT(aRetained.indexOf(u"rejected.msi"_ustr) >= 0);
+    }
+
     CPPUNIT_TEST_SUITE(Test);
     CPPUNIT_TEST(testGetUpdateInformationEnumeration);
     CPPUNIT_TEST(testCheckUpdateAvailable);
@@ -227,6 +247,7 @@ protected:
     CPPUNIT_TEST(testMissingHashIsIgnored);
     CPPUNIT_TEST(testTrustedSourceValidation);
     CPPUNIT_TEST(testVerifiedUpdateFile);
+    CPPUNIT_TEST(testRejectedInstallerDisposition);
     CPPUNIT_TEST_SUITE_END();
 
 private:

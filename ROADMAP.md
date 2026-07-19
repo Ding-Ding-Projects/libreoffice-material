@@ -31,7 +31,8 @@ No phase is currently marked verified.
   self-containment, tokens, icons, and regex engine, while `build-installer.yml`
   attempts a Linux package and the manually dispatched `windows-installer.yml`
   pins Visual Studio 2022, provisions Cygwin, runs the required native tests,
-  and publishes only a structurally validated Windows x64 MSI;
+  validates an exact draft release, and only then publishes a normal public,
+  non-prerelease Latest Windows x64 MSI release;
 - define native build profiles and artifact retention rules;
 - preflight the low-level computer-use driver and an off-screen desktop;
 - connect that proven harness to a built LibreOffice binary and isolated profile;
@@ -43,14 +44,31 @@ temporary Notepad process, but no LibreOffice build or window was involved. A
 local Visual Studio Build Tools instance still lacks ATL and CRT merge modules,
 and no supported Cygwin or WSL helper environment is installed. The hosted
 Windows workflow uses a clean LF checkout and a pinned runner that declares
-those components; it still must complete before this is build evidence.
+those components. Baseline Windows run `29670528974` at `79c459cb5` is still in
+the required native C++ regression stage and predates the updater source, so it
+is not final build evidence. Final Linux validation of the current source is
+also pending.
 
-Linux run `29665678719` at commit `542e4077b` installed the previous missing
-Perl module but stopped during prerequisite validation because `nasm` was
-absent. Configure, the required native regression targets, build, packaging,
-and artifact staging therefore did not run. Both native workflows now enforce
-the `tools_test`, `vcl_widget_definition_reader_test`, and
-`vcl_file_definition_widget_draw_test` gates before packaging.
+Earlier Linux run `29665678719` at commit `542e4077b` installed the previous
+missing Perl module but stopped during prerequisite validation because `nasm`
+was absent. The current final Linux validation is pending. The native workflows
+gate packaging on `tools_test`, `extensions_test_update`,
+`vcl_widget_definition_reader_test`, and
+`vcl_file_definition_widget_draw_test`; none is yet accepted as final
+current-source build evidence.
+
+The source now contains a Windows-only consent-based update path. It reads the
+exact GitHub Latest XML asset and accepts only one safe tag-derived GitHub URL
+for the canonical MSI with exact `application/x-msi` MIME, positive size, and
+lowercase SHA-256 metadata. It rejects legacy or malformed persisted state,
+checks the completed download, and on confirmation copies it with `CREATE_NEW`
+into protected LocalAppData staging with a user/Administrators/SYSTEM DACL,
+re-verifies it, and retains a final read lock against write/delete replacement.
+The visible MSI launch requires explicit default-No consent; silent install is
+not implemented. Automatic checks default on weekly, while automatic download
+is off and download/install remain opt-in. See [`PRIVACY.md`](PRIVACY.md).
+Native CI, build, runtime, public release, headless smoke, and accessibility
+smoke are all still pending for this source.
 
 An interactive, dependency-free Material design reference for the whole suite is
 published at [`site/prototype.html`](site/prototype.html): a hand-built HTML
@@ -275,9 +293,14 @@ Exit gate:
 
 ## Phase 8 — release readiness and upstreamability
 
-**Status: planned**
+**Status: in progress — updater and stable-release automation source only;
+native and release proof pending**
 
-- stable packaging and upgrade path;
+- complete native validation of the Windows updater and stable packaging path;
+- preserve the exact GitHub Latest XML, strict MSI metadata/hash checks,
+  protected staging, explicit consent, and no-silent-install contract;
+- publish through the draft-first workflow only after exact target, asset,
+  digest, normal-release, and public Latest checks pass;
 - contributor, design-review, and regression-triage documentation;
 - licensing, attribution, trademark, privacy, and security reviews;
 - split generally useful improvements into reviewable upstream proposals;

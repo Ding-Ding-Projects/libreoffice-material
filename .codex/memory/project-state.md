@@ -1,6 +1,6 @@
 # Project state
 
-Last reviewed: 2026-07-18
+Last reviewed: 2026-07-19
 
 ## Objective
 
@@ -12,8 +12,8 @@ licensing and provenance.
 
 ## Current milestone
 
-**Phase 1 — tenth Material VCL source milestone published; suite-wide work
-continues. Phase 0's native build/evidence gate remains open.**
+**Phase 1 — tenth Material VCL and Windows updater source milestones published;
+suite-wide work continues. Phase 0's native build/evidence gate remains open.**
 
 The repository contains an imported LibreOffice source baseline, ten native
 Material source milestones, a design contract, roadmap, published GitHub Pages
@@ -57,17 +57,34 @@ disabled-affordance gaps: a dimmed disabled `SubmenuArrow`, a disabled-but-check
 scrollbar-trough feedback) are deferred as design decisions (D-020). The Material
 definition now has 79 parts, 205 states, 159 rounded rectangles, and 346 metric
 references; these changes remain uncompiled and unexecuted.
-The native source has not been built or run as LibreOffice, so this does not
-prove a whole-GUI rewrite or any completed application surface.
+The Windows-only updater source reads the exact GitHub Latest XML release asset
+and accepts one canonical MSI only after strict safe-tag, tag-derived URL,
+filename, `application/x-msi` MIME, positive-size, and lowercase SHA-256 checks.
+It rejects malformed and legacy persisted state before resume. Download and
+install remain opt-in: checks default on weekly, automatic download defaults
+off, and a visible Windows Installer launch requires explicit confirmation with
+No as the default. There is no silent install. Confirmed bytes are copied with
+`CREATE_NEW` into a protected per-run LocalAppData directory with a
+user/Administrators/SYSTEM DACL, re-verified, and held with a final read lock
+that excludes write/delete replacement. Network/privacy details are recorded in
+[`PRIVACY.md`](../../PRIVACY.md).
 
-Linux Actions run `29665678719` at commit
-`542e4077b61507e634af8ee0f8925b1de47a6db2` installed the previously missing
-Perl `Archive::Zip` module but stopped during prerequisite validation because
-`nasm` was absent. Configure, native tests, build, and packaging did not run.
-A separate manually dispatched Windows x64 workflow now pins VS 2022,
-provisions Cygwin and TDF's native tools, runs the three required C++ targets,
-and gates publication on a structurally validated LibreOfficeDev MSI. It has
-not completed yet, so no installer or capture exists. Public assetless
+The Windows release workflow is draft-first on `main`: it verifies the exact
+target, asset names, upload states, sizes, and digests before promoting the
+draft to a normal public non-prerelease Latest release, verifies the public
+Latest feed, and removes a failed draft. This is implemented automation source,
+not a successful-release claim.
+
+The current native source has not completed native CI or run as LibreOffice, so
+these milestones do not prove a whole-GUI rewrite, updater runtime, installer,
+release, or any completed application surface.
+
+Baseline Windows Actions run `29670528974` at
+`79c459cb5b042ab5d4bc70023c7e4bbe0ed9d38c` configured and remains in its
+required native C++ regression stage. It predates the updater source and is not
+final validation. Final Linux validation of the current source is pending. No
+current-source native CI/build, runtime, installer, normal release, headless UI
+smoke, accessibility smoke, or accepted capture has completed. Public assetless
 release/tag `e` remains non-evidence.
 
 ## Recorded facts
@@ -209,6 +226,16 @@ release/tag `e` remains non-evidence.
   and artifact staging did not run; no installer was produced.
 - Public release/tag `e` is assetless and points at `d6f66b686`; it is not a
   genuine build release and does not change the accepted evidence count.
+- Windows updater source uses the exact GitHub Latest XML route, strict
+  tag/URL/name/MIME/size/SHA validation, legacy-state rejection, protected
+  LocalAppData `CREATE_NEW` staging with a restrictive DACL and final read lock,
+  and a visible default-No MSI consent gate; automatic checks default weekly/on,
+  automatic download defaults off, and silent install is absent.
+- Stable Windows publication is draft-first on `main`; an exact verified draft
+  is promoted to a normal public non-prerelease Latest release only after its
+  target and assets pass, with failed-draft cleanup.
+- Baseline Windows run `29670528974` at `79c459cb5` and final Linux validation of
+  the current source are pending; neither is accepted build or release evidence.
 - Required runtime opt-in: `VCL_DRAW_WIDGETS_FROM_FILE=1` and
   `VCL_FILE_WIDGET_THEME=material`.
 - UI driver: sibling repository `lowlevel-computer-use-mcp`, preflighted at
@@ -288,11 +315,11 @@ release/tag `e` remains non-evidence.
 
 ## Required next gates
 
-1. recreate a clean detached LF worktree with `core.autocrlf=false`, complete a
-   supported LibreOffice build profile, and document a reproducible native
-   build;
-2. run `tools_test`, `vcl_widget_definition_reader_test`, and
-   `vcl_file_definition_widget_draw_test` against the local Material changes;
+1. complete final current-source Linux validation and the hosted clean-LF
+   Windows native build, recording the exact commit and configuration;
+2. run `tools_test`, `extensions_test_update`,
+   `vcl_widget_definition_reader_test`, and
+   `vcl_file_definition_widget_draw_test` against the current source;
 3. launch the built start center with the two opt-in variables and an isolated
    profile on the proven headless desktop;
 4. preserve the first LibreOffice baseline manifest, result, logs, and reviewed
@@ -309,13 +336,16 @@ release/tag `e` remains non-evidence.
 - no headless LibreOffice Material scenario is registered;
 - no screenshot is registered;
 - no application surface is verified Material-complete;
+- no updater download, protected-stage, consent, or MSI-launch flow has been
+  runtime-verified;
 - no complete supported local LibreOffice build profile exists: local VS 2022
   Build Tools has MSVC and CMake but lacks ATL and CRT merge modules; SDK 26100
   is complete; and no supported Cygwin or WSL helper is installed. The hosted
-  Windows workflow supplies those prerequisites. Completed Linux run
-  `29665678719` installed Perl `Archive::Zip` but stopped at prerequisite
-  validation because `nasm` was absent, before configure or native targets. The
-  C++ unit targets and real application capture have not completed.
+  Windows workflow supplies those prerequisites. Baseline Windows run
+  `29670528974` remains in native regression testing and predates the updater;
+  final Linux validation of the current source is pending. The current-source
+  native targets, installer/release, real application capture, headless smoke,
+  and accessibility smoke have not completed.
 
 ## Multi-repository boundary
 

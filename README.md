@@ -8,8 +8,9 @@ document engine, file-format support, and accessibility foundations.
 > Phase 0's native-build and application-evidence gate remains open. Semantic
 > widget tokens, full-track progress indicators, value-sensitive level
 > indicators, native outlined frames, net-less tree connectors, stricter VCL
-> definition parsing, broader state coverage, and Start Center changes are
-> present in source, but they have **not** been compiled or run as LibreOffice.
+> definition parsing, broader state coverage, Start Center changes, and a
+> consent-based Windows updater are present in source, but the current source
+> has **not** completed native CI or run as LibreOffice.
 > The whole GUI has not been rewritten, and no application surface is
 > Material-complete. **There is no installer or downloadable build yet** —
 > nothing runnable has been produced, only source milestones and the interactive
@@ -21,11 +22,14 @@ document engine, file-format support, and accessibility foundations.
 > Linux build, while [`windows-installer.yml`](.github/workflows/windows-installer.yml)
 > now provides a manually dispatched Visual Studio 2022/Cygwin path for a real
 > Windows x64 MSI. Both publish **only** after genuine packages pass structural
-> validation. Linux run `29665678719` at `542e4077b` stopped during prerequisite
-> validation because `nasm` was absent; configure, tests, build, and packaging
-> did not run. The Windows workflow has not completed yet, so there is still no
-> MSI to download. A public assetless release/tag named `e` exists, but it
-> contains no build and does not satisfy the project's gates.
+> validation. Baseline Windows run
+> [`29670528974`](https://github.com/codingmachineedge/libreoffice-material/actions/runs/29670528974)
+> at `79c459cb5` is still in progress in the required native C++ test stage; it
+> predates the updater source. Final Linux validation of the current source is
+> also pending. No native build, runtime, release, headless UI, or accessibility
+> result is accepted yet, so there is still no MSI to download. A public
+> assetless release/tag named `e` exists, but it contains no build and does not
+> satisfy the project's gates.
 
 [Project site](https://codingmachineedge.github.io/libreoffice-material/) ·
 [Interactive preview](https://codingmachineedge.github.io/libreoffice-material/prototype.html) ·
@@ -46,7 +50,8 @@ document engine, file-format support, and accessibility foundations.
 | Verified UI screenshots | None yet | The truthful empty registry is in [`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md) |
 | Headless harness | Preflight passed; LibreOffice not run | A temporary Notepad-only driver preflight proved the off-screen mechanics, not this UI; see [`docs/HEADLESS_UI_EVIDENCE.md`](docs/HEADLESS_UI_EVIDENCE.md) |
 | Interactive design reference | Published mockup | [`site/prototype.html`](site/prototype.html) — 11 suite surfaces, a regex builder on every search bar, and a Find & Replace dialog; guarded by [`bin/validate-prototype.mjs`](bin/validate-prototype.mjs) (7/7) and the `prototype-check` CI |
-| Installer / release | Windows MSI workflow added; no genuine artifact yet | [`windows-installer.yml`](.github/workflows/windows-installer.yml) pins VS 2022, enforces LF source, provisions Cygwin, runs the three required C++ targets, and publishes only a structurally validated MSI; no successful run exists yet, and assetless release/tag `e` is not an installer or accepted evidence |
+| Windows updater | Source implemented; native validation pending | Windows-only update source reads the exact GitHub Latest XML asset, rejects untrusted or legacy state, verifies the canonical MSI metadata and bytes, stages through protected LocalAppData, and requires default-No consent before a visible install; see [Privacy](PRIVACY.md) |
+| Installer / release | Draft-first Windows MSI workflow added; no genuine artifact yet | [`windows-installer.yml`](.github/workflows/windows-installer.yml) pins VS 2022, runs the required native targets, validates a draft's exact target/assets/digests, and only then promotes it to a normal public non-prerelease Latest release; baseline run `29670528974` and final current-source Linux validation remain pending, and assetless release/tag `e` is not evidence |
 
 This table is deliberately conservative. A roadmap item changes state only when
 its code, build result, interaction checks, and committed visual evidence agree.
@@ -157,6 +162,38 @@ The `vcl_widget_definition_reader_test` and
 `vcl_file_definition_widget_draw_test` targets and a real `soffice` launch have
 not run on this worktree.
 
+## Windows updater source milestone
+
+The Windows package source now enables LibreOffice's consent-based updater
+against one exact feed:
+`https://github.com/codingmachineedge/libreoffice-material/releases/latest/download/windows-update-manifest.xml`.
+GitHub's Latest route supplies the workflow-generated XML for the normal stable
+release. The parser accepts one Windows x64 MSI only when its safe release tag,
+tag-derived GitHub URL, canonical `LibreOfficeMaterial-Windows-x64.msi` name,
+`application/x-msi` MIME type, positive byte count, and lowercase SHA-256 all
+match. Legacy or malformed persisted update state is discarded before a resume.
+
+After download, the complete file is checked by size and SHA-256. A confirmed
+install copies those bytes with `CREATE_NEW` into a protected, per-run
+LocalAppData directory whose DACL is limited to the user, Administrators, and
+SYSTEM; it verifies the staged copy and retains a final read lock that excludes
+write/delete replacement. The only install action is a visible Windows
+Installer launch after an explicit confirmation whose default is **No**. There
+is no silent install path.
+
+Automatic update checking is enabled by default on a weekly interval. Automatic
+download is disabled by default, and download and installation remain user
+opt-in. Network and data-handling details are in [`PRIVACY.md`](PRIVACY.md).
+This describes implemented source, not runtime proof: the updater's final Linux
+validation, Windows native build, published release, installer exercise,
+headless UI smoke test, and accessibility smoke test are still pending.
+
+The stable release workflow is likewise source-only at this point. On `main` it
+creates a draft release, validates the exact target, asset names, upload states,
+sizes, and digests, then promotes that verified draft to a normal public,
+non-prerelease Latest release and checks the public Latest feed. A failed draft
+is cleaned up. No run has yet completed that path.
+
 ## Product direction
 
 LibreOffice Material aims to modernize the complete desktop experience rather
@@ -251,11 +288,12 @@ and the imported build files before configuring a machine.
 > installed Windows SDK 26100 is complete, but no supported Cygwin or WSL helper
 > environment is installed. The manually dispatched hosted Windows workflow
 > supplies and validates those prerequisites against a clean LF checkout. The
-> latest completed Linux attempt, Actions run `29665678719` at `542e4077b`,
-> installed Perl `Archive::Zip` but stopped during prerequisite validation
-> because `nasm` was absent, before configure or any native target ran. No
-> completed native C++ test, LibreOffice application run, installer, or accepted
-> capture has occurred yet.
+> baseline Windows run `29670528974` at `79c459cb5` has configured successfully
+> and is still running the required native C++ regression stage, but it predates
+> the updater source and is not final validation. Final Linux validation of the
+> current source is pending. No completed current-source native C++ test,
+> LibreOffice application run, installer, normal release, headless UI smoke,
+> accessibility smoke, or accepted capture has occurred yet.
 
 The imported checkout was also materialized mostly with CRLF worktree endings.
 Use a fresh detached worktree created with `core.autocrlf=false` for any native

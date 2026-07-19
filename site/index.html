@@ -59,13 +59,15 @@
             >Read the design contract</a>
           </div>
           <p class="truth-note">
-            Native Material and Start Center changes are present in source, but
-            LibreOffice has not been built or run with them. The whole GUI is
+            Native Material, Start Center, and consent-based Windows updater
+            changes are present in source, but the current source has not
+            completed native CI or run as LibreOffice. The whole GUI is
             incomplete, and verified application screenshots remain at zero.
             The public assetless release/tag <code>e</code> contains no build
             and is not an installer or accepted evidence. A genuine Windows MSI
-            workflow now exists, but it has not completed and there is still no
-            downloadable build.
+            workflow now exists, but baseline Windows run
+            <code>29670528974</code> and final current-source Linux validation
+            remain pending. There is still no downloadable build.
           </p>
         </div>
 
@@ -97,6 +99,10 @@
             <div>
               <dt>Build / installer</dt>
               <dd><span class="state state-progress">MSI build pending</span></dd>
+            </div>
+            <div>
+              <dt>Windows updater</dt>
+              <dd><span class="state state-progress">Source only</span></dd>
             </div>
             <div>
               <dt>Whole-suite UI</dt>
@@ -189,17 +195,45 @@
           <pre aria-label="Material theme environment variables"><code>VCL_DRAW_WIDGETS_FROM_FILE=1
 VCL_FILE_WIDGET_THEME=material</code></pre>
         </div>
+        <div class="activation-card">
+          <div>
+            <p class="card-kicker">Windows updater source</p>
+            <h3>Strict release metadata, protected staging, explicit consent.</h3>
+            <p>
+              The Windows-only updater reads the exact GitHub Latest XML asset
+              and accepts one tag-derived repository URL only when the canonical
+              MSI name, <code>application/x-msi</code> MIME, positive size, and
+              lowercase SHA-256 all match. Legacy state is rejected. Confirmed
+              bytes are copied with <code>CREATE_NEW</code> into protected
+              LocalAppData staging with a user/Administrators/SYSTEM DACL,
+              verified again, and held under a final read lock before a visible
+              Windows Installer launch.
+            </p>
+            <p>
+              Confirmation defaults to No; no silent install exists. Checks
+              default on weekly, automatic download defaults off, and download
+              and install remain opt-in. See the
+              <a href="https://github.com/codingmachineedge/libreoffice-material/blob/main/PRIVACY.md">privacy details</a>.
+            </p>
+          </div>
+          <p class="truth-note">
+            Source only: native CI/build, runtime, a normal release, headless UI
+            smoke, and accessibility smoke are still pending. The stable
+            workflow validates an exact draft before promoting it to a normal
+            public non-prerelease Latest release; that path has not completed.
+          </p>
+        </div>
         <p class="blocker-note">
           <strong>Current build gate:</strong> no complete supported local
           profile exists. Local VS 2022 Build Tools has MSVC and CMake but lacks
           ATL and the CRT merge modules required for packaging; installed SDK
           26100 is complete, but there is no supported local Cygwin or WSL helper.
           The hosted Windows workflow supplies and validates those prerequisites.
-          The latest completed Linux attempt, commit <code>542e4077b</code> in
-          Actions run <code>29665678719</code>, installed Perl
-          <code>Archive::Zip</code> but stopped at prerequisite validation because
-          <code>nasm</code> was absent, before configure or native tests. No build,
-          installer, or real app run resulted from that attempt.
+          Baseline Windows run <code>29670528974</code> at
+          <code>79c459cb5</code> is still in its required native C++ test stage
+          and predates the updater source. Final Linux validation of the current
+          source is pending. No accepted current-source build, installer,
+          release, real app run, headless smoke, or accessibility smoke exists.
         </p>
       </section>
 
@@ -395,7 +429,7 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
         <ol class="roadmap-list">
           <li class="roadmap-item current">
             <span class="phase-number">0</span>
-            <div><p class="phase-state">In progress</p><h3>Reproducible foundation</h3><p>Provenance, design contract, site, and a passed harness preflight; the native build/evidence gate remains open.</p></div>
+            <div><p class="phase-state">In progress</p><h3>Reproducible foundation</h3><p>Provenance, design contract, site, updater/release source, and a passed harness preflight; native build, release, headless, and accessibility gates remain open.</p></div>
           </li>
           <li class="roadmap-item">
             <span class="phase-number">1</span>
@@ -411,7 +445,7 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
           </li>
           <li class="roadmap-item">
             <span class="phase-number">7–8</span>
-            <div><p class="phase-state">Planned</p><h3>Hardening and release proof</h3><p>Accessibility, locales, performance, compatibility, packaging, and upstreamability.</p></div>
+            <div><p class="phase-state">Source in progress</p><h3>Hardening and release proof</h3><p>Consent-based updater and draft-first release automation exist in source; native, release, accessibility, locale, performance, and compatibility proof remains.</p></div>
           </li>
         </ol>
       </section>

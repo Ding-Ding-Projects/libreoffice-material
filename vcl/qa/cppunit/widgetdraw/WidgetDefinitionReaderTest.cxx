@@ -701,9 +701,13 @@ void WidgetDefinitionReaderTest::testReadMaterialTheme()
         CPPUNIT_ASSERT_EQUAL(sal_Int32(28), pSpinButton->mnWidth);
         CPPUNIT_ASSERT_EQUAL(sal_Int32(28), pSpinButton->mnHeight);
 
-        for (ControlState eState :
-             { ControlState::ENABLED, ControlState::ENABLED | ControlState::ROLLOVER,
-               ControlState::ENABLED | ControlState::PRESSED, ControlState::NONE })
+        constexpr std::array<ControlState, 4> aSpinButtonControlStates = {
+            ControlState::ENABLED,
+            static_cast<ControlState>(ControlState::ENABLED | ControlState::ROLLOVER),
+            static_cast<ControlState>(ControlState::ENABLED | ControlState::PRESSED),
+            ControlState::NONE,
+        };
+        for (ControlState eState : aSpinButtonControlStates)
         {
             const auto aSpinButtonStates = pSpinButton->getStates(ControlType::SpinButtons, ePart,
                                                                   eState, SpinbuttonValue());

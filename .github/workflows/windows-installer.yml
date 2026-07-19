@@ -200,7 +200,6 @@ jobs:
           $downloads = @{
             'make.exe' = 'https://dev-www.libreoffice.org/bin/cygwin/make-4.2.1-msvc.exe'
             'pkgconf-2.4.3.exe' = 'https://dev-www.libreoffice.org/extern/pkgconf-2.4.3.exe'
-            'nasm.exe' = 'https://dev-www.libreoffice.org/bin/cygwin/nasm.exe'
           }
           foreach ($entry in $downloads.GetEnumerator()) {
             $destination = Join-Path $toolDir $entry.Key
@@ -224,7 +223,7 @@ jobs:
         run: |
           test "$(uname -o)" = Cygwin
           export PATH="/opt/lo/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
-          for tool in autoconf automake bison flex gawk gperf ninja patch perl python3 rsync unzip wget zip; do
+          for tool in autoconf automake bison flex gawk gperf nasm ninja patch perl python3 rsync unzip wget zip; do
             command -v "$tool"
           done
           perl -MArchive::Zip -e 1
@@ -232,7 +231,10 @@ jobs:
           /opt/lo/bin/make.exe --version | tee /tmp/make-version.txt
           grep -q 'Built for Windows' /tmp/make-version.txt
           /opt/lo/bin/pkgconf-2.4.3.exe --version
-          /opt/lo/bin/nasm.exe -v
+          test "$(command -v nasm)" = /usr/bin/nasm
+          nasm_version="$(nasm -v | awk '{ print $3 }')"
+          printf 'NASM %s\n' "$nasm_version"
+          test "$(printf '%s\n' 2.16 "$nasm_version" | sort -V | head -n 1)" = 2.16
 
       - name: Configure lean Windows x64 LibreOfficeDev build
         shell: cygbash --noprofile --norc -o igncr -eo pipefail {0}

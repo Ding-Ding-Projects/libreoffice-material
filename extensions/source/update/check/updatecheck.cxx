@@ -75,6 +75,8 @@ constexpr OUString PROPERTY_SHOW_MENUICON = u"MenuIconVisible"_ustr;
 WindowsInstallerCommand buildWindowsInstallerCommand(const OUString& rSystemDirectory,
                                                        const OUString& rInstallerPath)
 {
+    // Keep the Windows Installer UI fully interactive: this exact argument
+    // list deliberately has no quiet or passive switch.
     return { rSystemDirectory + u"\\msiexec.exe"_ustr,
              { u"/i"_ustr, rInstallerPath, u"REINSTALL=ALL"_ustr,
                u"REINSTALLMODE=vomus"_ustr } };

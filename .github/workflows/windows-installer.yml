@@ -516,95 +516,220 @@ jobs:
             }
             return $true
           }
-          gh release create $tag @assets `
-            --title "LibreOffice Material Windows x64 — $short" `
-            --target '${{ github.sha }}' `
-            --draft `
-            --prerelease=false `
-            --latest=false `
-            --notes $notes
-          if ($LASTEXITCODE -ne 0) {
-            throw "Creating draft release $tag failed with exit code $LASTEXITCODE."
+          function Get-ReleaseForExactTag {
+            $releaseJson = gh release view $tag --repo $repository --json tagName,isDraft,isPrerelease,publishedAt,targetCommitish,url,assets 2>$null
+            if ($LASTEXITCODE -ne 0) {
+              return $null
+            }
+            return (($releaseJson -join [Environment]::NewLine) | ConvertFrom-Json)
+          }
+          function Get-ExactTagReference {
+            $tagRefsJson = gh api -H 'Cache-Control: no-cache' "repos/$repository/git/matching-refs/tags/$tag"
+            if ($LASTEXITCODE -ne 0) {
+              throw "Querying the exact release tag reference failed with exit code $LASTEXITCODE."
+            }
+            $tagRefs = @(($tagRefsJson -join [Environment]::NewLine) | ConvertFrom-Json)
+            $exactTagRefs = @($tagRefs | Where-Object { [string]$_.ref -eq "refs/tags/$tag" })
+            if ($exactTagRefs.Count -gt 1) {
+              throw "GitHub returned more than one exact reference for tag $tag."
+            }
+            if ($exactTagRefs.Count -eq 0) {
+              return $null
+            }
+            return $exactTagRefs[0]
+          }
+          function Resolve-ExactTagCommit {
+            $tagRef = Get-ExactTagReference
+            if (-not $tagRef) {
+              return $null
+            }
+            $objectType = [string]$tagRef.object.type
+            $objectSha = [string]$tagRef.object.sha
+            for ($depth = 0; $depth -lt 8; $depth++) {
+              if ($objectType -eq 'commit') {
+                return $objectSha.ToLowerInvariant()
+              }
+              if ($objectType -ne 'tag' -or $objectSha -notmatch '^[0-9a-fA-F]{40}$') {
+                throw "Tag $tag resolves through unsupported object type '$objectType'."
+              }
+              $tagObjectJson = gh api -H 'Cache-Control: no-cache' "repos/$repository/git/tags/$objectSha"
+              if ($LASTEXITCODE -ne 0) {
+                throw "Peeling annotated tag object $objectSha failed with exit code $LASTEXITCODE."
+              }
+              $tagObject = ($tagObjectJson -join [Environment]::NewLine) | ConvertFrom-Json
+              $objectType = [string]$tagObject.object.type
+              $objectSha = [string]$tagObject.object.sha
+            }
+            throw "Tag $tag exceeded the bounded annotated-tag peel depth."
           }
 
-          $release = $null
-          for ($attempt = 1; $attempt -le 12; $attempt++) {
-            $releaseJson = gh release view $tag --json tagName,isDraft,isPrerelease,publishedAt,targetCommitish,url,assets
-            if ($LASTEXITCODE -eq 0) {
-              $candidate = ($releaseJson -join [Environment]::NewLine) | ConvertFrom-Json
-              if ($candidate.tagName -eq $tag -and $candidate.isDraft `
-                  -and -not $candidate.isPrerelease -and -not $candidate.publishedAt `
+          $createdMarker = Join-Path $env:RUNNER_TEMP "windows-msi-release-created-${{ github.run_id }}-${{ github.run_attempt }}.json"
+          Remove-Item -LiteralPath $createdMarker -Force -ErrorAction SilentlyContinue
+          $release = Get-ReleaseForExactTag
+          if ($release) {
+            if ($release.tagName -ne $tag `
+                -or $release.targetCommitish -ne '${{ github.sha }}' `
+                -or $release.url -ne $releaseUrl `
+                -or $release.isPrerelease `
+                -or ($release.isDraft -and $release.publishedAt) `
+                -or (-not $release.isDraft -and -not $release.publishedAt)) {
+              throw "A release named $tag already exists but is not the exact normal release state owned by this run."
+            }
+            $resolvedExistingTag = Resolve-ExactTagCommit
+            if ($resolvedExistingTag -ne '${{ github.sha }}') {
+              throw "Existing release tag $tag does not peel to this workflow commit."
+            }
+            $existingState = if ($release.isDraft) { 'draft' } else { 'published' }
+            Write-Host "Recovering the exact existing $existingState release $tag; no duplicate will be created."
+          }
+          else {
+            $preexistingTag = Get-ExactTagReference
+            if ($preexistingTag) {
+              throw "Refusing to create release $tag because its exact tag already exists without a recoverable exact release."
+            }
+
+            # GitHub does not materialize a new draft release's tag until
+            # publication. Create an exact lightweight tag first so the draft
+            # and every uploaded asset are cryptographically bound to this SHA
+            # before the release can be promoted.
+            $createdTagJson = gh api --method POST "repos/$repository/git/refs" `
+              -f ref="refs/tags/$tag" `
+              -f sha='${{ github.sha }}'
+            if ($LASTEXITCODE -ne 0) {
+              throw "Creating exact release tag $tag failed with exit code $LASTEXITCODE."
+            }
+            $createdTag = ($createdTagJson -join [Environment]::NewLine) | ConvertFrom-Json
+            if ($createdTag.ref -ne "refs/tags/$tag" `
+                -or [string]$createdTag.object.type -ne 'commit' `
+                -or [string]$createdTag.object.sha -ne '${{ github.sha }}' `
+                -or (Resolve-ExactTagCommit) -ne '${{ github.sha }}') {
+              throw "GitHub did not create exact tag $tag at this workflow commit."
+            }
+            [ordered]@{
+              tag = $tag
+              source_commit = '${{ github.sha }}'
+            } | ConvertTo-Json | Set-Content -LiteralPath $createdMarker -Encoding utf8
+
+            gh release create $tag @assets `
+              --title "LibreOffice Material Windows x64 — $short" `
+              --target '${{ github.sha }}' `
+              --draft `
+              --prerelease=false `
+              --latest=false `
+              --notes $notes
+            $createExitCode = $LASTEXITCODE
+            if ($createExitCode -ne 0) {
+              Write-Warning "Draft creation returned exit code $createExitCode; checking whether GitHub nevertheless created the exact release."
+            }
+          }
+
+          $releaseReady = $null
+          for ($attempt = 1; $attempt -le 36; $attempt++) {
+            $candidate = Get-ReleaseForExactTag
+            if ($candidate) {
+              $candidateIsNormalState = -not $candidate.isPrerelease `
+                -and (($candidate.isDraft -and -not $candidate.publishedAt) `
+                  -or (-not $candidate.isDraft -and $candidate.publishedAt))
+              $candidateTagCommit = Resolve-ExactTagCommit
+              if ($candidate.tagName -eq $tag `
                   -and $candidate.targetCommitish -eq '${{ github.sha }}' `
+                  -and $candidate.url -eq $releaseUrl `
+                  -and $candidateIsNormalState `
+                  -and $candidateTagCommit -eq '${{ github.sha }}' `
                   -and (Test-ExactReleaseAssets $candidate)) {
-                $release = $candidate
+                $releaseReady = $candidate
                 break
               }
             }
-            Write-Host "Waiting for exact draft release metadata and assets ($attempt/12)."
-            if ($attempt -lt 12) {
-              Start-Sleep -Seconds 5
+            Write-Host "Waiting for exact release metadata, tag target, and assets ($attempt/36)."
+            if ($attempt -lt 36) {
+              Start-Sleep -Seconds 10
             }
           }
-          if (-not $release) {
-            throw 'The draft release did not reach the expected target and exact uploaded asset state.'
+          if (-not $releaseReady) {
+            throw 'The exact release did not reach the expected target, tag, and four-asset state.'
           }
 
+          # Re-resolve immediately before promotion so a moved or retargeted tag
+          # can never publish assets for a commit other than this workflow SHA.
+          $promotionTagCommit = Resolve-ExactTagCommit
+          if ($promotionTagCommit -ne '${{ github.sha }}') {
+            throw "Release tag $tag no longer peels to this workflow commit; refusing promotion."
+          }
           gh release edit $tag --draft=false --prerelease=false --latest --repo $repository
           if ($LASTEXITCODE -ne 0) {
-            throw "Publishing verified draft release $tag failed with exit code $LASTEXITCODE."
+            throw "Publishing or recovering verified release $tag failed with exit code $LASTEXITCODE."
           }
 
           $publishedRelease = $null
-          for ($attempt = 1; $attempt -le 12; $attempt++) {
-            $publishedJson = gh release view $tag --repo $repository --json tagName,isDraft,isPrerelease,publishedAt,targetCommitish,url,assets
-            if ($LASTEXITCODE -eq 0) {
-              $candidate = ($publishedJson -join [Environment]::NewLine) | ConvertFrom-Json
-              if ($candidate.tagName -eq $tag -and -not $candidate.isDraft `
-                  -and -not $candidate.isPrerelease -and $candidate.publishedAt `
-                  -and $candidate.targetCommitish -eq '${{ github.sha }}' `
-                  -and (Test-ExactReleaseAssets $candidate)) {
-                $publishedRelease = $candidate
-                break
-              }
+          for ($attempt = 1; $attempt -le 36; $attempt++) {
+            $candidate = Get-ReleaseForExactTag
+            $candidateTagCommit = if ($candidate) { Resolve-ExactTagCommit } else { $null }
+            if ($candidate `
+                -and $candidate.tagName -eq $tag -and -not $candidate.isDraft `
+                -and -not $candidate.isPrerelease -and $candidate.publishedAt `
+                -and $candidate.targetCommitish -eq '${{ github.sha }}' `
+                -and $candidate.url -eq $releaseUrl `
+                -and $candidateTagCommit -eq '${{ github.sha }}' `
+                -and (Test-ExactReleaseAssets $candidate)) {
+              $publishedRelease = $candidate
+              break
             }
-            Write-Host "Waiting for normal published release metadata ($attempt/12)."
-            if ($attempt -lt 12) {
-              Start-Sleep -Seconds 5
+            Write-Host "Waiting for normal published release metadata ($attempt/36)."
+            if ($attempt -lt 36) {
+              Start-Sleep -Seconds 10
             }
           }
           if (-not $publishedRelease) {
-            throw 'The verified draft did not become a normal published release with exact assets.'
+            throw 'The verified release did not become a normal published release with the exact tag and assets.'
           }
 
-          $expectedFeedHash = (Get-FileHash -LiteralPath $updateFeedPath -Algorithm SHA256).Hash.ToLowerInvariant()
-          $publicFeedPath = Join-Path $env:RUNNER_TEMP "windows-update-manifest-${{ github.run_id }}-${{ github.run_attempt }}.xml"
-          $latestFeedUrl = "https://github.com/$repository/releases/latest/download/windows-update-manifest.xml"
-          $latestFeedVerified = $false
-          for ($attempt = 1; $attempt -le 12; $attempt++) {
-            $latestJson = gh api "repos/$repository/releases/latest"
+          $latestAssetsVerified = $false
+          for ($attempt = 1; $attempt -le 36; $attempt++) {
+            $latestJson = gh api -H 'Cache-Control: no-cache' "repos/$repository/releases/latest"
             if ($LASTEXITCODE -eq 0) {
               $latest = ($latestJson -join [Environment]::NewLine) | ConvertFrom-Json
               if ($latest.tag_name -eq $tag -and -not $latest.draft -and -not $latest.prerelease `
                   -and $latest.target_commitish -eq '${{ github.sha }}' `
                   -and (Test-ExactReleaseAssets $latest)) {
-                Remove-Item -LiteralPath $publicFeedPath -Force -ErrorAction SilentlyContinue
-                curl.exe -fsSL --retry 2 --retry-delay 2 $latestFeedUrl -o $publicFeedPath
-                if ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $publicFeedPath -PathType Leaf)) {
-                  $publicFeedHash = (Get-FileHash -LiteralPath $publicFeedPath -Algorithm SHA256).Hash.ToLowerInvariant()
-                  if ($publicFeedHash -eq $expectedFeedHash) {
-                    $latestFeedVerified = $true
+                $allPublicAssetsMatch = $true
+                foreach ($assetName in @($expectedAssetMetadata.Keys | Sort-Object)) {
+                  $cacheBuster = "${{ github.run_id }}-${{ github.run_attempt }}-$attempt-$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"
+                  $encodedAssetName = [uri]::EscapeDataString($assetName)
+                  $publicAssetUrl = "https://github.com/$repository/releases/latest/download/${encodedAssetName}?cachebust=$cacheBuster"
+                  $publicAssetPath = Join-Path $env:RUNNER_TEMP "latest-$attempt-$assetName"
+                  Remove-Item -LiteralPath $publicAssetPath -Force -ErrorAction SilentlyContinue
+                  curl.exe -fsSL --retry 3 --retry-all-errors --retry-delay 3 `
+                    --connect-timeout 30 --max-time 900 `
+                    -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' `
+                    $publicAssetUrl -o $publicAssetPath
+                  if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $publicAssetPath -PathType Leaf)) {
+                    $allPublicAssetsMatch = $false
                     break
                   }
+                  $expectedPublicAsset = $expectedAssetMetadata[$assetName]
+                  $publicAsset = Get-Item -LiteralPath $publicAssetPath
+                  $publicAssetDigest = "sha256:$((Get-FileHash -LiteralPath $publicAssetPath -Algorithm SHA256).Hash.ToLowerInvariant())"
+                  if ([long]$publicAsset.Length -ne $expectedPublicAsset.size `
+                      -or $publicAssetDigest -ne $expectedPublicAsset.digest) {
+                    $allPublicAssetsMatch = $false
+                    break
+                  }
+                  Remove-Item -LiteralPath $publicAssetPath -Force
+                }
+                if ($allPublicAssetsMatch) {
+                  $latestAssetsVerified = $true
+                  break
                 }
               }
             }
-            Write-Host "Waiting for public Latest release routing ($attempt/12)."
-            if ($attempt -lt 12) {
-              Start-Sleep -Seconds 5
+            Write-Host "Waiting for public Latest routing and all four cache-busted assets ($attempt/36)."
+            if ($attempt -lt 36) {
+              Start-Sleep -Seconds 10
             }
           }
-          if (-not $latestFeedVerified) {
-            throw 'The public Latest update manifest did not resolve to the validated release asset.'
+          if (-not $latestAssetsVerified) {
+            throw 'The public Latest route did not resolve all four assets to the validated release bytes.'
           }
 
       - name: Clean up failed draft release
@@ -617,9 +742,32 @@ jobs:
           $short = '${{ github.sha }}'.Substring(0, 10)
           $tag = "windows-msi-${{ github.run_number }}-${{ github.run_attempt }}-$short"
           $repository = '${{ github.repository }}'
+          $createdMarker = Join-Path $env:RUNNER_TEMP "windows-msi-release-created-${{ github.run_id }}-${{ github.run_attempt }}.json"
+          if (-not (Test-Path -LiteralPath $createdMarker -PathType Leaf)) {
+            Write-Host "This job did not record creating release $tag; preserving any existing release and tag."
+            exit 0
+          }
+          $creationRecord = Get-Content -LiteralPath $createdMarker -Raw | ConvertFrom-Json
+          if ($creationRecord.tag -ne $tag -or $creationRecord.source_commit -ne '${{ github.sha }}') {
+            Write-Warning 'The release-creation marker does not match this run; refusing cleanup.'
+            exit 0
+          }
+          $tagRefsJson = gh api -H 'Cache-Control: no-cache' "repos/$repository/git/matching-refs/tags/$tag"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Warning 'Could not verify the failed release tag target; refusing cleanup.'
+            exit 0
+          }
+          $tagRefs = @(($tagRefsJson -join [Environment]::NewLine) | ConvertFrom-Json)
+          $exactTagRefs = @($tagRefs | Where-Object { [string]$_.ref -eq "refs/tags/$tag" })
+          if ($exactTagRefs.Count -ne 1 `
+              -or [string]$exactTagRefs[0].object.type -ne 'commit' `
+              -or [string]$exactTagRefs[0].object.sha -ne '${{ github.sha }}') {
+            Write-Warning 'The failed release tag is absent, moved, or annotated unexpectedly; refusing cleanup.'
+            exit 0
+          }
           $releaseJson = gh release view $tag --repo $repository --json tagName,isDraft,targetCommitish
           if ($LASTEXITCODE -ne 0) {
-            Write-Host "No failed draft release exists for $tag."
+            Write-Warning "The exact tag exists but no failed draft could be verified; preserving the tag."
             exit 0
           }
           $failedRelease = ($releaseJson -join [Environment]::NewLine) | ConvertFrom-Json

@@ -302,8 +302,10 @@ and the imported build files before configuring a machine.
 > an isolated Visual Studio 2022 Build Tools/Cygwin profile when needed,
 > verifies it, and builds from an LF snapshot without touching this checkout.
 > This host currently has Visual Studio 2026 rather than the required dedicated
-> VS 2022 instance and no isolated Cygwin profile; the new bootstrap has not
-> been run locally yet. It does not change the separate hosted result:
+> VS 2022 instance and no isolated Cygwin profile. Its read-only local preflight
+> ran on 2026-07-19, correctly reported those two missing prerequisites, and
+> created neither default root; the installing bootstrap has not been run. It
+> does not change the separate hosted result:
 > current-source Linux run `29695793821` and Windows run `29695815101` passed
 > all five required native C++ targets, and the Windows run built the full
 > installation set but stopped at MSI staging. The corrected final-directory

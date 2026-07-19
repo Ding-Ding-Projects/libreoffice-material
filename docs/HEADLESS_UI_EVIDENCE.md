@@ -71,9 +71,11 @@ No local fork executable exists. [`LOCAL_WINDOWS_BUILD.md`](LOCAL_WINDOWS_BUILD.
 now defines a source-controlled one-click bootstrap that installs a dedicated
 VS 2022/Cygwin profile, verifies it, and builds from an LF source snapshot. It
 uses one hidden elevated bootstrap, isolated Cygwin Git, safe short build
-roots, and per-invocation logs; it has not been executed locally yet. This host currently has Visual Studio
+roots, and per-invocation logs; no bootstrap or local build has executed. This host currently has Visual Studio
 2026 rather than the required dedicated VS 2022 instance and no isolated
-Cygwin profile. The manually dispatched hosted Windows workflow still supplies
+Cygwin profile. Its 2026-07-19 read-only preflight correctly reported those
+two missing prerequisites without creating the default roots; no bootstrap or
+local build ran. The manually dispatched hosted Windows workflow still supplies
 and validates its prerequisites against a clean LF checkout.
 
 Current-source Linux Actions run `29695793821` and Windows Actions run

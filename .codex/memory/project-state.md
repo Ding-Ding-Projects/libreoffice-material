@@ -264,7 +264,9 @@ Public assetless release/tag `e` remains non-evidence.
   safe/short paths and both drives before bootstrap, keeps Git config isolated
   below the build root, and preserves unique phase logs. It never changes the
   active checkout, deletes a build root, reboots, installs the MSI, or launches
-  a UI. The source script parsed successfully but has not run a local build.
+  a UI. On 2026-07-19 its read-only preflight correctly reported missing
+  dedicated VS 2022/Cygwin and created neither default root; no bootstrap or
+  local build has run.
 - UI driver: sibling repository `lowlevel-computer-use-mcp`, preflighted at
   commit `806d9ba85e4afbc2af58d7499496babfa7c68891`.
 - A read-only driver audit found the same clean commit serving MCP on

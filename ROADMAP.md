@@ -43,8 +43,11 @@ Current evidence: the Windows harness preflight passed on 2026-07-16 using a
 temporary Notepad process, but no LibreOffice window was involved. The local
 [one-click Windows script](docs/LOCAL_WINDOWS_BUILD.md) now provisions an
 isolated VS 2022/Cygwin profile, validates it, and creates a clean LF source
-snapshot; it has not yet been run. This host currently has Visual Studio 2026
-rather than that dedicated VS 2022 profile and no isolated Cygwin environment.
+snapshot; its read-only preflight ran on 2026-07-19 and correctly reported the
+missing dedicated VS 2022 and isolated Cygwin profiles without creating either
+default root. The installing bootstrap has not run. This host currently has
+Visual Studio 2026 rather than that dedicated VS 2022 profile and no isolated
+Cygwin environment.
 The hosted Windows workflow uses a clean LF checkout and a pinned runner that
 supplies its prerequisites. Current
 source Linux run `29695793821` and Windows run `29695815101` both passed

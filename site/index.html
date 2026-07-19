@@ -230,8 +230,10 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
           provisions and verifies an isolated Visual Studio 2022/Cygwin profile
           and builds from a clean LF snapshot without touching this checkout.
           Its bootstrap is one hidden UAC child with isolated Cygwin Git and
-          fail-fast safe-root/free-space checks. It has not run locally: this host currently has Visual Studio 2026 rather
-          than that dedicated VS 2022 profile and no isolated Cygwin environment.
+          fail-fast safe-root/free-space checks. Its 2026-07-19 read-only
+          preflight correctly reported that this host has Visual Studio 2026 rather
+          than that dedicated VS 2022 profile and no isolated Cygwin environment,
+          without creating the default roots. The installing bootstrap has not run.
           Current-source Linux run <code>29695793821</code> and Windows run
           <code>29695815101</code> passed all five required native C++ targets;
           the latter also built the full installation set. Its staging rule

@@ -133,8 +133,9 @@ For a strict existing-toolchain build that may not install anything, use:
 .\Build-Windows.cmd -NoBootstrap
 ~~~
 
-The current host preflight is expected to report no dedicated VS 2022/Cygwin
-profile until this bootstrap runs. It is read-only, including when checking an
-already-installed Cygwin toolchain. Adding this script is source automation
-only: no local native build, MSI, LibreOffice launch, or accepted UI evidence is
-claimed here.
+On 2026-07-19, the current host ran the read-only preflight. It correctly
+reported the missing dedicated VS 2022 profile and missing isolated Cygwin
+profile, exited 1, and left both default tool and build roots absent. It is
+read-only, including when checking an already-installed Cygwin toolchain.
+Adding this script is source automation only: no local native build, MSI,
+LibreOffice launch, or accepted UI evidence is claimed here.

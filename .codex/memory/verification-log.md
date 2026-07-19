@@ -886,3 +886,14 @@ runtime interaction are not claimed until the post-repair native runs finish.
 
 Scope conclusion: the local profile is reproducible source automation, not
 build or runtime evidence.
+
+## 2026-07-19 — local one-click Windows preflight
+
+- Ran `cmd.exe /d /c "Build-Windows.cmd -Phase Preflight"` from clean commit
+  `6e489f62a`. It reported 2,217 GiB free on the default shared C: drive, then
+  correctly stopped with the dedicated VS 2022 and isolated Cygwin profiles
+  absent. The SDK and legacy CLI checks did not report an error.
+- The expected nonzero preflight exit left both
+  `C:\ProgramData\LibreOfficeMaterialTools` and
+  `%USERPROFILE%\lo-material` absent. No installer, native build, MSI,
+  LibreOffice launch, or runtime capture occurred.

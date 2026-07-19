@@ -243,6 +243,10 @@ jobs:
           src_dir="$(cygpath -u "$SOURCE_CHECKOUT")"
           build_dir="$(cygpath -u "$LO_BUILD_DIR")"
           tarball_dir="$(cygpath -u "$LO_TARBALL_DIR")"
+          # actions/checkout registers the Win32 spelling for Git for Windows;
+          # Cygwin Git needs the equivalent POSIX spelling as its own safe path.
+          /usr/bin/git config --global --add safe.directory "$src_dir"
+          /usr/bin/git -C "$src_dir" rev-parse --verify HEAD
           mkdir -p "$build_dir" "$tarball_dir"
           cd "$build_dir"
           "$src_dir/autogen.sh" \

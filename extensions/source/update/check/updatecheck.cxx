@@ -150,8 +150,9 @@ bool stageVerifiedWindowsInstaller(const OUString& rSourceURL, const DownloadSou
     rDirectoryURL.clear();
     rInstallerLock = nullptr;
 
+    const OUString aExpectedSuffix = OUString::Concat(u"/") + rSource.FileName;
     if (!isTrustedMaterialUpdateSource(rSource) || rSourceURL.isEmpty()
-        || !rSourceURL.endsWith(OUString::Concat(u"/") + rSource.FileName))
+        || !rSourceURL.endsWith(aExpectedSuffix))
     {
         return false;
     }

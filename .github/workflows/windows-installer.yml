@@ -217,7 +217,7 @@ jobs:
           'C:\cygwin64\bin' | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
       - name: Validate Cygwin and LibreOffice build tools
-        shell: cygbash --noprofile --norc -eo pipefail {0}
+        shell: cygbash --noprofile --norc -o igncr -eo pipefail {0}
         run: |
           test "$(uname -o)" = Cygwin
           export PATH="/opt/lo/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
@@ -232,7 +232,7 @@ jobs:
           /opt/lo/bin/nasm.exe -v
 
       - name: Configure lean Windows x64 LibreOfficeDev build
-        shell: cygbash --noprofile --norc -eo pipefail {0}
+        shell: cygbash --noprofile --norc -o igncr -eo pipefail {0}
         env:
           SOURCE_CHECKOUT: ${{ github.workspace }}
         run: |
@@ -269,7 +269,7 @@ jobs:
             --disable-cairo-canvas
 
       - name: Run required native C++ regression tests
-        shell: cygbash --noprofile --norc -eo pipefail {0}
+        shell: cygbash --noprofile --norc -o igncr -eo pipefail {0}
         run: |
           export PATH="/opt/lo/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
           cd "$(cygpath -u "$LO_BUILD_DIR")"
@@ -279,7 +279,7 @@ jobs:
             CppunitTest_vcl_file_definition_widget_draw_test
 
       - name: Build LibreOfficeDev and Windows installation set
-        shell: cygbash --noprofile --norc -eo pipefail {0}
+        shell: cygbash --noprofile --norc -o igncr -eo pipefail {0}
         run: |
           export PATH="/opt/lo/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
           cd "$(cygpath -u "$LO_BUILD_DIR")"
@@ -292,7 +292,7 @@ jobs:
           key: windows-external-tarballs-${{ hashFiles('download.lst') }}
 
       - name: Materialize MSI packages
-        shell: cygbash --noprofile --norc -eo pipefail {0}
+        shell: cygbash --noprofile --norc -o igncr -eo pipefail {0}
         run: |
           export PATH="/opt/lo/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
           cd "$(cygpath -u "$LO_BUILD_DIR")"

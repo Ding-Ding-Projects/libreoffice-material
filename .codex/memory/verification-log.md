@@ -1473,3 +1473,14 @@ build or runtime evidence.
   passes under Windows PowerShell 5.1 and PowerShell 7. This remains source and
   static evidence until the native C++ target and a fresh Sandbox lifecycle run
   complete.
+
+## 2026-07-20 — corrected updater vector compiled with Visual Studio 2026
+
+- Clean detached source at
+  `150841ef58285e61e7576bda43ca11af93f924c7` was selected in the retained
+  VS 2026 build root and incrementally rebuilt against its existing configured
+  Windows x64 product cache.
+- `CppunitTest_extensions_test_update` completed successfully with all 11 tests,
+  including the exact four-argument Windows Installer command, protected
+  exclusive staging, and retained read-lock regressions. This is compiled native
+  evidence for the command construction, not updater UI or MSI lifecycle proof.

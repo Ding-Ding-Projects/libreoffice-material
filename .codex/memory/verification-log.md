@@ -1621,6 +1621,39 @@ build or runtime evidence.
   profiles must prove zero unsolicited UI while retained safety/manual flows
   remain actionable.
 
+## 2026-07-20 — fresh/legacy no-nag headless harness source contract
+
+- `bin/Run-Windows-NoNag-Headless-Smoke.ps1` now selects only `Fresh` or
+  `Legacy` disposable-profile modes and delegates to the existing dedicated
+  same-token low-level ownership/capture engine.
+- Both modes launch blank Writer without `--nologo`, `--norestore`,
+  `--headless`, `--invisible`, or `--nodefault`; require exact source/build-ID,
+  PID-file process, HWND/thread/DPI, and clean source/driver identity; retain
+  startup plus 500 ms stable window polls; and bind a nonblank PNG to a complete
+  error-free UNO tree.
+- Fresh mode requires zero profile entries immediately before launch. Legacy
+  mode safely seeds the removed first-run, tip, promotion, association,
+  AutoCorrect-explanation, and crash-report triggers, retains sanitized seed
+  hashes, points crash metadata at a nonexistent run-scoped dump/loopback URL,
+  and passes `-env:CrashDumpEnable=false`. Both modes clear the similarly named
+  process environment variable in the private wrapper because LibreOffice
+  treats any nonempty value, including `0`, as enabled.
+- An adversarial source pass corrected batch `%20` expansion, forced delayed
+  expansion off, closed the legacy XCU namespace/path/operation/value schema,
+  added monotonic duration and exact total-window/PID/HWND/thread/DPI evidence,
+  bound and cleaned the dedicated listener by PID creation identity, replaced
+  ambiguous promotional labels with specific historical body text, and made
+  acceptance independently rescan retained window/a11y artifacts.
+- `bin/check-windows-nonag-headless-harness.py` passes 63 required safeguards
+  and five forbidden suppression arguments; all four mutation families pass.
+  PowerShell parsing, the existing source-only contracts, and documentation
+  checks are recorded by the final branch validation entry.
+- No LibreOffice process was launched for this source-only slice, no new
+  screenshot or UNO tree was created, and the canonical screenshot count stays
+  nine. Extracted-MSI startup is explicitly not association-gate proof because
+  it lacks installed-product `HKLM` registration; an MSI-installed disposable
+  Sandbox or VM remains required.
+
 ## 2026-07-20 — shared anchored regex-builder source foundation
 
 - `bin/check-windows-regex-builder-foundation.py` passed the shared

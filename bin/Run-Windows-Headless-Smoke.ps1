@@ -20,6 +20,14 @@ param(
 
     [string]$McpUrl = '',
 
+    [ValidateSet('Configured', 'Fresh', 'Legacy')]
+    [string]$StartupProfile = 'Configured',
+
+    [ValidateRange(15, 120)]
+    [int]$ObservationSeconds = 15,
+
+    [string]$EvidenceEntrypointPath = '',
+
     [switch]$KeyboardFocus,
 
     [switch]$Templates
@@ -28,6 +36,48 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
+
+if ($StartupProfile -ne 'Configured' -and ($KeyboardFocus -or $Templates)) {
+    throw 'Fresh/Legacy no-nag startup runs do not accept Start Center interaction switches.'
+}
+
+$script:NoNagDeniedText = @(
+    'Tip of the Day',
+    'Did you know?',
+    "What's new in",
+    'Welcome to',
+    'for the first time',
+    'Please take a moment to personalize your settings',
+    'You are running version',
+    'Default file formats not registered',
+    'Perform check on startup',
+    'Crash Report',
+    'Send Crash Report',
+    'Support the development',
+    'Help us make',
+    'Autocorrection has removed a leading or trailing character'
+)
+$script:RetainedSafetyPromptText = @(
+    'Document Recovery',
+    'Troubleshoot Mode',
+    'Incompatible Extensions',
+    'Extension Dependencies',
+    'Macros disabled',
+    'Security Warning',
+    'Hidden Information',
+    'read-only mode',
+    'Master Password',
+    'Password Required',
+    'Extension Update'
+)
+$script:NoNagForbiddenLaunchArguments = @(
+    '--nologo',
+    '--norestore',
+    '--headless',
+    '--invisible',
+    '--nodefault'
+)
+$script:NoNagDeniedMatches = [System.Collections.Generic.List[object]]::new()
 
 Add-Type -TypeDefinition @'
 using System;
@@ -110,6 +160,188 @@ function Get-JsonIntegerProperty {
         return $null
     }
     return [long]$property.Value
+}
+
+function Find-NoNagTextMatches {
+    param([Parameter(Mandatory = $true)] [AllowEmptyCollection()] [string[]]$Text)
+
+    $matches = [System.Collections.Generic.List[object]]::new()
+    foreach ($candidate in @($Text)) {
+        if ([string]::IsNullOrWhiteSpace($candidate)) {
+            continue
+        }
+        foreach ($denied in $script:NoNagDeniedText) {
+            if ($candidate.IndexOf(
+                    $denied,
+                    [System.StringComparison]::OrdinalIgnoreCase
+                ) -ge 0) {
+                $matches.Add([ordered]@{
+                    denied = $denied
+                    observed = $candidate
+                })
+            }
+        }
+    }
+    return $matches.ToArray()
+}
+
+function Assert-NoNagLaunchArguments {
+    param([Parameter(Mandatory = $true)] [string[]]$Arguments)
+
+    foreach ($argument in $Arguments) {
+        foreach ($forbidden in $script:NoNagForbiddenLaunchArguments) {
+            if ($argument -ieq $forbidden -or
+                $argument.StartsWith(
+                    "$forbidden=",
+                    [System.StringComparison]::OrdinalIgnoreCase
+                )) {
+                throw "No-nag startup cannot use suppressive launch argument '$argument'."
+            }
+        }
+    }
+    if (@($Arguments | Where-Object { $_ -ceq '--writer' }).Count -ne 1) {
+        throw 'No-nag startup must request exactly one blank Writer document.'
+    }
+}
+
+function Record-WindowEnumeration {
+    param(
+        [Parameter(Mandatory = $true)] [object]$Enumeration,
+        [Parameter(Mandatory = $true)] [string]$Phase,
+        [AllowNull()] [object]$OwnedProcessId
+    )
+
+    $windows = [System.Collections.Generic.List[object]]::new()
+    foreach ($window in @($Enumeration.windows)) {
+        $processId = Get-JsonIntegerProperty -Object $window -PropertyName 'process_id'
+        $record = [ordered]@{
+            handle = Get-JsonIntegerProperty -Object $window -PropertyName 'handle'
+            process_id = $processId
+            thread_id = Get-JsonIntegerProperty -Object $window -PropertyName 'thread_id'
+            title = [string]$window.title
+            class = [string]$window.class
+            width = Get-JsonIntegerProperty -Object $window -PropertyName 'width'
+            height = Get-JsonIntegerProperty -Object $window -PropertyName 'height'
+            dpi = Get-JsonIntegerProperty -Object $window -PropertyName 'dpi'
+            payload_owned = ($null -ne $OwnedProcessId -and
+                $null -ne $processId -and
+                [long]$processId -eq [long]$OwnedProcessId)
+        }
+        $windows.Add($record)
+    }
+    $ownedWindows = @($windows.ToArray() | Where-Object { $_.payload_owned })
+    $entry = [ordered]@{
+        captured_at_utc = [DateTimeOffset]::UtcNow.ToString('o')
+        phase = $Phase
+        desktop_window_count = [int]$Enumeration.count
+        payload_owned_window_count = $ownedWindows.Count
+        windows = @($windows.ToArray())
+    }
+    $script:WindowPollLog.Add($entry)
+    Write-JsonFile -Path $script:WindowPollLogPath -Value ([ordered]@{
+        run_id = $script:RunId
+        owned_process_id = $script:WindowPollOwnedProcessId
+        observation_started_at_utc = $script:ObservationStartedAtUtc
+        observation_completed_at_utc = $script:ObservationCompletedAtUtc
+        observation_elapsed_milliseconds = $script:ObservationElapsedMilliseconds
+        polls = @($script:WindowPollLog.ToArray())
+    })
+    return $entry
+}
+
+function Sync-WindowPollOwnership {
+    param([Parameter(Mandatory = $true)] [int]$OwnedProcessId)
+
+    $script:WindowPollOwnedProcessId = $OwnedProcessId
+    foreach ($entry in @($script:WindowPollLog.ToArray())) {
+        $ownedCount = 0
+        foreach ($window in @($entry.windows)) {
+            $isOwned = ($null -ne $window.process_id -and
+                [long]$window.process_id -eq [long]$OwnedProcessId)
+            $window.payload_owned = $isOwned
+            if ($isOwned) { $ownedCount++ }
+        }
+        $entry.payload_owned_window_count = $ownedCount
+    }
+    Write-JsonFile -Path $script:WindowPollLogPath -Value ([ordered]@{
+        run_id = $script:RunId
+        owned_process_id = $OwnedProcessId
+        observation_started_at_utc = $script:ObservationStartedAtUtc
+        observation_completed_at_utc = $script:ObservationCompletedAtUtc
+        observation_elapsed_milliseconds = $script:ObservationElapsedMilliseconds
+        polls = @($script:WindowPollLog.ToArray())
+    })
+}
+
+function Assert-NoNagWindowEnumeration {
+    param(
+        [Parameter(Mandatory = $true)] [object]$Entry,
+        [Parameter(Mandatory = $true)] [long]$ExpectedHandle,
+        [Parameter(Mandatory = $true)] [int]$ExpectedProcessId,
+        [long]$ExpectedThreadId = 0,
+        [int]$ExpectedDpi = 0,
+        [int]$ExpectedWidth = 0,
+        [int]$ExpectedHeight = 0,
+        [string]$ExpectedTitle = '',
+        [switch]$RequireSingleWriter
+    )
+
+    $allWindows = @($Entry.windows)
+    if ([int]$Entry.desktop_window_count -ne $allWindows.Count) {
+        throw 'No-nag desktop-window count differs from its retained inventory.'
+    }
+    $owned = @($allWindows | Where-Object { $_.payload_owned })
+    $titleMatches = @(Find-NoNagTextMatches -Text @(
+        $allWindows | ForEach-Object { [string]$_.title }
+    ))
+    if ($titleMatches.Count -ne 0) {
+        foreach ($match in $titleMatches) { $script:NoNagDeniedMatches.Add($match) }
+        throw "Former nag text appeared in an owned window title: $($titleMatches | ConvertTo-Json -Compress)"
+    }
+    if ($RequireSingleWriter) {
+        if ($allWindows.Count -ne 1 -or $owned.Count -ne 1) {
+            throw "No-nag observation expected exactly one total and payload-owned top-level window, found $($allWindows.Count) total / $($owned.Count) owned."
+        }
+        if ([long]$owned[0].handle -ne $ExpectedHandle -or
+            [int]$owned[0].process_id -ne $ExpectedProcessId -or
+            [long]$owned[0].thread_id -ne $ExpectedThreadId -or
+            [int]$owned[0].dpi -ne $ExpectedDpi -or
+            [int]$owned[0].width -ne $ExpectedWidth -or
+            [int]$owned[0].height -ne $ExpectedHeight -or
+            [string]$owned[0].class -cne 'SALFRAME' -or
+            [string]$owned[0].title -cne $ExpectedTitle) {
+            throw 'No-nag observation lost the exact PID/HWND/thread/DPI/geometry/title-owned Writer SALFRAME.'
+        }
+    }
+}
+
+function Assert-NoNagA11yReport {
+    param([Parameter(Mandatory = $true)] [object]$Report)
+
+    $observedText = [System.Collections.Generic.List[string]]::new()
+    foreach ($node in @($Report.nodes)) {
+        if (@($node.states) -notcontains 'VISIBLE' -and
+            @($node.states) -notcontains 'SHOWING') {
+            continue
+        }
+        foreach ($propertyName in @('name', 'description')) {
+            $property = $node.PSObject.Properties[$propertyName]
+            if ($null -ne $property -and
+                -not [string]::IsNullOrWhiteSpace([string]$property.Value)) {
+                $observedText.Add([string]$property.Value)
+            }
+        }
+    }
+    $matches = @(Find-NoNagTextMatches -Text $observedText.ToArray())
+    if ($matches.Count -ne 0) {
+        foreach ($match in $matches) { $script:NoNagDeniedMatches.Add($match) }
+        throw "Former nag text appeared in the Writer accessibility tree: $($matches | ConvertTo-Json -Compress)"
+    }
+    $menuBars = @($Report.nodes | Where-Object { [string]$_.role.name -ceq 'MENU_BAR' })
+    if ($menuBars.Count -eq 0) {
+        throw 'No-nag Writer accessibility proof contains no menu bar.'
+    }
+    return $matches
 }
 
 function Get-Sha256Hex {
@@ -353,10 +585,12 @@ function ConvertTo-WindowsCommandLineArgument {
     param(
         [Parameter(Mandatory = $true)]
         [AllowEmptyString()]
-        [string]$Argument
+        [string]$Argument,
+        [switch]$ForceQuote
     )
 
-    if ($Argument.Length -gt 0 -and $Argument -notmatch '[\s"]') {
+    if (-not $ForceQuote -and $Argument.Length -gt 0 -and
+        $Argument -notmatch '[\s"]') {
         return $Argument
     }
 
@@ -662,6 +896,10 @@ function Capture-State {
     Invoke-PayloadPython -Arguments $arguments -TimeoutSeconds 75 | Out-Null
     $a11y = Get-Content -LiteralPath $a11yPath -Raw | ConvertFrom-Json
     $a11ySummary = Assert-A11yReport -Report $a11y -RequireFocused:$RequireFocused
+    $noNagMatches = @()
+    if ($StartupProfile -ne 'Configured') {
+        $noNagMatches = @(Assert-NoNagA11yReport -Report $a11y)
+    }
     $a11yFile = Get-Item -LiteralPath $a11yPath
     $a11yHash = Get-Sha256Hex -Path $a11yPath
 
@@ -694,7 +932,113 @@ function Capture-State {
             screenshot_sha256 = [string]$a11y.screenshot_sha256
             summary = $a11ySummary
         }
+        no_nag = if ($StartupProfile -ne 'Configured') {
+            [ordered]@{
+                denied_text_matches = @($noNagMatches)
+                retained_safety_prompt_policy = 'not part of the former-nag denylist'
+            }
+        }
+        else { $null }
     }
+}
+
+function Get-CimProcessIdentity {
+    param([Parameter(Mandatory = $true)] [int]$ProcessId)
+
+    $records = @(Get-CimInstance -ClassName Win32_Process `
+        -Filter "ProcessId = $ProcessId" -Property ProcessId, ParentProcessId, CreationDate)
+    if ($records.Count -eq 0) { return $null }
+    if ($records.Count -ne 1) {
+        throw "Expected one process identity for PID $ProcessId, found $($records.Count)."
+    }
+    return [pscustomobject]@{
+        process_id = [int]$records[0].ProcessId
+        parent_process_id = [int]$records[0].ParentProcessId
+        creation_ticks = ([DateTime]$records[0].CreationDate).ToUniversalTime().Ticks
+        creation_date = ([DateTime]$records[0].CreationDate).ToUniversalTime().ToString('o')
+    }
+}
+
+function Get-ValidatedLoopbackListenerIdentity {
+    param(
+        [Parameter(Mandatory = $true)] [int]$Port,
+        [Parameter(Mandatory = $true)] [System.Diagnostics.Process]$RootProcess
+    )
+
+    $listeners = @(Get-NetTCPConnection -State Listen -LocalPort $Port `
+        -ErrorAction Stop | Where-Object { $_.LocalAddress -eq '127.0.0.1' })
+    $listenerPids = @($listeners | ForEach-Object { [int]$_.OwningProcess } |
+        Select-Object -Unique)
+    if ($listenerPids.Count -ne 1) {
+        throw "Expected one dedicated loopback listener on port $Port, found $($listenerPids.Count)."
+    }
+
+    $rootIdentity = Get-CimProcessIdentity -ProcessId ([int]$RootProcess.Id)
+    if ($null -eq $rootIdentity) {
+        throw "Dedicated driver root PID $($RootProcess.Id) exited before listener ownership was bound."
+    }
+    $expectedRootTicks = $RootProcess.StartTime.ToUniversalTime().Ticks
+    if ([long]$rootIdentity.creation_ticks -ne $expectedRootTicks) {
+        throw "Dedicated driver root PID $($RootProcess.Id) was reused before listener ownership was bound."
+    }
+
+    $listenerIdentity = Get-CimProcessIdentity -ProcessId $listenerPids[0]
+    $cursor = $listenerIdentity
+    $visited = [System.Collections.Generic.HashSet[int]]::new()
+    while ($null -ne $cursor -and $visited.Add([int]$cursor.process_id)) {
+        if ([int]$cursor.process_id -eq [int]$rootIdentity.process_id -and
+            [long]$cursor.creation_ticks -eq [long]$rootIdentity.creation_ticks) {
+            return $listenerIdentity
+        }
+        if ([int]$cursor.parent_process_id -le 0) { break }
+        $cursor = Get-CimProcessIdentity -ProcessId ([int]$cursor.parent_process_id)
+    }
+    throw "Loopback listener PID $($listenerIdentity.process_id) is not the dedicated driver root or its live descendant."
+}
+
+function Stop-RecordedProcessIdentity {
+    param(
+        [Parameter(Mandatory = $true)] [object]$Identity,
+        [int]$TimeoutMilliseconds = 15000
+    )
+
+    $current = Get-CimProcessIdentity -ProcessId ([int]$Identity.process_id)
+    if ($null -eq $current) { return $false }
+    if ([long]$current.creation_ticks -ne [long]$Identity.creation_ticks) {
+        throw "Refusing to stop reused listener PID $($Identity.process_id)."
+    }
+    Stop-Process -Id ([int]$Identity.process_id) -Force -ErrorAction Stop
+    $deadline = [DateTimeOffset]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
+    do {
+        Start-Sleep -Milliseconds 100
+        $current = Get-CimProcessIdentity -ProcessId ([int]$Identity.process_id)
+        if ($null -eq $current) { return $true }
+        if ([long]$current.creation_ticks -ne [long]$Identity.creation_ticks) {
+            return $true
+        }
+    } while ([DateTimeOffset]::UtcNow -lt $deadline)
+    throw "Dedicated listener PID $($Identity.process_id) did not stop."
+}
+
+function ConvertTo-WindowsBatchCommandLineArgument {
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [string]$Argument
+    )
+
+    if ($Argument -match "[`r`n]") {
+        throw 'A Windows batch launch argument cannot contain a newline.'
+    }
+
+    # A literal URI escape such as %20 is parsed as the second batch argument
+    # followed by "0" inside a .cmd file. Doubling every percent preserves the
+    # literal percent through the one batch-expansion pass. Force quotes around
+    # cmd metacharacters even when the Windows argv value contains no spaces.
+    $batchEscaped = $Argument.Replace('%', '%%')
+    $forceQuote = $batchEscaped -match '[&|<>^()]'
+    return ConvertTo-WindowsCommandLineArgument -Argument $batchEscaped `
+        -ForceQuote:$forceQuote
 }
 
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -820,9 +1164,16 @@ $integrityEvidence = Get-CurrentIntegrityEvidence
 
 $shortCommit = $sourceLower.Substring(0, 10)
 $appearanceSlug = $Appearance.ToLowerInvariant()
+$startupProfileSlug = $StartupProfile.ToLowerInvariant()
+$runModeSlug = if ($StartupProfile -eq 'Configured') {
+    $appearanceSlug
+}
+else {
+    "nonag-$startupProfileSlug"
+}
 if (-not $RunId) {
     $RunId = '{0}-{1}-windows-headless-{2}' -f `
-        (Get-Date -Format 'yyyyMMdd-HHmmss'), $shortCommit, $appearanceSlug
+        (Get-Date -Format 'yyyyMMdd-HHmmss'), $shortCommit, $runModeSlug
 }
 if ($RunId -notmatch '^[A-Za-z0-9._-]+$') {
     throw 'RunId may contain only letters, numbers, dot, underscore, and hyphen.'
@@ -836,11 +1187,20 @@ $script:ScreenshotsRoot = Join-Path $runRoot 'screenshots'
 $script:LogsRoot = Join-Path $runRoot 'logs'
 $profileRoot = Join-Path $runRoot 'profile'
 $profileUserRoot = Join-Path $profileRoot 'user'
-New-Item -ItemType Directory -Path $script:ScreenshotsRoot, $script:LogsRoot, $profileUserRoot -Force | Out-Null
+New-Item -ItemType Directory -Path $script:ScreenshotsRoot, $script:LogsRoot, $profileRoot -Force | Out-Null
 
 $appearanceValue = if ($Appearance -eq 'Dark') { 2 } else { 1 }
 $highContrastValue = if ($Appearance -eq 'HighContrast') { 2 } else { 1 }
-$profileConfig = @"
+$profileConfig = $null
+$profileConfigPath = $null
+$profileConfigurationIdentity = $null
+$legacyCrashConfigurationIdentity = $null
+$profileSeedArtifacts = [System.Collections.Generic.List[object]]::new()
+$legacyTriggerNames = @()
+$legacyCrashSeeded = $false
+if ($StartupProfile -eq 'Configured') {
+    New-Item -ItemType Directory -Path $profileUserRoot -Force | Out-Null
+    $profileConfig = @"
 <?xml version="1.0" encoding="UTF-8"?>
 <oor:items xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 <item oor:path="/org.openoffice.Office.Common/Misc"><prop oor:name="FirstRun" oor:op="fuse"><value>false</value></prop></item>
@@ -848,11 +1208,93 @@ $profileConfig = @"
 <item oor:path="/org.openoffice.Office.Common/Accessibility"><prop oor:name="HighContrast" oor:op="fuse"><value>$highContrastValue</value></prop></item>
 </oor:items>
 "@
-$profileConfigPath = Join-Path $profileUserRoot 'registrymodifications.xcu'
-Write-Utf8Lf -Path $profileConfigPath -Text $profileConfig
+    $profileConfigPath = Join-Path $profileUserRoot 'registrymodifications.xcu'
+    Write-Utf8Lf -Path $profileConfigPath -Text $profileConfig
+}
+elseif ($StartupProfile -eq 'Legacy') {
+    New-Item -ItemType Directory -Path $profileUserRoot -Force | Out-Null
+    # BEGIN LEGACY NO-NAG REGISTRY SEED
+    $profileConfig = @'
+<?xml version="1.0" encoding="UTF-8"?>
+<oor:items xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<item oor:path="/org.openoffice.Office.Common/Misc">
+<prop oor:name="FirstRun" oor:op="fuse"><value>true</value></prop>
+<prop oor:name="CrashReport" oor:op="fuse"><value>true</value></prop>
+<prop oor:name="ShowTipOfTheDay" oor:op="fuse"><value>true</value></prop>
+<prop oor:name="LastTipOfTheDayShown" oor:op="fuse"><value>-1</value></prop>
+<prop oor:name="PerformFileExtCheck" oor:op="fuse"><value>true</value></prop>
+<prop oor:name="ShowDonation" oor:op="fuse"><value>true</value></prop>
+</item>
+<item oor:path="/org.openoffice.Setup/Product">
+<prop oor:name="ooSetupLastVersion" oor:op="fuse"><value>1.0</value></prop>
+<prop oor:name="WhatsNew" oor:op="fuse"><value>true</value></prop>
+<prop oor:name="WhatsNewDialog" oor:op="fuse"><value>true</value></prop>
+<prop oor:name="LastTimeGetInvolvedShown" oor:op="fuse"><value>1</value></prop>
+<prop oor:name="LastTimeDonateShown" oor:op="fuse"><value>1</value></prop>
+</item>
+<item oor:path="/org.openoffice.Office.UI.Infobar/Enabled">
+<prop oor:name="Donate" oor:op="fuse"><value>true</value></prop>
+<prop oor:name="GetInvolved" oor:op="fuse"><value>true</value></prop>
+<prop oor:name="WhatsNew" oor:op="fuse"><value>true</value></prop>
+<prop oor:name="AutoCorrLeadTrail" oor:op="fuse"><value>true</value></prop>
+</item>
+</oor:items>
+'@
+    # END LEGACY NO-NAG REGISTRY SEED
+    $legacyTriggerNames = @(
+        'Office.Common/Misc/FirstRun',
+        'Office.Common/Misc/CrashReport',
+        'Office.Common/Misc/ShowTipOfTheDay',
+        'Office.Common/Misc/LastTipOfTheDayShown',
+        'Office.Common/Misc/PerformFileExtCheck',
+        'Office.Common/Misc/ShowDonation',
+        'Setup/Product/ooSetupLastVersion',
+        'Setup/Product/WhatsNew',
+        'Setup/Product/WhatsNewDialog',
+        'Setup/Product/LastTimeGetInvolvedShown',
+        'Setup/Product/LastTimeDonateShown',
+        'Office.UI/Infobar/Enabled/Donate',
+        'Office.UI/Infobar/Enabled/GetInvolved',
+        'Office.UI/Infobar/Enabled/WhatsNew',
+        'Office.UI/Infobar/Enabled/AutoCorrLeadTrail'
+    )
+    $profileConfigPath = Join-Path $profileUserRoot 'registrymodifications.xcu'
+    Write-Utf8Lf -Path $profileConfigPath -Text $profileConfig
+    $publicProfileSeedPath = Join-Path $script:LogsRoot 'legacy-profile-seed.xcu'
+    Write-Utf8Lf -Path $publicProfileSeedPath -Text $profileConfig
+    $profileSeedArtifacts.Add((Get-EvidenceFileIdentity `
+        -Path $publicProfileSeedPath -PublicPath 'logs/legacy-profile-seed.xcu'))
 
-$script:UnoPipe = "LibreOfficeMaterialQA-$shortCommit-$appearanceSlug-$([guid]::NewGuid().ToString('N').Substring(0, 8))"
-$desktopName = "LOMaterialQA-$shortCommit-$appearanceSlug-$([guid]::NewGuid().ToString('N').Substring(0, 8))"
+    $crashRoot = Join-Path $profileRoot 'crash'
+    New-Item -ItemType Directory -Path $crashRoot -Force | Out-Null
+    $crashConfigPath = Join-Path $crashRoot 'dump.ini'
+    $crashConfig = @"
+DumpFile=$runRoot\crash\nonexistent-probe.dmp
+Version=legacy-profile-probe
+URL=http://127.0.0.1:9/
+"@
+    Write-Utf8Lf -Path $crashConfigPath -Text $crashConfig
+    $legacyCrashConfigurationIdentity = Get-EvidenceFileIdentity `
+        -Path $crashConfigPath -PublicPath 'profile/crash/dump.ini' -RuntimeOnly
+    $publicCrashSeedPath = Join-Path $script:LogsRoot 'legacy-crash-seed.ini'
+    $publicCrashConfig = @'
+DumpFile=<run-root>\crash\nonexistent-probe.dmp
+Version=legacy-profile-probe
+URL=http://127.0.0.1:9/
+'@
+    Write-Utf8Lf -Path $publicCrashSeedPath -Text $publicCrashConfig
+    $profileSeedArtifacts.Add((Get-EvidenceFileIdentity `
+        -Path $publicCrashSeedPath -PublicPath 'logs/legacy-crash-seed.ini'))
+    $legacyCrashSeeded = $true
+}
+
+if ($StartupProfile -eq 'Fresh' -and
+    @(Get-ChildItem -LiteralPath $profileRoot -Force).Count -ne 0) {
+    throw 'Fresh no-nag profile must be empty before launch preparation.'
+}
+
+$script:UnoPipe = "LibreOfficeMaterialQA-$shortCommit-$runModeSlug-$([guid]::NewGuid().ToString('N').Substring(0, 8))"
+$desktopName = "LOMaterialQA-$shortCommit-$runModeSlug-$([guid]::NewGuid().ToString('N').Substring(0, 8))"
 if ($desktopName.Length -gt 64) {
     throw 'Generated desktop name exceeds the driver contract.'
 }
@@ -860,28 +1302,60 @@ $pidPath = Join-Path $runRoot 'soffice.pid'
 $stdoutPath = Join-Path $script:LogsRoot 'soffice.stdout.log'
 $stderrPath = Join-Path $script:LogsRoot 'soffice.stderr.log'
 $wrapperPath = Join-Path $runRoot 'launch-headless.cmd'
+if ($wrapperPath.Contains('%')) {
+    throw 'OutputRoot cannot contain a percent sign because cmd.exe expands it before the private launch wrapper starts.'
+}
 $profileUri = [System.Uri]::new($profileRoot).AbsoluteUri
 $acceptArgument = "--accept=pipe,name=$($script:UnoPipe);urp"
-$applicationArguments = @(
-    "-env:UserInstallation=$profileUri",
-    '--nologo',
-    '--norestore',
-    '--quickstart=no',
-    '--language=en-US',
-    "--pidfile=$pidPath",
-    $acceptArgument
-)
 $publicProfileUri = '<run-root-uri>/profile'
 $publicPidPath = '<run-root>/soffice.pid'
-$publicApplicationArguments = @(
-    "-env:UserInstallation=$publicProfileUri",
-    '--nologo',
-    '--norestore',
-    '--quickstart=no',
-    '--language=en-US',
-    "--pidfile=$publicPidPath",
-    $acceptArgument
-)
+$applicationArguments = $null
+$publicApplicationArguments = $null
+if ($StartupProfile -eq 'Configured') {
+    $applicationArguments = @(
+        "-env:UserInstallation=$profileUri", '--nologo', '--norestore',
+        '--quickstart=no', '--language=en-US', "--pidfile=$pidPath", $acceptArgument
+    )
+    $publicApplicationArguments = @(
+        "-env:UserInstallation=$publicProfileUri", '--nologo', '--norestore',
+        '--quickstart=no', '--language=en-US', "--pidfile=$publicPidPath", $acceptArgument
+    )
+}
+# BEGIN NO-NAG APPLICATION ARGUMENTS
+else {
+    $applicationArguments = @(
+        "-env:UserInstallation=$profileUri", '--writer', '--quickstart=no',
+        '--language=en-US', "--pidfile=$pidPath", $acceptArgument
+    )
+    $publicApplicationArguments = @(
+        "-env:UserInstallation=$publicProfileUri", '--writer', '--quickstart=no',
+        '--language=en-US', "--pidfile=$publicPidPath", $acceptArgument
+    )
+    if ($StartupProfile -ne 'Configured') {
+        # Never assign a nonempty CRASH_DUMP_ENABLE value: CrashReporter treats
+        # even "0" as enabled. The private wrapper removes an inherited value,
+        # and this bootstrap value disables dump creation in both disposable
+        # no-nag profiles. The legacy dump.ini still seeds the historical
+        # prompt condition without pointing at a real dump.
+        $applicationArguments += '-env:CrashDumpEnable=false'
+        $publicApplicationArguments += '-env:CrashDumpEnable=false'
+    }
+    Assert-NoNagLaunchArguments -Arguments $applicationArguments
+    Assert-NoNagLaunchArguments -Arguments $publicApplicationArguments
+}
+# END NO-NAG APPLICATION ARGUMENTS
+$applicationCommandLine = @($applicationArguments | ForEach-Object {
+    ConvertTo-WindowsBatchCommandLineArgument -Argument $_
+}) -join ' '
+$sofficeCommandToken = ConvertTo-WindowsBatchCommandLineArgument -Argument $soffice
+$stdoutCommandToken = ConvertTo-WindowsBatchCommandLineArgument -Argument $stdoutPath
+$stderrCommandToken = ConvertTo-WindowsBatchCommandLineArgument -Argument $stderrPath
+$noNagCrashEnvironment = if ($StartupProfile -ne 'Configured') {
+    # Remove an inherited truthy process override so the explicit bootstrap
+    # CrashDumpEnable=false value remains authoritative.
+    'set "CRASH_DUMP_ENABLE="'
+}
+else { '' }
 $wrapper = @"
 @echo off
 setlocal DisableDelayedExpansion
@@ -890,7 +1364,8 @@ set "VCL_FILE_WIDGET_THEME=material"
 set "SAL_SKIA=raster"
 set "SAL_DISABLEGL=1"
 set "SAL_LOG=+WARN.vcl.gdi"
-"$soffice" -env:UserInstallation=$profileUri --nologo --norestore --quickstart=no --language=en-US --pidfile="$pidPath" $acceptArgument 1>"$stdoutPath" 2>"$stderrPath"
+$noNagCrashEnvironment
+$sofficeCommandToken $applicationCommandLine 1>$stdoutCommandToken 2>$stderrCommandToken
 exit /b %ERRORLEVEL%
 "@
 $existing = @(Get-ExactPayloadProcesses -ProgramRoot $programRoot)
@@ -902,18 +1377,48 @@ if ($existing.Count -ne 0) {
 # runtime wrapper. A failed preflight therefore cannot strand that private file.
 $versionMetadataIdentity = Get-EvidenceFileIdentity -Path $versionIniPath `
     -PublicPath 'program/version.ini'
-$harnessEntrypointIdentity = Get-EvidenceFileIdentity -Path $PSCommandPath `
-    -PublicPath 'bin/Run-Windows-Headless-Smoke.ps1'
-$harnessDependencyIdentities = @(
-    (Get-EvidenceFileIdentity -Path $script:McpClientPath `
-        -PublicPath 'bin/call-lowlevel-mcp.py'),
-    (Get-EvidenceFileIdentity -Path $script:PngAnalyzerPath `
-        -PublicPath 'bin/analyze-png.py'),
-    (Get-EvidenceFileIdentity -Path $script:A11yCollectorPath `
-        -PublicPath 'bin/dump-a11y.py'),
-    (Get-EvidenceFileIdentity -Path $evidenceValidatorPath `
-        -PublicPath 'bin/Validate-Windows-Headless-Evidence.ps1')
-)
+$expectedEvidenceEntrypointPath = if ($StartupProfile -eq 'Configured') {
+    [System.IO.Path]::GetFullPath($PSCommandPath)
+}
+else {
+    [System.IO.Path]::GetFullPath(
+        (Join-Path $PSScriptRoot 'Run-Windows-NoNag-Headless-Smoke.ps1')
+    )
+}
+$resolvedEvidenceEntrypointPath = if ($EvidenceEntrypointPath) {
+    [System.IO.Path]::GetFullPath($EvidenceEntrypointPath)
+}
+else {
+    [System.IO.Path]::GetFullPath($PSCommandPath)
+}
+if (-not $resolvedEvidenceEntrypointPath.Equals(
+        $expectedEvidenceEntrypointPath,
+        [System.StringComparison]::OrdinalIgnoreCase
+    )) {
+    throw "Startup profile '$StartupProfile' requires evidence entrypoint '$expectedEvidenceEntrypointPath'."
+}
+$publicEntrypointPath = if ($StartupProfile -eq 'Configured') {
+    'bin/Run-Windows-Headless-Smoke.ps1'
+}
+else {
+    'bin/Run-Windows-NoNag-Headless-Smoke.ps1'
+}
+$harnessEntrypointIdentity = Get-EvidenceFileIdentity `
+    -Path $resolvedEvidenceEntrypointPath -PublicPath $publicEntrypointPath
+$harnessDependencyList = [System.Collections.Generic.List[object]]::new()
+$harnessDependencyList.Add((Get-EvidenceFileIdentity -Path $script:McpClientPath `
+    -PublicPath 'bin/call-lowlevel-mcp.py'))
+$harnessDependencyList.Add((Get-EvidenceFileIdentity -Path $script:PngAnalyzerPath `
+    -PublicPath 'bin/analyze-png.py'))
+$harnessDependencyList.Add((Get-EvidenceFileIdentity -Path $script:A11yCollectorPath `
+    -PublicPath 'bin/dump-a11y.py'))
+$harnessDependencyList.Add((Get-EvidenceFileIdentity -Path $evidenceValidatorPath `
+    -PublicPath 'bin/Validate-Windows-Headless-Evidence.ps1'))
+if ($StartupProfile -ne 'Configured') {
+    $harnessDependencyList.Add((Get-EvidenceFileIdentity -Path $PSCommandPath `
+        -PublicPath 'bin/Run-Windows-Headless-Smoke.ps1'))
+}
+$harnessDependencyIdentities = @($harnessDependencyList.ToArray())
 $sofficeIdentity = Get-EvidenceFileIdentity -Path $soffice `
     -PublicPath 'program/soffice.exe'
 $runtimeIdentity = Get-EvidenceFileIdentity -Path $sofficeBin `
@@ -924,8 +1429,10 @@ $themeIdentity = Get-EvidenceFileIdentity -Path $materialThemeDefinition `
     -PublicPath 'share/theme_definitions/material/definition.xml'
 $pythonIdentity = Get-EvidenceFileIdentity -Path $script:PayloadPython `
     -PublicPath 'program/python.exe'
-$profileConfigurationIdentity = Get-EvidenceFileIdentity -Path $profileConfigPath `
-    -PublicPath 'profile/user/registrymodifications.xcu' -RuntimeOnly
+if ($profileConfigPath) {
+    $profileConfigurationIdentity = Get-EvidenceFileIdentity -Path $profileConfigPath `
+        -PublicPath 'profile/user/registrymodifications.xcu' -RuntimeOnly
+}
 $harnessWindowsSessionId = [int](Get-Process -Id $PID -ErrorAction Stop).SessionId
 
 try {
@@ -966,17 +1473,24 @@ $results = [ordered]@{
         entrypoint = $harnessEntrypointIdentity
         dependencies = @($harnessDependencyIdentities)
     }
-    appearance = $Appearance
-    profile_values = [ordered]@{
-        ApplicationAppearance = $appearanceValue
-        HighContrast = $highContrastValue
+    appearance = if ($StartupProfile -eq 'Configured') { $Appearance } else { 'SystemDefault' }
+    profile_values = if ($StartupProfile -eq 'Configured') {
+        [ordered]@{
+            ApplicationAppearance = $appearanceValue
+            HighContrast = $highContrastValue
+        }
     }
+    else { $null }
     environment = [ordered]@{
         VCL_DRAW_WIDGETS_FROM_FILE = '1'
         VCL_FILE_WIDGET_THEME = 'material'
         SAL_SKIA = 'raster'
         SAL_DISABLEGL = '1'
         SAL_LOG = '+WARN.vcl.gdi'
+        CRASH_DUMP_ENABLE = if ($StartupProfile -ne 'Configured') {
+            '<cleared-before-launch>'
+        }
+        else { '<not-modified>' }
     }
     host = [ordered]@{
         operating_system = [System.Environment]::OSVersion.VersionString
@@ -1005,10 +1519,16 @@ $results = [ordered]@{
         arguments = @($publicApplicationArguments)
         arguments_path_tokenized = $true
         launch_wrapper = $launchWrapperIdentity
+        startup_profile = $startupProfileSlug
         isolated_profile_root = 'profile'
         user_profile_root = 'profile/user'
         user_installation_uri = $publicProfileUri
         profile_configuration = $profileConfigurationIdentity
+        legacy_crash_configuration = $legacyCrashConfigurationIdentity
+        profile_prelaunch_entry_count = $null
+        profile_seed_artifacts = @($profileSeedArtifacts.ToArray())
+        seeded_legacy_triggers = @($legacyTriggerNames)
+        legacy_crash_seeded = [bool]$legacyCrashSeeded
         uno_pipe = $script:UnoPipe
         uno_accept_argument = $acceptArgument
         pid_file = $publicPidPath
@@ -1025,6 +1545,7 @@ $results = [ordered]@{
         transport = 'streamable HTTP over dedicated loopback endpoint'
         dedicated_server = $false
         server_pid = $null
+        listener_process = $null
         desktop_name = $desktopName
         session = [ordered]@{
             mode = 'dedicated same-token server process'
@@ -1043,6 +1564,30 @@ $results = [ordered]@{
     process = $null
     window = $null
     window_handoff_diagnostics = @()
+    no_nag_contract = [ordered]@{
+        enabled = ($StartupProfile -ne 'Configured')
+        observation_seconds = if ($StartupProfile -ne 'Configured') {
+            $ObservationSeconds
+        }
+        else { 0 }
+        poll_interval_milliseconds = 500
+        observation_started_at_utc = $null
+        observation_completed_at_utc = $null
+        observation_elapsed_milliseconds = $null
+        startup_poll_count = 0
+        observation_poll_count = 0
+        window_poll_log = $null
+        former_nag_denylist = @($script:NoNagDeniedText)
+        denied_text_matches = @()
+        retained_safety_prompts = @($script:RetainedSafetyPromptText)
+        retained_manual_actions = @(
+            '.uno:TipOfTheDay',
+            '.uno:WhatsNew',
+            '.uno:OptionsTreeDialog / OptionsPageID 17100'
+        )
+        automatic_file_association_runtime_covered = $false
+        extracted_msi_association_limitation = 'An administratively extracted MSI payload is not registered under HKLM. The historical automatic association check returns before prompting unless the product is installed, so this run does not runtime-prove that registry-gated path. Use an MSI-installed disposable Windows Sandbox or VM for that proof.'
+    }
     scenarios = @()
     review = [ordered]@{
         status = 'pending'
@@ -1060,6 +1605,8 @@ $results = [ordered]@{
         desktop_closed = $false
         desktop_cleanup_error = $null
         dedicated_driver_stopped = $null
+        dedicated_driver_endpoint_closed = $null
+        dedicated_listener_forced_cleanup = $false
         dedicated_driver_cleanup_error = $null
         runtime_launch_wrapper_removed = $false
         runtime_launch_wrapper_cleanup_error = $null
@@ -1069,11 +1616,19 @@ $results = [ordered]@{
 
 $desktopCreated = $false
 $dedicatedDriver = $null
+$dedicatedListenerIdentity = $null
+$driverPort = $null
 $ownedPid = $null
 $ownedProcessStartTimeUtcTicks = $null
 $pidFilePid = $null
 $pidFileResolutionError = $null
 $windowHandoffDiagnostics = [System.Collections.Generic.List[string]]::new()
+$script:WindowPollLog = [System.Collections.Generic.List[object]]::new()
+$script:WindowPollLogPath = Join-Path $script:LogsRoot 'window-polls.json'
+$script:WindowPollOwnedProcessId = $null
+$script:ObservationStartedAtUtc = $null
+$script:ObservationCompletedAtUtc = $null
+$script:ObservationElapsedMilliseconds = $null
 $normalTermination = $false
 $fatal = $null
 $script:WindowHandle = $null
@@ -1126,6 +1681,17 @@ try {
         throw "Low-level MCP server did not become ready at $($script:McpUrl)."
     }
     $dedicatedDriver.Refresh()
+    $dedicatedListenerIdentity = Get-ValidatedLoopbackListenerIdentity `
+        -Port $driverPort -RootProcess $dedicatedDriver
+    $results.driver.listener_process = [ordered]@{
+        pid = [int]$dedicatedListenerIdentity.process_id
+        parent_pid = [int]$dedicatedListenerIdentity.parent_process_id
+        creation_ticks = [long]$dedicatedListenerIdentity.creation_ticks
+        creation_date = [string]$dedicatedListenerIdentity.creation_date
+        local_address = '127.0.0.1'
+        local_port = [int]$driverPort
+        ancestry_validated_to_server_pid = $true
+    }
     $serverProcess = Get-Process -Id $dedicatedDriver.Id -ErrorAction Stop
     $serverAdmin = Invoke-LowLevelTool -Tool 'is_admin' -Arguments @{} `
         -TimeoutSeconds 15
@@ -1145,7 +1711,27 @@ try {
 
     Invoke-LowLevelTool -Tool 'create_headless_desktop' -Arguments @{ name = $desktopName } | Out-Null
     $desktopCreated = $true
-    $launchCommand = 'cmd.exe /d /c call "{0}"' -f $wrapperPath
+    $prelaunchProfileEntries = @(Get-ChildItem -LiteralPath $profileRoot -Force)
+    $results.application.profile_prelaunch_entry_count = $prelaunchProfileEntries.Count
+    if ($StartupProfile -eq 'Fresh' -and $prelaunchProfileEntries.Count -ne 0) {
+        throw 'Fresh no-nag profile was not empty immediately before launch.'
+    }
+    if ($StartupProfile -eq 'Legacy') {
+        if ($prelaunchProfileEntries.Count -ne 2 -or
+            -not (Test-Path -LiteralPath $profileConfigPath -PathType Leaf) -or
+            -not (Test-Path -LiteralPath $crashConfigPath -PathType Leaf)) {
+            throw 'Legacy no-nag profile changed after its fixed user/crash seeds were prepared.'
+        }
+        if ((Get-Sha256Hex -Path $profileConfigPath) -cne
+            [string]$profileConfigurationIdentity.sha256) {
+            throw 'Legacy no-nag registry seed changed before launch.'
+        }
+        if ((Get-Sha256Hex -Path $crashConfigPath) -cne
+            [string]$legacyCrashConfigurationIdentity.sha256) {
+            throw 'Legacy no-nag crash seed changed before launch.'
+        }
+    }
+    $launchCommand = 'cmd.exe /d /v:off /c call "{0}"' -f $wrapperPath
     $launcher = Invoke-LowLevelTool -Tool 'launch_on_headless_desktop' -Arguments @{
         name = $desktopName
         command = $launchCommand
@@ -1154,6 +1740,11 @@ try {
     $deadline = [DateTimeOffset]::UtcNow.AddSeconds(90)
     $stableHandle = $null
     $stableProcessId = $null
+    $stableThreadId = $null
+    $stableDpi = $null
+    $stableWidth = $null
+    $stableHeight = $null
+    $stableTitle = $null
     $stableCount = 0
     $lastWindows = $null
     while ([DateTimeOffset]::UtcNow -lt $deadline) {
@@ -1243,6 +1834,14 @@ try {
         $lastWindows = Invoke-LowLevelTool -Tool 'list_headless_windows' -Arguments @{
             name = $desktopName
         } -TimeoutSeconds 15
+        if ($StartupProfile -ne 'Configured') {
+            $startupPoll = Record-WindowEnumeration -Enumeration $lastWindows `
+                -Phase 'startup' -OwnedProcessId $ownedPid
+            $results.no_nag_contract.startup_poll_count = `
+                [int]$results.no_nag_contract.startup_poll_count + 1
+            Assert-NoNagWindowEnumeration -Entry $startupPoll `
+                -ExpectedHandle 0 -ExpectedProcessId $(if ($ownedPid) { $ownedPid } else { 0 })
+        }
 
         # Window ownership, thread identity, and DPI are sampled by the driver
         # inside the same EnumDesktopWindows callback that produced the HWND.
@@ -1317,6 +1916,14 @@ try {
                 }
                 continue
             }
+            if ($StartupProfile -ne 'Configured' -and
+                [string]$titleProperty.Value -notmatch 'Writer') {
+                $diagnostic = "Rejected SALFRAME HWND ${handleLabel}: blank-Writer no-nag startup has not reached its Writer title."
+                if (-not $windowHandoffDiagnostics.Contains($diagnostic)) {
+                    $windowHandoffDiagnostics.Add($diagnostic)
+                }
+                continue
+            }
 
             $candidate = [pscustomobject][ordered]@{
                 handle = [long]$candidateHandle
@@ -1334,12 +1941,22 @@ try {
 
         if ($candidate) {
             if ($stableHandle -eq [long]$candidate.handle -and
-                $stableProcessId -eq [long]$candidate.process_id) {
+                $stableProcessId -eq [long]$candidate.process_id -and
+                $stableThreadId -eq [long]$candidate.thread_id -and
+                $stableDpi -eq [long]$candidate.dpi -and
+                $stableWidth -eq [long]$candidate.width -and
+                $stableHeight -eq [long]$candidate.height -and
+                $stableTitle -ceq [string]$candidate.title) {
                 $stableCount++
             }
             else {
                 $stableHandle = [long]$candidate.handle
                 $stableProcessId = [long]$candidate.process_id
+                $stableThreadId = [long]$candidate.thread_id
+                $stableDpi = [long]$candidate.dpi
+                $stableWidth = [long]$candidate.width
+                $stableHeight = [long]$candidate.height
+                $stableTitle = [string]$candidate.title
                 $stableCount = 1
             }
         }
@@ -1389,54 +2006,112 @@ try {
     }
 
     $scenarioList = [System.Collections.Generic.List[object]]::new()
-    $appearanceUpper = $Appearance.ToUpperInvariant()
-    $scenarioList.Add((Capture-State -Slug "start-center-$appearanceSlug" `
-        -ScenarioId "E-START-$appearanceUpper" `
-        -ScenarioName "$Appearance Start Center Home and Recent Documents" `
-        -InventoryIds @('WIN-SC-001', 'WIN-SHL-001') `
-        -ExpectedCheckpoints @(
-            'stable owned LibreOffice SALFRAME window',
-            'rendered nonblank screenshot with exact dimensions and SHA-256',
-            'nonempty complete UNO accessibility tree with visible nodes'
-        ) -InputDescription 'none; initial stable Start Center state'))
+    if ($StartupProfile -ne 'Configured') {
+        if ([string]$script:WindowTitle -notmatch 'Writer') {
+            throw "No-nag startup resolved '$($script:WindowTitle)', not a blank Writer window."
+        }
+        Sync-WindowPollOwnership -OwnedProcessId $ownedPid
+        foreach ($startupEntry in @($script:WindowPollLog.ToArray())) {
+            Assert-NoNagWindowEnumeration -Entry $startupEntry `
+                -ExpectedHandle $script:WindowHandle -ExpectedProcessId $ownedPid
+        }
 
-    if ($KeyboardFocus) {
-        Invoke-LowLevelTool -Tool 'win_send_keys' -Arguments @{
-            hwnd = [long]$script:WindowHandle
-            keys = @('tab')
-        } | Out-Null
-        Start-Sleep -Milliseconds 750
+        $script:ObservationStartedAtUtc = [DateTimeOffset]::UtcNow.ToString('o')
+        $observationStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+        do {
+            $observationWindows = Invoke-LowLevelTool -Tool 'list_headless_windows' `
+                -Arguments @{ name = $desktopName } -TimeoutSeconds 15
+            $observationEntry = Record-WindowEnumeration `
+                -Enumeration $observationWindows -Phase 'no-nag-observation' `
+                -OwnedProcessId $ownedPid
+            Assert-NoNagWindowEnumeration -Entry $observationEntry `
+                -ExpectedHandle $script:WindowHandle -ExpectedProcessId $ownedPid `
+                -ExpectedThreadId $script:WindowThreadId -ExpectedDpi $script:WindowDpi `
+                -ExpectedWidth $results.window.width `
+                -ExpectedHeight $results.window.height `
+                -ExpectedTitle $script:WindowTitle `
+                -RequireSingleWriter
+            $results.no_nag_contract.observation_poll_count = `
+                [int]$results.no_nag_contract.observation_poll_count + 1
+            Start-Sleep -Milliseconds 500
+        } while ($observationStopwatch.Elapsed.TotalSeconds -lt $ObservationSeconds)
+        $observationStopwatch.Stop()
+        $script:ObservationCompletedAtUtc = [DateTimeOffset]::UtcNow.ToString('o')
+        $script:ObservationElapsedMilliseconds = [long]$observationStopwatch.ElapsedMilliseconds
+        if ($script:ObservationElapsedMilliseconds -lt ($ObservationSeconds * 1000)) {
+            throw 'No-nag observation ended before its monotonic minimum duration.'
+        }
+        $results.no_nag_contract.observation_started_at_utc = `
+            $script:ObservationStartedAtUtc
+        $results.no_nag_contract.observation_completed_at_utc = `
+            $script:ObservationCompletedAtUtc
+        $results.no_nag_contract.observation_elapsed_milliseconds = `
+            $script:ObservationElapsedMilliseconds
+        Sync-WindowPollOwnership -OwnedProcessId $ownedPid
+
+        $profileUpper = $StartupProfile.ToUpperInvariant()
         $scenarioList.Add((Capture-State `
-            -Slug "start-center-$appearanceSlug-keyboard-focus" `
-            -ScenarioId "E-START-$appearanceUpper-KEYBOARD" `
-            -ScenarioName 'Background Tab navigation exposes keyboard focus' `
-            -InventoryIds @('WIN-SC-002', 'WIN-ACT-006', 'WIN-SC-006') `
+            -Slug "writer-$startupProfileSlug-startup-no-nags" `
+            -ScenarioId "E-NONAG-$profileUpper" `
+            -ScenarioName "$StartupProfile profile blank Writer startup without unsolicited UI" `
+            -InventoryIds @('WIN-SYS-008', 'WIN-SYS-010', 'WIN-WR-001', 'WIN-FBK-006') `
             -ExpectedCheckpoints @(
-                'background Tab input delivered to the owned window',
-                'at least one FOCUSED UNO accessibility node',
-                'rendered nonblank screenshot retained for visual review'
-            ) -InputDescription 'low-level MCP win_send_keys: tab' -RequireFocused))
+                'blank Writer launched without suppressive UI flags',
+                'exactly one PID/HWND-owned Writer SALFRAME throughout the observation',
+                'former nag text absent from every owned title and the complete UNO tree',
+                'retained recovery, security, compatibility, credential, and read-only prompts were not denied'
+            ) -InputDescription 'none; disposable profile startup observation'))
     }
-
-    if ($Templates) {
-        Invoke-LowLevelTool -Tool 'mouse_click' -Arguments @{
-            hwnd = [long]$script:WindowHandle
-            x = 140
-            y = 330
-            button = 'left'
-            clicks = 1
-        } | Out-Null
-        Start-Sleep -Seconds 2
-        $scenarioList.Add((Capture-State `
-            -Slug "start-center-templates-$appearanceSlug" `
-            -ScenarioId "E-START-$appearanceUpper-TEMPLATES" `
-            -ScenarioName 'Background pointer navigation to Templates' `
-            -InventoryIds @('WIN-SC-003', 'WIN-SC-005') `
+    else {
+        $appearanceUpper = $Appearance.ToUpperInvariant()
+        $scenarioList.Add((Capture-State -Slug "start-center-$appearanceSlug" `
+            -ScenarioId "E-START-$appearanceUpper" `
+            -ScenarioName "$Appearance Start Center Home and Recent Documents" `
+            -InventoryIds @('WIN-SC-001', 'WIN-SHL-001') `
             -ExpectedCheckpoints @(
-                'background pointer click delivered at recorded client coordinates',
-                'rendered nonblank post-input screenshot retained for visual review',
-                'nonempty complete post-input UNO accessibility tree with visible nodes'
-            ) -InputDescription 'low-level MCP mouse_click at client coordinates (140, 330)'))
+                'stable owned LibreOffice SALFRAME window',
+                'rendered nonblank screenshot with exact dimensions and SHA-256',
+                'nonempty complete UNO accessibility tree with visible nodes'
+            ) -InputDescription 'none; initial stable Start Center state'))
+
+        if ($KeyboardFocus) {
+            Invoke-LowLevelTool -Tool 'win_send_keys' -Arguments @{
+                hwnd = [long]$script:WindowHandle
+                keys = @('tab')
+            } | Out-Null
+            Start-Sleep -Milliseconds 750
+            $scenarioList.Add((Capture-State `
+                -Slug "start-center-$appearanceSlug-keyboard-focus" `
+                -ScenarioId "E-START-$appearanceUpper-KEYBOARD" `
+                -ScenarioName 'Background Tab navigation exposes keyboard focus' `
+                -InventoryIds @('WIN-SC-002', 'WIN-ACT-006', 'WIN-SC-006') `
+                -ExpectedCheckpoints @(
+                    'background Tab input delivered to the owned window',
+                    'at least one FOCUSED UNO accessibility node',
+                    'rendered nonblank screenshot retained for visual review'
+                ) -InputDescription 'low-level MCP win_send_keys: tab' -RequireFocused))
+        }
+
+        if ($Templates) {
+            Invoke-LowLevelTool -Tool 'mouse_click' -Arguments @{
+                hwnd = [long]$script:WindowHandle
+                x = 140
+                y = 330
+                button = 'left'
+                clicks = 1
+            } | Out-Null
+            Start-Sleep -Seconds 2
+            $scenarioList.Add((Capture-State `
+                -Slug "start-center-templates-$appearanceSlug" `
+                -ScenarioId "E-START-$appearanceUpper-TEMPLATES" `
+                -ScenarioName 'Background pointer navigation to Templates' `
+                -InventoryIds @('WIN-SC-003', 'WIN-SC-005') `
+                -ExpectedCheckpoints @(
+                    'background pointer click delivered at recorded client coordinates',
+                    'rendered nonblank post-input screenshot retained for visual review',
+                    'nonempty complete post-input UNO accessibility tree with visible nodes'
+                ) -InputDescription 'low-level MCP mouse_click at client coordinates (140, 330)'))
+        }
     }
 
     $finalScenario = $scenarioList[$scenarioList.Count - 1]
@@ -1541,14 +2216,51 @@ finally {
     }
     if ($dedicatedDriver) {
         try {
-            if (-not $dedicatedDriver.HasExited) {
-                Stop-ControlledProcessTree -RootProcess $dedicatedDriver `
-                    -Description 'dedicated low-level MCP driver' `
-                    -TimeoutMilliseconds 15000
+            $driverCleanupFailures = [System.Collections.Generic.List[string]]::new()
+            try {
+                if (-not $dedicatedDriver.HasExited) {
+                    Stop-ControlledProcessTree -RootProcess $dedicatedDriver `
+                        -Description 'dedicated low-level MCP driver' `
+                        -TimeoutMilliseconds 15000
+                }
             }
-            $results.cleanup.dedicated_driver_stopped = $dedicatedDriver.HasExited
+            catch {
+                $driverCleanupFailures.Add("root tree: $($_.Exception.Message)")
+            }
+            try {
+                if ($null -ne $dedicatedListenerIdentity) {
+                    $results.cleanup.dedicated_listener_forced_cleanup = `
+                        [bool](Stop-RecordedProcessIdentity `
+                            -Identity $dedicatedListenerIdentity `
+                            -TimeoutMilliseconds 15000)
+                }
+            }
+            catch {
+                $driverCleanupFailures.Add("listener identity: $($_.Exception.Message)")
+            }
+            try {
+                $remainingListeners = @(Get-NetTCPConnection -State Listen `
+                    -LocalPort $driverPort -ErrorAction SilentlyContinue |
+                    Where-Object { $_.LocalAddress -eq '127.0.0.1' })
+                $results.cleanup.dedicated_driver_endpoint_closed = `
+                    ($remainingListeners.Count -eq 0)
+                if (-not $results.cleanup.dedicated_driver_endpoint_closed) {
+                    throw "Dedicated loopback port $driverPort is still listening."
+                }
+            }
+            catch {
+                $driverCleanupFailures.Add("endpoint: $($_.Exception.Message)")
+            }
+            $dedicatedDriver.Refresh()
+            $results.cleanup.dedicated_driver_stopped = (
+                $dedicatedDriver.HasExited -and
+                [bool]$results.cleanup.dedicated_driver_endpoint_closed
+            )
             if (-not $results.cleanup.dedicated_driver_stopped) {
-                throw 'The dedicated low-level MCP process tree did not stop.'
+                $driverCleanupFailures.Add('dedicated root/listener cleanup remained incomplete')
+            }
+            if ($driverCleanupFailures.Count -ne 0) {
+                throw ($driverCleanupFailures -join '; ')
             }
         }
         catch {
@@ -1579,6 +2291,26 @@ finally {
         $results.status = 'failed'
         if (-not $results.error) {
             $results.error = "Launch-wrapper cleanup error: $($_.Exception.Message)"
+        }
+    }
+    if ($StartupProfile -ne 'Configured') {
+        try {
+            if ($ownedPid -and $script:WindowPollLog.Count -gt 0) {
+                Sync-WindowPollOwnership -OwnedProcessId $ownedPid
+            }
+            if (Test-Path -LiteralPath $script:WindowPollLogPath -PathType Leaf) {
+                $results.no_nag_contract.window_poll_log = Get-EvidenceFileIdentity `
+                    -Path $script:WindowPollLogPath -PublicPath 'logs/window-polls.json'
+            }
+            $results.no_nag_contract.denied_text_matches = `
+                @($script:NoNagDeniedMatches.ToArray())
+        }
+        catch {
+            if (-not $fatal) { $fatal = $_.Exception }
+            $results.status = 'failed'
+            if (-not $results.error) {
+                $results.error = "No-nag poll-log finalization error: $($_.Exception.Message)"
+            }
         }
     }
     $results.completed_at_utc = [DateTimeOffset]::UtcNow.ToString('o')

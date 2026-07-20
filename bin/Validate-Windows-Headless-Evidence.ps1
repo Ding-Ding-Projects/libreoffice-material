@@ -223,6 +223,38 @@ foreach ($repositoryField in @('source.repository', 'harness.repository', 'drive
 
 $sourceCommit = [string](Get-RequiredEvidenceValue $evidence 'source.commit')
 $embeddedBuildId = [string](Get-RequiredEvidenceValue $evidence 'source.embedded_build_id')
+$hasStartupProfile = $evidence.application.PSObject.Properties.Name -contains `
+    'startup_profile'
+$startupProfile = if ($hasStartupProfile) {
+    [string](Get-RequiredEvidenceValue $evidence 'application.startup_profile')
+}
+
+function Get-RequiredEvidenceTimestamp {
+    param(
+        [Parameter(Mandatory = $true)] [object]$Object,
+        [Parameter(Mandatory = $true)] [string]$FieldPath
+    )
+
+    $value = [string](Get-RequiredEvidenceValue -Object $Object -FieldPath $FieldPath)
+    $parsed = [DateTimeOffset]::MinValue
+    if (-not [DateTimeOffset]::TryParse(
+            $value,
+            [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::RoundtripKind,
+            [ref]$parsed
+        )) {
+        throw "Evidence field must be an ISO-8601 timestamp: $FieldPath"
+    }
+    return $parsed
+}
+else {
+    # Schema-v2 Start Center manifests accepted before the no-nag extension did
+    # not record this field; their legacy semantics are the configured profile.
+    'configured'
+}
+Assert-Evidence (@('configured', 'fresh', 'legacy') -ccontains $startupProfile) `
+    'application.startup_profile must be configured, fresh, or legacy.'
+$isNoNagRun = $startupProfile -in @('fresh', 'legacy')
 Assert-Commit $sourceCommit 'source.commit'
 Assert-Evidence ([string](Get-RequiredEvidenceValue $evidence 'source_commit') -ceq
     $sourceCommit) 'source_commit must equal source.commit.'
@@ -247,16 +279,27 @@ Assert-Evidence (-not (Get-RequiredEvidenceBoolean $evidence 'harness.checkout_d
     'The harness dirty-worktree state contradicts checkout_clean.'
 Assert-Hash ([string](Get-RequiredEvidenceValue $evidence 'harness.entrypoint.sha256')) `
     'harness.entrypoint.sha256'
+$expectedEntrypoint = if ($isNoNagRun) {
+    'bin/Run-Windows-NoNag-Headless-Smoke.ps1'
+}
+else {
+    'bin/Run-Windows-Headless-Smoke.ps1'
+}
 Assert-Evidence ((Get-RequiredEvidenceValue $evidence `
-    'harness.entrypoint.path') -ceq 'bin/Run-Windows-Headless-Smoke.ps1') `
+    'harness.entrypoint.path') -ceq $expectedEntrypoint) `
     'Harness entrypoint path must be repository-relative.'
 $harnessDependencies = @(Get-RequiredEvidenceValue $evidence 'harness.dependencies')
-Assert-Evidence ($harnessDependencies.Count -ge 4) `
+Assert-Evidence ($harnessDependencies.Count -ge $(if ($isNoNagRun) { 5 } else { 4 })) `
     'The harness must identify its validator, MCP client, PNG analyzer, and a11y collector.'
 foreach ($dependency in $harnessDependencies) {
     Assert-Hash ([string]$dependency.sha256) 'harness dependency SHA-256'
     Assert-Evidence ([string]$dependency.path -cmatch '^bin/[A-Za-z0-9._-]+$') `
         'Harness dependency path must be repository-relative.'
+}
+if ($isNoNagRun) {
+    Assert-Evidence (@($harnessDependencies | Where-Object {
+        [string]$_.path -ceq 'bin/Run-Windows-Headless-Smoke.ps1'
+    }).Count -eq 1) 'No-nag evidence must bind the shared runner as a dependency.'
 }
 
 $dpi = Get-RequiredEvidenceInteger $evidence 'host.display_scale.dpi'
@@ -279,8 +322,6 @@ $pidFile = [string](Get-RequiredEvidenceValue $evidence 'application.pid_file')
 $applicationArguments = @(Get-RequiredEvidenceValue $evidence 'application.arguments')
 foreach ($requiredArgument in @(
     "-env:UserInstallation=$profileUri",
-    '--nologo',
-    '--norestore',
     '--quickstart=no',
     '--language=en-US',
     "--pidfile=$pidFile",
@@ -289,14 +330,41 @@ foreach ($requiredArgument in @(
     Assert-Evidence (@($applicationArguments | Where-Object { $_ -ceq $requiredArgument }).Count -eq 1) `
         "Application arguments must contain exactly one '$requiredArgument'."
 }
-foreach ($forbiddenArgument in @('--headless', '--invisible', '--nodefault')) {
-    Assert-Evidence (-not ($applicationArguments -contains $forbiddenArgument)) `
+if ($isNoNagRun) {
+    Assert-Evidence (@($applicationArguments | Where-Object { $_ -ceq '--writer' }).Count -eq 1) `
+        'No-nag application arguments must contain exactly one --writer.'
+}
+else {
+    foreach ($requiredArgument in @('--nologo', '--norestore')) {
+        Assert-Evidence (@($applicationArguments | Where-Object {
+            $_ -ceq $requiredArgument
+        }).Count -eq 1) `
+            "Configured application arguments must contain exactly one '$requiredArgument'."
+    }
+}
+$forbiddenArguments = if ($isNoNagRun) {
+    @('--nologo', '--norestore', '--headless', '--invisible', '--nodefault')
+}
+else {
+    @('--headless', '--invisible', '--nodefault')
+}
+foreach ($forbiddenArgument in $forbiddenArguments) {
+    $forbiddenArgumentMatches = @($applicationArguments | Where-Object {
+        $argumentValue = [string]$_
+        $argumentValue.Equals(
+            $forbiddenArgument,
+            [System.StringComparison]::OrdinalIgnoreCase
+        ) -or $argumentValue.StartsWith(
+            "$forbiddenArgument=",
+            [System.StringComparison]::OrdinalIgnoreCase
+        )
+    })
+    Assert-Evidence ($forbiddenArgumentMatches.Count -eq 0) `
         "GUI evidence cannot use $forbiddenArgument."
 }
 foreach ($field in @(
     'application.isolated_profile_root',
-    'application.user_profile_root',
-    'application.profile_configuration.path'
+    'application.user_profile_root'
 )) {
     Assert-Evidence (-not [string]::IsNullOrWhiteSpace(
         [string](Get-RequiredEvidenceValue $evidence $field)
@@ -320,17 +388,105 @@ foreach ($payloadIdentity in @(
         ($payloadIdentity.field + '.path')) -ceq $payloadIdentity.path) `
         "$($payloadIdentity.field) must use its exact payload-relative path."
 }
-Assert-Hash ([string](Get-RequiredEvidenceValue $evidence 'application.profile_configuration.sha256')) `
-    'application.profile_configuration.sha256'
+$profileConfiguration = Get-RequiredEvidenceValue $evidence `
+    'application.profile_configuration'
+$hasExtendedProfileContract = $evidence.application.PSObject.Properties.Name `
+    -contains 'profile_prelaunch_entry_count'
+if (-not $hasExtendedProfileContract) {
+    Assert-Evidence (-not $isNoNagRun) `
+        'No-nag evidence must record the extended disposable-profile contract.'
+    Assert-Hash ([string](Get-RequiredEvidenceValue $evidence `
+        'application.profile_configuration.sha256')) `
+        'application.profile_configuration.sha256'
+    Assert-Evidence (-not (Get-RequiredEvidenceBoolean $evidence `
+        'application.profile_configuration.retained_in_public_evidence')) `
+        'The generated profile must remain runtime-only.'
+}
+else {
+    $profilePrelaunchEntryCount = Get-RequiredEvidenceInteger $evidence `
+        'application.profile_prelaunch_entry_count'
+    $profileSeedArtifacts = @(Get-RequiredEvidenceValue $evidence `
+        'application.profile_seed_artifacts')
+    $seededLegacyTriggers = @(Get-RequiredEvidenceValue $evidence `
+        'application.seeded_legacy_triggers')
+    $legacyCrashSeeded = Get-RequiredEvidenceBoolean $evidence `
+        'application.legacy_crash_seeded'
+    $legacyCrashConfiguration = Get-RequiredEvidenceValue $evidence `
+        'application.legacy_crash_configuration'
+    if ($startupProfile -ceq 'fresh') {
+        Assert-Evidence ($profilePrelaunchEntryCount -eq 0) `
+            'Fresh no-nag profile must be empty immediately before launch.'
+        Assert-Evidence ($null -eq $profileConfiguration) `
+            'Fresh no-nag evidence must not generate registrymodifications.xcu.'
+        Assert-Evidence ($profileSeedArtifacts.Count -eq 0 -and
+            $seededLegacyTriggers.Count -eq 0 -and -not $legacyCrashSeeded -and
+            $null -eq $legacyCrashConfiguration) `
+            'Fresh no-nag evidence cannot contain legacy seeds.'
+    }
+    else {
+        Assert-Hash ([string](Get-RequiredEvidenceValue $evidence `
+            'application.profile_configuration.sha256')) `
+            'application.profile_configuration.sha256'
+        Assert-Evidence ((Get-RequiredEvidenceValue $evidence `
+            'application.profile_configuration.path') -ceq
+            'profile/user/registrymodifications.xcu') `
+            'Profile configuration must use its runtime-only profile path.'
+        Assert-Evidence (-not (Get-RequiredEvidenceBoolean $evidence `
+            'application.profile_configuration.retained_in_public_evidence')) `
+            'The generated profile must remain runtime-only.'
+    }
+    if ($startupProfile -ceq 'legacy') {
+        Assert-Evidence ($profilePrelaunchEntryCount -eq 2 -and $legacyCrashSeeded) `
+            'Legacy no-nag evidence must preserve exactly its user/crash seeds.'
+        Assert-Evidence ($profileSeedArtifacts.Count -eq 2) `
+            'Legacy no-nag evidence must retain two sanitized seed artifacts.'
+        Assert-Hash ([string](Get-RequiredEvidenceValue $evidence `
+            'application.legacy_crash_configuration.sha256')) `
+            'application.legacy_crash_configuration.sha256'
+        Assert-Evidence ((Get-RequiredEvidenceValue $evidence `
+            'application.legacy_crash_configuration.path') -ceq
+            'profile/crash/dump.ini' -and
+            -not (Get-RequiredEvidenceBoolean $evidence `
+                'application.legacy_crash_configuration.retained_in_public_evidence')) `
+            'Legacy crash configuration must be hash-bound and runtime-only.'
+        foreach ($requiredLegacyTrigger in @(
+            'Office.Common/Misc/FirstRun',
+            'Office.Common/Misc/CrashReport',
+            'Office.Common/Misc/ShowTipOfTheDay',
+            'Office.Common/Misc/LastTipOfTheDayShown',
+            'Office.Common/Misc/PerformFileExtCheck',
+            'Office.Common/Misc/ShowDonation',
+            'Setup/Product/ooSetupLastVersion',
+            'Setup/Product/WhatsNew',
+            'Setup/Product/WhatsNewDialog',
+            'Setup/Product/LastTimeGetInvolvedShown',
+            'Setup/Product/LastTimeDonateShown',
+            'Office.UI/Infobar/Enabled/Donate',
+            'Office.UI/Infobar/Enabled/GetInvolved',
+            'Office.UI/Infobar/Enabled/WhatsNew',
+            'Office.UI/Infobar/Enabled/AutoCorrLeadTrail'
+        )) {
+            Assert-Evidence ($seededLegacyTriggers -ccontains $requiredLegacyTrigger) `
+                "Legacy no-nag seed is missing '$requiredLegacyTrigger'."
+        }
+        Assert-Evidence (@($seededLegacyTriggers | Select-Object -Unique).Count -eq
+            $seededLegacyTriggers.Count) `
+            'Legacy no-nag trigger identities must be unique and path-qualified.'
+        foreach ($seedArtifact in $profileSeedArtifacts) {
+            Assert-Hash ([string]$seedArtifact.sha256) 'legacy seed SHA-256'
+            $seedPath = Resolve-RunArtifactPath -ManifestRoot $manifestRoot `
+                -RelativePath ([string]$seedArtifact.path) -ExpectedDirectory 'logs'
+            Assert-ArtifactFileIdentity -ArtifactPath $seedPath -Record $seedArtifact `
+                -Description 'Legacy no-nag sanitized seed'
+        }
+    }
+}
 Assert-Evidence (Get-RequiredEvidenceBoolean $evidence `
     'application.arguments_path_tokenized') `
     'Application arguments must use public-safe run-root tokens.'
 Assert-Evidence (-not (Get-RequiredEvidenceBoolean $evidence `
     'application.launch_wrapper.retained_in_public_evidence')) `
     'The path-bearing launch wrapper must remain runtime-only.'
-Assert-Evidence (-not (Get-RequiredEvidenceBoolean $evidence `
-    'application.profile_configuration.retained_in_public_evidence')) `
-    'The generated profile must remain runtime-only.'
 
 Assert-Evidence ((Get-RequiredEvidenceValue $evidence `
     'environment.VCL_DRAW_WIDGETS_FROM_FILE') -ceq '1') `
@@ -338,6 +494,110 @@ Assert-Evidence ((Get-RequiredEvidenceValue $evidence `
 Assert-Evidence ((Get-RequiredEvidenceValue $evidence `
     'environment.VCL_FILE_WIDGET_THEME') -ceq 'material') `
     'VCL_FILE_WIDGET_THEME must be exactly material.'
+if ($isNoNagRun) {
+    Assert-Evidence ([string](Get-RequiredEvidenceValue $evidence `
+        'environment.CRASH_DUMP_ENABLE') -ceq '<cleared-before-launch>') `
+        'No-nag evidence must clear any inherited truthy crash-dump override.'
+    Assert-Evidence ($applicationArguments -ccontains '-env:CrashDumpEnable=false') `
+        'No-nag evidence must disable dump creation through the bootstrap value.'
+}
+
+$hasNoNagContract = $evidence.PSObject.Properties.Name -contains 'no_nag_contract'
+if (-not $hasNoNagContract) {
+    Assert-Evidence (-not $isNoNagRun) `
+        'No-nag evidence must include no_nag_contract.'
+}
+else {
+    $noNagEnabled = Get-RequiredEvidenceBoolean $evidence 'no_nag_contract.enabled'
+    Assert-Evidence ($noNagEnabled -eq $isNoNagRun) `
+        'no_nag_contract.enabled contradicts application.startup_profile.'
+}
+if ($isNoNagRun) {
+    $observationSeconds = Get-RequiredEvidenceInteger $evidence `
+        'no_nag_contract.observation_seconds'
+    $observationElapsedMilliseconds = Get-RequiredEvidenceInteger $evidence `
+        'no_nag_contract.observation_elapsed_milliseconds'
+    $observationStartedAt = Get-RequiredEvidenceTimestamp $evidence `
+        'no_nag_contract.observation_started_at_utc'
+    $observationCompletedAt = Get-RequiredEvidenceTimestamp $evidence `
+        'no_nag_contract.observation_completed_at_utc'
+    Assert-Evidence ($observationSeconds -ge 15) `
+        'No-nag observation must run for at least 15 seconds.'
+    Assert-Evidence ($observationElapsedMilliseconds -ge ($observationSeconds * 1000)) `
+        'No-nag monotonic observation duration is shorter than the declared minimum.'
+    Assert-Evidence ($observationCompletedAt -ge $observationStartedAt) `
+        'No-nag observation completion precedes its start timestamp.'
+    Assert-Evidence ((Get-RequiredEvidenceInteger $evidence `
+        'no_nag_contract.poll_interval_milliseconds') -eq 500) `
+        'No-nag polling must retain its 500-millisecond inter-poll delay.'
+    Assert-Evidence ((Get-RequiredEvidenceInteger $evidence `
+        'no_nag_contract.startup_poll_count') -gt 0 -and
+        (Get-RequiredEvidenceInteger $evidence `
+            'no_nag_contract.observation_poll_count') -gt 1) `
+        'No-nag evidence must include startup and stable-observation polls.'
+    Assert-Evidence (@(Get-RequiredEvidenceValue $evidence `
+        'no_nag_contract.denied_text_matches').Count -eq 0) `
+        'No-nag evidence recorded former nag text.'
+    $formerNagDenylist = @(Get-RequiredEvidenceValue $evidence `
+        'no_nag_contract.former_nag_denylist')
+    $retainedSafetyPrompts = @(Get-RequiredEvidenceValue $evidence `
+        'no_nag_contract.retained_safety_prompts')
+    foreach ($requiredDeniedText in @(
+        'Tip of the Day', "What's new in", 'Welcome to',
+        'for the first time', 'Please take a moment to personalize your settings',
+        'You are running version',
+        'Default file formats not registered', 'Crash Report',
+        'Support the development', 'Help us make',
+        'Autocorrection has removed a leading or trailing character'
+    )) {
+        Assert-Evidence ($formerNagDenylist -ccontains $requiredDeniedText) `
+            "No-nag denylist is missing '$requiredDeniedText'."
+    }
+    foreach ($requiredSafetyPrompt in @(
+        'Document Recovery', 'Troubleshoot Mode', 'Incompatible Extensions',
+        'Extension Dependencies', 'Macros disabled', 'Security Warning',
+        'Hidden Information', 'read-only mode', 'Master Password',
+        'Password Required', 'Extension Update'
+    )) {
+        Assert-Evidence ($retainedSafetyPrompts -ccontains $requiredSafetyPrompt) `
+            "No-nag evidence does not preserve '$requiredSafetyPrompt' as an allowed safety prompt."
+    }
+    $denyKeys = @($formerNagDenylist | ForEach-Object {
+        if ([string]::IsNullOrWhiteSpace([string]$_)) {
+            throw 'No-nag denylist contains a blank entry.'
+        }
+        ([string]$_).ToLowerInvariant()
+    })
+    $safetyKeys = @($retainedSafetyPrompts | ForEach-Object {
+        if ([string]::IsNullOrWhiteSpace([string]$_)) {
+            throw 'Retained safety-prompt list contains a blank entry.'
+        }
+        ([string]$_).ToLowerInvariant()
+    })
+    Assert-Evidence (@($denyKeys | Select-Object -Unique).Count -eq $denyKeys.Count) `
+        'No-nag denylist contains duplicate entries.'
+    Assert-Evidence (@($safetyKeys | Select-Object -Unique).Count -eq $safetyKeys.Count) `
+        'Retained safety-prompt list contains duplicate entries.'
+    Assert-Evidence (@($safetyKeys | Where-Object { $denyKeys -contains $_ }).Count -eq 0) `
+        'Retained safety prompts must remain disjoint from the former-nag denylist.'
+    foreach ($requiredManualAction in @(
+        '.uno:TipOfTheDay', '.uno:WhatsNew',
+        '.uno:OptionsTreeDialog / OptionsPageID 17100'
+    )) {
+        Assert-Evidence (@(Get-RequiredEvidenceValue $evidence `
+            'no_nag_contract.retained_manual_actions') -ccontains $requiredManualAction) `
+            "No-nag evidence is missing retained manual action '$requiredManualAction'."
+    }
+    Assert-Evidence (-not (Get-RequiredEvidenceBoolean $evidence `
+        'no_nag_contract.automatic_file_association_runtime_covered')) `
+        'Extracted-payload no-nag evidence cannot claim registry-gated association runtime coverage.'
+    $associationLimitation = [string](Get-RequiredEvidenceValue $evidence `
+        'no_nag_contract.extracted_msi_association_limitation')
+    Assert-Evidence ($associationLimitation -match 'HKLM' -and
+        $associationLimitation -match 'Sandbox|VM' -and
+        $associationLimitation -match 'does not runtime-prove') `
+        'Extracted-MSI association limitation must be explicit and actionable.'
+}
 
 Assert-Commit ([string](Get-RequiredEvidenceValue $evidence 'driver.commit')) 'driver.commit'
 Assert-Evidence (Get-RequiredEvidenceBoolean $evidence 'driver.checkout_clean') `
@@ -382,6 +642,21 @@ Assert-Evidence ($harnessAdmin -eq $serverAdmin) `
 Assert-Evidence (-not (Get-RequiredEvidenceBoolean $evidence `
     'driver.session.server_mandatory_label_measured_directly')) `
     'The current contract must not claim a directly measured server mandatory label.'
+if ($isNoNagRun) {
+    $listenerPid = Get-RequiredEvidenceInteger $evidence 'driver.listener_process.pid'
+    $listenerCreationTicks = Get-RequiredEvidenceInteger $evidence `
+        'driver.listener_process.creation_ticks'
+    $listenerPort = Get-RequiredEvidenceInteger $evidence `
+        'driver.listener_process.local_port'
+    $mcpUri = [Uri]([string]$evidence.driver.mcp_url)
+    Assert-Evidence ($listenerPid -gt 0 -and $listenerCreationTicks -gt 0 -and
+        $listenerPort -eq $mcpUri.Port -and
+        [string](Get-RequiredEvidenceValue $evidence `
+            'driver.listener_process.local_address') -ceq '127.0.0.1' -and
+        (Get-RequiredEvidenceBoolean $evidence `
+            'driver.listener_process.ancestry_validated_to_server_pid')) `
+        'Dedicated listener identity/ancestry does not match the loopback MCP endpoint.'
+}
 
 $ownedPid = Get-RequiredEvidenceInteger $evidence 'process.pid'
 $pidFilePid = Get-RequiredEvidenceInteger $evidence 'process.pidfile_pid'
@@ -411,6 +686,133 @@ Assert-Evidence ((-not [string]::IsNullOrWhiteSpace(
     'Resolved window title/class metadata is invalid.'
 Assert-Evidence ($windowDpi -eq $dpi) `
     'Resolved window DPI differs from the recorded display scale.'
+
+if ($isNoNagRun) {
+    $windowPollRecord = Get-RequiredEvidenceValue $evidence `
+        'no_nag_contract.window_poll_log'
+    Assert-Hash ([string]$windowPollRecord.sha256) 'no-nag window poll log SHA-256'
+    $windowPollPath = Resolve-RunArtifactPath -ManifestRoot $manifestRoot `
+        -RelativePath ([string]$windowPollRecord.path) -ExpectedDirectory 'logs'
+    Assert-ArtifactFileIdentity -ArtifactPath $windowPollPath -Record $windowPollRecord `
+        -Description 'No-nag window poll log'
+    $windowPollText = Get-Content -LiteralPath $windowPollPath -Raw
+    if ($windowPollText -match '(?i)[A-Z]:(?:\\\\|/)Users(?:\\\\|/)') {
+        throw 'No-nag window poll log contains a private Windows user-profile path.'
+    }
+    try {
+        $windowPollReport = $windowPollText | ConvertFrom-Json
+    }
+    catch {
+        throw "No-nag window poll log is invalid JSON: $($_.Exception.Message)"
+    }
+    Assert-Evidence ([string](Get-RequiredEvidenceValue $windowPollReport 'run_id') -ceq
+        [string]$evidence.run_id) 'No-nag window poll log run_id differs from the manifest.'
+    Assert-Evidence ((Get-RequiredEvidenceInteger $windowPollReport `
+        'owned_process_id') -eq $ownedPid) `
+        'No-nag window poll log ownership PID differs from the manifest.'
+    Assert-Evidence ([string](Get-RequiredEvidenceValue $windowPollReport `
+            'observation_started_at_utc') -ceq
+            [string]$evidence.no_nag_contract.observation_started_at_utc -and
+        [string](Get-RequiredEvidenceValue $windowPollReport `
+            'observation_completed_at_utc') -ceq
+            [string]$evidence.no_nag_contract.observation_completed_at_utc -and
+        (Get-RequiredEvidenceInteger $windowPollReport `
+            'observation_elapsed_milliseconds') -eq
+            $observationElapsedMilliseconds) `
+        'No-nag poll-log observation duration differs from the manifest.'
+    $windowPolls = @(Get-RequiredEvidenceValue $windowPollReport 'polls')
+    $startupPolls = @($windowPolls | Where-Object { [string]$_.phase -ceq 'startup' })
+    $observationPolls = @($windowPolls | Where-Object {
+        [string]$_.phase -ceq 'no-nag-observation'
+    })
+    Assert-Evidence ($startupPolls.Count -eq [int](Get-RequiredEvidenceValue $evidence `
+            'no_nag_contract.startup_poll_count') -and
+        $observationPolls.Count -eq [int](Get-RequiredEvidenceValue $evidence `
+            'no_nag_contract.observation_poll_count')) `
+        'No-nag poll counts differ between the manifest and retained log.'
+    $previousPollTimestamp = $null
+    $observationPhaseSeen = $false
+    foreach ($poll in $windowPolls) {
+        Assert-Evidence (@('startup', 'no-nag-observation') -ccontains
+            [string]$poll.phase) 'No-nag poll log contains an unknown phase.'
+        if ([string]$poll.phase -ceq 'no-nag-observation') {
+            $observationPhaseSeen = $true
+        }
+        else {
+            Assert-Evidence (-not $observationPhaseSeen) `
+                'No-nag startup polls cannot appear after observation begins.'
+        }
+        $pollTimestamp = Get-RequiredEvidenceTimestamp $poll 'captured_at_utc'
+        if ($null -ne $previousPollTimestamp) {
+            Assert-Evidence ($pollTimestamp -ge $previousPollTimestamp) `
+                'No-nag poll timestamps are not monotonic.'
+        }
+        $previousPollTimestamp = $pollTimestamp
+        $pollWindows = @($poll.windows)
+        Assert-Evidence ((Get-RequiredEvidenceInteger $poll `
+            'desktop_window_count') -eq $pollWindows.Count) `
+            'No-nag poll desktop-window count is inconsistent.'
+        foreach ($pollWindow in $pollWindows) {
+            foreach ($deniedText in $formerNagDenylist) {
+                Assert-Evidence ([string]$pollWindow.title -notmatch
+                    [regex]::Escape([string]$deniedText)) `
+                    "No-nag desktop window title contains '$deniedText'."
+            }
+        }
+        $ownedPollWindows = [System.Collections.Generic.List[object]]::new()
+        foreach ($pollWindow in $pollWindows) {
+            $recordedOwned = Get-RequiredEvidenceBoolean $pollWindow 'payload_owned'
+            $pollProcessId = $pollWindow.process_id
+            $shouldBeOwned = $false
+            if ($null -ne $pollProcessId) {
+                $shouldBeOwned = ((Get-RequiredEvidenceInteger $pollWindow `
+                    'process_id') -eq $ownedPid)
+            }
+            Assert-Evidence ($recordedOwned -eq $shouldBeOwned) `
+                'No-nag poll contains a forged or missing payload-ownership marker.'
+            if ($recordedOwned) { $ownedPollWindows.Add($pollWindow) }
+        }
+        Assert-Evidence ((Get-RequiredEvidenceInteger $poll `
+            'payload_owned_window_count') -eq $ownedPollWindows.Count) `
+            'No-nag poll payload-window count is inconsistent.'
+        foreach ($ownedPollWindow in $ownedPollWindows) {
+            Assert-Evidence ((Get-RequiredEvidenceInteger $ownedPollWindow `
+                'process_id') -eq $ownedPid -and
+                (Get-RequiredEvidenceInteger $ownedPollWindow 'handle') -gt 0) `
+                'No-nag poll marks a window owned by the wrong process or HWND.'
+        }
+    }
+    foreach ($poll in $observationPolls) {
+        Assert-Evidence ((Get-RequiredEvidenceInteger $poll `
+                'desktop_window_count') -eq 1 -and
+            (Get-RequiredEvidenceInteger $poll `
+                'payload_owned_window_count') -eq 1) `
+            'Every no-nag observation poll must contain exactly one total/owned window.'
+        $ownedPollWindows = @($poll.windows | Where-Object {
+            (Get-RequiredEvidenceBoolean $_ 'payload_owned')
+        })
+        Assert-Evidence ($ownedPollWindows.Count -eq 1) `
+            'No-nag observation ownership markers are inconsistent.'
+        $ownedPollWindow = $ownedPollWindows[0]
+        Assert-Evidence ((Get-RequiredEvidenceInteger $ownedPollWindow 'handle') -eq
+                $windowHandle -and
+            (Get-RequiredEvidenceInteger $ownedPollWindow 'process_id') -eq
+                $windowProcessId -and
+            (Get-RequiredEvidenceInteger $ownedPollWindow 'thread_id') -eq
+                $windowThreadId -and
+            (Get-RequiredEvidenceInteger $ownedPollWindow 'dpi') -eq $windowDpi -and
+            (Get-RequiredEvidenceInteger $ownedPollWindow 'width') -eq $windowWidth -and
+            (Get-RequiredEvidenceInteger $ownedPollWindow 'height') -eq $windowHeight -and
+            [string]$ownedPollWindow.class -ceq 'SALFRAME' -and
+            [string]$ownedPollWindow.title -ceq [string]$evidence.window.title) `
+            'No-nag observation did not retain the exact Writer PID/HWND/thread/DPI/geometry/title.'
+    }
+    Assert-Evidence ((Get-RequiredEvidenceTimestamp $observationPolls[0] `
+            'captured_at_utc') -ge $observationStartedAt -and
+        (Get-RequiredEvidenceTimestamp $observationPolls[-1] `
+            'captured_at_utc') -le $observationCompletedAt) `
+        'No-nag observation poll timestamps fall outside the declared interval.'
+}
 
 if ($RequirePassed -or $RequireAccepted) {
     $allowedStatus = if ($RequireAccepted) { 'accepted' } else { 'passed' }
@@ -548,6 +950,31 @@ if ($RequirePassed -or $RequireAccepted) {
                 Assert-Evidence ($focusedNodeCount -gt 0) `
                     "Scenario '$($scenario.id)' requires a focused a11y node but has none."
             }
+            if ($isNoNagRun) {
+                $visibleA11yText = [System.Collections.Generic.List[string]]::new()
+                foreach ($a11yNode in @(Get-RequiredEvidenceValue $a11yReport 'nodes')) {
+                    if (@($a11yNode.states) -notcontains 'VISIBLE' -and
+                        @($a11yNode.states) -notcontains 'SHOWING') {
+                        continue
+                    }
+                    foreach ($propertyName in @('name', 'description')) {
+                        $property = $a11yNode.PSObject.Properties[$propertyName]
+                        if ($null -ne $property -and
+                            -not [string]::IsNullOrWhiteSpace([string]$property.Value)) {
+                            $visibleA11yText.Add([string]$property.Value)
+                        }
+                    }
+                }
+                foreach ($deniedText in $formerNagDenylist) {
+                    foreach ($observedText in $visibleA11yText) {
+                        Assert-Evidence ($observedText.IndexOf(
+                                [string]$deniedText,
+                                [System.StringComparison]::OrdinalIgnoreCase
+                            ) -lt 0) `
+                            "Scenario '$($scenario.id)' a11y tree contains former nag text '$deniedText'."
+                    }
+                }
+            }
             $recordedA11yPartial = Get-RequiredEvidenceBoolean `
                 $scenario.accessibility.summary 'partial'
             Assert-Evidence (
@@ -557,6 +984,37 @@ if ($RequirePassed -or $RequireAccepted) {
                 $recordedA11yPartial -eq $a11yPartial -and
                 [int]$scenario.accessibility.summary.focused_node_count -eq $focusedNodeCount
             ) "Scenario '$($scenario.id)' recorded a11y summary differs from the report."
+            if ($isNoNagRun) {
+                Assert-Evidence ([string]$scenario.id -ceq
+                    "E-NONAG-$($startupProfile.ToUpperInvariant())") `
+                    'No-nag scenario ID does not identify its startup profile.'
+                Assert-Evidence (Get-RequiredEvidenceBoolean $scenario.checkpoint `
+                    'normal_uno_termination_requested') `
+                    'No-nag final scenario must request normal UNO termination.'
+                Assert-Evidence (@(Get-RequiredEvidenceValue $scenario `
+                    'no_nag.denied_text_matches').Count -eq 0) `
+                    'No-nag scenario recorded denied accessibility text.'
+                Assert-Evidence ([string](Get-RequiredEvidenceValue $scenario `
+                    'no_nag.retained_safety_prompt_policy') -ceq
+                    'not part of the former-nag denylist') `
+                    'No-nag scenario must distinguish retained safety prompts from former nags.'
+                Assert-Evidence (@($a11yReport.nodes | Where-Object {
+                    [string]$_.role.name -ceq 'MENU_BAR'
+                }).Count -gt 0) 'No-nag Writer a11y tree contains no menu bar.'
+                foreach ($node in @($a11yReport.nodes)) {
+                    if (@($node.states) -notcontains 'VISIBLE' -and
+                        @($node.states) -notcontains 'SHOWING') {
+                        continue
+                    }
+                    $nodeText = @([string]$node.name, [string]$node.description) -join "`n"
+                    foreach ($deniedText in @(Get-RequiredEvidenceValue $evidence `
+                        'no_nag_contract.former_nag_denylist')) {
+                        Assert-Evidence ($nodeText -notmatch
+                            [regex]::Escape([string]$deniedText)) `
+                            "No-nag a11y tree contains '$deniedText'."
+                    }
+                }
+            }
     }
     Assert-Evidence (Get-RequiredEvidenceBoolean $evidence `
         'cleanup.normal_uno_termination') `
@@ -574,6 +1032,13 @@ if ($RequirePassed -or $RequireAccepted) {
     Assert-Evidence (Get-RequiredEvidenceBoolean $evidence `
         'cleanup.dedicated_driver_stopped') `
         'The dedicated MCP server process tree was not stopped.'
+    if ($isNoNagRun) {
+        Assert-Evidence (Get-RequiredEvidenceBoolean $evidence `
+            'cleanup.dedicated_driver_endpoint_closed') `
+            'The dedicated MCP listener remained reachable after cleanup.'
+        Get-RequiredEvidenceBoolean $evidence `
+            'cleanup.dedicated_listener_forced_cleanup' | Out-Null
+    }
     Assert-Evidence (Get-RequiredEvidenceBoolean $evidence `
         'cleanup.runtime_launch_wrapper_removed') `
         'The path-bearing runtime launch wrapper was not removed.'

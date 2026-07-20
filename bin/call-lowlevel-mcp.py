@@ -17,6 +17,7 @@ off-screen desktop handle for the full run.
 
 import argparse
 import asyncio
+import base64
 import datetime
 import json
 import sys
@@ -30,14 +31,23 @@ def parse_arguments():
     parser.add_argument("--url", default="http://127.0.0.1:8765/mcp")
     parser.add_argument("--tool", required=True)
     parser.add_argument("--arguments-json", default="{}")
+    parser.add_argument("--arguments-base64")
     parser.add_argument("--timeout", type=float, default=60.0)
     args = parser.parse_args()
     if args.timeout <= 0:
         parser.error("--timeout must be greater than zero")
+    arguments_text = args.arguments_json
+    if args.arguments_base64 is not None:
+        try:
+            arguments_text = base64.b64decode(
+                args.arguments_base64, validate=True
+            ).decode("utf-8")
+        except (ValueError, UnicodeDecodeError) as error:
+            parser.error("--arguments-base64 is not valid UTF-8 JSON: {}".format(error))
     try:
-        args.arguments = json.loads(args.arguments_json)
+        args.arguments = json.loads(arguments_text)
     except json.JSONDecodeError as error:
-        parser.error("--arguments-json is not valid JSON: {}".format(error))
+        parser.error("tool arguments are not valid JSON: {}".format(error))
     if not isinstance(args.arguments, dict):
         parser.error("--arguments-json must decode to an object")
     return args

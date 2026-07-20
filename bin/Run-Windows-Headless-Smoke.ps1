@@ -98,9 +98,14 @@ function Invoke-LowLevelTool {
     )
 
     $argumentsJson = $Arguments | ConvertTo-Json -Compress -Depth 10
+    # Base64 avoids Windows PowerShell 5.1's destructive native-argument quote
+    # handling, including nested quotes in a launch command line.
+    $argumentsBase64 = [Convert]::ToBase64String(
+        [Text.Encoding]::UTF8.GetBytes($argumentsJson)
+    )
     $output = & uv run --directory $script:ResolvedDriverRoot python `
         $script:McpClientPath --url $script:McpUrl --tool $Tool `
-        --arguments-json $argumentsJson --timeout $TimeoutSeconds 2>&1
+        --arguments-base64 $argumentsBase64 --timeout $TimeoutSeconds 2>&1
     $exitCode = $LASTEXITCODE
     $outputText = ($output | ForEach-Object { $_.ToString() }) -join "`n"
     if ($exitCode -ne 0) {
@@ -153,8 +158,15 @@ function Get-ExactPayloadProcesses {
         catch [System.InvalidOperationException] {
             # The process exited between enumeration and the path query.
         }
+        catch [System.ComponentModel.Win32Exception] {
+            # OpenProcess/QueryFullProcessImageName reports an exit race as a
+            # Win32 error.  Preserve access/path failures for living processes.
+            if (Get-Process -Id $process.Id -ErrorAction SilentlyContinue) {
+                throw
+            }
+        }
     }
-    return @($matches)
+    return $matches.ToArray()
 }
 
 function Get-OwnedProcess {
@@ -179,9 +191,50 @@ function Get-OwnedProcess {
     }
 }
 
+function ConvertTo-WindowsCommandLineArgument {
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [string]$Argument
+    )
+
+    if ($Argument.Length -gt 0 -and $Argument -notmatch '[\s"]') {
+        return $Argument
+    }
+
+    # ProcessStartInfo.ArgumentList is unavailable on Windows PowerShell 5.1.
+    # Quote according to CommandLineToArgvW so Python receives spaces, quotes,
+    # empty arguments, and trailing backslashes without mutation.
+    $quoted = [System.Text.StringBuilder]::new()
+    [void]$quoted.Append('"')
+    $pendingBackslashes = 0
+    foreach ($character in $Argument.ToCharArray()) {
+        if ($character -eq '\') {
+            $pendingBackslashes++
+            continue
+        }
+        if ($character -eq '"') {
+            [void]$quoted.Append(('\' * (($pendingBackslashes * 2) + 1)))
+            [void]$quoted.Append('"')
+            $pendingBackslashes = 0
+            continue
+        }
+        if ($pendingBackslashes -gt 0) {
+            [void]$quoted.Append(('\' * $pendingBackslashes))
+            $pendingBackslashes = 0
+        }
+        [void]$quoted.Append($character)
+    }
+    if ($pendingBackslashes -gt 0) {
+        [void]$quoted.Append(('\' * ($pendingBackslashes * 2)))
+    }
+    [void]$quoted.Append('"')
+    return $quoted.ToString()
+}
+
 function Invoke-PayloadPython {
     param(
-        [Parameter(Mandatory = $true)] [string[]]$Arguments,
+        [Parameter(Mandatory = $true)] [AllowEmptyString()] [string[]]$Arguments,
         [int]$TimeoutSeconds = 75
     )
 
@@ -191,9 +244,9 @@ function Invoke-PayloadPython {
     $startInfo.CreateNoWindow = $true
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
-    foreach ($argument in $Arguments) {
-        $startInfo.ArgumentList.Add($argument)
-    }
+    $startInfo.Arguments = (@($Arguments | ForEach-Object {
+        ConvertTo-WindowsCommandLineArgument -Argument $_
+    }) -join ' ')
     $process = [System.Diagnostics.Process]::new()
     $process.StartInfo = $startInfo
     try {
@@ -203,9 +256,10 @@ function Invoke-PayloadPython {
         $stdoutTask = $process.StandardOutput.ReadToEndAsync()
         $stderrTask = $process.StandardError.ReadToEndAsync()
         if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
-            $process.Kill($true)
-            $process.WaitForExit()
-            throw "Payload Python exceeded the ${TimeoutSeconds}-second timeout and its exact process tree was stopped."
+            Stop-ControlledProcessTree -RootProcess $process `
+                -Description 'payload Python collector' `
+                -TimeoutMilliseconds 15000
+            throw "Payload Python exceeded the ${TimeoutSeconds}-second timeout and its validated exact process tree was stopped."
         }
         $stdout = $stdoutTask.GetAwaiter().GetResult()
         $stderr = $stderrTask.GetAwaiter().GetResult()
@@ -217,6 +271,141 @@ function Invoke-PayloadPython {
     }
     finally {
         $process.Dispose()
+    }
+}
+
+function Stop-ControlledProcessTree {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Diagnostics.Process]$RootProcess,
+        [string]$Description = 'controlled process tree',
+        [int]$TimeoutMilliseconds = 15000
+    )
+
+    $RootProcess.Refresh()
+    if ($RootProcess.HasExited) {
+        return
+    }
+
+    $rootProcessId = [int]$RootProcess.Id
+    $snapshot = @(Get-CimInstance -ClassName Win32_Process -Property `
+        ProcessId, ParentProcessId, CreationDate)
+    $rootRecord = @($snapshot | Where-Object {
+        [int]$_.ProcessId -eq $rootProcessId
+    } | Select-Object -First 1)
+    if ($rootRecord.Count -ne 1) {
+        $RootProcess.Refresh()
+        if (-not $RootProcess.HasExited) {
+            throw "Could not identify $Description root PID $rootProcessId before cleanup."
+        }
+        return
+    }
+
+    $tree = [System.Collections.Generic.List[object]]::new()
+    $tree.Add([pscustomobject]@{
+        ProcessId = $rootProcessId
+        ParentProcessId = [int]$rootRecord[0].ParentProcessId
+        CreationTicks = ([DateTime]$rootRecord[0].CreationDate).ToUniversalTime().Ticks
+        Depth = 0
+    })
+    for ($index = 0; $index -lt $tree.Count; $index++) {
+        $parent = $tree[$index]
+        foreach ($child in @($snapshot | Where-Object {
+            [int]$_.ParentProcessId -eq [int]$parent.ProcessId
+        })) {
+            $tree.Add([pscustomobject]@{
+                ProcessId = [int]$child.ProcessId
+                ParentProcessId = [int]$child.ParentProcessId
+                CreationTicks = ([DateTime]$child.CreationDate).ToUniversalTime().Ticks
+                Depth = [int]$parent.Depth + 1
+            })
+        }
+    }
+
+    foreach ($record in @($tree.ToArray() | Sort-Object Depth -Descending)) {
+        $processId = [int]$record.ProcessId
+        $current = @(Get-CimInstance -ClassName Win32_Process `
+            -Filter "ProcessId = $processId" -Property ProcessId, CreationDate)
+        if ($current.Count -eq 0) {
+            continue
+        }
+        $currentTicks = ([DateTime]$current[0].CreationDate).ToUniversalTime().Ticks
+        if ($currentTicks -ne [long]$record.CreationTicks) {
+            throw "Refusing to stop reused PID $processId while cleaning $Description."
+        }
+        Stop-Process -Id $processId -Force -ErrorAction Stop
+    }
+
+    $RootProcess.WaitForExit($TimeoutMilliseconds) | Out-Null
+    $RootProcess.Refresh()
+    if (-not $RootProcess.HasExited) {
+        throw "$Description root PID $rootProcessId did not stop."
+    }
+
+    foreach ($record in $tree.ToArray()) {
+        $processId = [int]$record.ProcessId
+        $current = @(Get-CimInstance -ClassName Win32_Process `
+            -Filter "ProcessId = $processId" -Property ProcessId, CreationDate)
+        if ($current.Count -eq 0) {
+            continue
+        }
+        $currentTicks = ([DateTime]$current[0].CreationDate).ToUniversalTime().Ticks
+        if ($currentTicks -eq [long]$record.CreationTicks) {
+            throw "$Description still contains PID $processId."
+        }
+    }
+}
+
+function Stop-ExactPayloadProcesses {
+    param(
+        [Parameter(Mandatory = $true)] [string]$ProgramRoot,
+        [int]$TimeoutSeconds = 15
+    )
+
+    $forced = $false
+    $deadline = [DateTimeOffset]::UtcNow.AddSeconds($TimeoutSeconds)
+    do {
+        $remaining = @(Get-ExactPayloadProcesses -ProgramRoot $ProgramRoot)
+        if ($remaining.Count -eq 0) {
+            return [pscustomobject]@{
+                forced = $forced
+                remaining = 0
+            }
+        }
+
+        foreach ($remainingProcess in $remaining) {
+            $remainingPid = [int]$remainingProcess.ProcessId
+            try {
+                Get-OwnedProcess -ProcessId $remainingPid `
+                    -ProgramRoot $ProgramRoot | Out-Null
+            }
+            catch {
+                if (-not (Get-Process -Id $remainingPid -ErrorAction SilentlyContinue)) {
+                    continue
+                }
+                throw
+            }
+
+            try {
+                Stop-Process -Id $remainingPid -Force -ErrorAction Stop
+                $forced = $true
+            }
+            catch {
+                if (Get-Process -Id $remainingPid -ErrorAction SilentlyContinue) {
+                    throw
+                }
+            }
+        }
+        Start-Sleep -Milliseconds 200
+    } while ([DateTimeOffset]::UtcNow -lt $deadline)
+
+    $remaining = @(Get-ExactPayloadProcesses -ProgramRoot $ProgramRoot)
+    if ($remaining.Count -ne 0) {
+        throw "Exact payload processes did not stop in ${TimeoutSeconds} seconds: $($remaining | ConvertTo-Json -Compress)"
+    }
+    return [pscustomobject]@{
+        forced = $forced
+        remaining = 0
     }
 }
 
@@ -467,10 +656,14 @@ $results = [ordered]@{
     cleanup = [ordered]@{
         normal_uno_termination = $false
         forced_owned_process_cleanup = $false
-        remaining_payload_processes = $null
-        remaining_headless_windows = $null
+        remaining_payload_processes = -1
+        process_cleanup_error = $null
+        headless_windows_before_close = $null
+        remaining_headless_windows = -1
         desktop_closed = $false
+        desktop_cleanup_error = $null
         dedicated_driver_stopped = $null
+        dedicated_driver_cleanup_error = $null
     }
     error = $null
 }
@@ -633,7 +826,7 @@ try {
     $terminatedScenario = Capture-State -Slug $finalSlug -Terminate `
         -RequireFocused:($KeyboardFocus -and -not $Templates)
     $scenarioList[$scenarioList.Count - 1] = $terminatedScenario
-    $results.scenarios = @($scenarioList)
+    $results.scenarios = $scenarioList.ToArray()
     $normalTermination = $true
     $results.cleanup.normal_uno_termination = $true
 
@@ -664,24 +857,33 @@ catch {
 }
 finally {
     try {
-        $remaining = @(Get-ExactPayloadProcesses -ProgramRoot $programRoot)
-        if ($remaining.Count -ne 0 -and -not $normalTermination) {
-            foreach ($remainingProcess in $remaining) {
-                $remainingPid = [int]$remainingProcess.ProcessId
-                Get-OwnedProcess -ProcessId $remainingPid -ProgramRoot $programRoot | Out-Null
-                Stop-Process -Id $remainingPid -Force -ErrorAction Stop
-            }
-            $results.cleanup.forced_owned_process_cleanup = $true
-            Start-Sleep -Seconds 1
-            $remaining = @(Get-ExactPayloadProcesses -ProgramRoot $programRoot)
-        }
-        $results.cleanup.remaining_payload_processes = $remaining.Count
+        $processCleanup = Stop-ExactPayloadProcesses -ProgramRoot $programRoot
+        $results.cleanup.forced_owned_process_cleanup = [bool]$processCleanup.forced
+        $results.cleanup.remaining_payload_processes = [int]$processCleanup.remaining
     }
     catch {
+        $results.cleanup.process_cleanup_error = $_.Exception.Message
         if (-not $fatal) { $fatal = $_.Exception }
         $results.status = 'failed'
         if (-not $results.error) {
             $results.error = "Cleanup process error: $($_.Exception.Message)"
+        }
+    }
+    finally {
+        try {
+            $remaining = @(Get-ExactPayloadProcesses -ProgramRoot $programRoot)
+            $results.cleanup.remaining_payload_processes = [int]$remaining.Count
+        }
+        catch {
+            $results.cleanup.remaining_payload_processes = -1
+            if (-not $results.cleanup.process_cleanup_error) {
+                $results.cleanup.process_cleanup_error = $_.Exception.Message
+            }
+            if (-not $fatal) { $fatal = $_.Exception }
+            $results.status = 'failed'
+            if (-not $results.error) {
+                $results.error = "Cleanup process verification error: $($_.Exception.Message)"
+            }
         }
     }
 
@@ -690,7 +892,7 @@ finally {
             $windowsFinal = Invoke-LowLevelTool -Tool 'list_headless_windows' -Arguments @{
                 name = $desktopName
             } -TimeoutSeconds 15
-            $results.cleanup.remaining_headless_windows = [int]$windowsFinal.count
+            $results.cleanup.headless_windows_before_close = [int]$windowsFinal.count
             $closed = Invoke-LowLevelTool -Tool 'close_headless_desktop' -Arguments @{
                 name = $desktopName
             } -TimeoutSeconds 15
@@ -698,8 +900,10 @@ finally {
             if (-not $closed.closed) {
                 throw 'The long-lived low-level MCP server did not close its desktop handle.'
             }
+            $results.cleanup.remaining_headless_windows = 0
         }
         catch {
+            $results.cleanup.desktop_cleanup_error = $_.Exception.Message
             if (-not $fatal) { $fatal = $_.Exception }
             $results.status = 'failed'
             if (-not $results.error) {
@@ -710,8 +914,9 @@ finally {
     if ($dedicatedDriver) {
         try {
             if (-not $dedicatedDriver.HasExited) {
-                $dedicatedDriver.Kill($true)
-                $dedicatedDriver.WaitForExit(15000) | Out-Null
+                Stop-ControlledProcessTree -RootProcess $dedicatedDriver `
+                    -Description 'dedicated low-level MCP driver' `
+                    -TimeoutMilliseconds 15000
             }
             $results.cleanup.dedicated_driver_stopped = $dedicatedDriver.HasExited
             if (-not $results.cleanup.dedicated_driver_stopped) {
@@ -719,6 +924,7 @@ finally {
             }
         }
         catch {
+            $results.cleanup.dedicated_driver_cleanup_error = $_.Exception.Message
             if (-not $fatal) { $fatal = $_.Exception }
             $results.status = 'failed'
             if (-not $results.error) {

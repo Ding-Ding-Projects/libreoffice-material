@@ -386,13 +386,19 @@ function Get-SelectedVisualStudio {
 
     $installationPath = Get-FullPath $installationPath.Trim()
     $cmake = Join-Path $installationPath 'Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe'
-    $clangCl = Join-Path $installationPath 'VC\Tools\Llvm\bin\clang-cl.exe'
+    # VS 2022 lays LLVM out directly under Llvm\bin. VS 2026 puts its
+    # host-native binaries in Llvm\x64\bin. Prefer the legacy location so
+    # the established VS 2022 default remains unchanged.
+    $clangCl = @(
+        (Join-Path $installationPath 'VC\Tools\Llvm\bin\clang-cl.exe'),
+        (Join-Path $installationPath 'VC\Tools\Llvm\x64\bin\clang-cl.exe')
+    ) | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
     $atl = Get-ChildItem -LiteralPath (Join-Path $installationPath 'VC\Tools\MSVC') -Recurse -Filter 'atlbase.h' -File -ErrorAction SilentlyContinue | Select-Object -First 1
     $redistRoot = Join-Path $installationPath 'VC\Redist\MSVC'
     $msmX86 = Get-ChildItem -LiteralPath $redistRoot -Recurse -Filter ('Microsoft_VC{0}_CRT_x86.msm' -f $script:VisualStudioProfile.CrtToolset) -File -ErrorAction SilentlyContinue | Select-Object -First 1
     $msmX64 = Get-ChildItem -LiteralPath $redistRoot -Recurse -Filter ('Microsoft_VC{0}_CRT_x64.msm' -f $script:VisualStudioProfile.CrtToolset) -File -ErrorAction SilentlyContinue | Select-Object -First 1
     if (-not (Test-Path -LiteralPath $cmake -PathType Leaf) -or
-        -not (Test-Path -LiteralPath $clangCl -PathType Leaf) -or
+        -not $clangCl -or
         -not $atl -or -not $msmX86 -or -not $msmX64) {
         return $null
     }

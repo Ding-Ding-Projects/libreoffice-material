@@ -66,6 +66,8 @@ build root such as `$env:USERPROFILE\lo-material-vs2026` for its first run. The
 CI workflow remains pinned to VS 2022 for now. This is a source-automation
 profile only, not a completed local native build, installer, runtime, headless
 UI, or accessibility result.
+The local checker recognizes both the VS 2022 `Llvm\bin` layout and VS 2026's
+host-native `Llvm\x64\bin` Clang layout.
 
 Run `29695815101` did not upload an MSI: its staging script recursively matched
 two retained LibreOffice working databases as well as the final installer. The

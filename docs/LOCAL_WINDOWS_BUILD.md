@@ -78,6 +78,9 @@ Perl <code>Archive::Zip</code>, <code>Font::TTF</code>, and <code>IO::String</co
 modules, Windows-built Make, pinned <code>pkgconf</code>, and NASM 2.16 or newer.
 A bootstrap manifest records the selected profile, validated paths, package
 names, signers, and hashes.
+The Clang check accepts the established VS 2022
+<code>VC\Tools\Llvm\bin</code> payload layout and the VS 2026 host-native
+<code>VC\Tools\Llvm\x64\bin</code> layout.
 
 ## Source and output safety
 

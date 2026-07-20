@@ -332,6 +332,8 @@ and the imported build files before configuring a machine.
 > local-build option only until the CI profile is deliberately updated. Its
 > addition is source automation, not evidence of a completed local build, MSI,
 > application launch, UI smoke, or accessibility result.
+> The checker accepts VS 2022's legacy <code>Llvm\bin</code> layout and VS
+> 2026's host-native <code>Llvm\x64\bin</code> layout for <code>clang-cl</code>.
 
 The bootstrapper creates a clean detached LF worktree rather than normalizing
 the development checkout. It checks root safety, free space, and (when Git is

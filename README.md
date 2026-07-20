@@ -299,14 +299,15 @@ and the imported build files before configuring a machine.
 > **Local one-click build:** [`Build-Windows.cmd`](Build-Windows.cmd) now calls
 > the source-controlled bootstrapper described in
 > [`docs/LOCAL_WINDOWS_BUILD.md`](docs/LOCAL_WINDOWS_BUILD.md). It provisions
-> an isolated Visual Studio 2022 Build Tools profile with C++/CLI and Cygwin
+> an isolated Visual Studio 2022 Build Tools profile with C++/CLI, the C++ Clang
+> compiler, and Cygwin
 > when needed,
 > verifies it, and builds from an LF snapshot without touching this checkout.
-> This host currently has Visual Studio 2026 rather than the required dedicated
-> VS 2022 instance and no isolated Cygwin profile. Its read-only local preflight
-> ran on 2026-07-19, correctly reported those two missing prerequisites, and
-> created neither default root; the installing bootstrap has not been run. It
-> does not change the separate hosted result:
+> On 2026-07-19, this host installed the dedicated VS 2022/Cygwin profile and a
+> clean local preflight passed it. The first real configure reached LibreOffice's
+> Skia requirement and exposed the missing C++ Clang compiler; the bootstrap now
+> requires that component before attempting another local configure. It does not
+> change the separate hosted result:
 > current-source Linux run `29695793821` and Windows run `29695815101` passed
 > all five required native C++ targets, and the Windows run built the full
 > installation set but stopped at MSI staging. The corrected final-directory

@@ -58,6 +58,7 @@ $script:DownloadRecords = New-Object 'System.Collections.Generic.List[object]'
 $script:RequiredVsComponents = @(
     'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
     'Microsoft.VisualStudio.Component.VC.CLI.Support',
+    'Microsoft.VisualStudio.Component.VC.Llvm.Clang',
     'Microsoft.VisualStudio.Component.VC.ATL',
     'Microsoft.VisualStudio.Component.VC.Redist.MSM',
     'Microsoft.VisualStudio.Component.VC.CMake.Project'
@@ -67,6 +68,7 @@ $script:VsBootstrapComponents = @(
     'Microsoft.VisualStudio.Workload.VCTools',
     'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
     'Microsoft.VisualStudio.Component.VC.CLI.Support',
+    'Microsoft.VisualStudio.Component.VC.Llvm.Clang',
     'Microsoft.VisualStudio.Component.VC.ATL',
     'Microsoft.VisualStudio.Component.VC.Redist.MSM',
     'Microsoft.VisualStudio.Component.VC.CMake.Project',
@@ -340,17 +342,21 @@ function Get-DedicatedVisualStudio {
 
     $installationPath = Get-FullPath $installationPath.Trim()
     $cmake = Join-Path $installationPath 'Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe'
+    $clangCl = Join-Path $installationPath 'VC\Tools\Llvm\bin\clang-cl.exe'
     $atl = Get-ChildItem -LiteralPath (Join-Path $installationPath 'VC\Tools\MSVC') -Recurse -Filter 'atlbase.h' -File -ErrorAction SilentlyContinue | Select-Object -First 1
     $redistRoot = Join-Path $installationPath 'VC\Redist\MSVC'
     $msmX86 = Get-ChildItem -LiteralPath $redistRoot -Recurse -Filter 'Microsoft_VC143_CRT_x86.msm' -File -ErrorAction SilentlyContinue | Select-Object -First 1
     $msmX64 = Get-ChildItem -LiteralPath $redistRoot -Recurse -Filter 'Microsoft_VC143_CRT_x64.msm' -File -ErrorAction SilentlyContinue | Select-Object -First 1
-    if (-not (Test-Path -LiteralPath $cmake -PathType Leaf) -or -not $atl -or -not $msmX86 -or -not $msmX64) {
+    if (-not (Test-Path -LiteralPath $cmake -PathType Leaf) -or
+        -not (Test-Path -LiteralPath $clangCl -PathType Leaf) -or
+        -not $atl -or -not $msmX86 -or -not $msmX64) {
         return $null
     }
 
     [pscustomobject]@{
         InstallationPath = $installationPath
         CMake = $cmake
+        ClangCl = $clangCl
         AtlHeader = $atl.FullName
         MsmX86 = $msmX86.FullName
         MsmX64 = $msmX64.FullName
@@ -991,6 +997,7 @@ function Invoke-CygwinScript {
     # this script correctly runs with $ErrorActionPreference set to Stop.
     $wrappedScript = @"
 {
+export PATH="/opt/lo/bin:/usr/local/bin:/usr/bin:/bin:`$PATH"
 $ScriptText
 } 2>&1
 "@

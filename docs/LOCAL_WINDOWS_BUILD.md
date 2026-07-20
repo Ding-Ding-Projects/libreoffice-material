@@ -26,7 +26,7 @@ repairs an isolated toolchain:
 
 - Visual Studio <strong>2022</strong> Build Tools at
   <code>%ProgramData%\LibreOfficeMaterialTools\VS2022</code>, with MSVC x64/x86,
-  C++/CLI, ATL, CRT merge modules, CMake, Windows SDK 26100, and the .NET
+  C++/CLI, the C++ Clang compiler, ATL, CRT merge modules, CMake, Windows SDK 26100, and the .NET
   Framework 4.8.1 developer tools;
 - Cygwin at <code>%ProgramData%\LibreOfficeMaterialTools\cygwin64</code>, with
   the exact Autotools, Perl, NASM, Ninja, archive, XML, Git, Python, and
@@ -49,7 +49,7 @@ executables must match source-pinned SHA-256 values:
 | <code>pkgconf-2.4.3.exe</code> | <code>791cd6dbc56f7268fbf9c4652d6634b0f5c59687ab4e504565e58245952edd41</code> |
 
 After provisioning, it independently verifies the VS 2022 component set,
-including C++/CLI, ATL and CRT merge modules, a complete Windows SDK including
+including C++/CLI, the C++ Clang compiler, ATL and CRT merge modules, a complete Windows SDK including
 MIDL and x86 MSI tools, the legacy CLI .NET Framework tools, every requested Cygwin package,
 the Perl <code>Archive::Zip</code>, <code>Font::TTF</code>, and
 <code>IO::String</code> modules, Windows-built Make, pinned
@@ -133,9 +133,11 @@ For a strict existing-toolchain build that may not install anything, use:
 .\Build-Windows.cmd -NoBootstrap
 ~~~
 
-On 2026-07-19, the current host ran the read-only preflight. It correctly
-reported the missing dedicated VS 2022 profile and missing isolated Cygwin
-profile, exited 1, and left both default tool and build roots absent. It is
-read-only, including when checking an already-installed Cygwin toolchain.
-Adding this script is source automation only: no local native build, MSI,
+On 2026-07-19, this host's first bootstrap installed the dedicated VS 2022 and
+isolated Cygwin profiles. A later clean preflight passed that installed profile,
+then the first real configure reached LibreOffice's Skia check and exposed the
+missing VS C++ Clang compiler. The script now treats that compiler and its
+<code>clang-cl.exe</code> payload as required, so the next default invocation
+repairs the profile rather than proceeding with an incomplete toolchain. These
+are provisioning/configure observations only: no local native build, MSI,
 LibreOffice launch, or accepted UI evidence is claimed here.

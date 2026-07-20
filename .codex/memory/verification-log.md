@@ -952,3 +952,23 @@ build or runtime evidence.
 - A no-profile runner smoke emitted both stdout and a warning on stderr, logged
   both streams, and returned successfully; stderr is now merged inside Bash so
   ordinary configure warnings cannot abort the PowerShell controller.
+
+## 2026-07-19 — local Skia Clang prerequisite follow-up
+
+- The fresh all-phase configure at
+  `bfca68c6756f1ae0559847cbb3926aa31126374b` passed the MSVC, SDK, legacy CLI,
+  Autotools, and Windows MSI profile checks, then stopped before any native
+  target because LibreOffice's default Skia configuration could not find
+  `VC\Tools\Llvm\bin\clang-cl.exe`. The installed VS profile contained
+  `clang-format.exe` and `clang-tidy.exe`, but not that compiler; the configure
+  log records `checking for clang-cl... no` before the fatal show-includes
+  probe.
+- The local bootstrap now requires Visual Studio's
+  `Microsoft.VisualStudio.Component.VC.Llvm.Clang` component and verifies its
+  exact `clang-cl.exe` payload alongside the existing MSVC/C++/CLI/ATL/CMake
+  requirements. This preserves the full Windows profile rather than disabling
+  Skia. The common Cygwin runner also establishes its POSIX path centrally so
+  the profile assertion can invoke `cygpath` after configure.
+- No local native target, MSI, LibreOffice launch, or runtime capture completed
+  in this attempt. The clean failed-run root remains preserved; the repaired
+  profile requires a fresh bootstrap, preflight, and all-phase build.

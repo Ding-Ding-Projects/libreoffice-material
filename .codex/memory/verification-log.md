@@ -1649,3 +1649,39 @@ build or runtime evidence.
   repeated forced prune failure, and preference bounds. The notification source
   also passed a focused clang-cl syntax-only probe with temporary generated
   header/zlib stubs; no repository-native compile or runtime behavior is claimed.
+
+## 2026-07-20 — asynchronous notification service source checkpoint
+
+- `python bin/check-notification-store-contract.py`: passed the serialized
+  worker/store lifetime, immutable snapshot, conflict refresh, generated
+  configuration, shutdown ordering, application lifetime, and single-call bulk
+  additions alongside every earlier storage/privacy invariant.
+- `python -m unittest bin/test_notification_store_contract.py`: 18/18 mutation
+  tests passed, including new worker lifetime, bulk dispatch, and complete
+  generated-accessor guards.
+- `node bin/validate-prototype.mjs`: 9/9 passed; the target notification and
+  regex-builder surfaces remain intact.
+- `git diff --check`, Python byte-compilation, notification schema XML parsing,
+  and Clang format dry-run for all new C++/test files passed.
+- Five native service CppUnit cases are wired into
+  `CppunitTest_sfx2_notificationstore` but were not compiled or run. No shared
+  retained build directory was used, and no application/runtime proof is
+  claimed for this source checkpoint.
+
+## 2026-07-20 — adversarial notification-service lifecycle review
+
+- Compared the branch against requested `origin/main` `e439db6f8`, then
+  rechecked after the remote advanced to `01bed9c7d`. The in-tree
+  `salhelper::Thread`, VCL user-event, application-lifetime, generated
+  configuration, and CppUnit build APIs were inspected without using a retained
+  build root; the later standalone C++20 notification-test corrections were
+  mirrored without rebasing or merging.
+- Fixed raw VCL Link lifetime during reentrant destruction, concurrent
+  enqueue/shutdown owner races, launch-failure teardown, worker admission order,
+  off-main event cancellation, and the former inline-dispatch Windows self-join
+  path. Cancelled callback closures now remain owned for main/VCL-side disposal.
+- `python bin/check-notification-store-contract.py` and all 24 mutation tests
+  pass. Twenty-one native notification CppUnit cases are wired, including
+  concurrent admission, completion-side service destruction, and
+  missing-dispatcher rejection, but are not compiled or run in this source-only
+  review.

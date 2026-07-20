@@ -14,6 +14,7 @@ but does not replace, compilation and the focused CppUnit runtime test.
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -37,9 +38,17 @@ REQUIRED_FILES = (
     "sfx2/source/notification/NotificationJson.cxx",
     "sfx2/source/notification/LocalGitRepository.hxx",
     "sfx2/source/notification/LocalGitRepository.cxx",
+    "sfx2/source/notification/NotificationCenterService.cxx",
+    "sfx2/source/notification/NotificationConfiguration.hxx",
+    "sfx2/source/notification/NotificationConfiguration.cxx",
     "sfx2/source/notification/NotificationStore.cxx",
+    "sfx2/qa/cppunit/notificationcenterservice.cxx",
     "sfx2/qa/cppunit/notificationstore.cxx",
     "sfx2/CppunitTest_sfx2_notificationstore.mk",
+    "sfx2/Library_sfx.mk",
+    "sfx2/source/appl/app.cxx",
+    "sfx2/source/appl/appdata.cxx",
+    "sfx2/source/inc/appdata.hxx",
     "officecfg/registry/schema/org/openoffice/Office/UI/NotificationCenter.xcs",
 )
 
@@ -543,10 +552,244 @@ REQUIRED_MARKERS = (
         "nObjectsAfterFirstFailure",
         "repeated forced prune failures cannot advance the ref or add objects",
     ),
+    MarkerRule(
+        "immutable-service-snapshot",
+        "include/sfx2/notificationcenter.hxx",
+        "const std::vector<NotificationRecord> Records;",
+        "UI consumers receive immutable record snapshots",
+    ),
+    MarkerRule(
+        "const-service-snapshot-generation",
+        "include/sfx2/notificationcenter.hxx",
+        "const sal_uInt64 Generation;",
+        "snapshot identity cannot be mutated by consumers",
+    ),
+    MarkerRule(
+        "const-service-snapshot-health",
+        "include/sfx2/notificationcenter.hxx",
+        "const NotificationStoreHealth Health;",
+        "snapshot health cannot be mutated by consumers",
+    ),
+    MarkerRule(
+        "const-service-snapshot-error",
+        "include/sfx2/notificationcenter.hxx",
+        "const OUString Error;",
+        "snapshot failure state cannot be mutated by consumers",
+    ),
+    MarkerRule(
+        "const-service-snapshot-head",
+        "include/sfx2/notificationcenter.hxx",
+        "const OString HeadCommitId;",
+        "snapshot repository identity cannot be mutated by consumers",
+    ),
+    MarkerRule(
+        "const-service-snapshot-preferences",
+        "include/sfx2/notificationcenter.hxx",
+        "const NotificationPreferences Preferences;",
+        "snapshot preferences cannot be mutated by consumers",
+    ),
+    MarkerRule(
+        "const-service-snapshot-history",
+        "include/sfx2/notificationcenter.hxx",
+        "const std::vector<NotificationHistoryEntry> History;",
+        "snapshot history cannot be mutated by consumers",
+    ),
+    MarkerRule(
+        "const-service-snapshot-reference",
+        "include/sfx2/notificationcenter.hxx",
+        "std::shared_ptr<const NotificationCenterSnapshot>",
+        "service consumers cannot obtain a mutable snapshot pointer",
+    ),
+    MarkerRule(
+        "asynchronous-service-facade",
+        "include/sfx2/notificationcenter.hxx",
+        "class SFX2_DLLPUBLIC NotificationCenterService final",
+        "the synchronous store is hidden behind one asynchronous facade",
+    ),
+    MarkerRule(
+        "worker-owned-store-construction",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "pStore = std::make_unique<NotificationStore>",
+        "the notification store is constructed on its worker",
+    ),
+    MarkerRule(
+        "worker-owned-store-destruction",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "pStore.reset();",
+        "the notification store is destroyed on its worker",
+    ),
+    MarkerRule(
+        "serialized-service-queue",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "std::deque<Request> m_aRequests;",
+        "notification requests are serialized through one queue",
+    ),
+    MarkerRule(
+        "vcl-completion-dispatch",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "Application::PostUserEvent(LINK(this, UiCompletionQueue, handleEvent))",
+        "profile completions return through the VCL event queue",
+    ),
+    MarkerRule(
+        "vcl-event-self-lease",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "m_xEventKeepAlive = shared_from_this();",
+        "a pending raw VCL Link retains its queue owner",
+    ),
+    MarkerRule(
+        "vcl-handler-local-lease",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "auto xKeepAlive = shared_from_this();",
+        "a completion may destroy the service without destroying its active handler",
+    ),
+    MarkerRule(
+        "vcl-off-main-cancellation-deferral",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "const bool bCanCancelEvent = Application::IsMainThread();",
+        "off-main shutdown must not race RemoveUserEvent against VCL dispatch",
+    ),
+    MarkerRule(
+        "off-worker-completion-guard",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "Completion dispatcher ran on the store worker; ",
+        "an inline completion cannot self-join the store worker",
+    ),
+    MarkerRule(
+        "worker-identity-activation",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "g_pNotificationWorkerIdentity = m_xWorkerIdentity.get();",
+        "inline dispatch detection is active for the full store-worker lifetime",
+    ),
+    MarkerRule(
+        "repository-dispatcher-required",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "notification completion dispatcher must queue work off the store worker without ",
+        "the injectable factory has no implicit inline completion path",
+    ),
+    MarkerRule(
+        "conflict-snapshot-refresh",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "if (aResult.Mutation.Conflict)\n            (void)rStore.refresh();",
+        "conflict results include the winning repository state",
+    ),
+    MarkerRule(
+        "one-store-call-per-bulk-delete",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "aResult.Mutation = rStore.remove(aRequest.Ids);",
+        "one bulk delete request maps to one atomic store mutation",
+    ),
+    MarkerRule(
+        "generated-configuration-read",
+        "sfx2/source/notification/NotificationConfiguration.cxx",
+        "officecfg::Office::UI::NotificationCenter::Display::Enabled::get()",
+        "profile preferences use generated office configuration accessors",
+    ),
+    MarkerRule(
+        "generated-configuration-write",
+        "sfx2/source/notification/NotificationConfiguration.cxx",
+        "officecfg::Office::UI::NotificationCenter::History::Limit::set",
+        "customized profile preferences are persisted through generated accessors",
+    ),
+    MarkerRule(
+        "lazy-application-service",
+        "sfx2/source/appl/app.cxx",
+        "pImpl->mxNotificationCenter = sfx2::NotificationCenterService::createForProfile();",
+        "the service starts only when first requested by the application",
+    ),
+    MarkerRule(
+        "application-service-shutdown",
+        "sfx2/source/appl/app.cxx",
+        "pImpl->mxNotificationCenter.reset();",
+        "the application joins the worker while VCL is still alive",
+    ),
+    MarkerRule(
+        "application-service-complete-type",
+        "sfx2/source/appl/appdata.cxx",
+        "#include <sfx2/notificationcenter.hxx>",
+        "application data destroys the lazy service with its complete type available",
+    ),
+    MarkerRule(
+        "service-library-wiring",
+        "sfx2/Library_sfx.mk",
+        "sfx2/source/notification/NotificationCenterService \\",
+        "the asynchronous service is compiled into the sfx library",
+    ),
+    MarkerRule(
+        "configuration-library-wiring",
+        "sfx2/Library_sfx.mk",
+        "sfx2/source/notification/NotificationConfiguration \\",
+        "the generated configuration adapter is compiled into the sfx library",
+    ),
+    MarkerRule(
+        "service-cppunit-wiring",
+        "sfx2/CppunitTest_sfx2_notificationstore.mk",
+        "sfx2/qa/cppunit/notificationcenterservice \\",
+        "the native service cases are part of the focused notification target",
+    ),
+    MarkerRule(
+        "runtime-service-ordering-test",
+        "sfx2/qa/cppunit/notificationcenterservice.cxx",
+        "testSerializedOrderingAndImmutableSnapshots",
+        "serialized completion ordering and snapshot generations are covered",
+    ),
+    MarkerRule(
+        "runtime-service-shutdown-test",
+        "sfx2/qa/cppunit/notificationcenterservice.cxx",
+        "testShutdownDrainsAcceptedMutations",
+        "shutdown durability is covered",
+    ),
+    MarkerRule(
+        "runtime-service-concurrent-shutdown-test",
+        "sfx2/qa/cppunit/notificationcenterservice.cxx",
+        "testConcurrentAdmissionAndShutdownLinearize",
+        "producer admission racing shutdown is covered",
+    ),
+    MarkerRule(
+        "runtime-service-reentrant-destruction-test",
+        "sfx2/qa/cppunit/notificationcenterservice.cxx",
+        "testCompletionCanDestroyService",
+        "an off-worker completion can destroy the service while the worker exits",
+    ),
+    MarkerRule(
+        "runtime-service-dispatcher-contract-test",
+        "sfx2/qa/cppunit/notificationcenterservice.cxx",
+        "testRepositoryFactoryRequiresAsyncDispatcher",
+        "the injectable factory rejects its former inline default path",
+    ),
+    MarkerRule(
+        "runtime-service-conflict-test",
+        "sfx2/qa/cppunit/notificationcenterservice.cxx",
+        "testConflictRefreshesReturnedSnapshot",
+        "service conflict recovery is covered",
+    ),
+    MarkerRule(
+        "runtime-service-bulk-commit-test",
+        "sfx2/qa/cppunit/notificationcenterservice.cxx",
+        "testBulkOperationCreatesOneActionCommitBelowCompaction",
+        "below-threshold bulk manager requests are proven to add one action commit",
+    ),
+    MarkerRule(
+        "runtime-service-privacy-test",
+        "sfx2/qa/cppunit/notificationcenterservice.cxx",
+        "testMetadataOnlyTextRemainsRedacted",
+        "the service cannot re-expose metadata-only display text",
+    ),
 )
 
 
 FORBIDDEN_MARKERS = (
+    MarkerRule(
+        "worker-reference-cleared-during-shutdown",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "m_xWorker.clear();",
+        "shutdown must leave a stable joined worker reference for concurrent admission rejection",
+    ),
+    MarkerRule(
+        "inline-repository-completion-default",
+        "sfx2/source/notification/NotificationCenterService.cxx",
+        "m_aDispatcher = [](std::function<void()> aCompletion) { aCompletion(); };",
+        "repository completions must never default to the store worker",
+    ),
     MarkerRule(
         "git-executable",
         "sfx2/source/notification/LocalGitRepository.cxx",
@@ -657,6 +900,22 @@ JSON_PROPERTY_ORDER = (
     'aWriter.put("dedupeHash"',
 )
 
+CONFIGURATION_FIELDS = (
+    ("Display", "Enabled"),
+    ("Display", "MaxVisible"),
+    ("Display", "Width"),
+    ("Display", "TimeoutSeconds"),
+    ("Display", "HorizontalInset"),
+    ("Display", "VerticalInset"),
+    ("Display", "CornerRadius"),
+    ("Display", "OpacityPercent"),
+    ("Display", "UseThemeColors"),
+    ("Display", "AccentColor"),
+    ("Display", "Animations"),
+    ("History", "RetentionDays"),
+    ("History", "Limit"),
+)
+
 
 def load_snapshot(root: Path) -> tuple[dict[str, str], set[str]]:
     paths = set(REQUIRED_FILES)
@@ -758,6 +1017,303 @@ def find_violations(
                 "rule": "metadata-text-isolation",
                 "path": "sfx2/source/notification/NotificationStore.cxx",
                 "detail": "display text may only enter persisted records in the SafeDisplayText branch",
+            }
+        )
+
+    service_source = contents.get(
+        "sfx2/source/notification/NotificationCenterService.cxx", ""
+    )
+    completion_queue = _extract_braced_block(
+        service_source, "class UiCompletionQueue final"
+    )
+    completion_post = _extract_braced_block(completion_queue, "void post(")
+    retain_event_owner = completion_post.find(
+        "m_xEventKeepAlive = shared_from_this();"
+    )
+    post_event = completion_post.find("Application::PostUserEvent(")
+    completion_handler = _extract_braced_block(
+        service_source, "IMPL_LINK_NOARG(UiCompletionQueue, handleEvent"
+    )
+    retain_handler_owner = completion_handler.find(
+        "auto xKeepAlive = shared_from_this();"
+    )
+    release_event_owner = completion_handler.find("m_xEventKeepAlive.reset();")
+    first_callback = completion_handler.find("rCompletion();")
+    completion_shutdown = _extract_braced_block(completion_queue, "void shutdown()")
+    check_cancel_affinity = completion_shutdown.find("Application::IsMainThread()")
+    defer_off_main = completion_shutdown.find("if (!bCanCancelEvent)")
+    detach_event = completion_shutdown.find("std::exchange(m_pEvent, nullptr)")
+    move_event_owner = completion_shutdown.find(
+        "std::move(m_xEventKeepAlive)"
+    )
+    cancel_event = completion_shutdown.find("Application::RemoveUserEvent(pEvent)")
+    completion_finish = _extract_braced_block(
+        completion_queue, "void finishShutdown()"
+    )
+    finish_on_main = completion_finish.find("Application::IsMainThread()")
+    dispose_after_drain = completion_finish.find(
+        "aCancelled.swap(m_aCompletions);"
+    )
+    if (
+        min(
+            retain_event_owner,
+            post_event,
+            retain_handler_owner,
+            release_event_owner,
+            first_callback,
+            check_cancel_affinity,
+            defer_off_main,
+            detach_event,
+            move_event_owner,
+            cancel_event,
+            finish_on_main,
+            dispose_after_drain,
+        )
+        < 0
+        or not retain_event_owner < post_event
+        or not retain_handler_owner < release_event_owner < first_callback
+        or not check_cancel_affinity < defer_off_main < detach_event
+        or not detach_event < move_event_owner < cancel_event
+        or not finish_on_main < dispose_after_drain
+        or "m_aCompletions.clear()" in completion_post
+        or "m_aCompletions.clear()" in completion_shutdown
+        or "swap(m_aCompletions)" in completion_shutdown
+    ):
+        violations.append(
+            {
+                "rule": "vcl-completion-cancellation-ownership",
+                "path": "sfx2/source/notification/NotificationCenterService.cxx",
+                "detail": "the raw VCL event must retain its queue through dispatch or cancellation, including reentrant service destruction",
+            }
+        )
+
+    worker = _extract_braced_block(service_source, "class NotificationWorker final")
+    start_worker = _extract_braced_block(worker, "void start()")
+    launch_worker = start_worker.find("launch();")
+    record_launch = start_worker.find("m_bLaunched = true;")
+    worker_destructor = worker.find(
+        "~NotificationWorker() override { assert(!m_bLaunched || m_bJoined); }"
+    )
+    execute = _extract_braced_block(worker, "void execute() override")
+    activate_worker_identity = execute.find(
+        "g_pNotificationWorkerIdentity = m_xWorkerIdentity.get();"
+    )
+    construct = execute.find("std::make_unique<NotificationStore>(")
+    process = execute.find("process(*pStore, std::move(aRequest))")
+    destroy = execute.find("pStore.reset();")
+    deactivate_worker_identity = execute.rfind(
+        "g_pNotificationWorkerIdentity = nullptr;"
+    )
+    if (
+        min(
+            activate_worker_identity,
+            construct,
+            process,
+            destroy,
+            deactivate_worker_identity,
+        )
+        < 0
+        or not activate_worker_identity
+        < construct
+        < process
+        < destroy
+        < deactivate_worker_identity
+    ):
+        violations.append(
+            {
+                "rule": "worker-store-lifetime-order",
+                "path": "sfx2/source/notification/NotificationCenterService.cxx",
+                "detail": "the store must be constructed, processed, and destroyed inside the worker",
+            }
+        )
+    if (
+        "public salhelper::Thread" not in worker
+        or min(worker_destructor, launch_worker, record_launch) < 0
+        or not launch_worker < record_launch
+    ):
+        violations.append(
+            {
+                "rule": "salhelper-worker-lifecycle-shape",
+                "path": "sfx2/source/notification/NotificationCenterService.cxx",
+                "detail": "the worker must use the salhelper execute signature and record launch only after launch succeeds",
+            }
+        )
+
+    service_process = _extract_braced_block(
+        worker, "void process(NotificationStore& rStore, Request aRequest)"
+    )
+    capture_worker_id = service_process.find(
+        "auto xWorkerIdentity = m_xWorkerIdentity;"
+    )
+    dispatch_completion = service_process.find("m_aDispatcher(")
+    reject_inline = service_process.find(
+        "g_pNotificationWorkerIdentity == xWorkerIdentity.get()"
+    )
+    invoke_completion = service_process.find("aCompletion(std::move(aResult));")
+    if (
+        min(
+            capture_worker_id,
+            dispatch_completion,
+            reject_inline,
+            invoke_completion,
+        )
+        < 0
+        or not capture_worker_id
+        < dispatch_completion
+        < reject_inline
+        < invoke_completion
+    ):
+        violations.append(
+            {
+                "rule": "off-worker-completion-dispatch",
+                "path": "sfx2/source/notification/NotificationCenterService.cxx",
+                "detail": "the dispatcher must suppress callbacks that remain on the store worker",
+            }
+        )
+    bulk_calls = (
+        "rStore.markRead(aRequest.Ids, aRequest.Flag)",
+        "rStore.setPinned(aRequest.Ids, aRequest.Flag)",
+        "rStore.archive(aRequest.Ids)",
+        "rStore.remove(aRequest.Ids)",
+        "rStore.restore(aRequest.Ids)",
+    )
+    if any(service_process.count(call) != 1 for call in bulk_calls):
+        violations.append(
+            {
+                "rule": "one-store-call-per-bulk-request",
+                "path": "sfx2/source/notification/NotificationCenterService.cxx",
+                "detail": "each service bulk branch must invoke its atomic store method exactly once",
+            }
+        )
+
+    worker_stop = _extract_braced_block(worker, "void stopAccepting()")
+    worker_shutdown = _extract_braced_block(worker, "void shutdown()")
+    stop_admission = worker_stop.find("m_bAccepting = false")
+    drain_signal = worker_stop.find("m_bStopWhenDrained = true")
+    request_stop = worker_shutdown.find("stopAccepting();")
+    join = worker_shutdown.find("join();")
+    record_join = worker_shutdown.find("m_bJoined = true;")
+    if (
+        min(stop_admission, drain_signal, request_stop, join, record_join) < 0
+        or not stop_admission < drain_signal
+        or not request_stop < join < record_join
+    ):
+        violations.append(
+            {
+                "rule": "service-shutdown-drain-order",
+                "path": "sfx2/source/notification/NotificationCenterService.cxx",
+                "detail": "shutdown must stop admission, request queue drain, then join",
+            }
+        )
+
+    service_impl = _extract_braced_block(
+        service_source, "struct NotificationCenterService::Impl"
+    )
+    service_enqueue = _extract_braced_block(service_impl, "sal_uInt64 enqueue(")
+    service_shutdown = _extract_braced_block(service_impl, "void shutdown()")
+    close_admission = service_shutdown.find("m_xWorker->stopAccepting();")
+    close_delivery = service_shutdown.find("m_xUiCompletions->shutdown();")
+    drain_worker = service_shutdown.find("m_xWorker->shutdown();")
+    finish_delivery = service_shutdown.find("m_xUiCompletions->finishShutdown();")
+    if (
+        "return m_xWorker->enqueue(std::move(aRequest));" not in service_enqueue
+        or min(close_admission, close_delivery, drain_worker, finish_delivery) < 0
+        or not close_admission < close_delivery < drain_worker < finish_delivery
+        or "m_xWorker.clear()" in service_shutdown
+        or "m_xWorker.reset()" in service_shutdown
+    ):
+        violations.append(
+            {
+                "rule": "stable-worker-reference-through-shutdown",
+                "path": "sfx2/source/notification/NotificationCenterService.cxx",
+                "detail": "shutdown and concurrent admission rejection must use one stable worker reference",
+            }
+        )
+
+    configuration_source = contents.get(
+        "sfx2/source/notification/NotificationConfiguration.cxx", ""
+    )
+    missing_configuration_accessors = []
+    for group, field in CONFIGURATION_FIELDS:
+        prefix = f"officecfg::Office::UI::NotificationCenter::{group}::{field}::"
+        if configuration_source.count(prefix + "get()") != 1:
+            missing_configuration_accessors.append(f"{group}.{field}.get")
+        if configuration_source.count(prefix + "set") != 1:
+            missing_configuration_accessors.append(f"{group}.{field}.set")
+    if missing_configuration_accessors:
+        violations.append(
+            {
+                "rule": "complete-generated-configuration-adapter",
+                "path": "sfx2/source/notification/NotificationConfiguration.cxx",
+                "detail": "missing or duplicate generated accessors: "
+                + ", ".join(missing_configuration_accessors),
+            }
+        )
+    configuration_schema = contents.get(
+        "officecfg/registry/schema/org/openoffice/Office/UI/NotificationCenter.xcs",
+        "",
+    )
+    schema_fields: list[tuple[str, str]] = []
+    for group_match in re.finditer(
+        r'<group oor:name="([^"]+)">(.*?)</group>',
+        configuration_schema,
+        flags=re.DOTALL,
+    ):
+        group = group_match.group(1)
+        schema_fields.extend(
+            (group, field)
+            for field in re.findall(
+                r'<prop oor:name="([^"]+)"', group_match.group(2)
+            )
+        )
+    if tuple(schema_fields) != CONFIGURATION_FIELDS:
+        violations.append(
+            {
+                "rule": "generated-configuration-schema-shape",
+                "path": "officecfg/registry/schema/org/openoffice/Office/UI/NotificationCenter.xcs",
+                "detail": "the generated adapter field list must exactly match the ordered schema properties",
+            }
+        )
+    configuration_write = _extract_braced_block(
+        configuration_source, "void NotificationConfiguration::write("
+    )
+    create_batch = configuration_write.find("ConfigurationChanges::create()")
+    commit_batch = configuration_write.find("xChanges->commit();")
+    last_setter = max(
+        (
+            configuration_write.find(
+                f"NotificationCenter::{group}::{field}::set"
+            )
+            for group, field in CONFIGURATION_FIELDS
+        ),
+        default=-1,
+    )
+    if (
+        min(create_batch, commit_batch, last_setter) < 0
+        or not create_batch < last_setter < commit_batch
+        or configuration_write.count("ConfigurationChanges::create()") != 1
+        or configuration_write.count("xChanges->commit();") != 1
+    ):
+        violations.append(
+            {
+                "rule": "single-generated-configuration-batch",
+                "path": "sfx2/source/notification/NotificationConfiguration.cxx",
+                "detail": "all generated preference writes must be committed through one normalized batch",
+            }
+        )
+
+    app_source = contents.get("sfx2/source/appl/app.cxx", "")
+    app_destructor = _extract_braced_block(
+        app_source, "SfxApplication::~SfxApplication()"
+    )
+    service_stop = app_destructor.find("pImpl->mxNotificationCenter.reset();")
+    dying_broadcast = app_destructor.find("Broadcast( SfxHint(SfxHintId::Dying) )")
+    if min(service_stop, dying_broadcast) < 0 or not service_stop < dying_broadcast:
+        violations.append(
+            {
+                "rule": "application-service-shutdown-order",
+                "path": "sfx2/source/appl/app.cxx",
+                "detail": "the service must stop while VCL is alive and before the dying broadcast",
             }
         )
 
@@ -1009,7 +1565,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(
         "Notification-store contract passed: public state model, deterministic redaction, "
         "bare loose-object Git, fixed local main ref, lock/CAS, tombstone/undo, bounded "
-        "preferences, schema registration, and focused runtime coverage are intact."
+        "preferences, generated configuration, serialized async service, application shutdown, "
+        "schema registration, and focused native-test wiring are intact."
     )
     return 0
 

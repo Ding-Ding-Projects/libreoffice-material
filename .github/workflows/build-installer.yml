@@ -92,7 +92,7 @@ jobs:
         run: |
           ./autogen.sh \
             --enable-online-update \
-            --with-privacy-policy-url=https://github.com/codingmachineedge/libreoffice-material/blob/main/PRIVACY.md \
+            --with-privacy-policy-url=https://github.com/Ding-Ding-Projects/libreoffice-material/blob/main/PRIVACY.md \
             --without-java \
             --without-dotnet \
             --without-help \

@@ -1053,3 +1053,14 @@ build or runtime evidence.
   mismatch was discovered; its root remains preserved for audit/cache reuse and
   is not a build result. The next release candidate must use the pushed
   canonical-owner source commit.
+
+## 2026-07-19 — canonical workflow release identity sweep
+
+- Before native compilation began, both workflow configure paths were checked
+  and corrected to use the canonical `Ding-Ding-Projects` privacy-policy URL.
+  The local wrapper already used that URL; keeping the Windows and Linux CI
+  invocations aligned prevents a future workflow-built MSI from reintroducing
+  the old repository identity.
+- The incomplete source-copy root for `4fd5d9aa6` was deliberately stopped and
+  retained before configure. It is not build evidence. The next candidate must
+  use the pushed follow-up commit that contains the CI identity correction.

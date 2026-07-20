@@ -104,9 +104,15 @@ bool isLowerHex(std::string_view rValue)
 OUString decodeUtf8Strict(const std::string& rValue)
 {
     OUString aValue = OUString::fromUtf8(rValue);
-    if (OUStringToOString(aValue, RTL_TEXTENCODING_UTF8) != rValue)
+    const OString aRoundTrip = OUStringToOString(aValue, RTL_TEXTENCODING_UTF8);
+    if (std::string_view(aRoundTrip.getStr(), aRoundTrip.getLength()) != rValue)
         throw NotificationDataError("notification text is not valid UTF-8");
     return aValue;
+}
+
+OString asOString(const std::string& rValue)
+{
+    return OString(rValue.data(), static_cast<sal_Int32>(rValue.size()));
 }
 
 void requirePrimitive(const boost::property_tree::ptree& rNode)
@@ -332,8 +338,8 @@ RecordMap parseRecords(std::string_view rJson)
                                   "body", "dedupeHash" });
 
         NotificationRecord aRecord;
-        aRecord.Id = primitive<std::string>(rNode, "id");
-        aRecord.Source = primitive<std::string>(rNode, "source");
+        aRecord.Id = asOString(primitive<std::string>(rNode, "id"));
+        aRecord.Source = asOString(primitive<std::string>(rNode, "source"));
         aRecord.Severity = parseSeverity(primitive<std::string>(rNode, "severity"));
         aRecord.Folder = parseFolder(primitive<std::string>(rNode, "folder"));
         aRecord.PreviousFolder = parseFolder(primitive<std::string>(rNode, "previousFolder"));
@@ -345,7 +351,7 @@ RecordMap parseRecords(std::string_view rJson)
         aRecord.DeletedAt = primitive<sal_Int64>(rNode, "deletedAt");
         aRecord.Title = decodeUtf8Strict(primitive<std::string>(rNode, "title"));
         aRecord.Body = decodeUtf8Strict(primitive<std::string>(rNode, "body"));
-        aRecord.DedupeHash = primitive<std::string>(rNode, "dedupeHash");
+        aRecord.DedupeHash = asOString(primitive<std::string>(rNode, "dedupeHash"));
         validateRecord(aRecord);
         if (!aRecords.emplace(aRecord.Id, aRecord).second)
             throw NotificationDataError("duplicate notification ID");

@@ -3008,9 +3008,9 @@ libo_FUZZ_ARG_WITH(doxygen,
 ,with_doxygen=yes)
 
 AC_ARG_WITH(visual-studio,
-    AS_HELP_STRING([--with-visual-studio=<2022>],
+    AS_HELP_STRING([--with-visual-studio=<2022/2026>],
         [Specify which Visual Studio version to use in case several are
-         installed. Currently 2022 (default) is supported.]),
+         installed. Currently 2022 (default) and 2026 are supported.]),
 ,)
 
 AC_ARG_WITH(windows-sdk,
@@ -4554,38 +4554,52 @@ find_msvc()
     # Args: $1 (optional) : The VS version year
     # Return values: $vctest, $vcyear, $vctoolset, $vcnumwithdot, $vcbuildnumber
 
-    unset vctest vctoolset vcnumwithdot vcbuildnumber
+    unset vctest vctoolset vcnumwithdot vcbuildnumber ver
 
     vs_versions_to_check "$1"
-    if test "$build_os" = wsl; then
-        vswhere="$PROGRAMFILESX86"
-        if test -z "$vswhere"; then
-            vswhere="c:\\Program Files (x86)"
+    if test -n "$LO_VISUAL_STUDIO_INSTALL_PATH"; then
+        if test -z "$1"; then
+            AC_MSG_ERROR([LO_VISUAL_STUDIO_INSTALL_PATH requires --with-visual-studio.])
         fi
-    elif test -n "$WSL_ONLY_AS_HELPER"; then
-        vswhere="$(perl.exe -e 'print $ENV{"ProgramFiles(x86)"}')"
-    else
-        vswhere="$(perl -e 'print $ENV{"ProgramFiles(x86)"}')"
-    fi
-    vswhere+="\\Microsoft Visual Studio\\Installer\\vswhere.exe"
-    PathFormat "$vswhere"
-    vswhere=$formatted_path_unix
-    for ver in $vsversions; do
-        vswhereoutput=`$vswhere -version "@<:@ $ver , $(expr ${ver%%.*} + 1) @:}@" -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | head -1`
-        if test -z "$vswhereoutput"; then
-            vswhereoutput=`$vswhere -prerelease -version "@<:@ $ver , $(expr ${ver%%.*} + 1) @:}@" -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | head -1`
+        PathFormat "$LO_VISUAL_STUDIO_INSTALL_PATH"
+        vctest=$formatted_path_unix
+        if test ! -d "$vctest/VC/Tools/MSVC"; then
+            AC_MSG_ERROR([LO_VISUAL_STUDIO_INSTALL_PATH does not contain a Visual Studio C++ installation: $LO_VISUAL_STUDIO_INSTALL_PATH])
         fi
-        # Fall back to all MS products (this includes VC++ Build Tools)
-        if ! test -n "$vswhereoutput"; then
-            AC_MSG_CHECKING([VC++ Build Tools and similar])
-            vswhereoutput=`$vswhere -products \* -version "@<:@ $ver , $(expr ${ver%%.*} + 1) @:}@" -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | head -1`
-        fi
-        if test -n "$vswhereoutput"; then
-            PathFormat "$vswhereoutput"
-            vctest=$formatted_path_unix
+        for ver in $vsversions; do
             break
+        done
+    else
+        if test "$build_os" = wsl; then
+            vswhere="$PROGRAMFILESX86"
+            if test -z "$vswhere"; then
+                vswhere="c:\\Program Files (x86)"
+            fi
+        elif test -n "$WSL_ONLY_AS_HELPER"; then
+            vswhere="$(perl.exe -e 'print $ENV{"ProgramFiles(x86)"}')"
+        else
+            vswhere="$(perl -e 'print $ENV{"ProgramFiles(x86)"}')"
         fi
-    done
+        vswhere+="\\Microsoft Visual Studio\\Installer\\vswhere.exe"
+        PathFormat "$vswhere"
+        vswhere=$formatted_path_unix
+        for ver in $vsversions; do
+            vswhereoutput=`$vswhere -version "@<:@ $ver , $(expr ${ver%%.*} + 1) @:}@" -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | head -1`
+            if test -z "$vswhereoutput"; then
+                vswhereoutput=`$vswhere -prerelease -version "@<:@ $ver , $(expr ${ver%%.*} + 1) @:}@" -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | head -1`
+            fi
+            # Fall back to all MS products (this includes VC++ Build Tools)
+            if ! test -n "$vswhereoutput"; then
+                AC_MSG_CHECKING([VC++ Build Tools and similar])
+                vswhereoutput=`$vswhere -products \* -version "@<:@ $ver , $(expr ${ver%%.*} + 1) @:}@" -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | head -1`
+            fi
+            if test -n "$vswhereoutput"; then
+                PathFormat "$vswhereoutput"
+                vctest=$formatted_path_unix
+                break
+            fi
+        done
+    fi
 
     if test -n "$vctest"; then
         vcnumwithdot="$ver"
@@ -4602,6 +4616,17 @@ find_msvc()
             vctoolset=v145
         esac
         vcbuildnumber=`ls $vctest/VC/Tools/MSVC -A1r | head -1`
+        if test -n "$LO_VISUAL_STUDIO_INSTALL_PATH"; then
+            case "$vcyear:$vcbuildnumber" in
+            2022:14.[34]*)
+                ;;
+            2026:14.5*)
+                ;;
+            *)
+                AC_MSG_ERROR([LO_VISUAL_STUDIO_INSTALL_PATH does not provide the expected MSVC toolset for Visual Studio $vcyear: $LO_VISUAL_STUDIO_INSTALL_PATH])
+                ;;
+            esac
+        fi
 
     fi
 }

@@ -972,3 +972,21 @@ build or runtime evidence.
 - No local native target, MSI, LibreOffice launch, or runtime capture completed
   in this attempt. The clean failed-run root remains preserved; the repaired
   profile requires a fresh bootstrap, preflight, and all-phase build.
+
+## 2026-07-19 — explicit local Visual Studio 2026 profile
+
+- The local Windows build source exposes an explicit
+  `-VisualStudioYear 2026` profile alongside its unchanged isolated VS 2022
+  default. A verified existing VS 2026 installation is selected only by
+  providing its exact `-VisualStudioInstallPath`; normal bootstrap may prepare
+  other prerequisites but refuses to alter an incomplete host Visual Studio
+  installation. Without that option, the opt-in profile uses its own
+  `%ProgramData%\LibreOfficeMaterialTools\VS2026` Build Tools root.
+- The VS 2026 profile uses the VS 18 version range, v145 CRT merge modules, and
+  a separate `windows-cygwin-vs2026-msi` build profile. VS 2022 and VS 2026
+  resume state is intentionally incompatible, and the configured compiler path
+  is checked against an explicitly supplied host path. The current CI workflow
+  remains pinned to VS 2022.
+- This is a source/documentation profile change only. No VS 2026 bootstrap,
+  preflight, native target, MSI, LibreOffice launch, headless UI smoke,
+  accessibility smoke, or release result is claimed by this entry.

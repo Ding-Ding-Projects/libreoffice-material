@@ -21,8 +21,8 @@ build stays in the invoking terminal.
 
 ## What the script provisions
 
-Unless <code>-NoBootstrap</code> is supplied, the script automatically installs or
-repairs an isolated toolchain:
+Unless <code>-NoBootstrap</code> is supplied, the default VS 2022 profile
+automatically installs or repairs an isolated toolchain:
 
 - Visual Studio <strong>2022</strong> Build Tools at
   <code>%ProgramData%\LibreOfficeMaterialTools\VS2022</code>, with MSVC x64/x86,
@@ -34,6 +34,28 @@ repairs an isolated toolchain:
   bootstrap directory;
 - LibreOffice's Windows GNU Make and <code>pkgconf-2.4.3.exe</code> under
   <code>cygwin64\opt\lo\bin</code>.
+
+Visual Studio 2022 remains the default and matches the current Windows CI
+workflow. The source-controlled local VS 2026 profile is deliberately opt-in.
+To use a verified existing host installation, name both the VS year and the
+exact installation path, and keep the first build root distinct:
+
+~~~powershell
+.\Build-Windows.cmd -VisualStudioYear 2026 -VisualStudioInstallPath 'C:\Program Files\Microsoft Visual Studio\18\Enterprise' -BuildRoot "$env:USERPROFILE\lo-material-vs2026"
+~~~
+
+The supplied path is verified as the selected VS 2026 toolchain. Normal
+bootstrap may still provision the other prerequisites, but it refuses to
+modify an incomplete host Visual Studio installation. It never silently finds,
+repairs, or substitutes a host installation. Without
+<code>-VisualStudioInstallPath</code>, the explicit VS 2026 profile instead
+uses the separate dedicated Build Tools root
+<code>%ProgramData%\LibreOfficeMaterialTools\VS2026</code>. In either case,
+VS 2026 is a local-only profile until the CI workflow is intentionally changed.
+VS 2022 and VS 2026 resume state is not interchangeable.
+Older build-state schema 1 roots are preserved and rejected rather than changed
+in place because they do not record the Visual Studio installation path; use a
+new build root for this profile-aware schema.
 
 The isolated Cygwin <code>git</code> package is also the default snapshot
 provider, so the script does not install a separate system-wide Git client.
@@ -48,16 +70,14 @@ executables must match source-pinned SHA-256 values:
 | <code>make.exe</code> | <code>146d6f2b0ea57647b11b506a95048a7be73232e1feeeccbc1013651f992423d8</code> |
 | <code>pkgconf-2.4.3.exe</code> | <code>791cd6dbc56f7268fbf9c4652d6634b0f5c59687ab4e504565e58245952edd41</code> |
 
-After provisioning, it independently verifies the VS 2022 component set,
-including C++/CLI, the C++ Clang compiler, ATL and CRT merge modules, a complete Windows SDK including
-MIDL and x86 MSI tools, the legacy CLI .NET Framework tools, every requested Cygwin package,
-the Perl <code>Archive::Zip</code>, <code>Font::TTF</code>, and
-<code>IO::String</code> modules, Windows-built Make, pinned
-<code>pkgconf</code>, and NASM 2.16 or newer. A bootstrap manifest records
-those validated paths, package names, signers, and hashes.
-
-It never substitutes the host's Visual Studio 2026 installation for the
-required VS 2022 profile.
+After provisioning, it independently verifies the selected Visual Studio
+component set, including C++/CLI, the C++ Clang compiler, ATL and the selected
+profile's CRT merge modules, a complete Windows SDK including MIDL and x86 MSI
+tools, the legacy CLI .NET Framework tools, every requested Cygwin package, the
+Perl <code>Archive::Zip</code>, <code>Font::TTF</code>, and <code>IO::String</code>
+modules, Windows-built Make, pinned <code>pkgconf</code>, and NASM 2.16 or newer.
+A bootstrap manifest records the selected profile, validated paths, package
+names, signers, and hashes.
 
 ## Source and output safety
 
@@ -98,7 +118,7 @@ installer returns the reboot-required code, reboot manually and rerun it.
 
 ## Build contract
 
-The <code>All</code> phase uses the same Windows profile as
+The default <code>All</code> phase uses the same VS 2022 Windows profile as
 [<code>windows-installer.yml</code>](../.github/workflows/windows-installer.yml):
 
 1. <code>autogen.sh</code> configures Cygwin + Visual Studio 2022 MSI packaging with
@@ -109,8 +129,15 @@ The <code>All</code> phase uses the same Windows profile as
    serially, and builds and checks the legacy CLI payload;
 4. it runs <code>make build</code>;
 5. it accepts exactly one MSI only from
-   <code>workdir\installation\LibreOfficeDev\msi\install\en-US</code>,
-   administratively extracts it, and requires exactly one <code>soffice.exe</code>.
+    <code>workdir\installation\LibreOfficeDev\msi\install\en-US</code>,
+    administratively extracts it, and requires exactly one <code>soffice.exe</code>.
+
+The explicit VS 2026 local profile follows the same configure, test, package,
+and structural-validation sequence with <code>--with-visual-studio=2026</code>.
+When an explicit host path is selected, the wrapper verifies that configuration
+uses that exact installation rather than a different discovered VS 2026 copy.
+This does not change the CI runner or establish CI, native-build, installer,
+runtime, UI, or accessibility evidence.
 
 The canonical staged result, SHA-256 file, MSI manifest, extraction log, and
 administrative extraction stay in a collision-resistant unique
@@ -127,11 +154,23 @@ For a non-mutating availability check, use:
 .\Build-Windows.cmd -Phase Preflight
 ~~~
 
+For the explicit VS 2026 host profile's availability check, keep the build root
+separate and provide the exact verified path:
+
+~~~powershell
+.\Build-Windows.cmd -Phase Preflight -VisualStudioYear 2026 -VisualStudioInstallPath 'C:\Program Files\Microsoft Visual Studio\18\Enterprise' -BuildRoot "$env:USERPROFILE\lo-material-vs2026"
+~~~
+
 For a strict existing-toolchain build that may not install anything, use:
 
 ~~~powershell
 .\Build-Windows.cmd -NoBootstrap
 ~~~
+
+With <code>-VisualStudioYear 2026</code>, <code>-NoBootstrap</code> is optional
+only after the selected dedicated or explicitly named host profile passes normal
+preflight. An explicit host path is still never a fallback: if it is incomplete,
+the script stops rather than modifying it.
 
 On 2026-07-19, this host's first bootstrap installed the dedicated VS 2022 and
 isolated Cygwin profiles. A later clean preflight passed that installed profile,
@@ -140,4 +179,5 @@ missing VS C++ Clang compiler. The script now treats that compiler and its
 <code>clang-cl.exe</code> payload as required, so the next default invocation
 repairs the profile rather than proceeding with an incomplete toolchain. These
 are provisioning/configure observations only: no local native build, MSI,
-LibreOffice launch, or accepted UI evidence is claimed here.
+LibreOffice launch, or accepted UI evidence is claimed here. The VS 2026
+selection is likewise source automation until an isolated local run is recorded.

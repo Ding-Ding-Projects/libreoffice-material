@@ -31,6 +31,11 @@ param(
     [ValidateRange(40, 4096)]
     [int] $MinimumFreeGiB = 80,
 
+    [ValidateSet(2022, 2026)]
+    [int] $VisualStudioYear = 2022,
+
+    [string] $VisualStudioInstallPath,
+
     [switch] $NoBootstrap,
 
     [switch] $Resume
@@ -42,7 +47,46 @@ $ErrorActionPreference = 'Stop'
 $script:RepositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $script:ToolRoot = [IO.Path]::GetFullPath($ToolRoot)
 $script:BuildRoot = [IO.Path]::GetFullPath($BuildRoot)
-$script:VsInstallPath = Join-Path $script:ToolRoot 'VS2022'
+$script:BuildStateSchema = 2
+$script:VisualStudioProfile = switch ($VisualStudioYear) {
+    2022 {
+        [pscustomobject]@{
+            Year = 2022
+            DisplayName = 'Visual Studio 2022 Build Tools'
+            VersionRange = '[17.0,18.0)'
+            InstallLeaf = 'VS2022'
+            BootstrapUrl = 'https://aka.ms/vs/17/release/vs_buildtools.exe'
+            BootstrapFileName = 'vs_buildtools-17.exe'
+            CrtToolset = '143'
+            BuildProfile = 'windows-cygwin-vs2022-msi'
+        }
+    }
+    2026 {
+        [pscustomobject]@{
+            Year = 2026
+            DisplayName = 'Visual Studio 2026 Build Tools'
+            VersionRange = '[18.0,19.0)'
+            InstallLeaf = 'VS2026'
+            BootstrapUrl = 'https://aka.ms/vs/18/stable/vs_buildtools.exe'
+            BootstrapFileName = 'vs_buildtools-18.exe'
+            CrtToolset = '145'
+            BuildProfile = 'windows-cygwin-vs2026-msi'
+        }
+    }
+}
+if ($null -eq $script:VisualStudioProfile) {
+    throw ('Unsupported Visual Studio year: {0}' -f $VisualStudioYear)
+}
+$script:VisualStudioInstallPathIsExplicit = -not [string]::IsNullOrWhiteSpace($VisualStudioInstallPath)
+if ($script:VisualStudioInstallPathIsExplicit -and $VisualStudioYear -ne 2026) {
+    throw '-VisualStudioInstallPath is supported only together with -VisualStudioYear 2026.'
+}
+$script:VsInstallPath = if ($script:VisualStudioInstallPathIsExplicit) {
+    [IO.Path]::GetFullPath($VisualStudioInstallPath.Trim())
+}
+else {
+    Join-Path $script:ToolRoot $script:VisualStudioProfile.InstallLeaf
+}
 $script:CygwinRoot = Join-Path $script:ToolRoot 'cygwin64'
 $script:BootstrapDirectory = Join-Path $script:ToolRoot 'bootstrap'
 $script:SourceSnapshot = Join-Path $script:BuildRoot 'source'
@@ -321,13 +365,13 @@ function Get-VsWherePath {
     }
 }
 
-function Get-DedicatedVisualStudio {
+function Get-SelectedVisualStudio {
     $vswhere = Get-VsWherePath
     if (-not $vswhere) {
         return $null
     }
 
-    $candidates = @(& $vswhere -all -version '[17.0,18.0)' -products '*' -requires $script:RequiredVsComponents -property installationPath)
+    $candidates = @(& $vswhere -all -version $script:VisualStudioProfile.VersionRange -products '*' -requires $script:RequiredVsComponents -property installationPath)
     if ($LASTEXITCODE -ne 0) {
         throw ('vswhere failed with exit code {0}.' -f $LASTEXITCODE)
     }
@@ -345,8 +389,8 @@ function Get-DedicatedVisualStudio {
     $clangCl = Join-Path $installationPath 'VC\Tools\Llvm\bin\clang-cl.exe'
     $atl = Get-ChildItem -LiteralPath (Join-Path $installationPath 'VC\Tools\MSVC') -Recurse -Filter 'atlbase.h' -File -ErrorAction SilentlyContinue | Select-Object -First 1
     $redistRoot = Join-Path $installationPath 'VC\Redist\MSVC'
-    $msmX86 = Get-ChildItem -LiteralPath $redistRoot -Recurse -Filter 'Microsoft_VC143_CRT_x86.msm' -File -ErrorAction SilentlyContinue | Select-Object -First 1
-    $msmX64 = Get-ChildItem -LiteralPath $redistRoot -Recurse -Filter 'Microsoft_VC143_CRT_x64.msm' -File -ErrorAction SilentlyContinue | Select-Object -First 1
+    $msmX86 = Get-ChildItem -LiteralPath $redistRoot -Recurse -Filter ('Microsoft_VC{0}_CRT_x86.msm' -f $script:VisualStudioProfile.CrtToolset) -File -ErrorAction SilentlyContinue | Select-Object -First 1
+    $msmX64 = Get-ChildItem -LiteralPath $redistRoot -Recurse -Filter ('Microsoft_VC{0}_CRT_x64.msm' -f $script:VisualStudioProfile.CrtToolset) -File -ErrorAction SilentlyContinue | Select-Object -First 1
     if (-not (Test-Path -LiteralPath $cmake -PathType Leaf) -or
         -not (Test-Path -LiteralPath $clangCl -PathType Leaf) -or
         -not $atl -or -not $msmX86 -or -not $msmX64) {
@@ -544,9 +588,10 @@ function Test-HostPrerequisites {
         $errors.Add('Git is missing. The default bootstrap provides isolated Cygwin Git; -NoBootstrap requires Git for Windows or an existing isolated Cygwin Git.')
     }
 
-    $visualStudio = Get-DedicatedVisualStudio
+    $visualStudio = Get-SelectedVisualStudio
     if (-not $visualStudio) {
-        $errors.Add(('Dedicated Visual Studio 2022 Build Tools at {0} is absent or incomplete.' -f $script:VsInstallPath))
+        $selectionDescription = if ($script:VisualStudioInstallPathIsExplicit) { 'Explicitly selected' } else { 'Dedicated' }
+        $errors.Add(('{0} {1} at {2} is absent or incomplete.' -f $selectionDescription, $script:VisualStudioProfile.DisplayName, $script:VsInstallPath))
     }
 
     $sdk = Get-CompleteWindowsSdk
@@ -740,6 +785,9 @@ function Write-BootstrapManifest {
         generated_utc = [DateTime]::UtcNow.ToString('o')
         tool_root = $script:ToolRoot
         visual_studio = [ordered]@{
+            year = $script:VisualStudioProfile.Year
+            profile = $script:VisualStudioProfile.BuildProfile
+            install_path_explicit = $script:VisualStudioInstallPathIsExplicit
             installation_path = $Prerequisites.VisualStudio.InstallationPath
             cmake = $Prerequisites.VisualStudio.CMake
             atl_header = $Prerequisites.VisualStudio.AtlHeader
@@ -781,13 +829,21 @@ function Invoke-Bootstrap {
         Start-Transcript -Path $transcript -Append | Out-Null
         $transcriptStarted = $true
         Write-Section 'Bootstrap isolated Windows build prerequisites'
-        if ((-not (Get-DedicatedVisualStudio)) -or (-not (Get-CompleteWindowsSdk))) {
-            $vsBootstrapper = Get-SignedDownload 'Visual Studio 2022 Build Tools bootstrapper' 'https://aka.ms/vs/17/release/vs_buildtools.exe' (Join-Path $script:BootstrapDirectory 'vs_buildtools.exe') '(?i)(?:^|,\s*)CN=Microsoft Corporation(?:,|$)'
+        $visualStudio = Get-SelectedVisualStudio
+        $sdk = Get-CompleteWindowsSdk
+        if ((-not $visualStudio) -or (-not $sdk)) {
+            if ($script:VisualStudioInstallPathIsExplicit) {
+                if (-not $visualStudio) {
+                    throw ('The explicitly selected {0} at {1} is absent or incomplete. Repair or install that exact path before running this build; the bootstrap will not modify a host Visual Studio installation.' -f $script:VisualStudioProfile.DisplayName, $script:VsInstallPath)
+                }
+                throw 'No complete Windows SDK with desktop headers, MIDL, and x86 MSI database tools was found. Install or repair it separately before using an explicitly selected host Visual Studio installation.'
+            }
+            $vsBootstrapper = Get-SignedDownload ('{0} bootstrapper' -f $script:VisualStudioProfile.DisplayName) $script:VisualStudioProfile.BootstrapUrl (Join-Path $script:BootstrapDirectory $script:VisualStudioProfile.BootstrapFileName) '(?i)(?:^|,\s*)CN=Microsoft Corporation(?:,|$)'
             $vsArguments = @('--quiet', '--wait', '--norestart', '--nocache', '--installPath', $script:VsInstallPath)
             foreach ($component in $script:VsBootstrapComponents) {
                 $vsArguments += @('--add', $component)
             }
-            Invoke-Installer 'Visual Studio 2022 Build Tools' $vsBootstrapper.Path $vsArguments
+            Invoke-Installer $script:VisualStudioProfile.DisplayName $vsBootstrapper.Path $vsArguments
         }
 
         if (-not (Get-LegacyCliTools)) {
@@ -832,7 +888,13 @@ function Invoke-ElevatedBootstrap {
     }
 
     $powerShell = Join-Path $PSHOME 'powershell.exe'
-    $childCommand = ('& {0} -Phase Bootstrap -Jobs {1} -ToolRoot {2} -BuildRoot {3} -MinimumFreeGiB {4}; exit $LASTEXITCODE' -f (ConvertTo-PowerShellSingleQuoted $PSCommandPath), $Jobs, (ConvertTo-PowerShellSingleQuoted $script:ToolRoot), (ConvertTo-PowerShellSingleQuoted $script:BuildRoot), $MinimumFreeGiB)
+    $visualStudioInstallArgument = if ($script:VisualStudioInstallPathIsExplicit) {
+        ' -VisualStudioInstallPath ' + (ConvertTo-PowerShellSingleQuoted $script:VsInstallPath)
+    }
+    else {
+        ''
+    }
+    $childCommand = ('& {0} -Phase Bootstrap -Jobs {1} -ToolRoot {2} -BuildRoot {3} -MinimumFreeGiB {4} -VisualStudioYear {5}{6}; exit $LASTEXITCODE' -f (ConvertTo-PowerShellSingleQuoted $PSCommandPath), $Jobs, (ConvertTo-PowerShellSingleQuoted $script:ToolRoot), (ConvertTo-PowerShellSingleQuoted $script:BuildRoot), $MinimumFreeGiB, $script:VisualStudioProfile.Year, $visualStudioInstallArgument)
     $encodedCommand = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($childCommand))
     $arguments = @(
         '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden',
@@ -870,6 +932,34 @@ function Assert-FreeDiskSpace {
     }
 }
 
+function Assert-BuildStateProfile {
+    param([Parameter(Mandatory)] $State)
+
+    $schemaProperty = $State.PSObject.Properties['schema']
+    $recordedSchema = if ($null -eq $schemaProperty) { $null } else { [string] $schemaProperty.Value }
+    if ($recordedSchema -ne [string] $script:BuildStateSchema) {
+        throw ('Build state schema {0} is incompatible with schema {1}, which records the selected Visual Studio installation. Use a new build root; nothing was removed.' -f $recordedSchema, $script:BuildStateSchema)
+    }
+
+    $profileProperty = $State.PSObject.Properties['build_profile']
+    $recordedProfile = if ($null -eq $profileProperty) { $null } else { [string] $profileProperty.Value }
+    if ([string]::IsNullOrWhiteSpace($recordedProfile)) {
+        throw ('Build state does not record a Visual Studio build profile: {0}' -f $script:StatePath)
+    }
+    if ($recordedProfile -ne $script:VisualStudioProfile.BuildProfile) {
+        throw ('Build state uses Visual Studio profile {0}, but this invocation selected {1}. Use a separate build root for the other toolchain. Nothing was removed.' -f $recordedProfile, $script:VisualStudioProfile.BuildProfile)
+    }
+
+    $installPathProperty = $State.PSObject.Properties['visual_studio_install_path']
+    $recordedInstallPath = if ($null -eq $installPathProperty) { $null } else { [string] $installPathProperty.Value }
+    if ([string]::IsNullOrWhiteSpace($recordedInstallPath)) {
+        throw ('Build state does not record the selected Visual Studio installation path: {0}' -f $script:StatePath)
+    }
+    if ((Get-FullPath $recordedInstallPath) -ine (Get-FullPath $script:VsInstallPath)) {
+        throw ('Build state selected Visual Studio at {0}, but this invocation selected {1}. Use a separate build root for the other installation. Nothing was removed.' -f $recordedInstallPath, $script:VsInstallPath)
+    }
+}
+
 function Assert-BuildRootRequest {
     if (Test-Path -LiteralPath $script:BuildRoot -PathType Leaf) {
         throw ('Build root is a file: {0}' -f $script:BuildRoot)
@@ -895,6 +985,7 @@ function Assert-BuildRootRequest {
     if ((Get-FullPath $state.repository_root) -ine (Get-FullPath $script:RepositoryRoot)) {
         throw ('Build state belongs to a different repository: {0}' -f $script:StatePath)
     }
+    Assert-BuildStateProfile $state
 }
 
 function Initialize-BuildRoot {
@@ -911,15 +1002,18 @@ function Initialize-BuildRoot {
         if ($state.source_commit -ne $SourceCommit -or (Get-FullPath $state.repository_root) -ine (Get-FullPath $script:RepositoryRoot)) {
             throw 'Refusing to resume a build root belonging to another source commit or repository. Nothing was removed.'
         }
+        Assert-BuildStateProfile $state
     }
     else {
         New-RequiredDirectory $script:BuildRoot
         $state = [ordered]@{
-            schema = 1
+            schema = $script:BuildStateSchema
             created_utc = [DateTime]::UtcNow.ToString('o')
             repository_root = $script:RepositoryRoot
             source_commit = $SourceCommit
-            build_profile = 'windows-cygwin-vs2022-msi'
+            build_profile = $script:VisualStudioProfile.BuildProfile
+            visual_studio_year = $script:VisualStudioProfile.Year
+            visual_studio_install_path = $script:VsInstallPath
         }
         $state | ConvertTo-Json | Set-Content -LiteralPath $script:StatePath -Encoding utf8
     }
@@ -1022,6 +1116,20 @@ grep -Fxq 'export OS=WNT' "$config"
 grep -Fxq 'export COM=MSC' "$config"
 grep -Fxq 'export HOST_PLATFORM=x86_64-pc-cygwin' "$config"
 grep -Fxq 'export PKGFORMAT?=msi' "$config"
+test -n "$LO_SELECTED_VISUAL_STUDIO_INSTALL_PATH"
+expected_vs_dos="$(cygpath -d "$LO_SELECTED_VISUAL_STUDIO_INSTALL_PATH")"
+expected_vs="$(cygpath -u "$expected_vs_dos")"
+configured_compath="$(sed -n -e 's/^export COMPATH=//p' "$config" | head -n 1)"
+test -n "$configured_compath"
+configured_compath="$(cygpath -u "$configured_compath")"
+case "$configured_compath" in
+  "$expected_vs"|"$expected_vs"/*)
+    ;;
+  *)
+    printf 'Configured COMPATH is outside the selected Visual Studio installation: %s (expected under %s)\n' "$configured_compath" "$expected_vs" >&2
+    exit 1
+    ;;
+esac
 '@
     Invoke-CygwinScript 'assert-configured-profile' $configuredProfile
 }
@@ -1044,7 +1152,7 @@ fi
 cd "$build_dir"
 "$src_dir/autogen.sh" \
   --host=x86_64-pc-cygwin \
-  --with-visual-studio=2022 \
+  --with-visual-studio=__LO_VISUAL_STUDIO_YEAR__ \
   --with-windows-sdk=10.0 \
   --with-package-format=msi \
   --with-external-tar="$tarball_arg" \
@@ -1069,7 +1177,13 @@ cd "$build_dir"
 grep -Eq '^export BUILD_TYPE=.*[[:space:]]DBCONNECTIVITY([[:space:]]|$)' config_host.mk
 grep -qx 'export ENABLE_CLI=TRUE' config_host.mk
 '@
+    $visualStudioMarker = '__LO_VISUAL_STUDIO_YEAR__'
+    if (([regex]::Matches($configure, [regex]::Escape($visualStudioMarker))).Count -ne 1) {
+        throw 'The configure command must contain exactly one Visual Studio year marker.'
+    }
+    $configure = $configure.Replace($visualStudioMarker, [string] $script:VisualStudioProfile.Year)
     Invoke-CygwinScript 'configure' $configure
+    Assert-ConfiguredBuild
 }
 
 function Invoke-NativeTests {
@@ -1172,6 +1286,10 @@ function Invoke-MsiPackagingValidation {
 function Invoke-BuildPhases {
     $hadCl = Test-Path Env:CL
     $oldCl = $env:CL
+    $hadSelectedVisualStudioInstallPath = Test-Path Env:LO_SELECTED_VISUAL_STUDIO_INSTALL_PATH
+    $oldSelectedVisualStudioInstallPath = $env:LO_SELECTED_VISUAL_STUDIO_INSTALL_PATH
+    $hadVisualStudioInstallPathOverride = Test-Path Env:LO_VISUAL_STUDIO_INSTALL_PATH
+    $oldVisualStudioInstallPathOverride = $env:LO_VISUAL_STUDIO_INSTALL_PATH
     try {
         $env:CL = '/FS'
         $env:SOURCE_CHECKOUT = $script:SourceSnapshot
@@ -1179,6 +1297,11 @@ function Invoke-BuildPhases {
         $env:LO_BUILD_DIR = $script:BuildDirectory
         $env:LO_TARBALL_DIR = $script:TarballDirectory
         $env:BUILD_JOBS = [string] $Jobs
+        $env:LO_SELECTED_VISUAL_STUDIO_INSTALL_PATH = $script:VsInstallPath
+        # Pin configure to the exact preflight-verified installation for every
+        # profile, rather than permitting its independent vswhere lookup to pick
+        # a different compatible instance.
+        $env:LO_VISUAL_STUDIO_INSTALL_PATH = $script:VsInstallPath
 
         if ($Phase -in @('All', 'Configure')) {
             Invoke-Configure
@@ -1202,6 +1325,18 @@ function Invoke-BuildPhases {
         }
         else {
             Remove-Item Env:CL -ErrorAction SilentlyContinue
+        }
+        if ($hadSelectedVisualStudioInstallPath) {
+            $env:LO_SELECTED_VISUAL_STUDIO_INSTALL_PATH = $oldSelectedVisualStudioInstallPath
+        }
+        else {
+            Remove-Item Env:LO_SELECTED_VISUAL_STUDIO_INSTALL_PATH -ErrorAction SilentlyContinue
+        }
+        if ($hadVisualStudioInstallPathOverride) {
+            $env:LO_VISUAL_STUDIO_INSTALL_PATH = $oldVisualStudioInstallPathOverride
+        }
+        else {
+            Remove-Item Env:LO_VISUAL_STUDIO_INSTALL_PATH -ErrorAction SilentlyContinue
         }
     }
 }

@@ -55,6 +55,18 @@ source Linux run `29695793821` and Windows run `29695815101` both passed
 passed the legacy CLI payload check and built the full LibreOfficeDev
 installation set.
 
+The local script's default remains the isolated, CI-matching VS 2022 profile.
+It also has an explicit local-only VS 2026 selection through
+`-VisualStudioYear 2026`. A verified existing host installation can be selected
+only by also passing its exact `-VisualStudioInstallPath`; an incomplete host
+path stops rather than being repaired or silently substituted. Without that
+path, the opt-in profile uses its dedicated
+`%ProgramData%\LibreOfficeMaterialTools\VS2026` Build Tools root. Use a distinct
+build root such as `$env:USERPROFILE\lo-material-vs2026` for its first run. The
+CI workflow remains pinned to VS 2022 for now. This is a source-automation
+profile only, not a completed local native build, installer, runtime, headless
+UI, or accessibility result.
+
 Run `29695815101` did not upload an MSI: its staging script recursively matched
 two retained LibreOffice working databases as well as the final installer. The
 workflow now inspects only the success-only final `LibreOfficeDev\msi\install\en-US`
@@ -67,10 +79,12 @@ The local script is intentionally non-destructive: it checks safe short roots,
 both tool/build-drive free space, and a clean checkout before installing
 dependencies when Git is already available; it uses isolated Cygwin Git rather
 than installing a global Git client. It does not normalize the development
-checkout, delete a prior build root, silently use Visual Studio 2026, reboot
-Windows, install its MSI, or claim runtime evidence. A complete successful
-full run removes only its verified-clean temporary LF worktree. Its default
-phase remains a build contract until its first local native run.
+checkout, delete a prior build root, silently use a host Visual Studio
+installation, reboot Windows, install its MSI, or claim runtime evidence. Its
+VS 2022 default and VS 2026 build state cannot resume each other's work. A
+complete successful full run removes only its verified-clean temporary LF
+worktree. Its default phase remains a build contract until its first local
+native run.
 
 The source now contains a Windows-only consent-based update path. It reads the
 exact GitHub Latest XML asset and accepts only one safe tag-derived GitHub URL

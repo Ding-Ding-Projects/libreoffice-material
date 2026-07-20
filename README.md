@@ -315,14 +315,34 @@ and the imported build files before configuring a machine.
 > run, normal release, headless UI smoke, accessibility smoke, or accepted
 > capture is claimed here.
 
+> **Optional local VS 2026 profile:** Visual Studio 2022 remains the default
+> and the profile that matches the current Windows CI workflow. To select VS
+> 2026 explicitly with a verified existing installation, use a separate build
+> root on the first run:
+>
+> ```powershell
+> .\Build-Windows.cmd -VisualStudioYear 2026 -VisualStudioInstallPath 'C:\Program Files\Microsoft Visual Studio\18\Enterprise' -BuildRoot "$env:USERPROFILE\lo-material-vs2026"
+> ```
+>
+> The supplied path is validated as the selected VS 2026 toolchain. The script
+> never silently selects, repairs, or substitutes a host Visual Studio
+> installation; it stops if that explicit path is incomplete. Without
+> `-VisualStudioInstallPath`, the opt-in profile uses its separate dedicated
+> `%ProgramData%\LibreOfficeMaterialTools\VS2026` Build Tools root. This is a
+> local-build option only until the CI profile is deliberately updated. Its
+> addition is source automation, not evidence of a completed local build, MSI,
+> application launch, UI smoke, or accessibility result.
+
 The bootstrapper creates a clean detached LF worktree rather than normalizing
 the development checkout. It checks root safety, free space, and (when Git is
 available) source cleanliness before dependency installation; its isolated
 Cygwin Git and Git configuration avoid a system-wide Git mutation. It is
 intentionally fail-safe: it never deletes a previous build root, reboots
-Windows, installs the output MSI, or substitutes Visual Studio 2026 for the
-required VS 2022 profile. A full successful run removes only its verified-clean
-temporary source snapshot and preserves build logs and artifacts.
+Windows, installs the output MSI, or silently substitutes a host Visual Studio
+installation. The default remains isolated VS 2022; a host VS 2026 install is
+used only when both the year and its exact path are supplied. A full successful
+run removes only its verified-clean temporary source snapshot and preserves
+build logs and artifacts.
 
 At the imported baseline, the upstream README records these minimum build
 baselines:

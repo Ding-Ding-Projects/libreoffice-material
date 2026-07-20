@@ -234,7 +234,13 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
           installed the dedicated VS 2022/Cygwin profile and a clean preflight
           passed it; the first real configure then exposed the missing C++ Clang
           compiler required by Skia. The bootstrap now requires that component
-          before retrying the local configure.
+          before retrying the local configure. VS 2022 remains the default and
+          CI-matching profile. VS 2026 is local-only and requires the explicit
+          <code>-VisualStudioYear 2026</code> selection; a host installation is
+          used only when its exact <code>-VisualStudioInstallPath</code> is
+          provided and verified. The wrapper never silently substitutes or
+          repairs a host installation, and this profile has not produced local
+          build or runtime evidence.
           Current-source Linux run <code>29695793821</code> and Windows run
           <code>29695815101</code> passed all five required native C++ targets;
           the latter also built the full installation set. Its staging rule

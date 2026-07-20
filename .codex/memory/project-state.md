@@ -10,10 +10,14 @@ functionality. Prove visible work through real builds and off-screen desktop
 testing, publish project documentation and evidence, and preserve upstream
 licensing and provenance.
 
+Current delivery and verification scope is Windows. Cross-platform acceptance
+gates remain documented as deferred future work rather than being removed or
+counted as current evidence.
+
 ## Current milestone
 
 **Phase 1 — tenth Material VCL and Windows updater source milestones published;
-corrected exact-source local MSI and canonical light Start Center smoke recorded;
+corrected exact-source local MSI and canonical light/dark/forced-high-contrast Start Center smoke recorded;
 suite-wide work continues. The corrected normal public Latest release and its
 four assets are verified, while Phase 0's full reproducibility and installer
 lifecycle gates remain open.**
@@ -25,8 +29,8 @@ matched light/dark profiles, source-level high-contrast fallback routing,
 native-style restoration and dynamic focus-policy refreshes, explicit headless
 dark selection, standalone spin controls, and a dedicated headless drawing test
 target. The automation harness has advanced from its Notepad preflight to an
-accepted exact-source LibreOfficeDev Start Center run, with the corrected
-`fbba560e27` run now supplying the canonical gallery.
+accepted exact-source LibreOfficeDev Start Center runs, with the corrected
+`fbba560e27` payload now supplying the eight-image canonical gallery.
 The fourth milestone adds strict semantic typography roles that derive from the
 captured native font baseline instead of replacing platform/user fonts.
 The fifth milestone closes all 72 `StyleSettings` color slots with exact
@@ -61,8 +65,10 @@ disabled-affordance gaps: a dimmed disabled `SubmenuArrow`, a disabled-but-check
 `MenuItem`). Three other verified gaps (default-button emphasis, field hover,
 scrollbar-trough feedback) are deferred as design decisions (D-020). The Material
 definition now has 79 parts, 205 states, 159 rounded rectangles, and 346 metric
-  references; they compiled at `577059e274`, while the individual state tuples
-  remain visually unexecuted.
+references. Definition parsing and state-dispatch command/region assertions
+compiled and executed in current Linux, Windows, and local VS 2026 native runs.
+The corrected `fbba560e2` extracted runtime also launched with the Material
+opt-in set, but individual state tuples remain unexercised and pixel-unverified.
 The post-tenth source slice routes the Start Center's `open_all` standard
 `suggested-action` class through `VclBuilder` to `PushButton::setAction(true)`,
 selecting the existing Material `extra="action"` pushbutton states. Its focused
@@ -78,9 +84,12 @@ It rejects malformed and legacy persisted state before resume. Download and
 install remain opt-in: checks default on weekly, automatic download defaults
 off, and a visible Windows Installer launch requires explicit confirmation with
 No as the default. There is no silent install. Confirmed bytes are copied with
-`CREATE_NEW` into a protected per-run LocalAppData directory with a
-user/Administrators/SYSTEM DACL, re-verified, and held with a final read lock
-that excludes write/delete replacement. Network/privacy details are recorded in
+`CREATE_NEW` into a protected per-run LocalAppData directory with full-access
+ACEs limited to SYSTEM, Administrators, and Owner Rights, re-verified, and held
+with a final read lock that excludes write/delete replacement. Current source
+forwards all six installer arguments, including `REBOOT=ReallySuppress` and
+`MSIRESTARTMANAGERCONTROL=DisableShutdown`; the focused VS 2026 suite verifies
+the DACL, exclusive create, retained lock, and full argument vector. Network/privacy details are recorded in
 [`PRIVACY.md`](../../PRIVACY.md).
 
 Every push to `main` starts the Windows release workflow, with manual dispatch
@@ -94,7 +103,21 @@ release is normal, public, non-draft, non-prerelease, and Latest. It targets
 exact source `fbba560e27db26de605c40aa237c554c1f0744b1` and has exactly four
 publicly byte-verified assets.
 
-The exact-source local builds, corrected release, and light Start Center smoke
+The source-controlled Windows Sandbox lifecycle harness now has a safe `Prepare`
+default and explicit `Launch`/`Verify` modes. It pins both historical and
+corrected MSI sizes/hashes, maps only fresh narrow input/output directories,
+disables networking and device/clipboard redirection, and requires exact-zero
+install, same-version update, repair-probe, and uninstall results with
+`/norestart`, `REBOOT=ReallySuppress`,
+`MSIRESTARTMANAGERCONTROL=DisableShutdown`, unchanged reboot indicators, and an
+atomic `COMPLETE.json`. The reviewed guest now positively attests the Windows
+Sandbox WDAG identity/VM/read-only mapping before entering any cleanup or
+shutdown path, propagates installer-query failures, requires exact unregistered
+product states, and the host independently rechecks reboot snapshots plus
+normal Sandbox client disposal before persisting `host-verification.json`. Its parser/static validation and host safety
+snapshot pass; no Sandbox lifecycle has run yet, so this is harness evidence only.
+
+The exact-source local builds, corrected release, and light/dark/high-contrast Start Center smoke
 do not prove a whole-GUI rewrite, updater runtime, installer lifecycle, or any
 completed application surface.
 
@@ -107,13 +130,13 @@ the new `vcl_treeview` fixture because that target did not opt in to the
 internal PushButton header required by the focused VCL test. The target now
 declares `VCL_INTERNALS`, matching the existing lifecycle test. Subsequent
 current-source Linux/Windows runs passed all five targets, and the exact-source
-local VS 2026 build plus light Start Center/UNO-tree smoke are registered.
+local VS 2026 build plus light/dark/high-contrast Start Center/UNO-tree smoke are registered.
 Updater, installer lifecycle, and the broader runtime matrix remain open.
 Public assetless release/tag `e` remains non-evidence.
 
 ## Recorded facts
 
-- GitHub repository: `codingmachineedge/libreoffice-material`.
+- GitHub repository: `Ding-Ding-Projects/libreoffice-material`.
 - Default branch observed locally: `main`.
 - Upstream: `LibreOffice/core`.
 - Imported upstream commit: `63584e7f9f0cdc74b0e004bcbf88e5c3b42dba21`.
@@ -192,19 +215,23 @@ Public assetless release/tag `e` remains non-evidence.
   `0345bb83fae32d79a5b596cc4f17046737a453de0d345a1fa144f737b9b35140`;
   the 676-row normalized coordinate hash remains unchanged. Exact indicator
   anatomy, each level band, track-only zero behavior, source-guard patterns,
-  and pixel-oriented C++ test source are present, but the C++ targets remain
-  uncompiled and unexecuted.
+  and pixel-oriented C++ test source were present. At that milestone the C++
+  targets had not yet compiled or executed; the current required native targets
+  now execute definition/state command assertions, while rendered-pixel
+  comparisons remain missing.
 - Local seventh-milestone validation passes for the full
   `2/23/3/8/15/72/74/190` schema. All 22 Python validator tests pass; 38 metric
   reader fixtures exist (1 positive and 37 negative); the resolved 331-row
   metric geometry hash is `33d4dea2...5135de0`; and the exact 676-row normalized
-  coordinate hash is `0979f2b3...331ed2e`. These are static source checks only;
-  the C++ reader and fixtures remain uncompiled and unexecuted.
+  coordinate hash is `0979f2b3...331ed2e`. These were static source checks at
+  that milestone; the C++ reader and fixtures now compile and execute in the
+  current required native targets, without establishing pixel output.
 - Published seventh-milestone source validation passes for 2 schemes, 23 color
   tokens each, 3 typography roles, 8 shape tokens, 15 metric tokens, 72 style
   slots, 74 parts, and 190 states. All 22 Python validator unittest methods
-  passed at the published source commit; the affected C++ targets remain
-  unexecuted.
+  passed at the published source commit. The affected C++ targets were
+  unexecuted at that milestone and have since executed in current native runs;
+  per-widget/state pixel comparisons remain absent.
 - Published sixth-milestone source validation passed for 2 schemes, 23 color
   tokens each, 3 typography roles, 8 shape tokens, 72 style slots, 74 parts,
   190 states, selected WCAG contrast pairs, native font/shape source
@@ -320,12 +347,19 @@ Public assetless release/tag `e` remains non-evidence.
 - Temporary preflight capture SHA-256:
   `03C6A068ACAAB96579621CE0BFC4F447C0F43E8EB23DDB5B8665A580E062BFA3`;
   it was not retained because it was unrelated to LibreOffice.
-- Canonical verified exact-source Start Center gallery captures with the Material
-  opt-in requested: **2**, both light-profile files from corrected run
-  `20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression`. The earlier
+- Canonical verified exact-source Start Center gallery captures: **8**: two
+  light-profile files from corrected run
+  `20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression`, three dark
+  files from `20260720-033252-fbba560e27-windows-headless-dark`, and three
+  forced-high-contrast files from
+  `20260720-033338-fbba560e27-windows-headless-highcontrast`. Dark and high
+  contrast each include a visible Tab focus state whose UNO tree exposes the
+  `Open File` push button as the sole `FOCUSED` node. The earlier
   `20260720-012853-577059e274-vs2026-msi-raster` pair remains historical accepted
-  proof. This wording does not claim that every visible control loaded the
-  Material definition.
+  proof. The corrected extracted runtime launched with
+  `VCL_DRAW_WIDGETS_FROM_FILE=1` and `VCL_FILE_WIDGET_THEME=material` set. This
+  wording does not claim that every visible control loaded the Material
+  definition or that individual widget/state pixels were verified.
 - GitHub Pages source: `site/`; public URL:
   `https://ding-ding-projects.github.io/libreoffice-material/`.
 - Interactive Material design reference published at `site/prototype.html`, with
@@ -357,7 +391,10 @@ Public assetless release/tag `e` remains non-evidence.
   zero honesty violations, and coverage of all 19 components required by
   MATERIAL_DESIGN.md; its three minor gaps (RTL sections in chapters 10/12, a
   slider-stroke wording) were fixed before publication. The spec describes the
-  target design only — nothing in it is build- or runtime-verified.
+  target design only and is not itself build/runtime evidence. Some linked
+  native definition/state assertions have executed and the corrected Start
+  Center smoke ran, but the specification's individual surfaces and pixels are
+  not verified.
 - Pages uses GitHub Actions workflow mode. Run `29510014215` deployed commit
   `46807f76f9a744fe61732e90f6085cc82eef16f5` successfully on 2026-07-16;
   follow-up endpoint checks returned HTTP `200` for both `/` and `styles.css`.
@@ -389,13 +426,15 @@ Public assetless release/tag `e` remains non-evidence.
 
 1. complete the local wrapper's final dist staging/manifest phase and verify the
    exact hosted clean-LF Windows auto-release workflow result for corrected source;
-2. build/runtime-verify dark, high contrast, accelerated rendering, keyboard
-   focus, shape and metric geometry, and
-   high-contrast routing; complete forced-color/platform signal coverage; and
+2. build/runtime-verify accelerated rendering, deeper keyboard traversal,
+   shape and metric geometry, and system-driven high-contrast routing; complete
+   forced-color/platform signal coverage; and
    implement density-aware metric resolution plus the remaining token families
-   and VCL primitives;
+   and VCL primitives on Windows; retain equivalent cross-platform matrices as
+   deferred work outside the current delivery scope;
 3. exercise updater download/protected stage/default-No consent/MSI launch and
-   restart suppression, plus install/upgrade/uninstall lifecycle;
+   run the new disposable Windows Sandbox install/update/repair/uninstall harness
+   to prove restart suppression;
 4. continue through every phase in `ROADMAP.md` without skipping suite surfaces.
 
 ## Known evidence gaps
@@ -405,8 +444,10 @@ Public assetless release/tag `e` remains non-evidence.
   runtime-verified;
 - the local wrapper did not complete final dist staging/manifest copy after the
   successful MSI extraction;
-- dark/high-contrast, accelerated, keyboard/focus, localization, installer,
-  updater, and suite-wide runtime/accessibility coverage remain pending.
+- definition/state command and region assertions execute, but individual
+  widget/state pixel comparisons remain missing;
+- accelerated rendering, deeper keyboard traversal, 200% scaling, localization,
+  installer, updater, and suite-wide runtime/accessibility coverage remain pending.
 
 ## Multi-repository boundary
 

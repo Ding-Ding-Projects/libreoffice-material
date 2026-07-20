@@ -1,7 +1,10 @@
 # 07 — Feedback
 
 > **Status:** Specification of target design — native implementation per
-> [`ROADMAP.md`](../../ROADMAP.md); nothing here is build- or runtime-verified.
+> [`ROADMAP.md`](../../ROADMAP.md). The native definition/dispatch tests have
+> compiled and executed, and the corrected `fbba560e2` extracted runtime ran a
+> scoped Start Center smoke with the Material opt-in set. The individual
+> feedback widgets, state tuples, and pixels specified here remain unverified.
 
 This chapter specifies the feedback family: determinate progress indicators,
 value-sensitive level indicators, sliders, tooltips, toasts/snackbars,
@@ -290,9 +293,9 @@ slider parts fall back to native drawing.
 
 ### Verification hooks
 
-- Headless draw coverage exists for slider parts (unexecuted); the validator
-  enforces state coverage and token discipline (`stroke-track` used only for
-  tracks).
+- Definition/state draw-command coverage for slider parts has executed in the
+  required C++ target; it is not a pixel comparison. The validator enforces
+  state coverage and token discipline (`stroke-track` used only for tracks).
 - Future captures: thumb in all five states; horizontal LTR vs RTL fill
   direction; vertical fill from bottom; a keyboard-only run proving
   `Home`/`End`/arrow steps change the accessible value.

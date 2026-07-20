@@ -1,7 +1,10 @@
 # 06 — Containers & data display
 
 > **Status:** Specification of target design — native implementation per
-> [`ROADMAP.md`](../../ROADMAP.md); nothing here is build- or runtime-verified.
+> [`ROADMAP.md`](../../ROADMAP.md). The native definition/dispatch tests have
+> compiled and executed, and the corrected `fbba560e2` extracted runtime ran a
+> scoped Start Center smoke with the Material opt-in set. The individual
+> container widgets, state tuples, and pixels specified here remain unverified.
 
 This chapter specifies the container and data-display family: lists and list
 items, trees, tables and data grids (the Calc grid, Base tables and object
@@ -97,9 +100,10 @@ printer graphics are excluded from the file-widget path.
 ### Verification hooks
 
 Per [`docs/HEADLESS_UI_EVIDENCE.md`](../HEADLESS_UI_EVIDENCE.md): headless draw
-coverage for `listbox` parts/states already exists as unexecuted C++ tests.
-Screenshot checkpoints once a build exists: closed/open list box in
-light/dark; entry hover, selected, keyboard-focused; disabled container —
+coverage for `listbox` definition/state command generation has executed in the
+required C++ target; no corresponding widget/state pixel comparison or
+application-surface capture exists. Screenshot checkpoints: closed/open list
+box in light/dark; entry hover, selected, keyboard-focused; disabled container —
 captured under a run id `YYYYMMDD-HHMMSS-<commit>-win` with manifest hashes.
 
 ---
@@ -181,9 +185,10 @@ draws — this difference is intentional and documented.
 ### Verification hooks
 
 Headless checks: `listnode` state coverage (8 states) and a `listnet`
-draws-nothing assertion (success + empty command list) exist as unexecuted C++
-tests. Build-time checkpoints: Options dialog tree and Navigator captured
-light/dark; keyboard expand/collapse sequence (`Right`, `Left`, `*`)
+draws-nothing assertion (success + empty command list) have executed in the
+required definition/state C++ target. They assert generated commands, not
+rendered pixels. Build-time checkpoints: Options dialog tree and Navigator
+captured light/dark; keyboard expand/collapse sequence (`Right`, `Left`, `*`)
 screenshotted at each step; RTL locale capture showing mirrored chevrons and
 indentation.
 
@@ -288,7 +293,8 @@ excluded from the file-widget path by design.
 ### Verification hooks
 
 Headless: validator contrast pairs for highlight and alternating-row slots;
-`listheader` part/state draw tests (unexecuted). Build checkpoints: Calc smoke
+`listheader` definition/state draw-command tests have executed, but no pixel
+comparison exists. Build checkpoints: Calc smoke
 scenario ("enter/formula/save/close one Calc sheet") captured with an active
 cell, a range selection, and a sorted list header; compact vs comfortable
 captures of the same sheet; RTL locale sheet capture.
@@ -361,7 +367,8 @@ bypass).
 ### Verification hooks
 
 Headless: frame-region reporting (bounding = content) and the `Border` draw
-command are covered by unexecuted C++ tests. Build checkpoint: shared Options
+command are covered by executed C++ assertions; no rendered-pixel comparison
+exists. Build checkpoint: shared Options
 dialog capture showing frames in light/dark; a high-contrast capture proving
 native fallback.
 
@@ -438,8 +445,9 @@ steppers.
 
 ### Verification hooks
 
-Headless: scrollbar part/state draw tests including the empty stepper states
-(success + no drawing) — present, unexecuted. Build checkpoints: Writer
+Headless: scrollbar definition/state draw-command tests, including the empty
+stepper states (success + no drawing), have executed; no rendered-pixel
+comparison exists. Build checkpoints: Writer
 document scrolled mid-way, captures at rest/hover/drag in light and dark;
 disabled scrollbar in a short document; RTL capture showing the vertical bar on
 the left.

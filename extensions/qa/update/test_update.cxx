@@ -9,9 +9,14 @@
 #include <sal/config.h>
 
 #include <cstddef>
+#include <cstring>
+#include <iterator>
 #include <string_view>
 
+#include <comphelper/scopeguard.hxx>
+#include <o3tl/char16_t2wchar_t.hxx>
 #include <osl/file.h>
+#include <osl/file.hxx>
 #include <test/bootstrapfixture.hxx>
 
 #include <com/sun/star/deployment/UpdateInformationEntry.hpp>
@@ -21,12 +26,74 @@
 #include "../../source/update/check/updatecheck.hxx"
 #include "../../source/update/check/updateprotocol.hxx"
 
+#ifdef _WIN32
+#include <aclapi.h>
+#include <sddl.h>
+#include <windows.h>
+#endif
+
 using namespace com::sun::star;
 using namespace com::sun::star::xml;
 
 OUString rejectedInstallerDisposition(const OUString& rFileURL, oslFileError eRemove);
 
 namespace testupdate {
+
+#ifdef _WIN32
+namespace
+{
+bool aclContainsFullAccessSid(PACL pAcl, const wchar_t* pExpectedSidString)
+{
+    PSID pExpectedSid = nullptr;
+    CPPUNIT_ASSERT(ConvertStringSidToSidW(pExpectedSidString, &pExpectedSid));
+    comphelper::ScopeGuard aSidGuard([&]() { LocalFree(pExpectedSid); });
+
+    ACL_SIZE_INFORMATION aAclInformation{};
+    CPPUNIT_ASSERT(GetAclInformation(pAcl, &aAclInformation, sizeof(aAclInformation),
+                                     AclSizeInformation));
+    for (DWORD nIndex = 0; nIndex < aAclInformation.AceCount; ++nIndex)
+    {
+        void* pRawAce = nullptr;
+        CPPUNIT_ASSERT(GetAce(pAcl, nIndex, &pRawAce));
+        const auto* pAce = static_cast<ACCESS_ALLOWED_ACE*>(pRawAce);
+        if (pAce->Header.AceType == ACCESS_ALLOWED_ACE_TYPE
+            && pAce->Mask == FILE_ALL_ACCESS
+            && EqualSid(reinterpret_cast<PSID>(const_cast<DWORD*>(&pAce->SidStart)),
+                        pExpectedSid))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void assertProtectedStagingAcl(const OUString& rSystemPath)
+{
+    PACL pDacl = nullptr;
+    PSECURITY_DESCRIPTOR pSecurityDescriptor = nullptr;
+    CPPUNIT_ASSERT_EQUAL(
+        DWORD(ERROR_SUCCESS),
+        GetNamedSecurityInfoW(const_cast<wchar_t*>(o3tl::toW(rSystemPath.getStr())),
+                              SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, nullptr, nullptr,
+                              &pDacl, nullptr, &pSecurityDescriptor));
+    comphelper::ScopeGuard aSecurityGuard([&]() { LocalFree(pSecurityDescriptor); });
+
+    CPPUNIT_ASSERT(pDacl != nullptr);
+    SECURITY_DESCRIPTOR_CONTROL nControl = 0;
+    DWORD nRevision = 0;
+    CPPUNIT_ASSERT(GetSecurityDescriptorControl(pSecurityDescriptor, &nControl, &nRevision));
+    CPPUNIT_ASSERT((nControl & SE_DACL_PROTECTED) != 0);
+
+    ACL_SIZE_INFORMATION aAclInformation{};
+    CPPUNIT_ASSERT(GetAclInformation(pDacl, &aAclInformation, sizeof(aAclInformation),
+                                     AclSizeInformation));
+    CPPUNIT_ASSERT_EQUAL(DWORD(3), aAclInformation.AceCount);
+    CPPUNIT_ASSERT(aclContainsFullAccessSid(pDacl, L"S-1-5-18"));
+    CPPUNIT_ASSERT(aclContainsFullAccessSid(pDacl, L"S-1-5-32-544"));
+    CPPUNIT_ASSERT(aclContainsFullAccessSid(pDacl, L"S-1-3-4"));
+}
+}
+#endif
 
 class Test : public test::BootstrapFixture
 {
@@ -260,13 +327,116 @@ protected:
 
         CPPUNIT_ASSERT_EQUAL(u"C:\\Windows\\System32\\msiexec.exe"_ustr,
                              aCommand.ExecutablePath);
-        CPPUNIT_ASSERT_EQUAL(std::size_t(5), aCommand.Arguments.size());
+        CPPUNIT_ASSERT_EQUAL(std::size_t(6), aCommand.Arguments.size());
         CPPUNIT_ASSERT_EQUAL(u"/i"_ustr, aCommand.Arguments[0]);
         CPPUNIT_ASSERT_EQUAL(aInstallerPath, aCommand.Arguments[1]);
         CPPUNIT_ASSERT_EQUAL(u"REINSTALL=ALL"_ustr, aCommand.Arguments[2]);
         CPPUNIT_ASSERT_EQUAL(u"REINSTALLMODE=vomus"_ustr, aCommand.Arguments[3]);
         CPPUNIT_ASSERT_EQUAL(u"REBOOT=ReallySuppress"_ustr, aCommand.Arguments[4]);
+        CPPUNIT_ASSERT_EQUAL(u"MSIRESTARTMANAGERCONTROL=DisableShutdown"_ustr,
+                             aCommand.Arguments[5]);
+
+        const auto aProcessArguments = aCommand.getProcessArguments();
+        CPPUNIT_ASSERT_EQUAL(aCommand.Arguments.size(), aProcessArguments.size());
+        for (std::size_t nIndex = 0; nIndex < aCommand.Arguments.size(); ++nIndex)
+            CPPUNIT_ASSERT(aProcessArguments[nIndex] == aCommand.Arguments[nIndex].pData);
     }
+
+#ifdef _WIN32
+    void testExclusiveWindowsInstallerStagingFile()
+    {
+        wchar_t aTempDirectory[MAX_PATH + 1] = {};
+        const DWORD nTempDirectoryLength
+            = GetTempPathW(static_cast<DWORD>(std::size(aTempDirectory)), aTempDirectory);
+        CPPUNIT_ASSERT(nTempDirectoryLength > 0);
+        CPPUNIT_ASSERT(nTempDirectoryLength < std::size(aTempDirectory));
+
+        wchar_t aTempFile[MAX_PATH + 1] = {};
+        CPPUNIT_ASSERT(GetTempFileNameW(aTempDirectory, L"lou", 0, aTempFile) != 0);
+        CPPUNIT_ASSERT(DeleteFileW(aTempFile));
+        comphelper::ScopeGuard aFileGuard([&]() { DeleteFileW(aTempFile); });
+
+        const OUString aTempFilePath(o3tl::toU(aTempFile));
+        void* pFirstHandle
+            = createExclusiveWindowsInstallerStagingFile(aTempFilePath, nullptr);
+        CPPUNIT_ASSERT(pFirstHandle != nullptr);
+        comphelper::ScopeGuard aHandleGuard(
+            [&]() { CloseHandle(static_cast<HANDLE>(pFirstHandle)); });
+
+        constexpr char aSentinel[] = "exclusive-create-new";
+        DWORD nWritten = 0;
+        CPPUNIT_ASSERT(WriteFile(static_cast<HANDLE>(pFirstHandle), aSentinel,
+                                 static_cast<DWORD>(sizeof(aSentinel) - 1), &nWritten, nullptr));
+        CPPUNIT_ASSERT_EQUAL(DWORD(sizeof(aSentinel) - 1), nWritten);
+
+        SetLastError(ERROR_SUCCESS);
+        CPPUNIT_ASSERT(createExclusiveWindowsInstallerStagingFile(aTempFilePath, nullptr)
+                       == nullptr);
+        CPPUNIT_ASSERT_EQUAL(DWORD(ERROR_FILE_EXISTS), GetLastError());
+
+        LARGE_INTEGER aBeginning{};
+        CPPUNIT_ASSERT(SetFilePointerEx(static_cast<HANDLE>(pFirstHandle), aBeginning, nullptr,
+                                        FILE_BEGIN));
+        char aActual[sizeof(aSentinel)] = {};
+        DWORD nRead = 0;
+        CPPUNIT_ASSERT(ReadFile(static_cast<HANDLE>(pFirstHandle), aActual,
+                                static_cast<DWORD>(sizeof(aSentinel) - 1), &nRead, nullptr));
+        CPPUNIT_ASSERT_EQUAL(DWORD(sizeof(aSentinel) - 1), nRead);
+        CPPUNIT_ASSERT(std::memcmp(aSentinel, aActual, sizeof(aSentinel) - 1) == 0);
+    }
+
+    void testProtectedWindowsInstallerStagingAndReadLock()
+    {
+        DownloadSource aSource(
+            true,
+            u"https://github.com/Ding-Ding-Projects/libreoffice-material/releases/download/windows-msi-test/LibreOfficeMaterial-Windows-x64.msi"_ustr,
+            u"1b8743c701ccbb5839b6cc8dd25eec1ac4a6ca4c3094fd6a5b2a8a49e69e058e"_ustr,
+            50, u"windows-msi-test"_ustr, u"LibreOfficeMaterial-Windows-x64.msi"_ustr);
+        const OUString aFixture
+            = m_directories.getURLFromSrc(u"/extensions/qa/update/LibreOfficeMaterial-Windows-x64.msi");
+
+        OUString aInstallerSystemPath;
+        OUString aInstallerURL;
+        OUString aDirectoryURL;
+        void* pInstallerLock = nullptr;
+        CPPUNIT_ASSERT(stageVerifiedWindowsInstaller(aFixture, aSource, aInstallerSystemPath,
+                                                     aInstallerURL, aDirectoryURL,
+                                                     pInstallerLock));
+        comphelper::ScopeGuard aStagingGuard([&]() {
+            cleanupStagedWindowsInstaller(pInstallerLock, aInstallerURL, aDirectoryURL);
+        });
+        CPPUNIT_ASSERT(pInstallerLock != nullptr);
+
+        OUString aDirectorySystemPath;
+        CPPUNIT_ASSERT_EQUAL(osl::FileBase::E_None,
+                             osl::FileBase::getSystemPathFromFileURL(aDirectoryURL,
+                                                                     aDirectorySystemPath));
+        assertProtectedStagingAcl(aDirectorySystemPath);
+        assertProtectedStagingAcl(aInstallerSystemPath);
+
+        HANDLE hRead = CreateFileW(o3tl::toW(aInstallerSystemPath.getStr()), GENERIC_READ,
+                                   FILE_SHARE_READ, nullptr, OPEN_EXISTING,
+                                   FILE_ATTRIBUTE_NORMAL, nullptr);
+        CPPUNIT_ASSERT(hRead != INVALID_HANDLE_VALUE);
+        comphelper::ScopeGuard aReadGuard([&]() { CloseHandle(hRead); });
+
+        SetLastError(ERROR_SUCCESS);
+        HANDLE hWrite = CreateFileW(
+            o3tl::toW(aInstallerSystemPath.getStr()), GENERIC_WRITE,
+            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL, nullptr);
+        CPPUNIT_ASSERT(hWrite == INVALID_HANDLE_VALUE);
+        CPPUNIT_ASSERT_EQUAL(DWORD(ERROR_SHARING_VIOLATION), GetLastError());
+
+        SetLastError(ERROR_SUCCESS);
+        HANDLE hDelete = CreateFileW(
+            o3tl::toW(aInstallerSystemPath.getStr()), DELETE,
+            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL, nullptr);
+        CPPUNIT_ASSERT(hDelete == INVALID_HANDLE_VALUE);
+        CPPUNIT_ASSERT_EQUAL(DWORD(ERROR_SHARING_VIOLATION), GetLastError());
+    }
+#endif
 
     CPPUNIT_TEST_SUITE(Test);
     CPPUNIT_TEST(testGetUpdateInformationEnumeration);
@@ -278,6 +448,10 @@ protected:
     CPPUNIT_TEST(testVerifiedUpdateFile);
     CPPUNIT_TEST(testRejectedInstallerDisposition);
     CPPUNIT_TEST(testWindowsInstallerCommand);
+#ifdef _WIN32
+    CPPUNIT_TEST(testExclusiveWindowsInstallerStagingFile);
+    CPPUNIT_TEST(testProtectedWindowsInstallerStagingAndReadLock);
+#endif
     CPPUNIT_TEST_SUITE_END();
 
 private:

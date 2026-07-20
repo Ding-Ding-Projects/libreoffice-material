@@ -1,13 +1,15 @@
 # Evidence ledger
 
-Accepted LibreOffice Material build/UI evidence entries: **2 runs / 4 screenshots**.
-The public canonical gallery uses the **2 screenshots from the corrected run**;
-the earlier 2 accepted screenshots remain historical proof.
+Accepted LibreOffice Material build/UI evidence entries: **4 runs / 10 screenshots**.
+The public canonical gallery uses **8 screenshots from the corrected payload**
+(2 light, 3 dark, and 3 forced high contrast); the earlier 2 accepted screenshots
+remain historical proof.
 
 The accepted entries are deliberately narrow: exact-source local MSI build or
-administrative-extraction context, light Start Center launch/navigation on
-software raster rendering, and paired bounded UNO-tree collection. Planned
-scenarios and empty gallery slots are not evidence. Neither accepted run proves
+administrative-extraction context, light/dark/forced-high-contrast Start Center
+launch/navigation on software raster rendering, visible one-step Tab focus, and
+paired bounded UNO-tree collection. Planned
+scenarios and empty gallery slots are not evidence. None of the accepted runs proves
 MSI install, repair, upgrade, uninstall, or restart-suppression lifecycle behavior.
 The public assetless release/tag `e` contains no build and does not change this
 ledger.
@@ -16,7 +18,9 @@ ledger.
 
 | Run ID | Fork commit | Platform | Build | Interaction | Visual | Manifest |
 | --- | --- | --- | --- | --- | --- | --- |
-| `20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression` | `fbba560e27db26de605c40aa237c554c1f0744b1` | Windows 11 Pro x64; VS 2026; software raster | Corrected administrative-extraction candidate; runtime evidence only, with no MSI lifecycle execution | Stable owned Start Center, background navigation to Templates, bounded UNO trees 96/49 and 111/64 total/visible with zero errors/no partial capture, normal shutdown, zero matching processes/windows, and desktop cleanup | 2 canonical light-profile `1920×1117` PNGs: Home SHA `e4a21b…4501`; Templates SHA `1f9f0e…94ab`; dark and broader matrix pending | [`manifest`](../../docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/manifest.json) · [`results`](../../docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/results.json) |
+| `20260720-033338-fbba560e27-windows-headless-highcontrast` | `fbba560e27db26de605c40aa237c554c1f0744b1` | Windows 11 Pro x64; VS 2026 payload; software raster; forced high contrast | Corrected administrative-extraction candidate; runtime evidence only | Stable owned Home, background Tab focus on accessible `Open File`, pointer navigation to Templates, three complete UNO trees (96/49, 96/49, 111/64), normal termination, zero processes/windows, desktop and dedicated-driver cleanup | 3 canonical forced-high-contrast `1920×1117` PNGs: Home SHA `60548b…2d09`; focus SHA `6f4821…3264`; Templates SHA `483072…bf23` | [`manifest`](../../docs/evidence/runs/20260720-033338-fbba560e27-windows-headless-highcontrast/manifest.json) · [`results`](../../docs/evidence/runs/20260720-033338-fbba560e27-windows-headless-highcontrast/results.json) |
+| `20260720-033252-fbba560e27-windows-headless-dark` | `fbba560e27db26de605c40aa237c554c1f0744b1` | Windows 11 Pro x64; VS 2026 payload; software raster; dark | Corrected administrative-extraction candidate; runtime evidence only | Stable owned Home, background Tab focus on accessible `Open File`, pointer navigation to Templates, three complete UNO trees (96/49, 96/49, 111/64), normal termination, zero processes/windows, desktop and dedicated-driver cleanup | 3 canonical dark `1920×1117` PNGs: Home SHA `0fc0ea…d78e`; focus SHA `0e4157…8587`; Templates SHA `742395…a74c` | [`manifest`](../../docs/evidence/runs/20260720-033252-fbba560e27-windows-headless-dark/manifest.json) · [`results`](../../docs/evidence/runs/20260720-033252-fbba560e27-windows-headless-dark/results.json) |
+| `20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression` | `fbba560e27db26de605c40aa237c554c1f0744b1` | Windows 11 Pro x64; VS 2026; software raster | Corrected administrative-extraction candidate; runtime evidence only, with no MSI lifecycle execution | Stable owned Start Center, background navigation to Templates, bounded UNO trees 96/49 and 111/64 total/visible with zero errors/no partial capture, normal shutdown, zero matching processes/windows, and desktop cleanup | 2 canonical light-profile `1920×1117` PNGs: Home SHA `e4a21b…4501`; Templates SHA `1f9f0e…94ab` | [`manifest`](../../docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/manifest.json) · [`results`](../../docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/results.json) |
 | `20260720-012853-577059e274-vs2026-msi-raster` | `577059e2741185b512c184c64685c16d335d10ea` | Windows 11 Pro x64; VS 2026; 150% scale | Five native targets and CLI payload passed; unsigned 199,692,288-byte MSI SHA `437b059c…54a43`; administrative extraction exit `0`; wrapper final dist stage incomplete | Stable owned Start Center, background navigation to Templates, two bounded UNO trees with no collector errors, normal shutdown and desktop cleanup | 2 historical accepted light-profile `1920×1117` PNGs; superseded as canonical gallery by the corrected run | [`manifest`](../../docs/evidence/runs/20260720-012853-577059e274-vs2026-msi-raster/manifest.json) · [`results`](../../docs/evidence/runs/20260720-012853-577059e274-vs2026-msi-raster/results.json) |
 
 ## Non-accepted harness observations

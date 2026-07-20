@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-20T07:33:38Z",
+  "run_id": "20260720-033338-fbba560e27-windows-headless-highcontrast",
+  "status": "accepted",
+  "source": {
+    "repository": "https://github.com/Ding-Ding-Projects/libreoffice-material.git",
+    "commit": "fbba560e27db26de605c40aa237c554c1f0744b1",
+    "payload_description": "corrected VS 2026 administrative-extraction candidate from the normal public windows-msi-local-20260720-fbba560e2 release"
+  },
+  "runtime": {
+    "payload_root": "C:\\Users\\cntow\\lo-material-vs2026-577059e27\\msi-check\\20260720-021814-9378266-fbba560e2-restart-suppression",
+    "soffice_exe": {
+      "bytes": 537600,
+      "sha256": "a0ac5360f303435ca89406fd8e648affc30a6e53382af0b901a85f3a5a45c410"
+    },
+    "soffice_bin": {
+      "bytes": 2719744,
+      "sha256": "beb398080f8ed27c44c9425499c1fdd0171648751253c9f2c176943a7fb330ea"
+    },
+    "python_exe": {
+      "bytes": 258048,
+      "sha256": "39ce7553f6ba806eb78f555cf36643c6184b0ef63cf349e9cbf3b61575c88f91"
+    },
+    "launch_wrapper": "launch-headless.cmd",
+    "profile_values": {
+      "ApplicationAppearance": 1,
+      "HighContrast": 2
+    },
+    "environment": {
+      "VCL_DRAW_WIDGETS_FROM_FILE": "1",
+      "VCL_FILE_WIDGET_THEME": "material",
+      "SAL_SKIA": "raster",
+      "SAL_DISABLEGL": "1",
+      "SAL_LOG": "+WARN.vcl.gdi"
+    },
+    "verification_boundary": "This verifies the exact corrected extracted runtime with LibreOffice HighContrast forced on. It does not execute the MSI lifecycle or prove every Material widget part and state."
+  },
+  "host": {
+    "operating_system": "Microsoft Windows 11 Pro",
+    "version": "10.0.26200",
+    "build": "26200",
+    "architecture": "64-bit",
+    "host_locale": "en-CA",
+    "ui_locale": "en-US",
+    "appearance": "forced high contrast",
+    "renderer": "Skia software raster",
+    "desktop_backend": "Win32 off-screen desktop with per-window PrintWindow capture"
+  },
+  "driver": {
+    "repository": "C:\\Users\\cntow\\Documents\\GitHub\\lowlevel-computer-use-mcp",
+    "commit": "beed66ca6ed2503e6170ee1e1158247f1c2f0140",
+    "checkout_clean": true,
+    "session": "dedicated same-token loopback MCP server",
+    "desktop_name": "LOMaterialQA-fbba560e27-highcontrast-62e548a3"
+  },
+  "observed_window": {
+    "title": "LibreOfficeDev",
+    "class": "SALFRAME",
+    "width": 1920,
+    "height": 1117,
+    "stable_poll_count": 3
+  },
+  "scenarios": [
+    {
+      "id": "E-START-HIGH-CONTRAST",
+      "name": "Forced-high-contrast Start Center Home and Recent Documents",
+      "result": "pass"
+    },
+    {
+      "id": "E-START-HIGH-CONTRAST-KEYBOARD",
+      "name": "Background Tab navigation exposes a visible Open File focus rectangle and one FOCUSED UNO node",
+      "result": "pass"
+    },
+    {
+      "id": "E-START-HIGH-CONTRAST-TEMPLATES",
+      "name": "Background pointer navigation to Templates",
+      "result": "pass"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "screenshots/start-center-highcontrast.png",
+      "bytes": 207770,
+      "sha256": "60548b299305d2a9174574cb002efa6750a22b64c7e324bd76528761e3562d09",
+      "width": 1920,
+      "height": 1117,
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "rendered_ok": true,
+      "nonblank": true,
+      "visual_review": "pass; complete forced-high-contrast Home/Recent surface with no unrelated or personal content"
+    },
+    {
+      "file": "screenshots/start-center-highcontrast-keyboard-focus.png",
+      "bytes": 207966,
+      "sha256": "6f4821bbb9e7d2be8ccbf42830c9e3ed0e16c1800fed1809a0c2fd1a39753264",
+      "width": 1920,
+      "height": 1117,
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "rendered_ok": true,
+      "nonblank": true,
+      "visual_review": "pass; Open File has a visible dotted keyboard focus rectangle"
+    },
+    {
+      "file": "screenshots/start-center-templates-highcontrast.png",
+      "bytes": 211952,
+      "sha256": "483072f7fb84cc01f894588a5745ebf3efc23930eae9a680ab60591f9b53bf23",
+      "width": 1920,
+      "height": 1117,
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "rendered_ok": true,
+      "nonblank": true,
+      "visual_review": "pass; complete forced-high-contrast Templates gallery with no unrelated or personal content"
+    }
+  ],
+  "accessibility": [
+    {
+      "file": "logs/a11y-start-center-highcontrast.json",
+      "bytes": 56522,
+      "sha256": "fe48993caa9ce45a57f5179538f11535644e4610949cc2a85f87344199f7e336",
+      "screenshot_sha256": "60548b299305d2a9174574cb002efa6750a22b64c7e324bd76528761e3562d09",
+      "node_count": 96,
+      "visible_nodes": 49,
+      "errors": 0,
+      "partial": false
+    },
+    {
+      "file": "logs/a11y-start-center-highcontrast-keyboard-focus.json",
+      "bytes": 56541,
+      "sha256": "9300e0fe552589c78a1c3acebe7dee3a09c71c36b486b6ce736aee55f43fa465",
+      "screenshot_sha256": "6f4821bbb9e7d2be8ccbf42830c9e3ed0e16c1800fed1809a0c2fd1a39753264",
+      "node_count": 96,
+      "visible_nodes": 49,
+      "focused_node_count": 1,
+      "focused_name": "Open File",
+      "errors": 0,
+      "partial": false
+    },
+    {
+      "file": "logs/a11y-start-center-templates-highcontrast.json",
+      "bytes": 67000,
+      "sha256": "e3ff3c8d934e10f0fabf678497bb0edd5274ad9bfa8c6e647f7ca5af89047059",
+      "screenshot_sha256": "483072f7fb84cc01f894588a5745ebf3efc23930eae9a680ab60591f9b53bf23",
+      "node_count": 111,
+      "visible_nodes": 64,
+      "errors": 0,
+      "partial": false
+    }
+  ],
+  "cleanup": {
+    "normal_uno_termination": true,
+    "matching_run_scoped_processes_after_termination": 0,
+    "headless_window_count_after_termination": 0,
+    "headless_desktop_closed": true,
+    "dedicated_driver_stopped": true
+  },
+  "review": {
+    "reviewer": "Codex",
+    "review_date": "2026-07-20",
+    "sensitive_data_review": "pass",
+    "limitations": "Start Center only, forced LibreOffice high-contrast profile, software raster renderer, one Tab focus transition."
+  }
+}

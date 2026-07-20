@@ -21,7 +21,6 @@
 
 #include <iterator>
 #include <string_view>
-#include <tuple>
 
 #include <comphelper/hash.hxx>
 #include <comphelper/scopeguard.hxx>
@@ -73,15 +72,24 @@ constexpr OUStringLiteral PROPERTY_SHOW_BUBBLE = u"BubbleVisible";
 constexpr OUStringLiteral PROPERTY_CLICK_HDL = u"MenuClickHDL";
 constexpr OUString PROPERTY_SHOW_MENUICON = u"MenuIconVisible"_ustr;
 
+std::array<rtl_uString*, 6> WindowsInstallerCommand::getProcessArguments() const
+{
+    std::array<rtl_uString*, 6> aArguments;
+    for (std::size_t nIndex = 0; nIndex < Arguments.size(); ++nIndex)
+        aArguments[nIndex] = Arguments[nIndex].pData;
+    return aArguments;
+}
+
 WindowsInstallerCommand buildWindowsInstallerCommand(const OUString& rSystemDirectory,
                                                        const OUString& rInstallerPath)
 {
     // Keep the Windows Installer UI fully interactive: this exact argument
     // list deliberately has no quiet or passive switch. Suppress reboot
-    // requests so an accepted update cannot force an unexpected restart.
+    // requests and prevent Restart Manager from shutting applications down.
     return { rSystemDirectory + u"\\msiexec.exe"_ustr,
              { u"/i"_ustr, rInstallerPath, u"REINSTALL=ALL"_ustr,
-               u"REINSTALLMODE=vomus"_ustr, u"REBOOT=ReallySuppress"_ustr } };
+               u"REINSTALLMODE=vomus"_ustr, u"REBOOT=ReallySuppress"_ustr,
+               u"MSIRESTARTMANAGERCONTROL=DisableShutdown"_ustr } };
 }
 
 bool verifyUpdateFile(const OUString& rFileName, const DownloadSource& rSource)
@@ -140,8 +148,17 @@ OUString rejectedInstallerDisposition(const OUString& rFileURL, oslFileError eRe
 }
 
 #ifdef _WIN32
-namespace
+void* createExclusiveWindowsInstallerStagingFile(const OUString& rInstallerSystemPath,
+                                                 void* pSecurityAttributes)
 {
+    HANDLE hDestination
+        = CreateFileW(o3tl::toW(rInstallerSystemPath.getStr()),
+                      GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ,
+                      static_cast<SECURITY_ATTRIBUTES*>(pSecurityAttributes), CREATE_NEW,
+                      FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+    return hDestination == INVALID_HANDLE_VALUE ? nullptr : hDestination;
+}
+
 void cleanupStagedWindowsInstaller(void* pInstallerLock, const OUString& rInstallerURL,
                                    const OUString& rDirectoryURL)
 {
@@ -236,12 +253,12 @@ bool stageVerifiedWindowsInstaller(const OUString& rSourceURL, const DownloadSou
     if (hSource == INVALID_HANDLE_VALUE)
         return false;
 
-    hDestination = CreateFileW(o3tl::toW(aInstallerSystemPath.getStr()),
-                               GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ,
-                               &aSecurityAttributes, CREATE_NEW,
-                               FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-    if (hDestination == INVALID_HANDLE_VALUE)
+    void* pDestination
+        = createExclusiveWindowsInstallerStagingFile(aInstallerSystemPath,
+                                                     &aSecurityAttributes);
+    if (!pDestination)
         return false;
+    hDestination = static_cast<HANDLE>(pDestination);
 
     LARGE_INTEGER aSourceSize;
     if (!GetFileSizeEx(hSource, &aSourceSize) || aSourceSize.QuadPart != rSource.Size)
@@ -343,7 +360,6 @@ bool stageVerifiedWindowsInstaller(const OUString& rSourceURL, const DownloadSou
     hDestination = INVALID_HANDLE_VALUE;
     aCleanup.dismiss();
     return true;
-}
 }
 #endif
 
@@ -1264,9 +1280,7 @@ void UpdateCheck::install()
         return;
     }
 
-    std::array<rtl_uString*, std::tuple_size_v<decltype(aCommand.Arguments)>> aArguments;
-    for (std::size_t nIndex = 0; nIndex < aCommand.Arguments.size(); ++nIndex)
-        aArguments[nIndex] = aCommand.Arguments[nIndex].pData;
+    auto aArguments = aCommand.getProcessArguments();
     oslProcess hProcess = nullptr;
     const oslProcessError eError
         = osl_executeProcess(aMsiexecURL.pData, aArguments.data(),

@@ -37,12 +37,30 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          run_id='20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression'
-          source_dir="docs/evidence/runs/$run_id/screenshots"
-          publish_dir="site/evidence/$run_id"
-          mkdir -p "$publish_dir"
-          cp "$source_dir/start-center-light.png" "$publish_dir/"
-          cp "$source_dir/start-center-templates-light.png" "$publish_dir/"
+          stage_run() {
+            local run_id="$1"
+            shift
+            local source_dir="docs/evidence/runs/$run_id/screenshots"
+            local publish_dir="site/evidence/$run_id"
+            mkdir -p "$publish_dir"
+            for image in "$@"; do
+              cp "$source_dir/$image" "$publish_dir/"
+            done
+          }
+          stage_run \
+            '20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression' \
+            'start-center-light.png' \
+            'start-center-templates-light.png'
+          stage_run \
+            '20260720-033252-fbba560e27-windows-headless-dark' \
+            'start-center-dark.png' \
+            'start-center-dark-keyboard-focus.png' \
+            'start-center-templates-dark.png'
+          stage_run \
+            '20260720-033338-fbba560e27-windows-headless-highcontrast' \
+            'start-center-highcontrast.png' \
+            'start-center-highcontrast-keyboard-focus.png' \
+            'start-center-templates-highcontrast.png'
 
       - name: Upload static site
         uses: actions/upload-pages-artifact@v5

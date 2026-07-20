@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-20T07:32:52Z",
+  "run_id": "20260720-033252-fbba560e27-windows-headless-dark",
+  "status": "accepted",
+  "source": {
+    "repository": "https://github.com/Ding-Ding-Projects/libreoffice-material.git",
+    "commit": "fbba560e27db26de605c40aa237c554c1f0744b1",
+    "payload_description": "corrected VS 2026 administrative-extraction candidate from the normal public windows-msi-local-20260720-fbba560e2 release"
+  },
+  "runtime": {
+    "payload_root": "C:\\Users\\cntow\\lo-material-vs2026-577059e27\\msi-check\\20260720-021814-9378266-fbba560e2-restart-suppression",
+    "soffice_exe": {
+      "bytes": 537600,
+      "sha256": "a0ac5360f303435ca89406fd8e648affc30a6e53382af0b901a85f3a5a45c410"
+    },
+    "soffice_bin": {
+      "bytes": 2719744,
+      "sha256": "beb398080f8ed27c44c9425499c1fdd0171648751253c9f2c176943a7fb330ea"
+    },
+    "python_exe": {
+      "bytes": 258048,
+      "sha256": "39ce7553f6ba806eb78f555cf36643c6184b0ef63cf349e9cbf3b61575c88f91"
+    },
+    "launch_wrapper": "launch-headless.cmd",
+    "profile_values": {
+      "ApplicationAppearance": 2,
+      "HighContrast": 1
+    },
+    "environment": {
+      "VCL_DRAW_WIDGETS_FROM_FILE": "1",
+      "VCL_FILE_WIDGET_THEME": "material",
+      "SAL_SKIA": "raster",
+      "SAL_DISABLEGL": "1",
+      "SAL_LOG": "+WARN.vcl.gdi"
+    },
+    "verification_boundary": "This verifies the exact corrected extracted runtime in a forced dark profile. It does not execute the MSI lifecycle or prove every Material widget part and state."
+  },
+  "host": {
+    "operating_system": "Microsoft Windows 11 Pro",
+    "version": "10.0.26200",
+    "build": "26200",
+    "architecture": "64-bit",
+    "host_locale": "en-CA",
+    "ui_locale": "en-US",
+    "appearance": "dark",
+    "renderer": "Skia software raster",
+    "desktop_backend": "Win32 off-screen desktop with per-window PrintWindow capture"
+  },
+  "driver": {
+    "repository": "C:\\Users\\cntow\\Documents\\GitHub\\lowlevel-computer-use-mcp",
+    "commit": "beed66ca6ed2503e6170ee1e1158247f1c2f0140",
+    "checkout_clean": true,
+    "session": "dedicated same-token loopback MCP server",
+    "desktop_name": "LOMaterialQA-fbba560e27-dark-fbc884e8"
+  },
+  "observed_window": {
+    "title": "LibreOfficeDev",
+    "class": "SALFRAME",
+    "width": 1920,
+    "height": 1117,
+    "stable_poll_count": 3
+  },
+  "scenarios": [
+    {
+      "id": "E-START-DARK",
+      "name": "Dark Start Center Home and Recent Documents",
+      "result": "pass"
+    },
+    {
+      "id": "E-START-DARK-KEYBOARD",
+      "name": "Background Tab navigation exposes a visible Open File focus ring and one FOCUSED UNO node",
+      "result": "pass"
+    },
+    {
+      "id": "E-START-DARK-TEMPLATES",
+      "name": "Background pointer navigation to Templates",
+      "result": "pass"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "screenshots/start-center-dark.png",
+      "bytes": 204441,
+      "sha256": "0fc0eaac0224b501f3322c992d8ff2e5cae0f790982bbb32371f58c04812d78e",
+      "width": 1920,
+      "height": 1117,
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "rendered_ok": true,
+      "nonblank": true,
+      "visual_review": "pass; complete dark Home/Recent surface with no unrelated or personal content"
+    },
+    {
+      "file": "screenshots/start-center-dark-keyboard-focus.png",
+      "bytes": 204669,
+      "sha256": "0e415762290b45abcfdce3233517388d90a0f3972bec02452aceb7e368498587",
+      "width": 1920,
+      "height": 1117,
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "rendered_ok": true,
+      "nonblank": true,
+      "visual_review": "pass; Open File has a clear visible keyboard focus ring"
+    },
+    {
+      "file": "screenshots/start-center-templates-dark.png",
+      "bytes": 212905,
+      "sha256": "742395d2f1a229ab44f994a26854ea55017f1e54414e0e5ae347a26da6aca74c",
+      "width": 1920,
+      "height": 1117,
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "rendered_ok": true,
+      "nonblank": true,
+      "visual_review": "pass; complete dark Templates gallery with no unrelated or personal content"
+    }
+  ],
+  "accessibility": [
+    {
+      "file": "logs/a11y-start-center-dark.json",
+      "bytes": 56514,
+      "sha256": "eba36c5862e5bf46908eb84f438135121a295bfa1930b0f1149c976979d640f3",
+      "screenshot_sha256": "0fc0eaac0224b501f3322c992d8ff2e5cae0f790982bbb32371f58c04812d78e",
+      "node_count": 96,
+      "visible_nodes": 49,
+      "errors": 0,
+      "partial": false
+    },
+    {
+      "file": "logs/a11y-start-center-dark-keyboard-focus.json",
+      "bytes": 56533,
+      "sha256": "26537172b5fe195c547c89545f4539e2e936d5efc2262da3e351ee8154ef1ff0",
+      "screenshot_sha256": "0e415762290b45abcfdce3233517388d90a0f3972bec02452aceb7e368498587",
+      "node_count": 96,
+      "visible_nodes": 49,
+      "focused_node_count": 1,
+      "focused_name": "Open File",
+      "errors": 0,
+      "partial": false
+    },
+    {
+      "file": "logs/a11y-start-center-templates-dark.json",
+      "bytes": 66991,
+      "sha256": "bafca0abc00fdcafd96dbef2f4aaf4d68ac07a3179e77e2d7a62317fc1ccd224",
+      "screenshot_sha256": "742395d2f1a229ab44f994a26854ea55017f1e54414e0e5ae347a26da6aca74c",
+      "node_count": 111,
+      "visible_nodes": 64,
+      "errors": 0,
+      "partial": false
+    }
+  ],
+  "cleanup": {
+    "normal_uno_termination": true,
+    "matching_run_scoped_processes_after_termination": 0,
+    "headless_window_count_after_termination": 0,
+    "headless_desktop_closed": true,
+    "dedicated_driver_stopped": true
+  },
+  "review": {
+    "reviewer": "Codex",
+    "review_date": "2026-07-20",
+    "sensitive_data_review": "pass",
+    "limitations": "Start Center only, forced dark profile, software raster renderer, one Tab focus transition."
+  }
+}

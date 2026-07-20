@@ -69,9 +69,11 @@
             <code>577059e274</code> passed those native targets, produced an
             unsigned 199,692,288-byte MSI, and successfully extracted it.
             Corrected source <code>fbba560e27</code> forwarded all five updater
-            launch arguments, and its extracted runtime supplied the two canonical
-            light-profile Start Center captures and two bounded UNO trees with no
-            collector errors. The corrected build is the normal public,
+            launch arguments, and its extracted runtime supplied eight canonical
+            light, dark, and forced-high-contrast Start Center captures with eight
+            bounded UNO trees and no collector errors. Dark and high contrast each
+            include visible keyboard focus on the accessible Open File button. The
+            corrected build is the normal public,
             non-prerelease Latest release with four byte-verified assets. The whole
             GUI is incomplete, and MSI lifecycle proof remains pending.
           </p>
@@ -228,13 +230,15 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
               read-only UNO accessibility-tree collector. With a matching
               built Python runtime it records roles, names, states, and bounds
               alongside a screenshot without reading document text or driving
-              the UI. The corrected accepted light Start Center run exercised it twice
-              with no collector errors; this is not a full accessibility audit.
+              the UI. Corrected light, dark, and forced-high-contrast Start Center
+              runs exercised it eight times with no collector errors; dark and high
+              contrast each expose the focused Open File button. This is not a full
+              accessibility audit.
             </p>
           </div>
           <p class="truth-note">
-            Native targets, a corrected local exact-source MSI, corrected light
-            Start Center headless/UNO-tree smoke, and a normal public corrected
+            Native targets, a corrected local exact-source MSI, corrected light,
+            dark, and high-contrast Start Center headless/UNO-tree smoke, and a normal public corrected
             Latest release have completed. The release targets
             <code>fbba560e27db26de605c40aa237c554c1f0744b1</code> and its four public
             assets are byte-verified. Updater and MSI
@@ -422,8 +426,17 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
               <a href="evidence/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/start-center-templates-light.png">
                 <img src="evidence/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/start-center-templates-light.png" alt="Corrected LibreOfficeDev Templates gallery after background navigation on the off-screen Windows desktop" loading="lazy">
               </a>
+              <a href="evidence/20260720-033252-fbba560e27-windows-headless-dark/start-center-dark.png">
+                <img src="evidence/20260720-033252-fbba560e27-windows-headless-dark/start-center-dark.png" alt="Corrected LibreOfficeDev dark Start Center running on an off-screen Windows desktop" loading="lazy">
+              </a>
+              <a href="evidence/20260720-033252-fbba560e27-windows-headless-dark/start-center-dark-keyboard-focus.png">
+                <img src="evidence/20260720-033252-fbba560e27-windows-headless-dark/start-center-dark-keyboard-focus.png" alt="Dark Start Center with visible keyboard focus on Open File" loading="lazy">
+              </a>
+              <a href="evidence/20260720-033252-fbba560e27-windows-headless-dark/start-center-templates-dark.png">
+                <img src="evidence/20260720-033252-fbba560e27-windows-headless-dark/start-center-templates-dark.png" alt="Dark Templates gallery after background pointer navigation" loading="lazy">
+              </a>
             </div>
-            <div class="evidence-meta"><div><h3>Start center</h3><p>E-START-001 · corrected light accepted; dark pending</p></div><span>2 files</span></div>
+            <div class="evidence-meta"><div><h3>Start center</h3><p>E-START-001 · light and dark Home/focus/Templates accepted</p></div><span>5 files</span></div>
           </article>
           <article class="evidence-card">
             <div class="evidence-slot" aria-label="No Writer screenshot committed">
@@ -449,11 +462,19 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
             </div>
             <div class="evidence-meta"><div><h3>Shared dialogs</h3><p>E-DIALOG-001 · focus + errors</p></div><span>0 files</span></div>
           </article>
-          <article class="evidence-card">
-            <div class="evidence-slot" aria-label="No accessibility mode screenshot committed">
-              <span aria-hidden="true">+</span><strong>Awaiting verified capture</strong>
+          <article class="evidence-card evidence-card-captured">
+            <div class="evidence-captures">
+              <a href="evidence/20260720-033338-fbba560e27-windows-headless-highcontrast/start-center-highcontrast.png">
+                <img src="evidence/20260720-033338-fbba560e27-windows-headless-highcontrast/start-center-highcontrast.png" alt="Forced-high-contrast LibreOfficeDev Start Center" loading="lazy">
+              </a>
+              <a href="evidence/20260720-033338-fbba560e27-windows-headless-highcontrast/start-center-highcontrast-keyboard-focus.png">
+                <img src="evidence/20260720-033338-fbba560e27-windows-headless-highcontrast/start-center-highcontrast-keyboard-focus.png" alt="Forced-high-contrast Start Center with visible keyboard focus on Open File" loading="lazy">
+              </a>
+              <a href="evidence/20260720-033338-fbba560e27-windows-headless-highcontrast/start-center-templates-highcontrast.png">
+                <img src="evidence/20260720-033338-fbba560e27-windows-headless-highcontrast/start-center-templates-highcontrast.png" alt="Forced-high-contrast Templates gallery" loading="lazy">
+              </a>
             </div>
-            <div class="evidence-meta"><div><h3>Accessibility modes</h3><p>E-A11Y-001 · contrast + scale</p></div><span>0 files</span></div>
+            <div class="evidence-meta"><div><h3>Accessibility modes</h3><p>E-A11Y-001 · forced contrast + visible focus accepted; 200% pending</p></div><span>3 files</span></div>
           </article>
         </div>
       </section>
@@ -477,11 +498,11 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
           </li>
           <li class="roadmap-item">
             <span class="phase-number">1</span>
-            <div><p class="phase-state">Source milestone 10</p><h3>VCL Material primitives</h3><p>Light/dark profiles, complete 72-slot color coverage, native-preserving typography, shape and metric roles, full-track progress and value-sensitive level indicators, outlined frames, net-less tree connectors, disabled-affordance state completeness, strict parsing, high-contrast fallback, expanded states, and static checks compiled at <code>577059e274</code>; only the registered light Start Center checkpoints have runtime evidence.</p></div>
+            <div><p class="phase-state">Source milestone 10</p><h3>VCL Material primitives</h3><p>Light/dark profiles, complete 72-slot color coverage, native-preserving typography, shape and metric roles, full-track progress and value-sensitive level indicators, outlined frames, net-less tree connectors, disabled-affordance state completeness, strict parsing, high-contrast fallback, expanded states, and static checks compiled at <code>577059e274</code>; registered light, dark, and forced-high-contrast Start Center checkpoints now have runtime evidence.</p></div>
           </li>
           <li class="roadmap-item">
             <span class="phase-number">2</span>
-            <div><p class="phase-state">Source in progress</p><h3>Shared shell and dialogs</h3><p>The initial Start Center treatment includes <code>open_all</code> routed through VclBuilder's <code>suggested-action</code> semantic to the Material action state. Light Home/Templates smoke is registered; remaining shell work and broader runtime proof are pending.</p></div>
+            <div><p class="phase-state">Source in progress</p><h3>Shared shell and dialogs</h3><p>The initial Start Center treatment includes <code>open_all</code> routed through VclBuilder's <code>suggested-action</code> semantic to the Material action state. Light/dark/high-contrast Home, keyboard focus, and Templates smoke is registered; remaining shell work and broader runtime proof are pending.</p></div>
           </li>
           <li class="roadmap-item">
             <span class="phase-number">3–6</span>
@@ -505,10 +526,11 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
             disturbing the operator’s session.
           </p>
           <p class="preflight-note">
-            <strong>Scoped UI proof:</strong> corrected run
-            <code>20260720-022159-fbba560e27…</code> contributes two accepted
-            light Start Center captures and two complete bounded UNO trees. It
-            does not prove MSI lifecycle restart suppression or the broader UI.
+            <strong>Scoped UI proof:</strong> three corrected runs contribute
+            eight accepted light/dark/forced-
+            high-contrast Start Center captures and eight complete bounded UNO
+            trees, including two visible keyboard-focus checkpoints. They do not
+            prove MSI lifecycle restart suppression or the broader UI.
           </p>
           <a
             class="button button-tonal"

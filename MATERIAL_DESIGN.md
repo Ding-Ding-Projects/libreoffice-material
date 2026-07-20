@@ -34,11 +34,16 @@ the standard `suggested-action` class, which `VclBuilder` maps to
 can be selected under the opt-in Material renderer. The accompanying Windows
 MSI workflow repair restores the legacy CLI payload that its manifests require.
 Current Linux, Windows, and local VS 2026 runs passed the five required native
-C++ targets. The exact-source local build produced a structurally extracted MSI,
-and its payload supplied an accepted light Start Center launch/navigation smoke
-with two registered screenshots and two bounded UNO trees. No surface is
-Material-complete, and the public release, updater, and broader runtime matrix
-remain open. The reader resolves
+C++ targets. The corrected exact-source `fbba560e2` build produced an
+administratively extracted MSI runtime, and that runtime launched with both
+Material opt-in variables set for accepted light, dark, and forced-high-contrast
+Start Center Home/focus/Templates smoke, with eight registered screenshots and
+eight bounded UNO trees. The dark and high-contrast focus checkpoints each
+expose the `Open File` push button as the sole focused UNO node. The corrected
+normal public non-prerelease Latest release and its four assets are verified.
+No surface is Material-complete; updater execution,
+installer lifecycle behavior, individual widget/state rendering, pixel tests,
+and the broader runtime matrix remain open. The reader resolves
 `@token` references independently of declaration order and rejects invalid
 colors, invalid or duplicate palettes, mismatched schemas, unknown or duplicate
 tokens, and unknown or duplicate control parts. The theme currently validates
@@ -53,8 +58,9 @@ a 100–200% relative height and one of five bounded minimum-weight policies, bu
 they cannot select a font family. The renderer derives every role from the
 captured native `StyleSettings` baseline on each refresh, preserves script/language,
 charset, family, style, pitch, orientation, width, and icon-font identity, and
-never reduces a positive native font height. This path is covered by source
-tests but remains uncompiled and unexecuted.
+never reduces a positive native font height. This path is covered by the
+compiled and executed native definition-reader/draw targets; no focused
+application capture or pixel comparison verifies the typography roles yet.
 
 The fifth milestone closes the semantic color boundary between the file theme
 and all 72 `StyleSettings` color slots. Accent, list-box
@@ -130,8 +136,9 @@ emphasizing the keyboard-default push button distinctly from its `action`
 siblings (which would restyle every dialog button box), hover feedback on
 outlined text/spin fields (the field family intentionally renders its idle state
 on hover), and press/hover feedback on scrollbar troughs. This slice compiled
-into the exact-source local build, but these state tuples remain visually
-unexecuted.
+into the exact-source local build and its definition/state command assertions
+executed, but these state tuples have not been individually exercised or
+pixel-verified in the running application.
 
 The 684 normalized fractional drawing coordinates remain component-local
 literals. They describe proportional glyph and inset geometry rather than
@@ -148,15 +155,19 @@ schema parity, unused roles, required control/state coverage,
 list/selection/feedback contrast pairs, and native font/geometry-preservation
 invariants; dedicated XML-walker, reader, and headless draw C++ coverage plus
 negative fixtures are present. The focused required native targets now pass in
-Linux and Windows Actions, but broader renderer coverage remains unverified.
+Linux and Windows Actions and the local VS 2026 build. Those tests execute
+definition parsing, state dispatch, and command/region assertions; they are not
+pixel comparisons, so broader renderer coverage remains unverified.
 
-This slice is **implemented source, not verified behavior**: required native
-targets have compiled and run, but it has not run as a LibreOffice application.
-Once a staged compatible build exists, it is intended to be explicitly enabled
-with both `VCL_DRAW_WIDGETS_FROM_FILE=1` and
-`VCL_FILE_WIDGET_THEME=material`. Windows printer graphics are excluded from
-the new initialization path, and unsupported file-theme parts retain existing
-fallback drawing.
+This slice is **implemented source with bounded build/runtime evidence, not
+verified Material behavior**: the corrected `fbba560e2` extracted runtime ran
+the accepted Home/Templates smoke with `VCL_DRAW_WIDGETS_FROM_FILE=1` and
+`VCL_FILE_WIDGET_THEME=material` set. That launch does not prove that every
+visible control loaded the file theme or that any individual widget/state
+matches its intended pixels. Windows printer graphics are excluded from the new
+initialization path, and unsupported file-theme parts retain existing fallback
+drawing. Windows is the current delivery scope; equivalent platform-specific
+acceptance work remains in the roadmap as deferred future scope.
 
 ## Goals
 

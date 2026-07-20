@@ -1238,3 +1238,67 @@ build or runtime evidence.
 - Publication and public-byte verification do not execute the updater or prove
   MSI install, repair, upgrade, uninstall, or restart-suppression lifecycle
   behavior. Those runtime gates remain open.
+
+## 2026-07-20 — dark and forced-high-contrast headless UI/a11y proof
+
+- Two additional accepted off-screen Windows runs exercised the exact corrected
+  extracted runtime from source commit
+  `fbba560e27db26de605c40aa237c554c1f0744b1`. Both used a clean low-level
+  computer-use driver at `beed66ca6ed2503e6170ee1e1158247f1c2f0140`, a
+  dedicated same-token loopback MCP server, and Skia software raster. The
+  same-token server avoids the integrity boundary that prevented the UNO
+  accessibility collector from attaching through the already-running elevated
+  server.
+- Dark run `20260720-033252-fbba560e27-windows-headless-dark` accepted Home,
+  keyboard focus, and Templates captures at `1920x1117`, with SHA-256 values
+  `0fc0eaac0224b501f3322c992d8ff2e5cae0f790982bbb32371f58c04812d78e`,
+  `0e415762290b45abcfdce3233517388d90a0f3972bec02452aceb7e368498587`,
+  and `742395d2f1a229ab44f994a26854ea55017f1e54414e0e5ae347a26da6aca74c`.
+- Forced-high-contrast run
+  `20260720-033338-fbba560e27-windows-headless-highcontrast` accepted the same
+  three scenarios at `1920x1117`, with SHA-256 values
+  `60548b299305d2a9174574cb002efa6750a22b64c7e324bd76528761e3562d09`,
+  `6f4821bbb9e7d2be8ccbf42830c9e3ed0e16c1800fed1809a0c2fd1a39753264`,
+  and `483072f7fb84cc01f894588a5745ebf3efc23930eae9a680ab60591f9b53bf23`.
+- Each Home/focus tree contains 96 total and 49 visible nodes; each Templates
+  tree contains 111 total and 64 visible nodes. Every tree reports zero errors
+  and `partial=false`. Both keyboard-focus trees expose exactly one focused UNO
+  node: the `Open File` push button. Normal UNO termination succeeded, matching
+  run-scoped processes and headless windows reached zero, each desktop closed,
+  and each dedicated driver stopped.
+- The reusable `bin/Run-Windows-Headless-Smoke.ps1` harness now captures these
+  bounded scenarios, hashes/nonblank-checks every PNG, records staged UNO
+  progress, verifies the exact payload process path, and enforces normal
+  cleanup. This proves Start Center light/dark/high-contrast smoke and one Tab
+  focus transition only; broader modules, dialogs, localization, and 200% scale
+  remain open.
+
+## 2026-07-20 — updater hardening and disposable lifecycle harness source gate
+
+- Current source extends the interactive updater launch to six arguments by
+  adding `MSIRESTARTMANAGERCONTROL=DisableShutdown` after
+  `REBOOT=ReallySuppress`. The VS 2026
+  `CppunitTest_extensions_test_update` target passed with regressions that
+  verify all six forwarded process arguments, exclusive `CREATE_NEW` staging,
+  the protected three-ACE SYSTEM/Administrators/Owner Rights DACL, and a
+  retained read lock that rejects write/delete opens.
+- The new Windows Sandbox lifecycle harness pins the exact old and corrected
+  public release MSI bytes, disables guest networking and device/clipboard
+  redirection, maps only a read-only input and fresh writable output, and
+  requires zero-only install, same-version update, repair, and uninstall
+  results. It records before/after restart-state fingerprints and never removes
+  pending-restart values. A post-review hardening pass added fail-closed
+  WDAG/SID/profile/VM/read-only-map attestation outside the lifecycle
+  `try/finally`, gates cleanup and shutdown on that attestation, propagates
+  Windows Installer query errors, requires exact unregistered final states,
+  pins the prepared guest to the reviewed repository source, recomputes all
+  step/whole-lifecycle reboot comparisons on the host, bounds sentinel files,
+  waits for normal Sandbox client disposal, and writes `host-verification.json`
+  only after those post-guest checks pass. PowerShell parsing, the
+  dependency-free source validator, and strict-mode host snapshot checks passed.
+  A direct host-side invocation regression exited `1` in 0.276 seconds with
+  `Refusing to run outside Windows Sandbox: current account is CRUISE\\cntow`,
+  before lifecycle setup; no `shutdown.exe` process appeared.
+- This is a source/static harness gate only. No Windows Sandbox MSI lifecycle
+  run had executed at this checkpoint, so install/update/repair/uninstall and
+  restart-suppression runtime proof remain open.

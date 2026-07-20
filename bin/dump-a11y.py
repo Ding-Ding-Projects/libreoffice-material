@@ -75,6 +75,11 @@ def parse_arguments():
     parser.add_argument("--output", required=True, type=Path, help="JSON output path")
     parser.add_argument("--run-id", default="", help="Opaque run identifier recorded in output")
     parser.add_argument("--screenshot-sha256", default="", help="Related screenshot hash")
+    parser.add_argument(
+        "--progress-output",
+        type=Path,
+        help="Optional JSON progress record for diagnosing a blocked UNO call",
+    )
     parser.add_argument("--timeout", type=float, default=30.0, help="UNO connection timeout in seconds")
     parser.add_argument("--max-nodes", type=int, default=5000)
     parser.add_argument("--max-children", type=int, default=500)
@@ -163,7 +168,7 @@ def optional_bounds(context, errors, max_text):
         return None
 
 
-def collect_tree(root_accessible, limits, role_names, state_names):
+def collect_tree(root_accessible, limits, role_names, state_names, progress=None):
     nodes = []
     stack = [(root_accessible, [], 0)]
     partial = False
@@ -172,6 +177,8 @@ def collect_tree(root_accessible, limits, role_names, state_names):
     truncation_reasons = []
 
     while stack:
+        if progress is not None and len(nodes) % 10 == 0:
+            progress("collecting", node_count=len(nodes), current_path=stack[-1][1])
         if len(nodes) >= limits["max_nodes"]:
             partial = True
             truncation_reasons.append("max_nodes")
@@ -284,6 +291,25 @@ def atomic_json_write(path, payload):
     os.replace(temporary, path)
 
 
+def make_progress_writer(path, run_id):
+    if path is None:
+        return lambda _stage, **_details: None
+
+    def write(stage, **details):
+        atomic_json_write(
+            path,
+            {
+                "schema_version": 1,
+                "updated_at_utc": utc_now(),
+                "run_id": run_id,
+                "stage": stage,
+                "details": details,
+            },
+        )
+
+    return write
+
+
 def optional_text(function, maximum):
     try:
         return limit_text(function(), maximum)
@@ -293,6 +319,7 @@ def optional_text(function, maximum):
 
 def main():
     args = parse_arguments()
+    progress = make_progress_writer(args.progress_output, args.run_id)
     limits = {
         "max_nodes": args.max_nodes,
         "max_children": args.max_children,
@@ -303,23 +330,30 @@ def main():
     state_names = constant_map("com.sun.star.accessibility.AccessibleStateType", ACCESSIBLE_STATES)
 
     try:
+        progress("connecting", pipe=args.pipe)
         context = connect(args.pipe, args.timeout)
+        progress("connected")
         desktop = context.ServiceManager.createInstanceWithContext(
             "com.sun.star.frame.Desktop", context
         )
+        progress("desktop_resolved")
         frame = desktop.getCurrentFrame()
         if frame is None:
             raise RuntimeError("The office process has no current frame")
+        progress("frame_resolved")
         window = frame.getContainerWindow()
         if window is None:
             raise RuntimeError("The current frame has no container window")
+        progress("window_resolved")
         accessible = window.getProperty("XAccessible")
         if accessible is None:
             raise RuntimeError("The container window did not expose XAccessible")
         root_context = accessible.getAccessibleContext()
         if root_context is None:
             raise RuntimeError("The container accessibility object has no context")
-        tree = collect_tree(accessible, limits, role_names, state_names)
+        progress("accessibility_root_resolved")
+        tree = collect_tree(accessible, limits, role_names, state_names, progress)
+        progress("tree_collected", node_count=len(tree["nodes"]))
         report = {
             "schema_version": 1,
             "captured_at_utc": utc_now(),
@@ -340,10 +374,12 @@ def main():
             "nodes": tree["nodes"],
         }
         atomic_json_write(args.output, report)
+        progress("report_written", output=str(args.output))
         if args.require_visible and not tree["visible_nodes"]:
             raise RuntimeError("No accessible node reported SHOWING or VISIBLE")
         if args.terminate and not desktop.terminate():
             raise RuntimeError("The dedicated office process rejected normal termination")
+        progress("complete", terminated=args.terminate)
         return 0
     except Exception as error:
         error_report = {
@@ -353,6 +389,7 @@ def main():
             "fatal_error": compact_error(error, args.max_text),
         }
         atomic_json_write(args.output, error_report)
+        progress("failed", error=error_report["fatal_error"])
         print(error_report["fatal_error"], file=sys.stderr)
         return 1
 

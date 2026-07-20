@@ -15,6 +15,10 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+The current delivery and verification scope is Windows. Cross-platform
+acceptance gates remain recorded below as deferred future work; they are not
+silently removed or treated as evidence for the current Windows milestone.
+
 ## Phase 0 — reproducible foundation
 
 **Status: in progress**
@@ -42,8 +46,10 @@ No phase is currently marked verified.
 
 Current evidence: the Windows harness preflight passed on 2026-07-16 using a
 temporary Notepad process. On 2026-07-20, the harness advanced to the real
-LibreOfficeDev MSI payload and accepted two light-profile Start Center captures
-plus two bounded UNO trees with no collector errors. The local
+LibreOfficeDev MSI payload and accepted eight canonical Start Center captures:
+two light, three dark, and three forced high contrast, each with a matching
+bounded UNO tree and no collector errors. Dark and high contrast include one
+visible keyboard Tab focus transition to the accessible `Open File` button. The local
 [one-click Windows script](docs/LOCAL_WINDOWS_BUILD.md) now provisions an
 isolated VS 2022 C++/CLI/C++ Clang/Cygwin profile, validates it, and creates a
 clean LF source snapshot. On 2026-07-19, its first bootstrap installed the
@@ -138,20 +144,26 @@ exact GitHub Latest XML asset and accepts only one safe tag-derived GitHub URL
 for the canonical MSI with exact `application/x-msi` MIME, positive size, and
 lowercase SHA-256 metadata. It rejects legacy or malformed persisted state,
 checks the completed download, and on confirmation copies it with `CREATE_NEW`
-into protected LocalAppData staging with a user/Administrators/SYSTEM DACL,
+into protected LocalAppData staging with full-access ACEs limited to
+SYSTEM/Administrators/Owner Rights,
 re-verifies it, and retains a final read lock against write/delete replacement.
 The visible MSI launch requires explicit default-No consent; silent install is
 not implemented. An audit found that the `577059e274` binary forwarded only four
 of its five generated installer arguments and omitted `REBOOT=ReallySuppress`.
-Commit `fbba560e27db26de605c40aa237c554c1f0744b1` now sizes the launch array from
-the command and forwards all five entries, including restart suppression.
+Commit `fbba560e27db26de605c40aa237c554c1f0744b1` sizes the launch array from
+the command and forwards all five release-binary entries, including restart
+suppression. Current source adds a sixth safety property,
+`MSIRESTARTMANAGERCONTROL=DisableShutdown`; its focused VS 2026 suite verifies
+exclusive `CREATE_NEW` staging, the protected DACL, the retained read lock, and
+all six forwarded arguments.
 Automatic checks default on weekly, while automatic download is off and
 download/install remain opt-in. See [`PRIVACY.md`](PRIVACY.md).
 A bounded read-only UNO accessibility-tree collector now accompanies the
 off-screen desktop plan. It runs with the matching built Python runtime and
 records window roles, names, states, child counts, and optional bounds without
-reading document text or invoking UI actions. The accepted light Start Center
-run collected two complete bounded trees with no collector errors; this is a
+reading document text or invoking UI actions. The accepted light, dark, and
+forced-high-contrast Start Center runs collected eight complete bounded trees
+with no collector errors; this is a
 collector smoke result, not a full accessibility audit.
 The required native targets, local Windows MSI, and light Start Center headless
 smoke have completed for exact source `577059e274`; its older normal release and
@@ -166,6 +178,13 @@ Home/Recent Documents and Templates smoke with two complete bounded UNO trees:
 normal termination, zero remaining matching processes/windows, and a closed
 desktop. The accepted run is
 [`20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression`](docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/).
+The same exact payload then passed dedicated same-token dark and forced-high-
+contrast Home, Tab-focus, and Templates runs with six additional complete trees,
+normal UNO termination, zero remaining payload processes/windows, desktop
+closure, and driver-process cleanup. Their manifests are
+[`20260720-033252-fbba560e27-windows-headless-dark`](docs/evidence/runs/20260720-033252-fbba560e27-windows-headless-dark/manifest.json)
+and
+[`20260720-033338-fbba560e27-windows-headless-highcontrast`](docs/evidence/runs/20260720-033338-fbba560e27-windows-headless-highcontrast/manifest.json).
 The corrected normal release and its four public Latest assets are verified.
 Updater download/stage/consent flow, MSI install/repair/upgrade/uninstall and
 restart-suppression lifecycle proof, the remaining UI/accessibility matrix, and
@@ -202,7 +221,7 @@ Exit gate:
 
 ## Phase 1 — Material foundations in VCL
 
-**Status: in progress — native C++ targets and light Start Center smoke passed;
+**Status: in progress — native C++ targets and scoped light/dark/high-contrast Start Center smoke passed;
 remaining runtime matrix pending**
 
 Implemented source milestones:
@@ -277,13 +296,18 @@ Implemented source milestones:
 The standalone validator passes with 2 schemes, 23 color tokens each, 3
 typography roles, 8 shape tokens, 15 metric roles, 72 style slots, 79 parts, and
 205 states. The five required native C++ targets have compiled and executed in
-current Linux and Windows runs, while none of this source has run in a
-LibreOffice application scenario yet. The metric roles preserve the current
-integers and existing downstream native conversions; they add no density
-profile or new DPI-aware, `dp`, fractional-scale, or touch-sizing policy.
+current Linux and Windows runs, including definition parsing and state-dispatch
+command/region assertions. The corrected `fbba560e2` administratively extracted
+runtime also launched Home/Recent Documents and Templates on an off-screen
+Windows desktop with both Material opt-in variables set. That scoped application
+smoke does not prove that each visible control consumed the definition, does not
+individually exercise the 79 parts or 205 state tuples, and is not a pixel-test
+suite. The metric roles preserve the current integers and existing downstream
+native conversions; they add no density profile or new DPI-aware, `dp`,
+fractional-scale, or touch-sizing policy.
 
-- build/runtime verification of light/dark, focus, and high-contrast routing,
-  plus complete forced-color and platform-signal coverage;
+- build/runtime verification of system-driven high-contrast routing, deeper
+  keyboard focus traversal, plus complete forced-color and platform-signal coverage;
 - remaining typography properties (line height and letter spacing),
   density-aware spacing/metric profiles, density-aware/full shape semantics,
   elevation, opacity, motion, and density selection;
@@ -291,11 +315,14 @@ profile or new DPI-aware, `dp`, fractional-scale, or touch-sizing policy.
 - reusable focus rings and keyboard modality handling;
 - core button, icon button, checkbox, radio, switch, text field, list, tab,
   tooltip, menu, progress, and surface primitives;
-- build-backed C++ and pixel/region regression coverage across platforms.
+- extend the executed definition/state command/region C++ coverage with missing
+  build-backed pixel comparisons on Windows; equivalent cross-platform proof is
+  retained as a deferred gate outside the current delivery scope.
 
 Exit gate:
 
-- primitives render through native VCL paths on supported desktop platforms;
+- primitives render through native VCL paths on Windows for the current delivery
+  scope; equivalent supported-platform evidence remains a deferred gate;
 - token values are centralized and application code does not hard-code Material
   colors;
 - every state is keyboard reachable and has accessible semantics;
@@ -304,7 +331,7 @@ Exit gate:
 ## Phase 2 — shared shell and common surfaces
 
 **Status: in progress — initial Start Center source, native builder coverage,
-and light launch/navigation smoke passed; broader shell runtime pending**
+and light/dark/high-contrast launch/navigation/focus smoke passed; broader shell runtime pending**
 
 The Start Center source slice adds spacing, a Home header/subtitle, distinct
 navigation/content/container surfaces, and VCL-derived recent/template colors.
@@ -312,9 +339,10 @@ Its `open_all` button now uses the standard `suggested-action` semantic, which
 `VclBuilder` preserves as the push-button action state selecting the existing
 Material `extra="action"` styling. Its focused `VclBuilder` fixture passed in
 the current Linux, Windows, and local VS 2026 native runs. The exact-source MSI
-payload has now displayed and captured the light Start Center Home and Templates
-states; dark/high-contrast, visible action-state exercise, and broader shared
-shell scenarios remain open.
+payload has now displayed and captured light, dark, and forced-high-contrast
+Start Center Home and Templates states plus a visible `Open File` Tab-focus state
+in dark and high contrast. Deeper keyboard traversal, visible action-state
+exercise, and broader shared shell scenarios remain open.
 
 - start center, window chrome integration, menubar/command surfaces, status bar,
   sidebar shell, notebookbar variants, infobars, snackbars, and notifications;
@@ -391,9 +419,11 @@ Exit gate:
 
 ## Phase 7 — suite-wide hardening
 
-**Status: planned**
+**Status: planned — Windows hardening is in current scope; equivalent
+cross-platform matrices are deferred**
 
-- screen-reader and keyboard audits across platforms;
+- screen-reader and keyboard audits on Windows, followed by the retained,
+  deferred cross-platform audits;
 - high contrast, forced colors, color-vision, reduced-motion, and zoom checks;
 - bidirectional text, long translations, CJK/CTL fonts, and locale formatting;
 - startup, memory, paint, input-latency, and large-document performance budgets;
@@ -415,6 +445,9 @@ updater and MSI lifecycle proof pending**
 - complete native validation of the Windows updater and stable packaging path;
 - preserve the exact GitHub Latest XML, strict MSI metadata/hash checks,
   protected staging, explicit consent, and no-silent-install contract;
+- execute the statically validated disposable Windows Sandbox harness that pins
+  old/corrected MSI hashes and requires exact-zero install, same-version update,
+  repair, and uninstall results with no restart indicators or host mutation;
 - publish through the draft-first workflow only after exact target, asset,
   digest, normal-release, and public Latest checks pass;
 - contributor, design-review, and regression-triage documentation;

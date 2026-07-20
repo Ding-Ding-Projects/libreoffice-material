@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "run_id": "20260720-033252-fbba560e27-windows-headless-dark",
+  "status": "passed",
+  "generated_at_utc": "2026-07-20T07:32:52.5581778+00:00",
+  "source_commit": "fbba560e27db26de605c40aa237c554c1f0744b1",
+  "payload_root": "C:\\Users\\cntow\\lo-material-vs2026-577059e27\\msi-check\\20260720-021814-9378266-fbba560e2-restart-suppression",
+  "appearance": "Dark",
+  "profile_values": {
+    "ApplicationAppearance": 2,
+    "HighContrast": 1
+  },
+  "environment": {
+    "VCL_DRAW_WIDGETS_FROM_FILE": "1",
+    "VCL_FILE_WIDGET_THEME": "material",
+    "SAL_SKIA": "raster",
+    "SAL_DISABLEGL": "1",
+    "SAL_LOG": "+WARN.vcl.gdi"
+  },
+  "driver": {
+    "root": "C:\\Users\\cntow\\Documents\\GitHub\\lowlevel-computer-use-mcp",
+    "commit": "beed66ca6ed2503e6170ee1e1158247f1c2f0140",
+    "checkout_clean": true,
+    "mcp_url": "http://127.0.0.1:53805/mcp",
+    "dedicated_server": true,
+    "server_pid": 33496,
+    "desktop_name": "LOMaterialQA-fbba560e27-dark-fbc884e8"
+  },
+  "process": {
+    "pid": 23900,
+    "pidfile_pid": 23900,
+    "launcher_pid": 18544,
+    "name": "soffice.bin",
+    "executable_path": "C:\\Users\\cntow\\lo-material-vs2026-577059e27\\msi-check\\20260720-021814-9378266-fbba560e2-restart-suppression\\program\\soffice.bin",
+    "creation_date": "07/20/2026 03:32:55"
+  },
+  "window": {
+    "handle": 16517722,
+    "title": "LibreOfficeDev",
+    "class": "SALFRAME",
+    "width": 1920,
+    "height": 1117,
+    "stable_poll_count": 3
+  },
+  "scenarios": [
+    {
+      "slug": "start-center-dark",
+      "screenshot": {
+        "bytes": 204441,
+        "channel_extrema": [
+          [
+            0,
+            255
+          ],
+          [
+            0,
+            255
+          ],
+          [
+            0,
+            255
+          ]
+        ],
+        "channel_mean": [
+          30.519542,
+          29.522537,
+          34.36444
+        ],
+        "channel_stddev": [
+          35.995922,
+          36.574925,
+          34.917285
+        ],
+        "height": 1117,
+        "mode": "RGB",
+        "nonblank": true,
+        "path": "C:\\Users\\cntow\\AppData\\Local\\Temp\\LibreOfficeMaterialQA\\20260720-033252-fbba560e27-windows-headless-dark\\screenshots\\start-center-dark.png",
+        "sha256": "0fc0eaac0224b501f3322c992d8ff2e5cae0f790982bbb32371f58c04812d78e",
+        "width": 1920
+      },
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "accessibility": {
+        "path": "C:\\Users\\cntow\\AppData\\Local\\Temp\\LibreOfficeMaterialQA\\20260720-033252-fbba560e27-windows-headless-dark\\logs\\a11y-start-center-dark.json",
+        "bytes": 56514,
+        "sha256": "eba36c5862e5bf46908eb84f438135121a295bfa1930b0f1149c976979d640f3",
+        "screenshot_sha256": "0fc0eaac0224b501f3322c992d8ff2e5cae0f790982bbb32371f58c04812d78e",
+        "summary": {
+          "node_count": 96,
+          "visible_nodes": 49,
+          "errors": 0,
+          "partial": false,
+          "focused_node_count": 0,
+          "focused_nodes": []
+        }
+      }
+    },
+    {
+      "slug": "start-center-dark-keyboard-focus",
+      "screenshot": {
+        "bytes": 204669,
+        "channel_extrema": [
+          [
+            0,
+            255
+          ],
+          [
+            0,
+            255
+          ],
+          [
+            0,
+            255
+          ]
+        ],
+        "channel_mean": [
+          30.610142,
+          29.604371,
+          34.48145
+        ],
+        "channel_stddev": [
+          36.172114,
+          36.714047,
+          35.213417
+        ],
+        "height": 1117,
+        "mode": "RGB",
+        "nonblank": true,
+        "path": "C:\\Users\\cntow\\AppData\\Local\\Temp\\LibreOfficeMaterialQA\\20260720-033252-fbba560e27-windows-headless-dark\\screenshots\\start-center-dark-keyboard-focus.png",
+        "sha256": "0e415762290b45abcfdce3233517388d90a0f3972bec02452aceb7e368498587",
+        "width": 1920
+      },
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "accessibility": {
+        "path": "C:\\Users\\cntow\\AppData\\Local\\Temp\\LibreOfficeMaterialQA\\20260720-033252-fbba560e27-windows-headless-dark\\logs\\a11y-start-center-dark-keyboard-focus.json",
+        "bytes": 56533,
+        "sha256": "26537172b5fe195c547c89545f4539e2e936d5efc2262da3e351ee8154ef1ff0",
+        "screenshot_sha256": "0e415762290b45abcfdce3233517388d90a0f3972bec02452aceb7e368498587",
+        "summary": {
+          "node_count": 96,
+          "visible_nodes": 49,
+          "errors": 0,
+          "partial": false,
+          "focused_node_count": 1,
+          "focused_nodes": [
+            {
+              "path": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "role": "PUSH_BUTTON",
+              "name": "Open File"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "slug": "start-center-templates-dark",
+      "screenshot": {
+        "bytes": 212905,
+        "channel_extrema": [
+          [
+            0,
+            255
+          ],
+          [
+            0,
+            255
+          ],
+          [
+            0,
+            255
+          ]
+        ],
+        "channel_mean": [
+          72.523157,
+          70.974117,
+          76.451289
+        ],
+        "channel_stddev": [
+          92.366872,
+          93.10569,
+          91.08222
+        ],
+        "height": 1117,
+        "mode": "RGB",
+        "nonblank": true,
+        "path": "C:\\Users\\cntow\\AppData\\Local\\Temp\\LibreOfficeMaterialQA\\20260720-033252-fbba560e27-windows-headless-dark\\screenshots\\start-center-templates-dark.png",
+        "sha256": "742395d2f1a229ab44f994a26854ea55017f1e54414e0e5ae347a26da6aca74c",
+        "width": 1920
+      },
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "accessibility": {
+        "path": "C:\\Users\\cntow\\AppData\\Local\\Temp\\LibreOfficeMaterialQA\\20260720-033252-fbba560e27-windows-headless-dark\\logs\\a11y-start-center-templates-dark.json",
+        "bytes": 66991,
+        "sha256": "bafca0abc00fdcafd96dbef2f4aaf4d68ac07a3179e77e2d7a62317fc1ccd224",
+        "screenshot_sha256": "742395d2f1a229ab44f994a26854ea55017f1e54414e0e5ae347a26da6aca74c",
+        "summary": {
+          "node_count": 111,
+          "visible_nodes": 64,
+          "errors": 0,
+          "partial": false,
+          "focused_node_count": 1,
+          "focused_nodes": [
+            {
+              "path": [
+                1,
+                0,
+                0,
+                0,
+                1,
+                2,
+                1,
+                0,
+                0
+              ],
+              "role": "LIST_ITEM",
+              "name": "Modern business letter sans-serif"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "cleanup": {
+    "normal_uno_termination": true,
+    "forced_owned_process_cleanup": false,
+    "remaining_payload_processes": 0,
+    "remaining_headless_windows": 0,
+    "desktop_closed": true,
+    "dedicated_driver_stopped": true
+  },
+  "error": null
+}

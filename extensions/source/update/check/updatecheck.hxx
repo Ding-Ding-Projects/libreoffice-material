@@ -47,7 +47,9 @@ bool verifyUpdateFile(const OUString& rFileName, const DownloadSource& rSource);
 struct WindowsInstallerCommand
 {
     OUString ExecutablePath;
-    std::array<OUString, 5> Arguments;
+    std::array<OUString, 6> Arguments;
+
+    std::array<rtl_uString*, 6> getProcessArguments() const;
 };
 
 // Builds the interactive Windows Installer command used for an in-place
@@ -56,6 +58,18 @@ struct WindowsInstallerCommand
 // package keeps the same ProductCode and effective ProductVersion.
 WindowsInstallerCommand buildWindowsInstallerCommand(const OUString& rSystemDirectory,
                                                        const OUString& rInstallerPath);
+
+#ifdef _WIN32
+// Windows-only staging primitives shared with the focused updater regression
+// test. The returned handles are owned by the caller.
+void* createExclusiveWindowsInstallerStagingFile(const OUString& rInstallerSystemPath,
+                                                 void* pSecurityAttributes);
+void cleanupStagedWindowsInstaller(void* pInstallerLock, const OUString& rInstallerURL,
+                                   const OUString& rDirectoryURL);
+bool stageVerifiedWindowsInstaller(const OUString& rSourceURL, const DownloadSource& rSource,
+                                   OUString& rInstallerSystemPath, OUString& rInstallerURL,
+                                   OUString& rDirectoryURL, void*& rInstallerLock);
+#endif
 
 
 class UpdateCheck;

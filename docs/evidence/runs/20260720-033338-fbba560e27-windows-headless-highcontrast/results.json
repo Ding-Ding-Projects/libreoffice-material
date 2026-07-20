@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "run_id": "20260720-033338-fbba560e27-windows-headless-highcontrast",
+  "status": "passed",
+  "generated_at_utc": "2026-07-20T07:33:38.4347865+00:00",
+  "source_commit": "fbba560e27db26de605c40aa237c554c1f0744b1",
+  "payload_root": "C:\\Users\\cntow\\lo-material-vs2026-577059e27\\msi-check\\20260720-021814-9378266-fbba560e2-restart-suppression",
+  "appearance": "HighContrast",
+  "profile_values": {
+    "ApplicationAppearance": 1,
+    "HighContrast": 2
+  },
+  "environment": {
+    "VCL_DRAW_WIDGETS_FROM_FILE": "1",
+    "VCL_FILE_WIDGET_THEME": "material",
+    "SAL_SKIA": "raster",
+    "SAL_DISABLEGL": "1",
+    "SAL_LOG": "+WARN.vcl.gdi"
+  },
+  "driver": {
+    "root": "C:\\Users\\cntow\\Documents\\GitHub\\lowlevel-computer-use-mcp",
+    "commit": "beed66ca6ed2503e6170ee1e1158247f1c2f0140",
+    "checkout_clean": true,
+    "mcp_url": "http://127.0.0.1:61721/mcp",
+    "dedicated_server": true,
+    "server_pid": 20560,
+    "desktop_name": "LOMaterialQA-fbba560e27-highcontrast-62e548a3"
+  },
+  "process": {
+    "pid": 8936,
+    "pidfile_pid": 8936,
+    "launcher_pid": 38860,
+    "name": "soffice.bin",
+    "executable_path": "C:\\Users\\cntow\\lo-material-vs2026-577059e27\\msi-check\\20260720-021814-9378266-fbba560e2-restart-suppression\\program\\soffice.bin",
+    "creation_date": "07/20/2026 03:33:41"
+  },
+  "window": {
+    "handle": 14289048,
+    "title": "LibreOfficeDev",
+    "class": "SALFRAME",
+    "width": 1920,
+    "height": 1117,
+    "stable_poll_count": 3
+  },
+  "scenarios": [
+    {
+      "slug": "start-center-highcontrast",
+      "screenshot": {
+        "bytes": 207770,
+        "channel_extrema": [
+          [
+            0,
+            255
+          ],
+          [
+            0,
+            255
+          ],
+          [
+            0,
+            255
+          ]
+        ],
+        "channel_mean": [
+          236.579248,
+          237.91127,
+          236.931024
+        ],
+        "channel_stddev": [
+          53.906323,
+          49.986656,
+          52.586164
+        ],
+        "height": 1117,
+        "mode": "RGB",
+        "nonblank": true,
+        "path": "C:\\Users\\cntow\\AppData\\Local\\Temp\\LibreOfficeMaterialQA\\20260720-033338-fbba560e27-windows-headless-highcontrast\\screenshots\\start-center-highcontrast.png",
+        "sha256": "60548b299305d2a9174574cb002efa6750a22b64c7e324bd76528761e3562d09",
+        "width": 1920
+      },
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "accessibility": {
+        "path": "C:\\Users\\cntow\\AppData\\Local\\Temp\\LibreOfficeMaterialQA\\20260720-033338-fbba560e27-windows-headless-highcontrast\\logs\\a11y-start-center-highcontrast.json",
+        "bytes": 56522,
+        "sha256": "fe48993caa9ce45a57f5179538f11535644e4610949cc2a85f87344199f7e336",
+        "screenshot_sha256": "60548b299305d2a9174574cb002efa6750a22b64c7e324bd76528761e3562d09",
+        "summary": {
+          "node_count": 96,
+          "visible_nodes": 49,
+          "errors": 0,
+          "partial": false,
+          "focused_node_count": 0,
+          "focused_nodes": []
+        }
+      }
+    },
+    {
+      "slug": "start-center-highcontrast-keyboard-focus",
+      "screenshot": {
+        "bytes": 207966,
+        "channel_extrema": [
+          [
+            0,
+            255
+          ],
+          [
+            0,
+            255
+          ],
+          [
+            0,
+            255
+          ]
+        ],
+        "channel_mean": [
+          236.567346,
+          237.899388,
+          236.919166
+        ],
+        "channel_stddev": [
+          53.930399,
+          50.012878,
+          52.61083
+        ],
+        "height": 1117,
+        "mode": "RGB",
+        "nonblank": true,
+        "path": "C:\\Users\\cntow\\AppData\\Local\\Temp\\LibreOfficeMaterialQA\\20260720-033338-fbba560e27-windows-headless-highcontrast\\screenshots\\start-center-highcontrast-keyboard-focus.png",
+        "sha256": "6f4821bbb9e7d2be8ccbf42830c9e3ed0e16c1800fed1809a0c2fd1a39753264",
+        "width": 1920
+      },
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "accessibility": {
+        "path": "C:\\Users\\cntow\\AppData\\Local\\Temp\\LibreOfficeMaterialQA\\20260720-033338-fbba560e27-windows-headless-highcontrast\\logs\\a11y-start-center-highcontrast-keyboard-focus.json",
+        "bytes": 56541,
+        "sha256": "9300e0fe552589c78a1c3acebe7dee3a09c71c36b486b6ce736aee55f43fa465",
+        "screenshot_sha256": "6f4821bbb9e7d2be8ccbf42830c9e3ed0e16c1800fed1809a0c2fd1a39753264",
+        "summary": {
+          "node_count": 96,
+          "visible_nodes": 49,
+          "errors": 0,
+          "partial": false,
+          "focused_node_count": 1,
+          "focused_nodes": [
+            {
+              "path": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "role": "PUSH_BUTTON",
+              "name": "Open File"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "slug": "start-center-templates-highcontrast",
+      "screenshot": {
+        "bytes": 211952,
+        "channel_extrema": [
+          [
+            0,
+            255
+          ],
+          [
+            0,
+            255
+          ],
+          [
+            0,
+            255
+          ]
+        ],
+        "channel_mean": [
+          238.133139,
+          240.561975,
+          241.398159
+        ],
+        "channel_stddev": [
+          52.938731,
+          45.141173,
+          44.032254
+        ],
+        "height": 1117,
+        "mode": "RGB",
+        "nonblank": true,
+        "path": "C:\\Users\\cntow\\AppData\\Local\\Temp\\LibreOfficeMaterialQA\\20260720-033338-fbba560e27-windows-headless-highcontrast\\screenshots\\start-center-templates-highcontrast.png",
+        "sha256": "483072f7fb84cc01f894588a5745ebf3efc23930eae9a680ab60591f9b53bf23",
+        "width": 1920
+      },
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "accessibility": {
+        "path": "C:\\Users\\cntow\\AppData\\Local\\Temp\\LibreOfficeMaterialQA\\20260720-033338-fbba560e27-windows-headless-highcontrast\\logs\\a11y-start-center-templates-highcontrast.json",
+        "bytes": 67000,
+        "sha256": "e3ff3c8d934e10f0fabf678497bb0edd5274ad9bfa8c6e647f7ca5af89047059",
+        "screenshot_sha256": "483072f7fb84cc01f894588a5745ebf3efc23930eae9a680ab60591f9b53bf23",
+        "summary": {
+          "node_count": 111,
+          "visible_nodes": 64,
+          "errors": 0,
+          "partial": false,
+          "focused_node_count": 1,
+          "focused_nodes": [
+            {
+              "path": [
+                1,
+                0,
+                0,
+                0,
+                1,
+                2,
+                1,
+                0,
+                0
+              ],
+              "role": "LIST_ITEM",
+              "name": "Modern business letter sans-serif"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "cleanup": {
+    "normal_uno_termination": true,
+    "forced_owned_process_cleanup": false,
+    "remaining_payload_processes": 0,
+    "remaining_headless_windows": 0,
+    "desktop_closed": true,
+    "dedicated_driver_stopped": true
+  },
+  "error": null
+}

@@ -1,13 +1,15 @@
 # Verified screenshot index
 
-**Current canonical gallery screenshot count: 2.**
+**Current canonical gallery screenshot count: 8.**
 
-Both canonical files come from the corrected exact-source Windows x64 MSI
-payload at `fbba560e27db26de605c40aa237c554c1f0744b1` and its light-profile
-Start Center run. They establish a real launch and one background navigation
-smoke action; they do not complete the light/dark minimum or any whole-suite
-acceptance gate. The two images from the earlier accepted `577059e274` run remain
-retained as historical proof, but are not duplicated in the canonical gallery.
+All canonical files come from the corrected exact-source Windows x64 MSI payload
+at `fbba560e27db26de605c40aa237c554c1f0744b1`: two light-profile captures,
+three dark captures, and three forced-high-contrast captures. Together they
+establish real launch, background Templates navigation, and one keyboard Tab
+focus transition in dark and high contrast. They do not establish 200% scaling,
+accelerated rendering, localization, suite applications, dialogs, updater UI,
+or the MSI lifecycle. The two images from the earlier accepted `577059e274` run
+remain historical proof, but are not duplicated in the canonical gallery.
 
 A 2026-07-16 off-screen Notepad capture was used only to preflight the local
 low-level desktop driver. It was temporary, was not committed, and cannot enter
@@ -18,12 +20,12 @@ the current count.
 
 | Slot | Surface | Minimum checkpoint | Current state | Verified file |
 | --- | --- | --- | --- | --- |
-| E-START-001 | Start center and shared shell | stable launch, light and dark | In progress — corrected light run accepted; dark pending | [`Home / Recent Documents`](evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/screenshots/start-center-light.png) · [`Templates`](evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/screenshots/start-center-templates-light.png) · run [`manifest`](evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/manifest.json) / [`results`](evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/results.json) |
+| E-START-001 | Start center and shared shell | stable launch, light and dark | Passed for scoped Home/focus/Templates software-raster smoke; broader shell work remains | Light [`Home / Recent`](evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/screenshots/start-center-light.png) / [`Templates`](evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/screenshots/start-center-templates-light.png) · dark [`Home`](evidence/runs/20260720-033252-fbba560e27-windows-headless-dark/screenshots/start-center-dark.png) / [`keyboard focus`](evidence/runs/20260720-033252-fbba560e27-windows-headless-dark/screenshots/start-center-dark-keyboard-focus.png) / [`Templates`](evidence/runs/20260720-033252-fbba560e27-windows-headless-dark/screenshots/start-center-templates-dark.png) · run [`manifests`](evidence/runs/20260720-033252-fbba560e27-windows-headless-dark/manifest.json) |
 | E-WRITER-001 | Writer | document open, formatting and sidebar visible | Awaiting genuine capture | — |
 | E-CALC-001 | Calc | populated sheet, formula bar and sheet tabs visible | Awaiting genuine capture | — |
 | E-IMPRESS-001 | Impress | editing canvas, slide pane and properties visible | Awaiting genuine capture | — |
 | E-DIALOG-001 | Shared dialog | keyboard focus, validation, and long labels | Awaiting genuine capture | — |
-| E-A11Y-001 | Accessibility modes | high contrast, 200% scale, visible focus | Awaiting genuine capture | — |
+| E-A11Y-001 | Accessibility modes | high contrast, 200% scale, visible focus | In progress — forced high contrast and visible Tab focus accepted; 200% scale pending | [`Home`](evidence/runs/20260720-033338-fbba560e27-windows-headless-highcontrast/screenshots/start-center-highcontrast.png) · [`keyboard focus`](evidence/runs/20260720-033338-fbba560e27-windows-headless-highcontrast/screenshots/start-center-highcontrast-keyboard-focus.png) · [`Templates`](evidence/runs/20260720-033338-fbba560e27-windows-headless-highcontrast/screenshots/start-center-templates-highcontrast.png) · run [`manifest`](evidence/runs/20260720-033338-fbba560e27-windows-headless-highcontrast/manifest.json) / [`results`](evidence/runs/20260720-033338-fbba560e27-windows-headless-highcontrast/results.json) |
 
 ## Adding a verified image
 

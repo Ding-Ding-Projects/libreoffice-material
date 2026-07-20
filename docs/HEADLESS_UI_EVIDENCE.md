@@ -102,8 +102,11 @@ That second run remains accepted historical proof. A later launch-site audit
 found that its product binary forwarded only four of five updater installer
 arguments and omitted `REBOOT=ReallySuppress`. Corrected source commit
 `fbba560e27db26de605c40aa237c554c1f0744b1` forwards all five arguments and
-produced a new extracted candidate. The corrected runtime was exercised through
-the same clean driver commit and is now the canonical gallery run:
+produced a new extracted candidate. Current source extends that command to six
+arguments by also setting `MSIRESTARTMANAGERCONTROL=DisableShutdown`; the focused
+VS 2026 updater suite verifies all six, exclusive staging creation, the protected
+DACL, and the retained read lock. The five-argument corrected runtime was exercised through
+the same clean driver commit and supplies the canonical light gallery pair:
 
 - Home/Recent Documents captured at `1920×1117`, 203,493 bytes, SHA-256
   `e4a21bd16c99ef360749dd72557a8d5a9df7c38d0a51122e8ca0058c57464501`;
@@ -121,6 +124,28 @@ This verifies only the corrected extracted runtime UI. It does not execute or
 prove MSI install, repair, upgrade, uninstall, or restart-suppression lifecycle
 behavior.
 
+Two later accepted runs used the same exact `fbba560e27` extracted payload and
+clean driver commit through dedicated same-token loopback MCP sessions. Keeping
+the GUI and the matching Python/UNO collector at the same integrity level avoids
+the named-pipe block produced by the elevated always-on service:
+
+- [`20260720-033252-fbba560e27-windows-headless-dark`](evidence/runs/20260720-033252-fbba560e27-windows-headless-dark/)
+  forced `ApplicationAppearance=2` and `HighContrast=1`; Home, one background
+  Tab focus state, and Templates captured at `1920×1117`. The focus tree exposes
+  exactly one `FOCUSED` node, the `Open File` push button. Its three trees report
+  96/49, 96/49, and 111/64 total/visible nodes, zero errors, and no truncation;
+- [`20260720-033338-fbba560e27-windows-headless-highcontrast`](evidence/runs/20260720-033338-fbba560e27-windows-headless-highcontrast/)
+  forced `ApplicationAppearance=1` and `HighContrast=2` and passed the same three
+  checkpoints, including the accessible `Open File` focus state and complete
+  96/49, 96/49, and 111/64 trees.
+
+Both runs terminated normally, reached zero exact-payload processes and headless
+windows, closed the desktop handle, stopped the dedicated MCP process tree, and
+passed visual/sensitive-data review. The reusable driver is
+[`bin/Run-Windows-Headless-Smoke.ps1`](../bin/Run-Windows-Headless-Smoke.ps1);
+its PNG analyzer rejects blank captures and its collector emits an optional
+progress record so a blocked UNO boundary fails with diagnosable evidence.
+
 The same corrected 199,688,192-byte MSI is now the normal public, non-draft,
 non-prerelease Latest release
 [`windows-msi-local-20260720-fbba560e2`](https://github.com/Ding-Ding-Projects/libreoffice-material/releases/tag/windows-msi-local-20260720-fbba560e2),
@@ -131,10 +156,11 @@ SHA-256
 `180e511c065f3e21cd9e4fd0abe31f8886b0cc5ce5ce27a48f2890f83d1afeea`.
 Release publication does not expand the accepted UI or MSI-lifecycle scope.
 
-This closes only the light-profile Start Center launch/navigation smoke on
-software raster rendering. Dark, system/high contrast, accelerated capture,
-keyboard-only/focus, 200% scale, localization/direction, suite applications,
-dialogs, updater, and MSI lifecycle coverage remain open. The Material
+This closes the scoped light, dark, forced-high-contrast, pointer-navigation,
+and one-step keyboard-focus Start Center smoke on software raster rendering.
+System-driven contrast, deeper keyboard traversal, accelerated capture, 200%
+scale, localization/direction, suite applications, dialogs, updater, and MSI
+lifecycle coverage remain open. The Material
 environment gates were requested; that fact alone does not prove every visible
 control used the file definition or that the surface is Material-complete.
 
@@ -165,6 +191,10 @@ discarded. A run must require at least one `SHOWING` or `VISIBLE` node and
 pair the JSON output with the matching screenshot SHA-256 in its manifest.
 This implements an a11y evidence mechanism; it is not a claim that a runtime
 accessibility scenario has passed.
+
+`--progress-output` may be used by automation to record connection, frame,
+accessibility-root, collection, write, and termination stages. It is diagnostic
+only; the completed tree and screenshot binding remain the acceptance evidence.
 
 ## Run identity and storage
 

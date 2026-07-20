@@ -638,6 +638,13 @@ jobs:
             }
             return (($releaseJson -join [Environment]::NewLine) | ConvertFrom-Json)
           }
+          function Test-ReleaseUrlForState($releaseObject) {
+            if ($releaseObject.isDraft) {
+              # GitHub assigns draft releases a temporary untagged-* browser URL.
+              return $true
+            }
+            return [string]$releaseObject.url -eq $releaseUrl
+          }
           function Get-ExactTagReference {
             $tagRefsJson = gh api -H 'Cache-Control: no-cache' "repos/$repository/git/matching-refs/tags/$tag"
             if ($LASTEXITCODE -ne 0) {
@@ -686,7 +693,7 @@ jobs:
             if ($release.tagName -ne $tag `
                 -or $release.name -ne $releaseTitle `
                 -or $release.targetCommitish -ne '${{ github.sha }}' `
-                -or $release.url -ne $releaseUrl `
+                -or -not (Test-ReleaseUrlForState $release) `
                 -or $release.isPrerelease `
                 -or ($release.isDraft -and $release.publishedAt) `
                 -or (-not $release.isDraft -and -not $release.publishedAt)) {
@@ -748,16 +755,31 @@ jobs:
                 -and (($candidate.isDraft -and -not $candidate.publishedAt) `
                   -or (-not $candidate.isDraft -and $candidate.publishedAt))
               $candidateTagCommit = Resolve-ExactTagCommit
-              if ($candidate.tagName -eq $tag `
-                  -and $candidate.name -eq $releaseTitle `
-                  -and $candidate.targetCommitish -eq '${{ github.sha }}' `
-                  -and $candidate.url -eq $releaseUrl `
+              $candidateTagMatches = $candidate.tagName -eq $tag
+              $candidateNameMatches = $candidate.name -eq $releaseTitle
+              $candidateTargetMatches = $candidate.targetCommitish -eq '${{ github.sha }}'
+              $candidateUrlMatchesState = Test-ReleaseUrlForState $candidate
+              $candidateTagCommitMatches = $candidateTagCommit -eq '${{ github.sha }}'
+              $candidateAssetsMatch = Test-ExactReleaseAssets $candidate
+              if ($candidateTagMatches `
+                  -and $candidateNameMatches `
+                  -and $candidateTargetMatches `
+                  -and $candidateUrlMatchesState `
                   -and $candidateIsNormalState `
-                  -and $candidateTagCommit -eq '${{ github.sha }}' `
-                  -and (Test-ExactReleaseAssets $candidate)) {
+                  -and $candidateTagCommitMatches `
+                  -and $candidateAssetsMatch) {
                 $releaseReady = $candidate
                 break
               }
+              if ($attempt -eq 36) {
+                Write-Warning ("Final pre-promotion readiness: release_found=true tag={0} name={1} target={2} url_for_state={3} normal_state={4} tag_commit={5} assets={6}" -f `
+                  $candidateTagMatches, $candidateNameMatches, $candidateTargetMatches, `
+                  $candidateUrlMatchesState, $candidateIsNormalState, `
+                  $candidateTagCommitMatches, $candidateAssetsMatch)
+              }
+            }
+            elseif ($attempt -eq 36) {
+              Write-Warning 'Final pre-promotion readiness: release_found=false.'
             }
             Write-Host "Waiting for exact release metadata, tag target, and assets ($attempt/36)."
             if ($attempt -lt 36) {

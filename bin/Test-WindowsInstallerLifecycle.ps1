@@ -1,12 +1,14 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-    Prepares, launches, or verifies the disposable Windows Sandbox MSI lifecycle gate.
+    Prepares, inspects, launches, or verifies the disposable Windows Sandbox MSI lifecycle gate.
 
 .DESCRIPTION
     Prepare is the safe default. It downloads two exact-tag MSI assets, verifies
     pinned sizes and SHA-256 values, creates fresh input/output directories, and
     writes a locked-down .wsb configuration. It does not start Windows Sandbox.
+
+    Inspect revalidates an explicitly prepared run without launching anything.
 
     Launch requires an explicitly prepared run directory. All MSI install,
     same-version update, repair, and uninstall operations occur in Windows
@@ -18,7 +20,7 @@
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('Prepare', 'Launch', 'Verify')]
+    [ValidateSet('Prepare', 'Inspect', 'Launch', 'Verify')]
     [string]$Mode = 'Prepare',
 
     [string]$RunDirectory,
@@ -443,12 +445,16 @@ function Assert-WsbPolicy {
     )
     foreach ($expectedMapping in $expectedMappings) {
         $matches = @($mappedFolders | Where-Object {
+            $hostNode = $_.SelectSingleNode('./HostFolder')
+            $sandboxNode = $_.SelectSingleNode('./SandboxFolder')
+            $readOnlyNode = $_.SelectSingleNode('./ReadOnly')
+            $hostNode -and $sandboxNode -and $readOnlyNode -and
             [string]::Equals(
-                (Get-FullPath -LiteralPath $_.HostFolder.InnerText),
+                (Get-FullPath -LiteralPath $hostNode.InnerText),
                 $expectedMapping.Host,
                 [StringComparison]::OrdinalIgnoreCase) -and
-            $_.SandboxFolder.InnerText -eq $expectedMapping.Sandbox -and
-            $_.ReadOnly.InnerText -eq $expectedMapping.ReadOnly
+            $sandboxNode.InnerText -eq $expectedMapping.Sandbox -and
+            $readOnlyNode.InnerText -eq $expectedMapping.ReadOnly
         })
         if ($matches.Count -ne 1) {
             throw "Prepared .wsb mapping changed: $($expectedMapping.Sandbox)"
@@ -827,6 +833,17 @@ switch ($Mode) {
         Write-Host 'Review the generated input manifest and .wsb, then explicitly launch with:'
         Write-Host ("& `"{0}`" -Mode Launch -RunDirectory `"{1}`"" -f $PSCommandPath, $run.Root) `
             -ForegroundColor Yellow
+        return
+    }
+    'Inspect' {
+        if ([string]::IsNullOrWhiteSpace($RunDirectory)) {
+            throw 'Inspect requires -RunDirectory from a completed Prepare invocation.'
+        }
+        $run = Get-PreparedRun -LiteralPath $RunDirectory
+        Assert-PreparedInputs -Run $run
+        Assert-FreshOutput -Run $run
+        Write-Host ("Prepared Sandbox run is pinned, current, and launch-ready: {0}" -f $run.Root) `
+            -ForegroundColor Green
         return
     }
     'Launch' {

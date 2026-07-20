@@ -1302,3 +1302,22 @@ build or runtime evidence.
 - This is a source/static harness gate only. No Windows Sandbox MSI lifecycle
   run had executed at this checkpoint, so install/update/repair/uninstall and
   restart-suppression runtime proof remain open.
+
+## 2026-07-20 — pinned lifecycle preparation and non-launching inspection
+
+- Safe-default preparation created run
+  `20260720-041140-7240676-b3777205bfb344a2977090ba35d643c3` without starting
+  Windows Sandbox or `msiexec`. Its input directory contains only the reviewed
+  guest, expected manifest, and the two exact-tag MSI files. The old MSI is
+  199,692,288 bytes at SHA-256
+  `437b059c7dd5ed7a60c2ae4f47f2a1905cf97ef4e136e98183e08658d7654a43`;
+  the corrected MSI is 199,688,192 bytes at SHA-256
+  `180e511c065f3e21cd9e4fd0abe31f8886b0cc5ce5ce27a48f2890f83d1afeea`.
+- The first post-download policy check exposed Windows PowerShell XML-adapter
+  shorthand that was unsafe under strict mode. The host validator now selects
+  each mapped-folder child explicitly and exposes a non-launching `Inspect`
+  mode. Parser/static validation and `Inspect` both pass on the retained fresh
+  run, whose output mapping remains empty.
+- This is pinned preparation evidence only. Windows Sandbox was not launched,
+  and no install/update/repair/uninstall or restart-suppression runtime result is
+  claimed.

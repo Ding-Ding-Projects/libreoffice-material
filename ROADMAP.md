@@ -190,6 +190,10 @@ Updater download/stage/consent flow, MSI install/repair/upgrade/uninstall and
 restart-suppression lifecycle proof, the remaining UI/accessibility matrix, and
 the wrapper's final dist staging phase remain pending. This scoped runtime smoke
 does not prove any MSI lifecycle behavior.
+A fresh exact-tag Sandbox input run
+`20260720-041140-7240676-b3777205bfb344a2977090ba35d643c3` now passes the
+non-launching `Inspect` gate with both MSI sizes/hashes pinned and an empty
+output mapping; preparation is not lifecycle runtime proof.
 
 An interactive, dependency-free Material design reference for the whole suite is
 published at [`site/prototype.html`](site/prototype.html): a hand-built HTML

@@ -85,6 +85,8 @@ if ($failures.Count -eq 0) {
 
     Assert-Match $hostText "\[string\]\`$Mode\s*=\s*'Prepare'" `
         'The host default must remain prepare-only.'
+    Assert-Match $hostText "'Inspect'\s*\{" `
+        'The host must expose a non-launching prepared-run inspection mode.'
     Assert-Match $hostText "'Launch'\s*\{" `
         'The host must require the explicit Launch mode.'
     Assert-Match $hostText 'Start-Process\s+-FilePath\s+\$sandboxExecutable' `

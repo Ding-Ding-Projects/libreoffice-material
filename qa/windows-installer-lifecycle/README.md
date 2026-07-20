@@ -59,6 +59,15 @@ The command prints a unique run directory and the exact explicit launch
 command. Before launch, review `run-manifest.json`, `input\expected.json`, and
 `LibreOfficeMaterial-InstallerLifecycle.wsb` in that directory.
 
+Revalidate those reviewed bytes and policies without launching anything:
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
+  -File .\bin\Test-WindowsInstallerLifecycle.ps1 `
+  -Mode Inspect `
+  -RunDirectory 'C:\absolute\prepared\run-directory'
+```
+
 Launch only the reviewed prepared run:
 
 ```powershell

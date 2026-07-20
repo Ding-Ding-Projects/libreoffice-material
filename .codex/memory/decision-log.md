@@ -519,7 +519,7 @@
 ## D-030 — use one adjacent ICU regex-builder popover across search surfaces
 
 - Date: 2026-07-20
-- State: shared source foundation implemented; per-field integration and build/runtime pending
+- State: shared source foundation and first field implemented; remaining fields and build/runtime pending
 - Context: a full advanced builder must be beside every app-owned search field.
   A modal dialog would both violate that anchoring requirement and be captured
   by the bottom-right dialog-placement seam; independent regex engines would
@@ -598,3 +598,22 @@
   event owner, Windows self-join, callback-affinity destruction, or concurrent
   owner clear. This is source/static evidence until the 21-case native target is
   compiled and run.
+## D-034 — integrate search fields incrementally with compiled matchers and source proof
+
+- Date: 2026-07-20
+- State: Calc Go to Sheet source integration implemented; native build/runtime pending
+- Context: the search-field coverage registry states which fields require an
+  adjacent builder, but inventory alone cannot prove that a field actually uses
+  the shared controller or matcher without changing its legacy default.
+- Decision: track completed fields in a separate implementation registry. For
+  each field, place the builder directly after the entry, let
+  `RegexSearchController` own the existing change callback, preserve that
+  field's literal/case behavior explicitly, and compile one `utl::TextSearch`
+  before iterating candidates for regex or other opted-in semantics. Calc Go to
+  Sheet retains exact `OUString::indexOf` matching for its default literal,
+  case-sensitive state.
+- Reason: the source contract prevents decorative buttons, callback bypasses,
+  semantic regressions, and per-item regex compilation from being counted as a
+  completed integration. `TextSearch` intentionally normalizes straight and
+  typographic quotes in non-regex mode, so using it for Calc's default would not
+  be exact legacy compatibility. Build/runtime evidence remains a separate gate.

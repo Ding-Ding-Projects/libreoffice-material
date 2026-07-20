@@ -451,8 +451,14 @@ a `GtkPopover` anchored to the adjacent builder button. Its source contract,
 eight mutation tests, UI lint, and accessibility lint pass; twelve native
 CppUnit cases are wired but not yet compiled. Build/Test/Reference/Examples are
 scroll-backed, close cancellation is backend-independent, and Qt placement is
-work-area clamped. Per-field integration and behavior proof across the registry
-remain open.
+work-area clamped. Calc's Go to Sheet search is the first of the 26 shipping
+fields source-integrated with an adjacent accessible builder. Its controller
+owns the existing change callback and preserves exact legacy
+`OUString::indexOf` matching in the default literal, case-sensitive mode. Regex
+and explicitly case-insensitive literal search build one `utl::TextSearch`
+matcher before each sheet-list loop. The implementation registry, focused
+validator, and all ten mutation tests pass. Integration of the remaining 25
+shipping fields plus native build and behavior proof remain open.
 
 The rewrite now removes automatic donation/Get Involved/What’s New promotion,
 first-start Welcome, Tip scheduling, Windows file-association solicitation,

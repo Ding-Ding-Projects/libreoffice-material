@@ -76,8 +76,13 @@ The shared regex source foundation implements ICU/LibreOffice literal and
 regular-expression evaluation, `i/g/m/s`, bounded live match testing, token
 insertion, and embedded Build/Test/Reference/Examples documentation. It is an
 anchored `GtkPopover` owned by the adjacent builder button rather than a modal
-dialog. This does not yet integrate the controller with each registered field
-or provide build/runtime proof.
+dialog. Calc's Go to Sheet search is the first registered field integrated in
+source: its adjacent accessible builder owns the prior change callback,
+preserves exact legacy `OUString::indexOf` matching in the default literal,
+case-sensitive mode, and uses one compiled `utl::TextSearch` matcher per refresh
+for regex or explicitly case-insensitive literal searches. The
+source-integration registry proves that wiring for 1 of 26 shipping fields; the
+remaining 25 fields and build/runtime proof remain open.
 
 The first shared native implementation seam is now present in source: after
 final VCL `InitShow` layout, Windows `Dialog` instances are positioned at the

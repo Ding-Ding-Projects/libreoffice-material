@@ -635,6 +635,8 @@ RegexSearchEvaluation RegexSearchService::Evaluate(const RegexSearchState& rStat
         aEvaluation.Matches.push_back({ nStart, nEnd });
         if (!rState.Flags.Global)
             break;
+        // TextSearch intentionally skips internal zero-length regex matches, but may return a
+        // terminal anchor such as $. Advance past that result so a global consumer cannot loop.
         nCursor = nEnd > nStart ? nEnd : lclAdvancePastEmptyMatch(rState.TestText, nEnd);
     }
 

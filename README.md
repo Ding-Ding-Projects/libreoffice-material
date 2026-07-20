@@ -388,8 +388,10 @@ binding, or runtime behavior is claimed yet.
 
 The shared native regex foundation now uses LibreOffice’s ICU-backed
 `SearchOptions2`/`TextSearch` semantics for literal and regular-expression
-search, exposes `i/g/m/s`, reports syntax errors, handles zero-width matches,
-and bounds match previews. Its full Build/Test/Reference/Examples UI is a
+search, exposes `i/g/m/s`, reports syntax errors, bounds zero-width live-preview
+matches, and preserves LibreOffice's consumer rule that skips internal
+zero-length matches while accepting terminal anchors. Its full
+Build/Test/Reference/Examples UI is a
 non-modal `GtkPopover` anchored directly to the adjacent builder button, so it
 does not inherit bottom-right dialog placement. All pages scroll within the
 bounded surface, backend-independent close handling cancels hidden preview

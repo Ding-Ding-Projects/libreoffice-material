@@ -128,14 +128,36 @@ CPPUNIT_TEST_FIXTURE(RegexSearchTest, testZeroWidthMatchAndPreviewLimitTerminate
 {
     sfx2::RegexSearchState aState;
     aState.Pattern = u"(?=a)"_ustr;
-    aState.TestText = u"aaaa"_ustr;
     aState.Mode = sfx2::RegexSearchMode::RegularExpression;
     aState.Flags.CaseInsensitive = false;
 
-    auto aEvaluation = sfx2::RegexSearchService::Evaluate(aState, 2);
-    CPPUNIT_ASSERT(aEvaluation.IsValid);
-    CPPUNIT_ASSERT_EQUAL(size_t(2), aEvaluation.Matches.size());
-    CPPUNIT_ASSERT(aEvaluation.Truncated);
+    OUStringBuffer aPreviewText(sfx2::RegexSearchService::PreviewMaxMatches + 1);
+    for (sal_Int32 nIndex = 0; nIndex < sfx2::RegexSearchService::PreviewMaxMatches + 1;
+         ++nIndex)
+    {
+        aPreviewText.append('a');
+    }
+    aState.TestText = aPreviewText.makeStringAndClear();
+
+    const auto aPreview = sfx2::RegexSearchService::EvaluatePreview(aState);
+    CPPUNIT_ASSERT(aPreview.IsValid);
+    CPPUNIT_ASSERT_EQUAL(size_t(sfx2::RegexSearchService::PreviewMaxMatches),
+                         aPreview.Matches.size());
+    CPPUNIT_ASSERT(aPreview.Truncated);
+    for (const auto& rMatch : aPreview.Matches)
+        CPPUNIT_ASSERT_EQUAL(rMatch.Start, rMatch.End);
+
+    // LibreOffice TextSearch deliberately skips internal zero-length regular-expression matches,
+    // but preserves a terminal anchor. Verify that the consumer path follows those semantics and
+    // still advances after the terminal zero-width result instead of looping forever.
+    aState.Pattern = u"$"_ustr;
+    aState.TestText = u"aaaa"_ustr;
+    const auto aConsumer = sfx2::RegexSearchService::Evaluate(aState, 2);
+    CPPUNIT_ASSERT(aConsumer.IsValid);
+    CPPUNIT_ASSERT_EQUAL(size_t(1), aConsumer.Matches.size());
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(4), aConsumer.Matches[0].Start);
+    CPPUNIT_ASSERT_EQUAL(sal_Int32(4), aConsumer.Matches[0].End);
+    CPPUNIT_ASSERT(!aConsumer.Truncated);
 }
 
 CPPUNIT_TEST_FIXTURE(RegexSearchTest, testLivePreviewHasExactTextAndMatchBounds)

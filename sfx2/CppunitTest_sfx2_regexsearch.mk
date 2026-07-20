@@ -26,7 +26,10 @@ $(eval $(call gb_CppunitTest_use_libraries,sfx2_regexsearch, \
     vcl \
 ))
 
-$(eval $(call gb_CppunitTest_use_external,sfx2_regexsearch,boost_headers))
+$(eval $(call gb_CppunitTest_use_externals,sfx2_regexsearch, \
+    boost_headers \
+    libxml2 \
+))
 
 $(eval $(call gb_CppunitTest_use_sdk_api,sfx2_regexsearch))
 

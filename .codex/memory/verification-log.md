@@ -1375,3 +1375,77 @@ build or runtime evidence.
   registration appeared, the server-first/run-bound graceful client disposal
   path completed, the off-screen window count reached zero, and the desktop was
   released. This is diagnostic/preflight evidence only; no MSI operation ran.
+
+## 2026-07-20 — fresh committed-harness light Start Center acceptance
+
+- Run `20260720-112425-fbba560e27-windows-headless-light` accepted the exact
+  corrected extracted payload at source
+  `fbba560e27db26de605c40aa237c554c1f0744b1`. It used committed harness
+  `1bb67261794d190f099c92d9dfdd48722785db34`, clean low-level driver
+  `beed66ca6ed2503e6170ee1e1158247f1c2f0140`, and a dedicated same-token
+  loopback MCP session rather than the elevated always-on service.
+- Home, visible `Open File` keyboard focus, and Templates were captured through
+  `PrintWindow` at `1920x1117`. Their independently rechecked SHA-256 values are
+  `e4a21bd16c99ef360749dd72557a8d5a9df7c38d0a51122e8ca0058c57464501`,
+  `1039f641b724a1b6776f6773e740ce8a81163286439615830f8f5ada16e3ab13`,
+  and `6fd05519a89c9b962fcc980f60a6efcc4e176e3b523e0790e0eec00f27066e5f`.
+  All three are nonblank, complete full-window captures and passed visual and
+  sensitive-data review.
+- The screenshot-bound UNO trees report 96/49, 96/49, and 111/64 total/visible
+  nodes, zero errors, and `partial=false`. The keyboard tree contains exactly
+  one focused node, the `Open File` push button; the Templates tree records its
+  selected bundled template list item.
+- Normal UNO termination succeeded without forced owned-process cleanup. Exact
+  payload processes and headless windows reached zero, the off-screen desktop
+  closed, and the dedicated driver stopped with no recorded cleanup error.
+- This three-image run replaces the earlier corrected light pair only as the
+  canonical gallery source. Runs
+  `20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression` and
+  `20260720-012853-577059e274-vs2026-msi-raster` remain immutable historical
+  accepted proof. The public canonical gallery now contains nine images: three
+  light, three dark, and three forced high contrast.
+- The result proves only scoped Start Center software-raster runtime,
+  pointer-navigation, and one Tab focus transition. It does not prove all
+  Material widget states, accelerated rendering, 200% scale, localization,
+  suite modules/dialogs, updater execution, or MSI lifecycle behavior.
+
+## 2026-07-20 — third isolated lifecycle launch reached real MSI update work
+
+- Fresh run
+  `20260720-045143-7859553-08fb3836f8b446dda272e206d296a591`
+  passed the reviewed Sandbox inspection and exact old/corrected MSI byte pins.
+  The guest old-install and corrected same-version commands both returned exit
+  code `0`; neither changed the guest reboot fingerprint.
+- Post-update verification failed closed because the old ProductCode
+  `{F6673D3A-81F6-462E-934F-19438F08C9EA}` remained registered at Windows
+  Installer state `5`. The packages have distinct ProductCodes and the same
+  test UpgradeCode/version, but this same-version command did not automatically
+  remove the old product. Repair and corrected-product uninstall were not run.
+- Best-effort cleanup uninstalled the old ProductCode with exit code `0`, left
+  both ProductCodes at state `-1`, reported no cleanup errors, and retained
+  hash-manifested install/update/cleanup logs plus `FAILURE.json`. Host
+  before/after reboot and LibreOffice-registration snapshots were identical.
+- The packaged Sandbox client missed its normal disposal deadline, so the run
+  has no accepted `host-verification.json` or `COMPLETE.json`. It proves two
+  real no-restart MSI operations and the sequencing gap only; lifecycle
+  acceptance remains open.
+
+## 2026-07-20 — hosted normal-release draft URL correction
+
+- Windows Actions run `29729295399` at
+  `2ed96c4a608cfd7a9b8c5afa1ce14e24301a0817` passed linking, native C++ tests,
+  the full product build, MSI generation, administrative extraction, staging,
+  and structural validation. Publication alone failed after 36 polls, and
+  cleanup removed the exact failed draft/tag.
+- The pre-promotion predicate incorrectly required the final canonical tag URL
+  while GitHub exposes a draft as `releases/tag/untagged-*`. Current workflow
+  source accepts that temporary URL only while `isDraft=true`; published-state
+  verification still requires the canonical tag URL.
+- `qa/windows-installer-lifecycle/Validate-ReleaseWorkflow.ps1` executes the
+  actual helper against draft, valid-published, and invalid-published fixtures,
+  rejects a pre-promotion canonical-URL regression, requires post-promotion URL
+  equality, and checks final-poll predicate diagnostics. It passes under
+  PowerShell 5.1 and 7; `actionlint` and the existing lifecycle validator pass.
+- The source correction is committed locally at
+  `113971316830b2cb88ffa291ed42481ca68fba6d`; hosted normal non-prerelease
+  publication for the next pushed SHA remains to be verified.

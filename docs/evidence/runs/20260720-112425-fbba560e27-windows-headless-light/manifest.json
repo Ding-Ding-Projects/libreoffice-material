@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-20T15:24:25Z",
+  "run_id": "20260720-112425-fbba560e27-windows-headless-light",
+  "status": "accepted",
+  "source": {
+    "repository": "https://github.com/Ding-Ding-Projects/libreoffice-material.git",
+    "commit": "fbba560e27db26de605c40aa237c554c1f0744b1",
+    "payload_description": "corrected VS 2026 administrative-extraction candidate from the normal public windows-msi-local-20260720-fbba560e2 release"
+  },
+  "harness": {
+    "repository_commit": "1bb67261794d190f099c92d9dfdd48722785db34",
+    "entrypoint": "bin/Run-Windows-Headless-Smoke.ps1",
+    "description": "committed Windows headless evidence harness with dedicated same-token MCP startup, PowerShell 5.1-safe argument transport, bounded accessibility collection, and explicit cleanup recording"
+  },
+  "runtime": {
+    "payload_root": "C:\\Users\\cntow\\lo-material-vs2026-577059e27\\msi-check\\20260720-021814-9378266-fbba560e2-restart-suppression",
+    "soffice_exe": {
+      "bytes": 537600,
+      "sha256": "a0ac5360f303435ca89406fd8e648affc30a6e53382af0b901a85f3a5a45c410"
+    },
+    "soffice_bin": {
+      "bytes": 2719744,
+      "sha256": "beb398080f8ed27c44c9425499c1fdd0171648751253c9f2c176943a7fb330ea"
+    },
+    "python_exe": {
+      "bytes": 258048,
+      "sha256": "39ce7553f6ba806eb78f555cf36643c6184b0ef63cf349e9cbf3b61575c88f91"
+    },
+    "launch_wrapper": {
+      "file": "launch-headless.cmd",
+      "bytes": 1068,
+      "sha256": "411b38cc93887e17e61c77a89b32c0fd77809ea5b0d3029bc9a61cf5df910808"
+    },
+    "results": {
+      "file": "results.json",
+      "bytes": 17985,
+      "sha256": "99fdbce00655ce8ed1b59575ee3a3ae18b3363a99d3de1620a987853d1e17b28"
+    },
+    "application_arguments": [
+      "-env:UserInstallation=file:///C:/Users/cntow/Documents/GitHub/libreoffice-material/docs/evidence/runs/20260720-112425-fbba560e27-windows-headless-light/profile",
+      "--nologo",
+      "--norestore",
+      "--quickstart=no",
+      "--language=en-US",
+      "--pidfile=C:\\Users\\cntow\\Documents\\GitHub\\libreoffice-material\\docs\\evidence\\runs\\20260720-112425-fbba560e27-windows-headless-light\\soffice.pid",
+      "--accept=pipe,name=LibreOfficeMaterialQA-fbba560e27-light-1659d5af;urp"
+    ],
+    "uno_pipe": "LibreOfficeMaterialQA-fbba560e27-light-1659d5af",
+    "profile_values": {
+      "ApplicationAppearance": 1,
+      "HighContrast": 1
+    },
+    "environment": {
+      "VCL_DRAW_WIDGETS_FROM_FILE": "1",
+      "VCL_FILE_WIDGET_THEME": "material",
+      "SAL_SKIA": "raster",
+      "SAL_DISABLEGL": "1",
+      "SAL_LOG": "+WARN.vcl.gdi"
+    },
+    "verification_boundary": "This verifies the exact corrected extracted runtime in a forced light profile. It does not execute the MSI lifecycle or prove every Material widget part and state."
+  },
+  "host": {
+    "operating_system": "Microsoft Windows 11 Pro",
+    "version": "10.0.26200",
+    "build": "26200",
+    "architecture": "64-bit",
+    "host_locale": "en-CA",
+    "ui_locale": "en-US",
+    "appearance": "light",
+    "renderer": "Skia software raster",
+    "desktop_backend": "Win32 off-screen desktop with per-window PrintWindow capture",
+    "font_configuration": "native Windows system fonts; no run-specific override"
+  },
+  "driver": {
+    "repository": "C:\\Users\\cntow\\Documents\\GitHub\\lowlevel-computer-use-mcp",
+    "commit": "beed66ca6ed2503e6170ee1e1158247f1c2f0140",
+    "checkout_clean": true,
+    "session": "dedicated same-token loopback MCP server",
+    "mcp_url": "http://127.0.0.1:58177/mcp",
+    "desktop_name": "LOMaterialQA-fbba560e27-light-8b2fe8c9"
+  },
+  "observed_window": {
+    "title": "LibreOfficeDev",
+    "class": "SALFRAME",
+    "width": 1920,
+    "height": 1117,
+    "stable_poll_count": 3
+  },
+  "scenarios": [
+    {
+      "id": "E-START-LIGHT",
+      "name": "Light Start Center Home and Recent Documents",
+      "result": "pass"
+    },
+    {
+      "id": "E-START-LIGHT-KEYBOARD",
+      "name": "Background Tab navigation exposes a visible Open File focus ring and one FOCUSED UNO node",
+      "result": "pass"
+    },
+    {
+      "id": "E-START-LIGHT-TEMPLATES",
+      "name": "Background pointer navigation to Templates",
+      "result": "pass"
+    }
+  ],
+  "document_fixtures": [],
+  "screenshots": [
+    {
+      "file": "screenshots/start-center-light.png",
+      "bytes": 203493,
+      "sha256": "e4a21bd16c99ef360749dd72557a8d5a9df7c38d0a51122e8ca0058c57464501",
+      "width": 1920,
+      "height": 1117,
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "rendered_ok": true,
+      "nonblank": true,
+      "visual_review": "pass; complete light Home/Recent surface with no unrelated or personal content"
+    },
+    {
+      "file": "screenshots/start-center-light-keyboard-focus.png",
+      "bytes": 203741,
+      "sha256": "1039f641b724a1b6776f6773e740ce8a81163286439615830f8f5ada16e3ab13",
+      "width": 1920,
+      "height": 1117,
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "rendered_ok": true,
+      "nonblank": true,
+      "visual_review": "pass; Open File has a clear visible keyboard focus ring"
+    },
+    {
+      "file": "screenshots/start-center-templates-light.png",
+      "bytes": 211139,
+      "sha256": "6fd05519a89c9b962fcc980f60a6efcc4e176e3b523e0790e0eec00f27066e5f",
+      "width": 1920,
+      "height": 1117,
+      "capture_api": "PrintWindow through low-level computer-use MCP",
+      "rendered_ok": true,
+      "nonblank": true,
+      "visual_review": "pass; complete light Templates gallery with bundled content and no unrelated or personal content"
+    }
+  ],
+  "accessibility": [
+    {
+      "file": "logs/a11y-start-center-light.json",
+      "bytes": 56515,
+      "sha256": "d04a5d2e4e3c64a8308d2441ae77cd5269e5f22ccdd8543978162d4e69cef68e",
+      "screenshot_sha256": "e4a21bd16c99ef360749dd72557a8d5a9df7c38d0a51122e8ca0058c57464501",
+      "node_count": 96,
+      "visible_nodes": 49,
+      "focused_node_count": 0,
+      "errors": 0,
+      "partial": false
+    },
+    {
+      "file": "logs/a11y-start-center-light-keyboard-focus.json",
+      "bytes": 56534,
+      "sha256": "b9a842961d0d97d115f17c4560d08e9c548f3892fd4cffcae0ec810b28deb7fc",
+      "screenshot_sha256": "1039f641b724a1b6776f6773e740ce8a81163286439615830f8f5ada16e3ab13",
+      "node_count": 96,
+      "visible_nodes": 49,
+      "focused_node_count": 1,
+      "focused_role": "PUSH_BUTTON",
+      "focused_name": "Open File",
+      "errors": 0,
+      "partial": false
+    },
+    {
+      "file": "logs/a11y-start-center-templates-light.json",
+      "bytes": 66992,
+      "sha256": "85a65ffbde4cdb9b7a260a8780fdcf68bc86e9b78d32a18027b695ea9124896b",
+      "screenshot_sha256": "6fd05519a89c9b962fcc980f60a6efcc4e176e3b523e0790e0eec00f27066e5f",
+      "node_count": 111,
+      "visible_nodes": 64,
+      "focused_node_count": 1,
+      "focused_role": "LIST_ITEM",
+      "focused_name": "Modern business letter sans-serif",
+      "errors": 0,
+      "partial": false
+    }
+  ],
+  "cleanup": {
+    "normal_uno_termination": true,
+    "forced_owned_process_cleanup": false,
+    "matching_run_scoped_processes_after_termination": 0,
+    "headless_window_count_before_desktop_close": 0,
+    "headless_window_count_after_termination": 0,
+    "headless_desktop_closed": true,
+    "dedicated_driver_stopped": true,
+    "cleanup_errors": []
+  },
+  "review": {
+    "reviewer": "Codex",
+    "review_date": "2026-07-20",
+    "sensitive_data_review": "pass",
+    "limitations": "Start Center only, forced light profile, software raster renderer, one Tab focus transition. This run does not cover accelerated rendering, deeper keyboard traversal, 200% scale, localization, suite applications, dialogs, updater UI, or MSI lifecycle behavior."
+  }
+}

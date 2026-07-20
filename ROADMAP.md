@@ -46,9 +46,9 @@ silently removed or treated as evidence for the current Windows milestone.
 
 Current evidence: the Windows harness preflight passed on 2026-07-16 using a
 temporary Notepad process. On 2026-07-20, the harness advanced to the real
-LibreOfficeDev MSI payload and accepted eight canonical Start Center captures:
-two light, three dark, and three forced high contrast, each with a matching
-bounded UNO tree and no collector errors. Dark and high contrast include one
+LibreOfficeDev MSI payload and accepted nine canonical Start Center captures:
+three light, three dark, and three forced high contrast, each with a matching
+bounded UNO tree and no collector errors. Every appearance profile includes one
 visible keyboard Tab focus transition to the accessible `Open File` button. The local
 [one-click Windows script](docs/LOCAL_WINDOWS_BUILD.md) now provisions an
 isolated VS 2022 C++/CLI/C++ Clang/Cygwin profile, validates it, and creates a
@@ -162,7 +162,7 @@ A bounded read-only UNO accessibility-tree collector now accompanies the
 off-screen desktop plan. It runs with the matching built Python runtime and
 records window roles, names, states, child counts, and optional bounds without
 reading document text or invoking UI actions. The accepted light, dark, and
-forced-high-contrast Start Center runs collected eight complete bounded trees
+forced-high-contrast Start Center runs collected nine complete bounded trees
 with no collector errors; this is a
 collector smoke result, not a full accessibility audit.
 The required native targets, local Windows MSI, and light Start Center headless
@@ -173,11 +173,14 @@ Windows Installer administrative extraction. Its corrected unsigned
 199,688,192-byte MSI is `180e511c…afeea`; the 4,885-file, 603,901,200-byte
 extraction returned `0`, and its updater DLL matches the built DLL at
 `32f80a…46a3`. The corrected extracted runtime then passed canonical off-screen
-Home/Recent Documents and Templates smoke with two complete bounded UNO trees:
-96/49 and 111/64 total/visible nodes, zero collector errors, no partial capture,
-normal termination, zero remaining matching processes/windows, and a closed
-desktop. The accepted run is
-[`20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression`](docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/).
+Home/Recent Documents, Tab-focus, and Templates smoke with three complete
+bounded UNO trees: 96/49, 96/49, and 111/64 total/visible nodes, zero collector
+errors, no partial capture, normal termination, zero remaining matching
+processes/windows, and closed desktop/driver handles. The canonical light run is
+[`20260720-112425-fbba560e27-windows-headless-light`](docs/evidence/runs/20260720-112425-fbba560e27-windows-headless-light/results.json).
+The former canonical Home/Templates-only run
+[`20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression`](docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/)
+remains historical evidence.
 The same exact payload then passed dedicated same-token dark and forced-high-
 contrast Home, Tab-focus, and Templates runs with six additional complete trees,
 normal UNO termination, zero remaining payload processes/windows, desktop
@@ -359,7 +362,7 @@ Material `extra="action"` styling. Its focused `VclBuilder` fixture passed in
 the current Linux, Windows, and local VS 2026 native runs. The exact-source MSI
 payload has now displayed and captured light, dark, and forced-high-contrast
 Start Center Home and Templates states plus a visible `Open File` Tab-focus state
-in dark and high contrast. Deeper keyboard traversal, visible action-state
+in every appearance profile. Deeper keyboard traversal, visible action-state
 exercise, and broader shared shell scenarios remain open.
 
 - start center, window chrome integration, menubar/command surfaces, status bar,
@@ -466,8 +469,13 @@ updater and MSI lifecycle proof pending**
 - execute the statically validated disposable Windows Sandbox harness that pins
   old/corrected MSI hashes and requires exact-zero install, same-version update,
   repair, and uninstall results with no restart indicators or host mutation;
+- resolve the retained third-run sequencing gap: old install and corrected
+  same-version commands returned `0` without restart-state changes, but the old
+  ProductCode remained registered and the run correctly rejected lifecycle
+  acceptance before repair/uninstall;
 - publish through the draft-first workflow only after exact target, asset,
-  digest, normal-release, and public Latest checks pass;
+  digest, normal-release, and public Latest checks pass; current source handles
+  GitHub's temporary `untagged-*` draft URL and still needs pushed-run proof;
 - contributor, design-review, and regression-triage documentation;
 - licensing, attribution, trademark, privacy, and security reviews;
 - split generally useful improvements into reviewable upstream proposals;

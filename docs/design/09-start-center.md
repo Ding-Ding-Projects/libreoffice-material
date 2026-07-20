@@ -232,21 +232,23 @@ replacing it; the prototype's target anatomy maps onto it as follows.
 | Target element | Native counterpart | Notes |
 | --- | --- | --- |
 | Navigation column | `frame1`/`all_buttons_box`/`buttons_box` in `startcenter.ui` (6 px margins, 8 px spacing; `box1` spacing 16) | background from `GetWorkspaceColor()` → `workspaceColor` → `@surface-container-low`; the prototype uses `@surface-container` — one tonal step to reconcile |
-| Open File pill | `open_all` button (`_Open File`) | `suggested-action` is mapped by `VclBuilder` to `PushButton::setAction(true)`, selecting the existing `extra="action"` states under the opt-in Material renderer; the focused builder mapping passes in current Linux and Windows native runs, but visual geometry remains unexecuted in an application scenario. The target 44 px geometry remains prototype-only |
+| Open File pill | `open_all` button (`_Open File`) | `suggested-action` is mapped by `VclBuilder` to `PushButton::setAction(true)`, selecting the existing `extra="action"` states under the opt-in Material renderer; the focused builder mapping passes in current Linux and Windows native runs, and the accepted light/dark/high-contrast app runs expose a visible Tab focus ring plus one focused `Open File` UNO node. The target 44 px geometry and full idle/hover/pressed matrix remain prototype-only |
 | Remote Files | `open_remote` button | present natively; pill styling prototype-only |
 | View items | `open_recent`, `templates_all` `GtkToggleButton`s | toggle semantics native; pill-with-tonal-selection styling prototype-only |
 | Create list + 28 px chips | `writer_all` … `database_all` buttons with 32 px document icons | chip anatomy prototype-only; per-module `set_sensitive` already native |
 | Home header | `welcome_header` with `welcome_title` (bold, 1.75 × scale) and `welcome_subtitle`, added by the Material slice | title colour `GetWindowTextColor()` → `@on-surface`; subtitle uses `labelTextColor` → `@on-surface`, versus prototype `@on-surface-variant` |
-| Filter combo | `cbFilter` (`GtkComboBoxText`) | resolves implemented `combobox` parts in definition.xml (compiled at commit 577059e274; surface state unverified) |
+| Filter combo | `cbFilter` (`GtkComboBoxText`) | resolves implemented `combobox` parts in definition.xml (compiled at commit 577059e274); its closed idle state is visible in accepted captures, while the open list and interaction-state matrix remain unverified |
 | Actions menu | `mbActions` menu button + `clearmenu` | native |
 | Search + regex row | — | no native counterpart; specified here, not yet implemented |
 | Card grid | `all_recent` (`RecentDocsView` in `scrollrecent`) and `local_view` (`TemplateDefaultView` in `scrolllocal`) | the Material slice reroutes both views' fill/text from `officecfg` Start Center colours to `StyleSettings` (`GetWindowColor`/`GetWindowTextColor` → `@surface`/`@on-surface`; highlights → `@primary-container`/`@on-primary-container`); card anatomy (118 px preview, badge, hover elevation) prototype-only |
 | Right box padding | 24 px margins, 12 px spacing added by the slice | prototype uses 26 × 28 px; near-equivalent, to converge |
 
-The source has focused native build/test coverage, but all visible Start Center
-behavior remains unexecuted in a LibreOffice application scenario. It activates
-only under `VCL_DRAW_WIDGETS_FROM_FILE=1` with
-`VCL_FILE_WIDGET_THEME=material` once a staged build exists.
+The source has focused native build/test coverage and scoped application proof:
+accepted light, dark, and forced-high-contrast runs exercise Home, one Tab focus
+transition to `Open File`, and pointer navigation to Templates. That evidence
+uses `VCL_DRAW_WIDGETS_FROM_FILE=1` with `VCL_FILE_WIDGET_THEME=material` and a
+software-raster fallback. It does not establish the full component/state,
+responsive, localization, or accelerated-rendering matrix below.
 
 ## 9.11 Platform notes
 
@@ -263,9 +265,10 @@ active. There are no other deliberate platform differences for this surface.
 Per the evidence contract in
 [`docs/HEADLESS_UI_EVIDENCE.md`](../HEADLESS_UI_EVIDENCE.md) — off-screen
 desktop, ownership-proven process, `PrintWindow` captures registered with
-SHA-256 per exact commit. The accepted light Home and Templates captures are
-listed in [`docs/SCREENSHOTS.md`](../SCREENSHOTS.md); the remaining checkpoints
-below are still open unless their exact run says otherwise.
+SHA-256 per exact commit. Accepted Home, visible-focus, and Templates captures
+for light, dark, and forced high contrast are listed in
+[`docs/SCREENSHOTS.md`](../SCREENSHOTS.md); the remaining checkpoints below are
+still open unless their exact run says otherwise.
 
 | ID | Checkpoint | Proves |
 | --- | --- | --- |

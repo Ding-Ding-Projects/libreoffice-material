@@ -41,10 +41,20 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
   -File .\qa\windows-installer-lifecycle\Validate-Harness.ps1
 ```
 
+Validate the hosted release publication state machine separately:
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
+  -File .\qa\windows-installer-lifecycle\Validate-ReleaseWorkflow.ps1
+```
+
 This parses both PowerShell files and checks the launch boundary, pinned
 release metadata, Sandbox isolation settings, lifecycle steps, exact updater
 properties, reboot snapshots, zero-only acceptance, completion publication,
-and absence of restart-flag deletion.
+and absence of restart-flag deletion. The release-workflow validator executes
+the workflow's actual URL-state helper against draft and published fixtures:
+GitHub's temporary `untagged-*` URL is valid before promotion, while the
+canonical tag URL remains mandatory after a normal release is published.
 
 ## Review-first execution
 
@@ -159,6 +169,27 @@ exact reviewed function definitions against both retained MSIs returned the
 expected distinct ProductCodes, shared test UpgradeCode/version, machine-wide
 scope, zero reboot actions, and restart-manager property. This still is not
 installer lifecycle proof.
+
+### Third live diagnostic
+
+Fresh run
+`20260720-045143-7859553-08fb3836f8b446dda272e206d296a591`
+passed sealed-input inspection, installed the old MSI with exit code `0`, and
+ran the corrected same-version command with exit code `0`. Neither step changed
+the guest reboot fingerprint. The post-update assertion then failed closed
+because the old ProductCode remained registered with Windows Installer state
+`5`; a same-version package carrying the shared UpgradeCode did not remove the
+old product automatically. Repair and the corrected-product uninstall were not
+attempted, so this is not lifecycle acceptance.
+
+Best-effort cleanup uninstalled the old ProductCode with exit code `0`, left
+both ProductCodes absent, reported no cleanup error or reboot-state change, and
+published byte-pinned failure artifacts. The host before/after reboot and
+LibreOffice-registration snapshots were identical. The packaged Sandbox client
+did not complete its normal disposal deadline, so no `host-verification.json`
+or `COMPLETE.json` was accepted. The retained result therefore documents two
+real successful MSI operations and a precise same-version upgrade-sequencing
+gap, not a passed update/repair/uninstall lifecycle.
 
 ## Evidence boundary
 

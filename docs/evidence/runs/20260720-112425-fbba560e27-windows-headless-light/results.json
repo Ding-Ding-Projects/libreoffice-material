@@ -1,0 +1,246 @@
+{
+    "schema_version":  1,
+    "run_id":  "20260720-112425-fbba560e27-windows-headless-light",
+    "status":  "passed",
+    "generated_at_utc":  "2026-07-20T15:24:25.1393387+00:00",
+    "source_commit":  "fbba560e27db26de605c40aa237c554c1f0744b1",
+    "payload_root":  "C:\\Users\\cntow\\lo-material-vs2026-577059e27\\msi-check\\20260720-021814-9378266-fbba560e2-restart-suppression",
+    "appearance":  "Light",
+    "profile_values":  {
+                           "ApplicationAppearance":  1,
+                           "HighContrast":  1
+                       },
+    "environment":  {
+                        "VCL_DRAW_WIDGETS_FROM_FILE":  "1",
+                        "VCL_FILE_WIDGET_THEME":  "material",
+                        "SAL_SKIA":  "raster",
+                        "SAL_DISABLEGL":  "1",
+                        "SAL_LOG":  "+WARN.vcl.gdi"
+                    },
+    "driver":  {
+                   "root":  "C:\\Users\\cntow\\Documents\\GitHub\\lowlevel-computer-use-mcp",
+                   "commit":  "beed66ca6ed2503e6170ee1e1158247f1c2f0140",
+                   "checkout_clean":  true,
+                   "mcp_url":  "http://127.0.0.1:58177/mcp",
+                   "dedicated_server":  true,
+                   "server_pid":  14708,
+                   "desktop_name":  "LOMaterialQA-fbba560e27-light-8b2fe8c9"
+               },
+    "process":  {
+                    "pid":  5376,
+                    "pidfile_pid":  5376,
+                    "launcher_pid":  3940,
+                    "name":  "soffice.bin",
+                    "executable_path":  "C:\\Users\\cntow\\lo-material-vs2026-577059e27\\msi-check\\20260720-021814-9378266-fbba560e2-restart-suppression\\program\\soffice.bin",
+                    "creation_date":  "07/20/2026 11:24:29"
+                },
+    "window":  {
+                   "handle":  1182228,
+                   "title":  "LibreOfficeDev",
+                   "class":  "SALFRAME",
+                   "width":  1920,
+                   "height":  1117,
+                   "stable_poll_count":  3
+               },
+    "scenarios":  [
+                      {
+                          "slug":  "start-center-light",
+                          "screenshot":  {
+                                             "bytes":  203493,
+                                             "channel_extrema":  [
+                                                                     [
+                                                                         0,
+                                                                         255
+                                                                     ],
+                                                                     [
+                                                                         0,
+                                                                         255
+                                                                     ],
+                                                                     [
+                                                                         0,
+                                                                         255
+                                                                     ]
+                                                                 ],
+                                             "channel_mean":  [
+                                                                  238.08788,
+                                                                  235.221407,
+                                                                  238.284025
+                                                              ],
+                                             "channel_stddev":  [
+                                                                    51.889011,
+                                                                    47.49267,
+                                                                    50.65411
+                                                                ],
+                                             "height":  1117,
+                                             "mode":  "RGB",
+                                             "nonblank":  true,
+                                             "path":  "C:\\Users\\cntow\\Documents\\GitHub\\libreoffice-material\\docs\\evidence\\runs\\20260720-112425-fbba560e27-windows-headless-light\\screenshots\\start-center-light.png",
+                                             "sha256":  "e4a21bd16c99ef360749dd72557a8d5a9df7c38d0a51122e8ca0058c57464501",
+                                             "width":  1920
+                                         },
+                          "capture_api":  "PrintWindow through low-level computer-use MCP",
+                          "accessibility":  {
+                                                "path":  "C:\\Users\\cntow\\Documents\\GitHub\\libreoffice-material\\docs\\evidence\\runs\\20260720-112425-fbba560e27-windows-headless-light\\logs\\a11y-start-center-light.json",
+                                                "bytes":  56515,
+                                                "sha256":  "d04a5d2e4e3c64a8308d2441ae77cd5269e5f22ccdd8543978162d4e69cef68e",
+                                                "screenshot_sha256":  "e4a21bd16c99ef360749dd72557a8d5a9df7c38d0a51122e8ca0058c57464501",
+                                                "summary":  {
+                                                                "node_count":  96,
+                                                                "visible_nodes":  49,
+                                                                "errors":  0,
+                                                                "partial":  false,
+                                                                "focused_node_count":  0,
+                                                                "focused_nodes":  [
+
+                                                                                  ]
+                                                            }
+                                            }
+                      },
+                      {
+                          "slug":  "start-center-light-keyboard-focus",
+                          "screenshot":  {
+                                             "bytes":  203741,
+                                             "channel_extrema":  [
+                                                                     [
+                                                                         0,
+                                                                         255
+                                                                     ],
+                                                                     [
+                                                                         0,
+                                                                         255
+                                                                     ],
+                                                                     [
+                                                                         0,
+                                                                         255
+                                                                     ]
+                                                                 ],
+                                             "channel_mean":  [
+                                                                  238.010509,
+                                                                  235.135141,
+                                                                  238.240015
+                                                              ],
+                                             "channel_stddev":  [
+                                                                    51.962449,
+                                                                    47.599735,
+                                                                    50.672462
+                                                                ],
+                                             "height":  1117,
+                                             "mode":  "RGB",
+                                             "nonblank":  true,
+                                             "path":  "C:\\Users\\cntow\\Documents\\GitHub\\libreoffice-material\\docs\\evidence\\runs\\20260720-112425-fbba560e27-windows-headless-light\\screenshots\\start-center-light-keyboard-focus.png",
+                                             "sha256":  "1039f641b724a1b6776f6773e740ce8a81163286439615830f8f5ada16e3ab13",
+                                             "width":  1920
+                                         },
+                          "capture_api":  "PrintWindow through low-level computer-use MCP",
+                          "accessibility":  {
+                                                "path":  "C:\\Users\\cntow\\Documents\\GitHub\\libreoffice-material\\docs\\evidence\\runs\\20260720-112425-fbba560e27-windows-headless-light\\logs\\a11y-start-center-light-keyboard-focus.json",
+                                                "bytes":  56534,
+                                                "sha256":  "b9a842961d0d97d115f17c4560d08e9c548f3892fd4cffcae0ec810b28deb7fc",
+                                                "screenshot_sha256":  "1039f641b724a1b6776f6773e740ce8a81163286439615830f8f5ada16e3ab13",
+                                                "summary":  {
+                                                                "node_count":  96,
+                                                                "visible_nodes":  49,
+                                                                "errors":  0,
+                                                                "partial":  false,
+                                                                "focused_node_count":  1,
+                                                                "focused_nodes":  [
+                                                                                      {
+                                                                                          "path":  [
+                                                                                                       1,
+                                                                                                       0,
+                                                                                                       0,
+                                                                                                       0,
+                                                                                                       0,
+                                                                                                       0,
+                                                                                                       0,
+                                                                                                       0
+                                                                                                   ],
+                                                                                          "role":  "PUSH_BUTTON",
+                                                                                          "name":  "Open File"
+                                                                                      }
+                                                                                  ]
+                                                            }
+                                            }
+                      },
+                      {
+                          "slug":  "start-center-templates-light",
+                          "screenshot":  {
+                                             "bytes":  211139,
+                                             "channel_extrema":  [
+                                                                     [
+                                                                         0,
+                                                                         255
+                                                                     ],
+                                                                     [
+                                                                         0,
+                                                                         255
+                                                                     ],
+                                                                     [
+                                                                         0,
+                                                                         255
+                                                                     ]
+                                                                 ],
+                                             "channel_mean":  [
+                                                                  242.678637,
+                                                                  239.788834,
+                                                                  243.194959
+                                                              ],
+                                             "channel_stddev":  [
+                                                                    42.888857,
+                                                                    40.998787,
+                                                                    42.112913
+                                                                ],
+                                             "height":  1117,
+                                             "mode":  "RGB",
+                                             "nonblank":  true,
+                                             "path":  "C:\\Users\\cntow\\Documents\\GitHub\\libreoffice-material\\docs\\evidence\\runs\\20260720-112425-fbba560e27-windows-headless-light\\screenshots\\start-center-templates-light.png",
+                                             "sha256":  "6fd05519a89c9b962fcc980f60a6efcc4e176e3b523e0790e0eec00f27066e5f",
+                                             "width":  1920
+                                         },
+                          "capture_api":  "PrintWindow through low-level computer-use MCP",
+                          "accessibility":  {
+                                                "path":  "C:\\Users\\cntow\\Documents\\GitHub\\libreoffice-material\\docs\\evidence\\runs\\20260720-112425-fbba560e27-windows-headless-light\\logs\\a11y-start-center-templates-light.json",
+                                                "bytes":  66992,
+                                                "sha256":  "85a65ffbde4cdb9b7a260a8780fdcf68bc86e9b78d32a18027b695ea9124896b",
+                                                "screenshot_sha256":  "6fd05519a89c9b962fcc980f60a6efcc4e176e3b523e0790e0eec00f27066e5f",
+                                                "summary":  {
+                                                                "node_count":  111,
+                                                                "visible_nodes":  64,
+                                                                "errors":  0,
+                                                                "partial":  false,
+                                                                "focused_node_count":  1,
+                                                                "focused_nodes":  [
+                                                                                      {
+                                                                                          "path":  [
+                                                                                                       1,
+                                                                                                       0,
+                                                                                                       0,
+                                                                                                       0,
+                                                                                                       1,
+                                                                                                       2,
+                                                                                                       1,
+                                                                                                       0,
+                                                                                                       0
+                                                                                                   ],
+                                                                                          "role":  "LIST_ITEM",
+                                                                                          "name":  "Modern business letter sans-serif"
+                                                                                      }
+                                                                                  ]
+                                                            }
+                                            }
+                      }
+                  ],
+    "cleanup":  {
+                    "normal_uno_termination":  true,
+                    "forced_owned_process_cleanup":  false,
+                    "remaining_payload_processes":  0,
+                    "process_cleanup_error":  null,
+                    "headless_windows_before_close":  0,
+                    "remaining_headless_windows":  0,
+                    "desktop_closed":  true,
+                    "desktop_cleanup_error":  null,
+                    "dedicated_driver_stopped":  true,
+                    "dedicated_driver_cleanup_error":  null
+                },
+    "error":  null
+}

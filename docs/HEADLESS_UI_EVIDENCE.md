@@ -105,27 +105,40 @@ arguments and omitted `REBOOT=ReallySuppress`. Corrected source commit
 produced a new extracted candidate. Current source extends that command to six
 arguments by also setting `MSIRESTARTMANAGERCONTROL=DisableShutdown`; the focused
 VS 2026 updater suite verifies all six, exclusive staging creation, the protected
-DACL, and the retained read lock. The five-argument corrected runtime was exercised through
-the same clean driver commit and supplies the canonical light gallery pair:
+DACL, and the retained read lock. The five-argument corrected runtime was first
+exercised in accepted light run
+[`20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression`](evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/),
+whose two captures remain immutable historical proof.
+
+A fresh run of the same exact payload used committed harness
+`1bb67261794d190f099c92d9dfdd48722785db34`, clean driver commit
+`beed66ca6ed2503e6170ee1e1158247f1c2f0140`, and a dedicated same-token MCP
+session. It now supplies the canonical light gallery trio:
 
 - Home/Recent Documents captured at `1920×1117`, 203,493 bytes, SHA-256
   `e4a21bd16c99ef360749dd72557a8d5a9df7c38d0a51122e8ca0058c57464501`;
-- background navigation reached Templates, whose `1920×1117`, 212,506-byte
-  capture has SHA-256
-  `1f9f0e9614c0eb6bd0c0e9cea6909982a8900ed532e03f7bbdd72751a87294ab`;
-- paired bounded UNO trees reported 96/49 and 111/64 total/visible nodes, zero
-  errors, and `partial=false`;
-- normal UNO termination succeeded, matching run-scoped processes and headless
-  windows both reached zero, and the off-screen desktop closed.
+- one background Tab transition exposed a visible `Open File` focus ring in a
+  203,741-byte `1920×1117` capture, SHA-256
+  `1039f641b724a1b6776f6773e740ce8a81163286439615830f8f5ada16e3ab13`;
+- background pointer navigation reached Templates, whose 211,139-byte
+  `1920×1117` capture has SHA-256
+  `6fd05519a89c9b962fcc980f60a6efcc4e176e3b523e0790e0eec00f27066e5f`;
+- the three bounded UNO trees reported 96/49, 96/49, and 111/64 total/visible
+  nodes, zero errors, and `partial=false`; the focus tree exposes `Open File` as
+  its sole `FOCUSED` node;
+- normal UNO termination succeeded without forced process cleanup, exact-payload
+  processes and headless windows reached zero, the desktop closed, and the
+  dedicated driver stopped.
 
-Its manifest and results are under
-[`20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression`](evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/).
+The accepted manifest and results are under
+[`20260720-112425-fbba560e27-windows-headless-light`](evidence/runs/20260720-112425-fbba560e27-windows-headless-light/).
 This verifies only the corrected extracted runtime UI. It does not execute or
 prove MSI install, repair, upgrade, uninstall, or restart-suppression lifecycle
 behavior.
 
-Two later accepted runs used the same exact `fbba560e27` extracted payload and
-clean driver commit through dedicated same-token loopback MCP sessions. Keeping
+The canonical dark and forced-high-contrast runs used the same exact
+`fbba560e27` extracted payload and clean driver commit through dedicated
+same-token loopback MCP sessions. Keeping
 the GUI and the matching Python/UNO collector at the same integrity level avoids
 the named-pipe block produced by the elevated always-on service:
 
@@ -139,9 +152,10 @@ the named-pipe block produced by the elevated always-on service:
   checkpoints, including the accessible `Open File` focus state and complete
   96/49, 96/49, and 111/64 trees.
 
-Both runs terminated normally, reached zero exact-payload processes and headless
-windows, closed the desktop handle, stopped the dedicated MCP process tree, and
-passed visual/sensitive-data review. The reusable driver is
+All three canonical appearance runs terminated normally, reached zero
+exact-payload processes and headless windows, closed the desktop handle, stopped
+the dedicated MCP process tree, and passed visual/sensitive-data review. The
+reusable driver is
 [`bin/Run-Windows-Headless-Smoke.ps1`](../bin/Run-Windows-Headless-Smoke.ps1);
 its PNG analyzer rejects blank captures and its collector emits an optional
 progress record so a blocked UNO boundary fails with diagnosable evidence.

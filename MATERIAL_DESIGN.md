@@ -37,9 +37,10 @@ Current Linux, Windows, and local VS 2026 runs passed the five required native
 C++ targets. The corrected exact-source `fbba560e2` build produced an
 administratively extracted MSI runtime, and that runtime launched with both
 Material opt-in variables set for accepted light, dark, and forced-high-contrast
-Start Center Home/focus/Templates smoke, with eight registered screenshots and
-eight bounded UNO trees. The dark and high-contrast focus checkpoints each
-expose the `Open File` push button as the sole focused UNO node. The corrected
+Start Center Home/focus/Templates smoke, with nine registered screenshots and
+nine bounded UNO trees. Each appearance profile's focus checkpoint exposes the
+`Open File` push button as the sole focused UNO node; the canonical light result is
+[`20260720-112425-fbba560e27-windows-headless-light`](docs/evidence/runs/20260720-112425-fbba560e27-windows-headless-light/results.json). The corrected
 normal public non-prerelease Latest release and its four assets are verified.
 No surface is Material-complete; updater execution,
 installer lifecycle behavior, individual widget/state rendering, pixel tests,
@@ -161,7 +162,8 @@ pixel comparisons, so broader renderer coverage remains unverified.
 
 This slice is **implemented source with bounded build/runtime evidence, not
 verified Material behavior**: the corrected `fbba560e2` extracted runtime ran
-the accepted Home/Templates smoke with `VCL_DRAW_WIDGETS_FROM_FILE=1` and
+the accepted Home/focus/Templates smoke in all three appearance profiles with
+`VCL_DRAW_WIDGETS_FROM_FILE=1` and
 `VCL_FILE_WIDGET_THEME=material` set. That launch does not prove that every
 visible control loaded the file theme or that any individual widget/state
 matches its intended pixels. Windows printer graphics are excluded from the new

@@ -69,10 +69,10 @@
             <code>577059e274</code> passed those native targets, produced an
             unsigned 199,692,288-byte MSI, and successfully extracted it.
             Corrected source <code>fbba560e27</code> forwarded all five updater
-            launch arguments, and its extracted runtime supplied eight canonical
-            light, dark, and forced-high-contrast Start Center captures with eight
-            bounded UNO trees and no collector errors. Dark and high contrast each
-            include visible keyboard focus on the accessible Open File button. The
+            launch arguments, and its extracted runtime supplied nine canonical
+            light, dark, and forced-high-contrast Start Center captures with nine
+            bounded UNO trees and no collector errors. Each appearance profile
+            includes visible keyboard focus on the accessible Open File button. The
             corrected build is the normal public,
             non-prerelease Latest release with four byte-verified assets. The whole
             GUI is incomplete, and MSI lifecycle proof remains pending.
@@ -143,7 +143,7 @@
         </div>
         <div>
           <strong>LibreOffice captures</strong>
-          <span>2 verified light-profile files</span>
+          <span>9 verified files · 3 per appearance profile</span>
         </div>
       </section>
 
@@ -231,8 +231,8 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
               built Python runtime it records roles, names, states, and bounds
               alongside a screenshot without reading document text or driving
               the UI. Corrected light, dark, and forced-high-contrast Start Center
-              runs exercised it eight times with no collector errors; dark and high
-              contrast each expose the focused Open File button. This is not a full
+              runs exercised it nine times with no collector errors; every profile
+              exposes the focused Open File button. This is not a full
               accessibility audit.
             </p>
           </div>
@@ -425,11 +425,14 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
         <div class="evidence-grid">
           <article class="evidence-card evidence-card-captured">
             <div class="evidence-captures">
-              <a href="evidence/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/start-center-light.png">
-                <img src="evidence/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/start-center-light.png" alt="Corrected LibreOfficeDev Start Center Home and Recent Documents view running off screen on Windows" loading="lazy">
+              <a href="evidence/20260720-112425-fbba560e27-windows-headless-light/start-center-light.png">
+                <img src="evidence/20260720-112425-fbba560e27-windows-headless-light/start-center-light.png" alt="Corrected LibreOfficeDev light Start Center Home and Recent Documents view running off screen on Windows" loading="lazy">
               </a>
-              <a href="evidence/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/start-center-templates-light.png">
-                <img src="evidence/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/start-center-templates-light.png" alt="Corrected LibreOfficeDev Templates gallery after background navigation on the off-screen Windows desktop" loading="lazy">
+              <a href="evidence/20260720-112425-fbba560e27-windows-headless-light/start-center-light-keyboard-focus.png">
+                <img src="evidence/20260720-112425-fbba560e27-windows-headless-light/start-center-light-keyboard-focus.png" alt="Corrected LibreOfficeDev light Start Center with visible keyboard focus on Open File" loading="lazy">
+              </a>
+              <a href="evidence/20260720-112425-fbba560e27-windows-headless-light/start-center-templates-light.png">
+                <img src="evidence/20260720-112425-fbba560e27-windows-headless-light/start-center-templates-light.png" alt="Corrected LibreOfficeDev light Templates gallery after background navigation on the off-screen Windows desktop" loading="lazy">
               </a>
               <a href="evidence/20260720-033252-fbba560e27-windows-headless-dark/start-center-dark.png">
                 <img src="evidence/20260720-033252-fbba560e27-windows-headless-dark/start-center-dark.png" alt="Corrected LibreOfficeDev dark Start Center running on an off-screen Windows desktop" loading="lazy">
@@ -441,7 +444,7 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
                 <img src="evidence/20260720-033252-fbba560e27-windows-headless-dark/start-center-templates-dark.png" alt="Dark Templates gallery after background pointer navigation" loading="lazy">
               </a>
             </div>
-            <div class="evidence-meta"><div><h3>Start center</h3><p>E-START-001 · light and dark Home/focus/Templates accepted</p></div><span>5 files</span></div>
+            <div class="evidence-meta"><div><h3>Start center</h3><p>E-START-001 · light and dark Home/focus/Templates accepted</p></div><span>6 files</span></div>
           </article>
           <article class="evidence-card">
             <div class="evidence-slot" aria-label="No Writer screenshot committed">
@@ -532,9 +535,9 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
           </p>
           <p class="preflight-note">
             <strong>Scoped UI proof:</strong> three corrected runs contribute
-            eight accepted light/dark/forced-
-            high-contrast Start Center captures and eight complete bounded UNO
-            trees, including two visible keyboard-focus checkpoints. They do not
+            nine accepted light/dark/forced-
+            high-contrast Start Center captures and nine complete bounded UNO
+            trees, including one visible keyboard-focus checkpoint per profile. They do not
             prove MSI lifecycle restart suppression or the broader UI.
           </p>
           <a

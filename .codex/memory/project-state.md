@@ -28,9 +28,9 @@ site, screenshot registry, and headless evidence plan. The third milestone adds
 matched light/dark profiles, source-level high-contrast fallback routing,
 native-style restoration and dynamic focus-policy refreshes, explicit headless
 dark selection, standalone spin controls, and a dedicated headless drawing test
-target. The automation harness has advanced from its Notepad preflight to an
+target. The automation harness has advanced from its Notepad preflight to
 accepted exact-source LibreOfficeDev Start Center runs, with the corrected
-`fbba560e27` payload now supplying the eight-image canonical gallery.
+`fbba560e27` payload now supplying the nine-image canonical gallery.
 The fourth milestone adds strict semantic typography roles that derive from the
 captured native font baseline instead of replacing platform/user fonts.
 The fifth milestone closes all 72 `StyleSettings` color slots with exact
@@ -97,7 +97,13 @@ retained. It uploads the validated MSI and update metadata directly to a draft,
 verifies the exact target, asset names, upload states, sizes, and digests before
 promoting the draft to a normal public non-prerelease Latest release, verifies
 the public Latest feed, and removes a failed draft. Only diagnostics use an
-Actions artifact. The corrected
+Actions artifact. Hosted runs at `e6fc09202` and `2ed96c4a6` completed the
+build, native tests, MSI, extraction, and structural validation but failed
+publication because pre-promotion validation required the canonical tag URL
+while GitHub still exposed its temporary `untagged-*` draft URL. Current source
+accepts that draft-only URL state, retains the canonical URL requirement after
+promotion, and has a PowerShell 5.1/7 regression validator; a pushed hosted
+rerun remains required. The corrected
 [`windows-msi-local-20260720-fbba560e2`](https://github.com/Ding-Ding-Projects/libreoffice-material/releases/tag/windows-msi-local-20260720-fbba560e2)
 release is normal, public, non-draft, non-prerelease, and Latest. It targets
 exact source `fbba560e27db26de605c40aa237c554c1f0744b1` and has exactly four
@@ -135,7 +141,15 @@ inside one collection. It retained a hash-manifested failure bundle with empty
 step/snapshot arrays; host fingerprints again matched and zero Sandbox processes
 remained. The query now emits individual rows, requires all pinned MSI properties,
 and passes an exact-source PowerShell 5.1 identity probe for both retained MSIs.
-Another fresh run is required, so installer lifecycle acceptance remains open.
+Third run `20260720-045143-7859553-08fb3836f8b446dda272e206d296a591`
+performed real old-install and corrected same-version MSI commands with exit
+code `0` and unchanged guest reboot fingerprints. It then failed closed because
+the old ProductCode remained registered at state `5` rather than being removed
+by the shared UpgradeCode. Cleanup uninstalled the old product with exit `0`,
+left both ProductCodes absent, and host before/after safety snapshots matched;
+repair, corrected uninstall, `COMPLETE.json`, and host verification were not
+accepted. Lifecycle sequencing must be corrected and rerun, so installer
+lifecycle acceptance remains open.
 
 The exact-source local builds, corrected release, and light/dark/high-contrast Start Center smoke
 do not prove a whole-GUI rewrite, updater runtime, installer lifecycle, or any
@@ -367,16 +381,21 @@ Public assetless release/tag `e` remains non-evidence.
 - Temporary preflight capture SHA-256:
   `03C6A068ACAAB96579621CE0BFC4F447C0F43E8EB23DDB5B8665A580E062BFA3`;
   it was not retained because it was unrelated to LibreOffice.
-- Canonical verified exact-source Start Center gallery captures: **8**: two
-  light-profile files from corrected run
-  `20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression`, three dark
-  files from `20260720-033252-fbba560e27-windows-headless-dark`, and three
+- Canonical verified exact-source Start Center gallery captures: **9**: three
+  light-profile files from committed-harness run
+  `20260720-112425-fbba560e27-windows-headless-light`, three dark files from
+  `20260720-033252-fbba560e27-windows-headless-dark`, and three
   forced-high-contrast files from
-  `20260720-033338-fbba560e27-windows-headless-highcontrast`. Dark and high
-  contrast each include a visible Tab focus state whose UNO tree exposes the
-  `Open File` push button as the sole `FOCUSED` node. The earlier
-  `20260720-012853-577059e274-vs2026-msi-raster` pair remains historical accepted
-  proof. The corrected extracted runtime launched with
+  `20260720-033338-fbba560e27-windows-headless-highcontrast`. Every appearance
+  includes a visible Tab focus state whose UNO tree exposes the `Open File` push
+  button as the sole `FOCUSED` node. The earlier corrected light run
+  `20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression` and older
+  `20260720-012853-577059e274-vs2026-msi-raster` pair remain historical accepted
+  proof. The fresh light run used committed harness
+  `1bb67261794d190f099c92d9dfdd48722785db34`, clean dedicated same-token driver
+  `beed66ca6ed2503e6170ee1e1158247f1c2f0140`, and ended with normal UNO
+  termination, zero exact-payload processes/windows, a closed desktop, and a
+  stopped driver. The corrected extracted runtime launched with
   `VCL_DRAW_WIDGETS_FROM_FILE=1` and `VCL_FILE_WIDGET_THEME=material` set. This
   wording does not claim that every visible control loaded the Material
   definition or that individual widget/state pixels were verified.

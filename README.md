@@ -43,10 +43,10 @@ document engine, file-format support, and accessibility foundations.
 > parent process exited after successful extraction but before final dist
 > staging, so it is not presented as an end-to-end wrapper success.
 > Real LibreOfficeDev Start Center runs from the corrected extracted MSI payload
-> are now the canonical gallery evidence: two light, three dark, and three forced-
-> high-contrast captures with eight matching bounded UNO trees and no collector
-> errors. The dark and forced-high-contrast runs also prove one keyboard Tab focus
-> transition to the accessible `Open File` button. The separate interactive
+> are now the canonical gallery evidence: three light, three dark, and three forced-
+> high-contrast captures with nine matching bounded UNO trees and no collector
+> errors. Each appearance profile proves one keyboard Tab focus transition to the
+> accessible `Open File` button. The separate interactive
 > [design reference](https://ding-ding-projects.github.io/libreoffice-material/prototype.html)
 > is a mockup, not the app. To run the actual editor, install upstream LibreOffice
 > from [libreoffice.org](https://www.libreoffice.org/download/), which does not
@@ -85,11 +85,11 @@ document engine, file-format support, and accessibility foundations.
 | Material design direction | Initial specification | [`MATERIAL_DESIGN.md`](MATERIAL_DESIGN.md) |
 | Material VCL implementation | Tenth milestone plus a native-test-backed Start Center follow-up | Light/dark profile routing, complete semantic `StyleSettings` color mapping, native-preserving type roles, semantic shape/metric roles, full-track progress and value-sensitive level indicators, native outlined frames and net-less tree connectors, disabled-affordance state completeness, strict source validation, high-contrast fallback, shared renderer fixes, and Start Center source changes are present. The standard `suggested-action` UI class reaches `PushButton::setAction(true)` through `VclBuilder`, selecting the existing Material `extra="action"` states; `CppunitTest_vcl_treeview` passed in current Linux and Windows runs, while runtime gates remain open |
 | Whole-suite implementation | Incomplete | Phased work remains in [`ROADMAP.md`](ROADMAP.md) |
-| Verified UI screenshots | 8 canonical Start Center captures across light, dark, and forced high contrast | Light Home/Templates are registered under [`20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression`](docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/); dark Home/focus/Templates under [`20260720-033252-fbba560e27-windows-headless-dark`](docs/evidence/runs/20260720-033252-fbba560e27-windows-headless-dark/); and forced-high-contrast Home/focus/Templates under [`20260720-033338-fbba560e27-windows-headless-highcontrast`](docs/evidence/runs/20260720-033338-fbba560e27-windows-headless-highcontrast/). The earlier `577059e274` pair remains historical proof; scaling, accelerated rendering, localization, and suite surfaces remain open |
-| Headless harness | Light/dark/high-contrast UI, keyboard focus, and bounded UNO collection passed | The sibling low-level driver launched the exact MSI payload on run-scoped off-screen desktops, resolved stable runtime ownership, captured eight canonical states, drove background pointer and Tab input, collected eight bounded UNO trees with no collector errors, shut down normally, and left zero matching processes/windows. The dark and high-contrast runs used dedicated same-token MCP sessions so UNO and the GUI shared the same integrity boundary; see [`docs/HEADLESS_UI_EVIDENCE.md`](docs/HEADLESS_UI_EVIDENCE.md) |
+| Verified UI screenshots | 9 canonical Start Center captures: 3 each in light, dark, and forced high contrast | Light Home/focus/Templates are registered under [`20260720-112425-fbba560e27-windows-headless-light`](docs/evidence/runs/20260720-112425-fbba560e27-windows-headless-light/results.json); dark Home/focus/Templates under [`20260720-033252-fbba560e27-windows-headless-dark`](docs/evidence/runs/20260720-033252-fbba560e27-windows-headless-dark/); and forced-high-contrast Home/focus/Templates under [`20260720-033338-fbba560e27-windows-headless-highcontrast`](docs/evidence/runs/20260720-033338-fbba560e27-windows-headless-highcontrast/). The former canonical corrected light pair and the earlier `577059e274` pair remain historical proof; scaling, accelerated rendering, localization, and suite surfaces remain open |
+| Headless harness | Light/dark/high-contrast UI, keyboard focus, and bounded UNO collection passed | The sibling low-level driver launched the exact MSI payload on run-scoped off-screen desktops, resolved stable runtime ownership, captured nine canonical states, drove background pointer and Tab input in every appearance profile, collected nine bounded UNO trees with no collector errors, shut down normally, and left zero matching processes/windows. All three current canonical runs used dedicated same-token MCP sessions so UNO and the GUI shared the same integrity boundary; see [`docs/HEADLESS_UI_EVIDENCE.md`](docs/HEADLESS_UI_EVIDENCE.md) |
 | Interactive design reference | Published mockup | [`site/prototype.html`](site/prototype.html) — 11 suite surfaces, a regex builder on every search bar, and a Find & Replace dialog; guarded by [`bin/validate-prototype.mjs`](bin/validate-prototype.mjs) (7/7) and the `prototype-check` CI |
 | Windows updater | No-restart staging/launch regressions pass; end-user flow not yet exercised | Windows-only update source reads the exact GitHub Latest XML asset, rejects untrusted or legacy state, verifies the canonical MSI metadata and bytes, stages through protected LocalAppData, and requires default-No consent before a visible install. The corrected release forwards `REBOOT=ReallySuppress`; current source additionally forwards `MSIRESTARTMANAGERCONTROL=DisableShutdown`. Its VS 2026 updater suite now verifies exclusive `CREATE_NEW` staging, the SYSTEM/Administrators/Owner Rights DACL, a retained read lock that rejects write/delete opens, and all six forwarded arguments. Download/consent/visible-launch and real MSI lifecycle proof remain pending; see [Privacy](PRIVACY.md) |
-| Installer / release | Corrected normal Latest release and four public assets verified | The public, normal, non-draft, non-prerelease `windows-msi-local-20260720-fbba560e2` release targets exact source `fbba560e27db26de605c40aa237c554c1f0744b1` and has exactly four assets. Cache-busted Latest downloads matched every corrected release size and hash; its unsigned 199,688,192-byte MSI is `180e511c…afeea`. Administrative extraction returned `0`, the extracted updater DLL matches the built DLL (`32f80a…46a3`), and its extracted runtime passed the scoped headless UI/UNO reruns. A statically validated [Windows Sandbox lifecycle harness](qa/windows-installer-lifecycle/README.md) pins the old/corrected packages and requires exact-zero install/update/repair/uninstall results with `/norestart`, `REBOOT=ReallySuppress`, unchanged reboot indicators, and clean uninstall. Two isolated launches failed closed before any MSI step: the first exposed generic-list JSON serialization; the second proved that fix and current packaged-Sandbox disposal, then exposed a nested MSI-query row collection. Both returned `1` with unchanged host safety state and no accepted lifecycle result. Both defects are corrected in source; a fresh acceptance rerun remains pending |
+| Installer / release | Corrected normal Latest release and four public assets verified | The public, normal, non-draft, non-prerelease `windows-msi-local-20260720-fbba560e2` release targets exact source `fbba560e27db26de605c40aa237c554c1f0744b1` and has exactly four assets. Cache-busted Latest downloads matched every corrected release size and hash; its unsigned 199,688,192-byte MSI is `180e511c…afeea`. Administrative extraction returned `0`, the extracted updater DLL matches the built DLL (`32f80a…46a3`), and its extracted runtime passed the scoped headless UI/UNO reruns. A statically validated [Windows Sandbox lifecycle harness](qa/windows-installer-lifecycle/README.md) pins the old/corrected packages and requires exact-zero install/update/repair/uninstall results with `/norestart`, `REBOOT=ReallySuppress`, unchanged reboot indicators, and clean uninstall. Three isolated launches failed closed without an accepted lifecycle: the first exposed generic-list JSON serialization; the second proved that fix and exposed a nested MSI-query row collection; the third reached real old-install and corrected same-version commands with exit code `0` and unchanged reboot state, then proved the old ProductCode remained installed instead of being automatically removed. The first two defects are corrected; lifecycle sequencing and a fresh acceptance run remain open. Hosted publication also now accepts GitHub's temporary draft URL before promotion while continuing to require the canonical tag URL after publishing; exact pushed-run verification remains pending |
 
 This table is deliberately conservative. A roadmap item changes state only when
 its code, build result, interaction checks, and committed visual evidence agree.
@@ -97,8 +97,9 @@ its code, build result, interaction checks, and committed visual evidence agree.
 ## Running Windows app — exact-source VS 2026/MSI evidence
 
 <p align="center">
-  <a href="docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/screenshots/start-center-light.png"><img src="docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/screenshots/start-center-light.png" alt="Corrected LibreOfficeDev Start Center Home and Recent Documents view running on an off-screen Windows desktop" width="49%"></a>
-  <a href="docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/screenshots/start-center-templates-light.png"><img src="docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/screenshots/start-center-templates-light.png" alt="Corrected LibreOfficeDev Start Center Templates gallery after a background navigation smoke action" width="49%"></a>
+  <a href="docs/evidence/runs/20260720-112425-fbba560e27-windows-headless-light/screenshots/start-center-light.png"><img src="docs/evidence/runs/20260720-112425-fbba560e27-windows-headless-light/screenshots/start-center-light.png" alt="Corrected LibreOfficeDev light Start Center Home and Recent Documents view running on an off-screen Windows desktop" width="32%"></a>
+  <a href="docs/evidence/runs/20260720-112425-fbba560e27-windows-headless-light/screenshots/start-center-light-keyboard-focus.png"><img src="docs/evidence/runs/20260720-112425-fbba560e27-windows-headless-light/screenshots/start-center-light-keyboard-focus.png" alt="Corrected LibreOfficeDev light Start Center with a visible keyboard focus ring on Open File" width="32%"></a>
+  <a href="docs/evidence/runs/20260720-112425-fbba560e27-windows-headless-light/screenshots/start-center-templates-light.png"><img src="docs/evidence/runs/20260720-112425-fbba560e27-windows-headless-light/screenshots/start-center-templates-light.png" alt="Corrected LibreOfficeDev light Start Center Templates gallery after a background navigation smoke action" width="32%"></a>
 </p>
 
 <p align="center">
@@ -109,26 +110,29 @@ its code, build result, interaction checks, and committed visual evidence agree.
 These are unedited `1920×1117` captures of the actual corrected Windows binary
 extracted from the MSI built at source commit `fbba560e27`. The run used the Material
 file-widget opt-in and software-raster fallback because the default-GPU
-`PrintWindow` path produced a preserved blank capture. The accepted run proves
-stable launch, visible Start Center rendering, background navigation to
-Templates, two nonempty bounded UNO trees (96/49 and 111/64 total/visible
-nodes, no collector errors), normal shutdown, and desktop cleanup. Follow-up
-dark and forced-high-contrast runs repeated Home/Templates, sent one background
-Tab, exposed `Open File` as the single `FOCUSED` UNO node, and passed the same
+`PrintWindow` path produced a preserved blank capture. The canonical light run proves
+stable launch, visible Start Center rendering, one background Tab transition,
+and background navigation to Templates. Its three nonempty bounded UNO trees
+contain 96/49, 96/49, and 111/64 total/visible nodes with no collector errors or
+partial capture; `Open File` is the single `FOCUSED` node at the focus checkpoint.
+It also proves normal shutdown and clean desktop/driver disposal. The dark and
+forced-high-contrast runs repeated Home/focus/Templates and passed the same
 cleanup gates; their [dark manifest](docs/evidence/runs/20260720-033252-fbba560e27-windows-headless-dark/manifest.json)
 and [high-contrast manifest](docs/evidence/runs/20260720-033338-fbba560e27-windows-headless-highcontrast/manifest.json)
 bind every PNG to its tree. This still does not prove accelerated rendering,
 scaling, localization, updater behavior, or the whole-suite matrix. It also does
 not execute MSI install, repair, upgrade, uninstall, or restart-suppression
 lifecycle scenarios. See the
-[manifest](docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/manifest.json),
-[results](docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/results.json),
+[canonical light manifest](docs/evidence/runs/20260720-112425-fbba560e27-windows-headless-light/manifest.json),
+[results](docs/evidence/runs/20260720-112425-fbba560e27-windows-headless-light/results.json),
 and [screenshot registry](docs/SCREENSHOTS.md). The canonical image SHA-256
 values are `e4a21bd16c99ef360749dd72557a8d5a9df7c38d0a51122e8ca0058c57464501`
-for Home/Recent Documents and
-`1f9f0e9614c0eb6bd0c0e9cea6909982a8900ed532e03f7bbdd72751a87294ab`
-for Templates. The earlier accepted `577059e274` software-raster run remains in
-the evidence archive as historical proof, but is no longer the canonical gallery.
+for Home/Recent Documents, `1039f641b724a1b6776f6773e740ce8a81163286439615830f8f5ada16e3ab13`
+for keyboard focus, and
+`6fd05519a89c9b962fcc980f60a6efcc4e176e3b523e0790e0eec00f27066e5f`
+for Templates. The former canonical corrected light pair under
+[`20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression`](docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/)
+and the earlier accepted `577059e274` software-raster pair remain historical proof.
 
 ## Material VCL source milestones
 
@@ -218,8 +222,8 @@ metric roles, 72 style slots, 79 parts, and 205 states.
 The static validator remains source validation, but the current five required
 native C++ targets—including the focused `vcl_treeview` builder fixture—passed
 in Linux Actions, Windows Actions, and the exact-source local VS 2026 build. A
-real `soffice` Start Center light-profile smoke has now passed with two accepted
-screenshots; no surface is yet verified Material-complete, and the broader
+real `soffice` Start Center smoke has now passed Home/focus/Templates in all
+three appearance profiles; no surface is yet verified Material-complete, and the broader
 appearance, input, localization, suite, and updater matrix remains open.
 Controls whose current file-widget geometry cannot preserve native semantics
 continue through LibreOffice's existing fallback.
@@ -356,7 +360,7 @@ See [`MATERIAL_DESIGN.md`](MATERIAL_DESIGN.md) for component rules and
 
 ## Evidence, not mock completion
 
-The four screenshots above were captured from exact-source Windows builds of this
+The five screenshots above were captured from exact-source Windows builds of this
 repository and registered with their commit, environment, scenarios, hashes,
 and review. Remaining empty cards on the project site are **evidence slots**,
 not mockups or generated UI claims.

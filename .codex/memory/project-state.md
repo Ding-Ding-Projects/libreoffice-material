@@ -118,7 +118,16 @@ normal Sandbox client disposal before persisting `host-verification.json`. Its p
 snapshot pass. Fresh prepared run
 `20260720-041140-7240676-b3777205bfb344a2977090ba35d643c3`
 contains both exact pinned MSI hashes and passes the non-launching `Inspect`
-mode; no Sandbox lifecycle has run yet, so this is preparation/harness evidence only.
+mode. Its first isolated launch returned `1` after the guest completed far
+enough to attempt result publication, because PowerShell cannot apply `@(...)`
+directly to the generic result lists. Only `FAILURE.json` was retained; no
+accepted lifecycle artifacts or host verification exist. Host reboot and
+LibreOffice-registration fingerprints stayed identical and cleanup reached
+zero Sandbox processes. The reviewed source now uses `.ToArray()`, preserves
+JSON array shape, tracks the current packaged Sandbox server/remote-session
+names, gracefully closes only a run-bound client after backend exit, and makes
+`Verify` require host-retained proof. This remains diagnostic harness evidence
+until a fresh lifecycle run passes.
 
 The exact-source local builds, corrected release, and light/dark/high-contrast Start Center smoke
 do not prove a whole-GUI rewrite, updater runtime, installer lifecycle, or any

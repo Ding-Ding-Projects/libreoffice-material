@@ -276,7 +276,12 @@ function Get-RebootFingerprint {
 }
 
 function Get-WindowsSandboxProcesses {
-    $names = @('WindowsSandbox.exe', 'WindowsSandboxClient.exe')
+    $names = @(
+        'WindowsSandbox.exe',
+        'WindowsSandboxClient.exe',
+        'WindowsSandboxRemoteSession.exe',
+        'WindowsSandboxServer.exe'
+    )
     @(
         Get-CimInstance Win32_Process |
             Where-Object { $_.Name -in $names } |
@@ -285,6 +290,7 @@ function Get-WindowsSandboxProcesses {
                     id = [int]$_.ProcessId
                     name = [string]$_.Name
                     executable_path = [string]$_.ExecutablePath
+                    command_line = [string]$_.CommandLine
                     creation_date = if ($_.CreationDate) {
                         $_.CreationDate.ToUniversalTime().ToString('o')
                     } else { $null }
@@ -293,18 +299,77 @@ function Get-WindowsSandboxProcesses {
     )
 }
 
-function Wait-ForWindowsSandboxDisposal {
-    $deadline = [DateTime]::UtcNow.AddSeconds($DisposalTimeoutSeconds)
+function Wait-ForWindowsSandboxProcessExit {
+    param(
+        [Parameter(Mandatory)][string[]]$Names,
+        [Parameter(Mandatory)][DateTime]$Deadline,
+        [Parameter(Mandatory)][string]$Description
+    )
     do {
-        $processes = @(Get-WindowsSandboxProcesses)
+        $processes = @(Get-WindowsSandboxProcesses | Where-Object { $_.name -in $Names })
         if ($processes.Count -eq 0) {
             return
         }
-        Start-Sleep -Seconds 2
-    } while ([DateTime]::UtcNow -lt $deadline)
+        Start-Sleep -Seconds 1
+    } while ([DateTime]::UtcNow -lt $Deadline)
 
-    $summary = @(Get-WindowsSandboxProcesses | ForEach-Object { "$($_.name):$($_.id)" }) -join ', '
-    throw "Windows Sandbox did not dispose within $DisposalTimeoutSeconds seconds; remaining processes: $summary"
+    $summary = @($processes | ForEach-Object { "$($_.name):$($_.id)" }) -join ', '
+    throw "Timed out waiting for $Description; remaining processes: $summary"
+}
+
+function Assert-RunBoundSandboxRemoteSession {
+    param(
+        [Parameter(Mandatory)]$Process,
+        [Parameter(Mandatory)]$Run
+    )
+    $expectedWsbArgument = '"' + [IO.Path]::GetFullPath($Run.WsbPath) + '"'
+    if ([string]::IsNullOrWhiteSpace($Process.command_line) -or
+        $Process.command_line.IndexOf($expectedWsbArgument,
+            [StringComparison]::OrdinalIgnoreCase) -lt 0) {
+        throw "Refusing to close a Windows Sandbox client that is not bound to this run: $($Process.id)"
+    }
+    if ([string]::IsNullOrWhiteSpace($Process.executable_path) -or
+        $Process.executable_path -notmatch
+            '(?i)\\WindowsApps\\MicrosoftWindows\.WindowsSandbox_[^\\]+__cw5n1h2txyewy\\WindowsSandboxRemoteSession\.exe$') {
+        throw "Refusing an unexpected Windows Sandbox remote-session executable: $($Process.executable_path)"
+    }
+}
+
+function Wait-ForWindowsSandboxDisposal {
+    param([Parameter(Mandatory)]$Run)
+
+    $deadline = [DateTime]::UtcNow.AddSeconds($DisposalTimeoutSeconds)
+
+    # The guest publishes its sentinel before requesting shutdown. The backend must
+    # disappear on its own; the host never terminates or closes the guest server.
+    Wait-ForWindowsSandboxProcessExit -Names @('WindowsSandboxServer.exe') `
+        -Deadline $deadline -Description 'the Windows Sandbox backend to exit normally'
+
+    $remoteSessions = @(
+        Get-WindowsSandboxProcesses |
+            Where-Object { $_.name -eq 'WindowsSandboxRemoteSession.exe' }
+    )
+    if ($remoteSessions.Count -gt 1) {
+        $summary = @($remoteSessions | ForEach-Object { "$($_.name):$($_.id)" }) -join ', '
+        throw "Refusing to close multiple Windows Sandbox remote sessions: $summary"
+    }
+    if ($remoteSessions.Count -eq 1) {
+        $remoteSession = $remoteSessions[0]
+        Assert-RunBoundSandboxRemoteSession -Process $remoteSession -Run $Run
+        $client = Get-Process -Id $remoteSession.id -ErrorAction SilentlyContinue
+        if ($client -and -not $client.CloseMainWindow()) {
+            throw "The run-bound Windows Sandbox client did not accept a graceful close request: $($remoteSession.id)"
+        }
+    }
+
+    Wait-ForWindowsSandboxProcessExit `
+        -Names @(
+            'WindowsSandbox.exe',
+            'WindowsSandboxClient.exe',
+            'WindowsSandboxRemoteSession.exe',
+            'WindowsSandboxServer.exe'
+        ) `
+        -Deadline $deadline -Description 'all Windows Sandbox processes to dispose normally'
 }
 
 function Assert-SandboxReady {
@@ -807,6 +872,39 @@ function Assert-OutputArtifacts {
     $complete
 }
 
+function Assert-HostVerification {
+    param([Parameter(Mandatory)]$Run)
+
+    $beforePath = Join-Path $Run.Root 'host-before.json'
+    $afterPath = Join-Path $Run.Root 'host-after.json'
+    $verificationPath = Join-Path $Run.Root 'host-verification.json'
+    foreach ($path in @($beforePath, $afterPath, $verificationPath)) {
+        Assert-BoundedOrdinaryJsonFile -LiteralPath $path
+    }
+
+    $before = Get-Content -LiteralPath $beforePath -Raw | ConvertFrom-Json
+    $after = Get-Content -LiteralPath $afterPath -Raw | ConvertFrom-Json
+    $verification = Get-Content -LiteralPath $verificationPath -Raw | ConvertFrom-Json
+    if ($verification.schema_version -ne 1 -or
+        $verification.run_id -ne $Run.Manifest.run_id -or
+        $verification.status -ne 'passed' -or
+        -not $verification.sandbox_disposed -or
+        [int]$verification.sandbox_processes_after -ne 0 -or
+        -not $verification.host_safety_unchanged -or
+        [int]$verification.launch_process_id -le 0) {
+        throw 'Host verification acceptance fields are invalid.'
+    }
+    if ((Get-Sha256 -LiteralPath $beforePath) -ne $verification.host_before_sha256 -or
+        (Get-Sha256 -LiteralPath $afterPath) -ne $verification.host_after_sha256) {
+        throw 'Host verification snapshot hashes do not match the retained files.'
+    }
+    if ((Get-HostSafetyFingerprint -Snapshot $before) -ne
+        (Get-HostSafetyFingerprint -Snapshot $after)) {
+        throw 'Host verification snapshots do not preserve the host safety state.'
+    }
+    $verification
+}
+
 function Wait-ForSandboxResult {
     param([Parameter(Mandatory)]$Run)
     $deadline = [DateTime]::UtcNow.AddMinutes($TimeoutMinutes)
@@ -880,7 +978,7 @@ switch ($Mode) {
         finally {
             if ($sandboxLaunched) {
                 try {
-                    Wait-ForWindowsSandboxDisposal
+                    Wait-ForWindowsSandboxDisposal -Run $run
                 }
                 catch {
                     $disposalError = $_
@@ -929,6 +1027,7 @@ switch ($Mode) {
         }
         Write-JsonFile -Value $hostVerification `
             -LiteralPath (Join-Path $run.Root 'host-verification.json')
+        [void](Assert-HostVerification -Run $run)
         Write-Host ("Disposable MSI lifecycle passed at {0}." -f $complete.completed_at_utc) `
             -ForegroundColor Green
         return
@@ -940,7 +1039,8 @@ switch ($Mode) {
         $run = Get-PreparedRun -LiteralPath $RunDirectory
         Assert-PreparedInputs -Run $run
         $complete = Assert-OutputArtifacts -Run $run
-        Write-Host ("Verified disposable MSI lifecycle output from {0}." -f $complete.completed_at_utc) `
+        [void](Assert-HostVerification -Run $run)
+        Write-Host ("Verified host-attested disposable MSI lifecycle from {0}." -f $complete.completed_at_utc) `
             -ForegroundColor Green
         return
     }

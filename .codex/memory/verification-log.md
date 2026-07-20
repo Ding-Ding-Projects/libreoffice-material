@@ -1321,3 +1321,31 @@ build or runtime evidence.
 - This is pinned preparation evidence only. Windows Sandbox was not launched,
   and no install/update/repair/uninstall or restart-suppression runtime result is
   claimed.
+
+## 2026-07-20 — first isolated lifecycle launch failed closed
+
+- Retained run
+  `20260720-041140-7240676-b3777205bfb344a2977090ba35d643c3` was launched
+  through the sibling low-level driver on off-screen desktop
+  `LOMaterialMSI-41398b5b-0419`. The guest published only `FAILURE.json`, and the
+  host wrapper returned exact exit code `1`; there is no `COMPLETE.json`, step
+  log bundle, or `host-verification.json`.
+- The captured failure is PowerShell `System.ArgumentException: Argument types
+  do not match` from array-subexpression binding over the guest's generic
+  `List[object]` collections. A standalone PowerShell 5.1 reproduction failed
+  for `@($list)` and passed for `$list.ToArray()`.
+- `host-before.json` and `host-after.json` have identical reboot and
+  LibreOffice-registration fingerprints: no LibreOffice registration, no CBS
+  or Windows Update reboot marker, no pending rename entry, and no Windows
+  Installer operation. After the backend exited, the packaged remote-session UI
+  was closed through the low-level process cleanup path without force, leaving
+  zero tracked Sandbox processes/windows; the off-screen desktop was released.
+- The source fix serializes all three generic collections with `.ToArray()` and
+  `ConvertTo-Json -InputObject`, tracks the current
+  `WindowsSandboxServer.exe`/`WindowsSandboxRemoteSession.exe` pair, waits for
+  backend exit, and only gracefully closes an exact-run/package-bound client.
+  `Verify` now requires the retained host snapshots, their hashes, unchanged
+  safety fingerprint, and recorded zero-process disposal.
+- PowerShell parsing, the dependency-free static validator, PowerShell 5.1 and
+  7 array-shape probes, and direct-host WDAG refusal all pass. This failed run is
+  diagnostic only and proves no install/update/repair/uninstall result.

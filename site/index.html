@@ -276,7 +276,10 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
           passed scoped Start Center UI/UNO smoke, and its normal public
           <a href="https://github.com/Ding-Ding-Projects/libreoffice-material/releases/tag/windows-msi-local-20260720-fbba560e2">Latest release</a>
           has exactly four byte-verified assets. Updater/installer lifecycle
-          results remain pending.
+          results remain pending. A first isolated lifecycle launch failed
+          closed during result serialization, left the host safety state
+          unchanged, and produced no accepted lifecycle bundle; the corrected
+          harness still requires a fresh passing run.
         </p>
       </section>
 

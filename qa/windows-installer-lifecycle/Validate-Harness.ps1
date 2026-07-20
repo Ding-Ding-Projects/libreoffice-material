@@ -109,6 +109,36 @@ if ($failures.Count -eq 0) {
         'The host must compare its own safety snapshot before and after Sandbox.'
     Assert-Match $hostText "host-verification\.json" `
         'Host must persist its post-disposal and safety result outside the guest sentinel.'
+    foreach ($processName in @(
+        'WindowsSandbox.exe',
+        'WindowsSandboxClient.exe',
+        'WindowsSandboxRemoteSession.exe',
+        'WindowsSandboxServer.exe'
+    )) {
+        if (-not $hostText.Contains($processName)) {
+            Add-Failure -Message "Host disposal tracking is missing: $processName"
+        }
+    }
+    Assert-Match $hostText 'Wait-ForWindowsSandboxDisposal\s+-Run\s+\$run' `
+        'Sandbox disposal must be bound to the exact prepared run.'
+    foreach ($requiredDisposalText in @(
+        '[IO.Path]::GetFullPath($Run.WsbPath)',
+        'MicrosoftWindows\.WindowsSandbox_',
+        'cw5n1h2txyewy',
+        'CloseMainWindow()'
+    )) {
+        if (-not $hostText.Contains($requiredDisposalText)) {
+            Add-Failure -Message "Run-bound Sandbox disposal is missing: $requiredDisposalText"
+        }
+    }
+    Assert-Match $hostText "Wait-ForWindowsSandboxProcessExit\s+-Names\s+@\('WindowsSandboxServer\.exe'\)[\s\S]*?CloseMainWindow\(\)" `
+        'The Sandbox backend must exit normally before the run-bound client receives a graceful close request.'
+    Assert-NotMatch $hostText '(?i)Stop-Process|taskkill|TerminateProcess|\.Kill\(|kill_process' `
+        'The host harness must never force-kill a Sandbox process.'
+    Assert-Match $hostText 'function\s+Assert-HostVerification' `
+        'Host-retained lifecycle proof must have a dedicated validator.'
+    Assert-Count $hostText 'Assert-HostVerification\s+-Run\s+\$run' 2 `
+        'Launch and Verify must both require host-retained lifecycle proof.'
 
     foreach ($requiredText in @(
         '<VGpu>Disable</VGpu>',
@@ -206,6 +236,14 @@ if ($failures.Count -eq 0) {
         'Guest finally handling must retain best-effort MSI cleanup.'
     Assert-Match $guestText 'Publish-Results\s+-Passed\s+\$accepted' `
         'Guest must base completion publication on final acceptance.'
+    Assert-Match $guestText 'ConvertTo-Json\s+-InputObject\s+\$Value' `
+        'Guest JSON publication must preserve empty and singleton arrays.'
+    foreach ($listName in @('Snapshots', 'Steps', 'CleanupErrors')) {
+        Assert-Match $guestText ("\`$script:" + $listName + '\.ToArray\(\)') `
+            "Guest must serialize the generic $listName list through ToArray()."
+    }
+    Assert-NotMatch $guestText '@\(\$script:(?:Snapshots|Steps|CleanupErrors)\)' `
+        'Guest must not use PowerShell array subexpressions directly on generic lists.'
     Assert-Match $guestText 'Move-Item\s+-LiteralPath\s+\$temporarySentinel' `
         'Guest completion publication must use an atomic final sentinel move.'
     Assert-Match $guestText "if \(\`$Passed\) \{ 'COMPLETE\.json' \} else \{ 'FAILURE\.json' \}" `

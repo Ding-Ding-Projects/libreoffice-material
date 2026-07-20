@@ -81,9 +81,12 @@ The host revalidates every prepared byte against the hard-coded release pins
 and the current reviewed repository guest source, requires an empty output directory,
 checks Sandbox/Hyper-V readiness, records host reboot and LibreOffice
 registration state, launches the generated `.wsb`, and polls for an atomic
-guest sentinel. It then requires the Windows Sandbox client processes to
-dispose normally and never force-closes a timed-out Sandbox. Only after guest
-output, disposal, and unchanged host-safety checks pass does it write
+guest sentinel. It first requires the Sandbox backend to exit on the guest's
+own shutdown request. If the current packaged remote-session UI remains, the
+host binds its command line to the exact reviewed `.wsb`, validates the
+Microsoft package path, and requests `CloseMainWindow()`; it never terminates
+the guest backend or force-kills a timed-out process. Only after every tracked
+legacy/current Sandbox process is absent and the host-safety checks pass does it write
 `host-verification.json` in the run root.
 
 The guest performs, in order:
@@ -113,6 +116,29 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
   -Mode Verify `
   -RunDirectory 'C:\absolute\prepared\run-directory'
 ```
+
+`Verify` requires both the byte-pinned guest completion bundle and the retained
+`host-before.json`, `host-after.json`, and `host-verification.json`. It rejects
+changed snapshot hashes, changed host safety state, or nonzero recorded Sandbox
+processes.
+
+## First live diagnostic
+
+The retained run
+`20260720-041140-7240676-b3777205bfb344a2977090ba35d643c3`
+was launched on an isolated low-level off-screen desktop. It failed closed with
+exit code `1` while PowerShell tried to apply `@(...)` directly to a generic
+`List[object]` during result publication. It produced only `FAILURE.json`; no
+step logs, `COMPLETE.json`, or `host-verification.json` were accepted. The
+before/after host reboot and LibreOffice-registration fingerprints were
+identical, and cleanup left zero tracked Sandbox processes.
+
+The guest now calls `.ToArray()` for snapshot, step, and cleanup collections and
+uses `ConvertTo-Json -InputObject` so empty and singleton arrays retain their
+shape. The host also recognizes `WindowsSandboxRemoteSession.exe` and
+`WindowsSandboxServer.exe`. Parser/static checks and PowerShell 5.1/7
+serialization probes pass, but only a fresh complete run can close the runtime
+gate.
 
 ## Evidence boundary
 

@@ -26,7 +26,8 @@ function Write-JsonFile {
         [Parameter(Mandatory)]$Value,
         [Parameter(Mandatory)][string]$LiteralPath
     )
-    $Value | ConvertTo-Json -Depth 24 | Set-Content -LiteralPath $LiteralPath -Encoding UTF8
+    ConvertTo-Json -InputObject $Value -Depth 24 |
+        Set-Content -LiteralPath $LiteralPath -Encoding UTF8
 }
 
 function Assert-Condition {
@@ -674,20 +675,20 @@ finally {
             Write-JsonFile -Value $script:Preflight `
                 -LiteralPath (Join-Path $script:ResultsRoot 'preflight.json')
         }
-        Write-JsonFile -Value @($script:Snapshots) `
+        Write-JsonFile -Value ($script:Snapshots.ToArray()) `
             -LiteralPath (Join-Path $script:ResultsRoot 'reboot-snapshots.json')
         $results = [ordered]@{
             schema_version = 1
             run_id = if ($script:Expected) { [string]$script:Expected.run_id } else { 'unknown' }
             status = if ($accepted) { 'passed' } else { 'failed' }
             completed_at_utc = [DateTime]::UtcNow.ToString('o')
-            steps = @($script:Steps)
+            steps = $script:Steps.ToArray()
             reboot_state_changed = $anyRebootStateChanged
             lifecycle_reboot_state_changed = $lifecycleRebootStateChanged
             final_reboot_state = $finalRebootState
             final_old_product_state = $finalOldState
             final_corrected_product_state = $finalCorrectedState
-            cleanup_errors = @($script:CleanupErrors)
+            cleanup_errors = $script:CleanupErrors.ToArray()
             error = $failureMessage
         }
         Write-JsonFile -Value $results -LiteralPath (Join-Path $script:ResultsRoot 'results.json')

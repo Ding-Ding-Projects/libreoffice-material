@@ -193,7 +193,13 @@ does not prove any MSI lifecycle behavior.
 A fresh exact-tag Sandbox input run
 `20260720-041140-7240676-b3777205bfb344a2977090ba35d643c3` now passes the
 non-launching `Inspect` gate with both MSI sizes/hashes pinned and an empty
-output mapping; preparation is not lifecycle runtime proof.
+output mapping. Its first isolated launch then failed closed while serializing
+generic PowerShell lists into the result bundle: the launcher returned `1`, no
+`COMPLETE.json` or host-verification acceptance was produced, and host reboot
+and LibreOffice-registration fingerprints remained identical. The harness now
+serializes through typed arrays, tracks the current packaged Sandbox server and
+remote-session process names, and validates retained host proof in `Verify`.
+This diagnostic is not lifecycle runtime proof; a fresh run remains required.
 
 An interactive, dependency-free Material design reference for the whole suite is
 published at [`site/prototype.html`](site/prototype.html): a hand-built HTML

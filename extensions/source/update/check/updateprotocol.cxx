@@ -45,7 +45,7 @@ namespace xml = css::xml ;
 namespace
 {
 constexpr OUStringLiteral MATERIAL_RELEASE_PREFIX
-    = u"https://github.com/codingmachineedge/libreoffice-material/releases/download/";
+    = u"https://github.com/Ding-Ding-Projects/libreoffice-material/releases/download/";
 constexpr OUStringLiteral MATERIAL_MSI_FILE = u"LibreOfficeMaterial-Windows-x64.msi";
 
 bool isSafeReleaseTag(std::u16string_view rTag)

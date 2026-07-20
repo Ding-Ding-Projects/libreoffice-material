@@ -12,9 +12,9 @@ document engine, file-format support, and accessibility foundations.
 > definition parsing, broader state coverage, Start Center changes, and a
 > consent-based Windows updater are present in source, and the current source
 > has passed its five required native C++ targets in Linux Actions run
-> [`29695793821`](https://github.com/codingmachineedge/libreoffice-material/actions/runs/29695793821)
+> [`29695793821`](https://github.com/Ding-Ding-Projects/libreoffice-material/actions/runs/29695793821)
 > and in Windows Actions run
-> [`29695815101`](https://github.com/codingmachineedge/libreoffice-material/actions/runs/29695815101).
+> [`29695815101`](https://github.com/Ding-Ding-Projects/libreoffice-material/actions/runs/29695815101).
 > That Windows run also completed the full LibreOfficeDev installation-set build
 > and the legacy CLI payload check; it did not stage an MSI artifact.
 > The whole GUI has not been rewritten, and no application surface is
@@ -24,7 +24,7 @@ document engine, file-format support, and accessibility foundations.
 > the final package. The workflow now scopes discovery to the final success-only
 > `install\en-US` directory, and a rerun is required before an artifact exists.
 > No LibreOffice application run has been accepted; the interactive
-> [design reference](https://codingmachineedge.github.io/libreoffice-material/prototype.html)
+> [design reference](https://ding-ding-projects.github.io/libreoffice-material/prototype.html)
 > (a mockup, not the app). To run the actual editor, install upstream LibreOffice
 > from [libreoffice.org](https://www.libreoffice.org/download/), which does not
 > include these Material changes. An automated pipeline
@@ -35,12 +35,11 @@ document engine, file-format support, and accessibility foundations.
 > validation. Run `29695815101` at
 > `e4dc8a850c982f33d8722fc203f86591b2993e8b` proves the repaired CLI payload,
 > required native targets, and full installation-set build, but no staged MSI,
-> runtime, release, headless UI, or accessibility result is accepted yet. A public
-> assetless release/tag named `e` exists, but it contains no build and does not
-> satisfy the project's gates.
+> runtime, release, headless UI, or accessibility result is accepted yet. No
+> public release in the canonical repository has a validated installer asset.
 
-[Project site](https://codingmachineedge.github.io/libreoffice-material/) ·
-[Interactive preview](https://codingmachineedge.github.io/libreoffice-material/prototype.html) ·
+[Project site](https://ding-ding-projects.github.io/libreoffice-material/) ·
+[Interactive preview](https://ding-ding-projects.github.io/libreoffice-material/prototype.html) ·
 [Roadmap](ROADMAP.md) ·
 [Material specification](MATERIAL_DESIGN.md) ·
 [Full design spec](docs/design/README.md) ·
@@ -179,7 +178,7 @@ MSI artifact.
 
 The Windows package source now enables LibreOffice's consent-based updater
 against one exact feed:
-`https://github.com/codingmachineedge/libreoffice-material/releases/latest/download/windows-update-manifest.xml`.
+`https://github.com/Ding-Ding-Projects/libreoffice-material/releases/latest/download/windows-update-manifest.xml`.
 GitHub's Latest route supplies the workflow-generated XML for the normal stable
 release. The parser accepts one Windows x64 MSI only when its safe release tag,
 tag-derived GitHub URL, canonical `LibreOfficeMaterial-Windows-x64.msi` name,

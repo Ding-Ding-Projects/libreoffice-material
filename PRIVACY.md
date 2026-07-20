@@ -6,6 +6,6 @@ A check requests the public `windows-update-manifest.xml` release asset and ther
 
 The updater does not upload documents, document contents, filenames, profile data, or telemetry. Automatic downloading is off by default. When a download begins, the updater may open the release-notes page on GitHub, which makes a separate HTTPS request.
 
-When an update is available, LibreOffice Material downloads only the manifest's tag-specific canonical MSI from `codingmachineedge/libreoffice-material`. It verifies the declared byte count and SHA-256 after the file is closed and again immediately before installation. Installation is never silent: the updater asks for explicit confirmation, with **No** as the default, before starting the interactive Windows Installer.
+When an update is available, LibreOffice Material downloads only the manifest's tag-specific canonical MSI from `Ding-Ding-Projects/libreoffice-material`. It verifies the declared byte count and SHA-256 after the file is closed and again immediately before installation. Installation is never silent: the updater asks for explicit confirmation, with **No** as the default, before starting the interactive Windows Installer.
 
 Release packages are currently unsigned. Hash verification detects accidental corruption or replacement that does not match the published manifest, but it is not a substitute for publisher code signing and cannot protect against compromise of the GitHub repository itself.

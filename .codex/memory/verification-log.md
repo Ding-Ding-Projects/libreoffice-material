@@ -1034,3 +1034,22 @@ build or runtime evidence.
   root is retained, and a fresh exact-current-source build is still required
   before claiming a native target, MSI, application launch, headless UI smoke,
   accessibility smoke, or release.
+
+## 2026-07-19 — canonical GitHub release identity follow-up
+
+- The former `codingmachineedge/libreoffice-material` remote returned GitHub's
+  relocation notice. The authoritative public repository is
+  `Ding-Ding-Projects/libreoffice-material`; its default branch remains `main`,
+  the active publishing credential has write access, and `origin` now uses the
+  canonical URL. Its Pages endpoint is
+  `https://ding-ding-projects.github.io/libreoffice-material/`.
+- The updater's trusted asset prefix, generated installer update URLs, privacy
+  URL, update fixtures, public documentation, and Pages canonical URLs were
+  switched together to the canonical owner. This avoids accepting a redirect as
+  identity proof or shipping an MSI whose updater rejects its own normal
+  release asset.
+- A fresh build snapshot at `d5a1229978a0d5732f88ba52f5dadc40b4d90fa5` was
+  intentionally stopped during dependency download once this release-blocking
+  mismatch was discovered; its root remains preserved for audit/cache reuse and
+  is not a build result. The next release candidate must use the pushed
+  canonical-owner source commit.

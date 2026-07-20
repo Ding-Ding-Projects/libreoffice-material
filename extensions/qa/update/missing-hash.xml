@@ -7,7 +7,7 @@
   <inst:os>Windows</inst:os>
   <inst:arch>X86_64</inst:arch>
   <inst:update type="application/x-msi"
-               src="https://github.com/codingmachineedge/libreoffice-material/releases/download/windows-msi-test/LibreOfficeMaterial-Windows-x64.msi"
+               src="https://github.com/Ding-Ding-Projects/libreoffice-material/releases/download/windows-msi-test/LibreOfficeMaterial-Windows-x64.msi"
                size="50"
                release-tag="windows-msi-test"
                file-name="LibreOfficeMaterial-Windows-x64.msi" />

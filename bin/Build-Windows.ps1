@@ -1164,7 +1164,7 @@ cd "$build_dir"
   --with-external-tar="$tarball_arg" \
   --with-lang=en-US \
   --enable-online-update \
-  --with-privacy-policy-url=https://github.com/codingmachineedge/libreoffice-material/blob/main/PRIVACY.md \
+  --with-privacy-policy-url=https://github.com/Ding-Ding-Projects/libreoffice-material/blob/main/PRIVACY.md \
   --enable-python=fully-internal \
   --without-java \
   --without-junit \

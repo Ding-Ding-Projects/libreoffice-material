@@ -112,7 +112,7 @@ protected:
             CPPUNIT_ASSERT_EQUAL( std::size_t(1), aInfo.Sources.size() );
             const DownloadSource& rSource = aInfo.Sources[0];
             CPPUNIT_ASSERT_EQUAL(
-                u"https://github.com/codingmachineedge/libreoffice-material/releases/download/windows-msi-test/LibreOfficeMaterial-Windows-x64.msi"_ustr,
+                u"https://github.com/Ding-Ding-Projects/libreoffice-material/releases/download/windows-msi-test/LibreOfficeMaterial-Windows-x64.msi"_ustr,
                 rSource.URL);
             CPPUNIT_ASSERT_EQUAL(
                 u"1b8743c701ccbb5839b6cc8dd25eec1ac4a6ca4c3094fd6a5b2a8a49e69e058e"_ustr,
@@ -176,7 +176,7 @@ protected:
     {
         DownloadSource aSource(
             true,
-            u"https://github.com/codingmachineedge/libreoffice-material/releases/download/windows-msi-test/LibreOfficeMaterial-Windows-x64.msi"_ustr,
+            u"https://github.com/Ding-Ding-Projects/libreoffice-material/releases/download/windows-msi-test/LibreOfficeMaterial-Windows-x64.msi"_ustr,
             u"1b8743c701ccbb5839b6cc8dd25eec1ac4a6ca4c3094fd6a5b2a8a49e69e058e"_ustr,
             50, u"windows-msi-test"_ustr, u"LibreOfficeMaterial-Windows-x64.msi"_ustr);
         CPPUNIT_ASSERT(isTrustedMaterialUpdateSource(aSource));
@@ -196,13 +196,13 @@ protected:
         DownloadSource aDotTag(aSource);
         aDotTag.ReleaseTag = u".."_ustr;
         aDotTag.URL
-            = u"https://github.com/codingmachineedge/libreoffice-material/releases/download/../LibreOfficeMaterial-Windows-x64.msi"_ustr;
+            = u"https://github.com/Ding-Ding-Projects/libreoffice-material/releases/download/../LibreOfficeMaterial-Windows-x64.msi"_ustr;
         CPPUNIT_ASSERT(!isTrustedMaterialUpdateSource(aDotTag));
 
         DownloadSource aHiddenTag(aSource);
         aHiddenTag.ReleaseTag = u".hidden"_ustr;
         aHiddenTag.URL
-            = u"https://github.com/codingmachineedge/libreoffice-material/releases/download/.hidden/LibreOfficeMaterial-Windows-x64.msi"_ustr;
+            = u"https://github.com/Ding-Ding-Projects/libreoffice-material/releases/download/.hidden/LibreOfficeMaterial-Windows-x64.msi"_ustr;
         CPPUNIT_ASSERT(!isTrustedMaterialUpdateSource(aHiddenTag));
 
         DownloadSource aWrongName(aSource);
@@ -222,7 +222,7 @@ protected:
     {
         DownloadSource aSource(
             true,
-            u"https://github.com/codingmachineedge/libreoffice-material/releases/download/windows-msi-test/LibreOfficeMaterial-Windows-x64.msi"_ustr,
+            u"https://github.com/Ding-Ding-Projects/libreoffice-material/releases/download/windows-msi-test/LibreOfficeMaterial-Windows-x64.msi"_ustr,
             u"1b8743c701ccbb5839b6cc8dd25eec1ac4a6ca4c3094fd6a5b2a8a49e69e058e"_ustr,
             50, u"windows-msi-test"_ustr, u"LibreOfficeMaterial-Windows-x64.msi"_ustr);
         const OUString aFixture

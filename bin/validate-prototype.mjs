@@ -126,7 +126,7 @@ const checks = [
         const tagStart = sourceText.lastIndexOf('<', match.index);
         const tagEnd = sourceText.indexOf('>', match.index);
         const tag = tagStart >= 0 && tagEnd >= 0 ? sourceText.slice(tagStart, tagEnd + 1) : '';
-        const canonical = url.startsWith('https://codingmachineedge.github.io')
+        const canonical = url.startsWith('https://ding-ding-projects.github.io')
           && /^<link\b/i.test(tag)
           && /\brel\s*=\s*(["'])canonical\1/i.test(tag);
         const svgNamespace = url === 'http://www.w3.org/2000/svg';

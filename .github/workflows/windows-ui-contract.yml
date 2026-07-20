@@ -22,3 +22,9 @@ jobs:
 
       - name: Run registry regressions
         run: python3 bin/test_windows_dialog_notification_contract.py
+
+      - name: Validate native search-field coverage
+        run: python3 bin/check_search_field_coverage.py
+
+      - name: Run search-field coverage regressions
+        run: python3 bin/test_search_field_coverage.py

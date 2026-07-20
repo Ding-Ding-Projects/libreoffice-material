@@ -1,0 +1,361 @@
+{
+  "schema_version": 1,
+  "contract": "windows-native-text-query-coverage",
+  "platform": "windows",
+  "audit_date": "2026-07-20",
+  "expected_counts": {
+    "shipping_fields": 26,
+    "planned_fields": 1,
+    "excluded_candidates": 15
+  },
+  "scanner_contract": {
+    "widget_classes": [
+      "GtkComboBox",
+      "GtkComboBoxText",
+      "GtkEntry",
+      "GtkSearchEntry"
+    ],
+    "identifier_terms": [
+      "filter",
+      "find",
+      "lookup",
+      "query",
+      "search"
+    ],
+    "semantic_properties": [
+      "AtkObject::accessible-name",
+      "placeholder-text",
+      "tooltip-text"
+    ],
+    "find_icon": "gtk-find"
+  },
+  "shipping_fields": [
+    {
+      "coverage_id": "basic.object-browser",
+      "surface": "BASIC Object Browser",
+      "ui_file": "basctl/uiconfig/basicide/ui/objectbrowser.ui",
+      "widget_id": "FilterBox",
+      "query_scope": "objects and members",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "options.expert-configuration",
+      "surface": "Expert Configuration",
+      "ui_file": "cui/uiconfig/ui/aboutconfigdialog.ui",
+      "widget_id": "searchEntry",
+      "query_scope": "configuration preferences",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "customize.keyboard-functions",
+      "surface": "Keyboard customization",
+      "ui_file": "cui/uiconfig/ui/accelconfigpage.ui",
+      "widget_id": "searchEntry",
+      "query_scope": "commands and functions",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "extensions.additions",
+      "surface": "Additions browser",
+      "ui_file": "cui/uiconfig/ui/additionsdialog.ui",
+      "widget_id": "entrySearch",
+      "query_scope": "additions catalog",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "forms.record-search",
+      "surface": "Form record search",
+      "ui_file": "cui/uiconfig/ui/fmsearchdialog.ui",
+      "widget_id": "cmbSearchText",
+      "query_scope": "form records",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "customize.menu-commands",
+      "surface": "Menu customization",
+      "ui_file": "cui/uiconfig/ui/menuassignpage.ui",
+      "widget_id": "searchEntry",
+      "query_scope": "menu commands",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "options.settings",
+      "surface": "Options",
+      "ui_file": "cui/uiconfig/ui/optionsdialog.ui",
+      "widget_id": "searchEntry",
+      "query_scope": "settings pages and options",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "insert.special-characters",
+      "surface": "Special Characters",
+      "ui_file": "cui/uiconfig/ui/specialcharacters.ui",
+      "widget_id": "search",
+      "query_scope": "characters by name",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "extensions.manager",
+      "surface": "Extension Manager",
+      "ui_file": "desktop/uiconfig/ui/extensionmanager.ui",
+      "widget_id": "search",
+      "query_scope": "installed extensions",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "formula.function-wizard",
+      "surface": "Function Wizard",
+      "ui_file": "formula/uiconfig/ui/functionpage.ui",
+      "widget_id": "search",
+      "query_scope": "function names and descriptions",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "calc.autofilter-items",
+      "surface": "Calc AutoFilter",
+      "ui_file": "sc/uiconfig/scalc/ui/filterdropdown.ui",
+      "widget_id": "search_edit",
+      "query_scope": "filter values",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "calc.function-sidebar",
+      "surface": "Calc Functions sidebar",
+      "ui_file": "sc/uiconfig/scalc/ui/functionpanel.ui",
+      "widget_id": "search",
+      "query_scope": "functions",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "calc.go-to-sheet",
+      "surface": "Go to Sheet",
+      "ui_file": "sc/uiconfig/scalc/ui/gotosheetdialog.ui",
+      "widget_id": "entry-mask",
+      "query_scope": "sheet names",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "command-search.popup",
+      "surface": "Command Search",
+      "ui_file": "sfx2/uiconfig/ui/commandpopup.ui",
+      "widget_id": "command_entry",
+      "query_scope": "application commands",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "help.index",
+      "surface": "Help Index",
+      "ui_file": "sfx2/uiconfig/ui/helpindexpage.ui",
+      "widget_id": "termentry",
+      "query_scope": "help index terms",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "help.search",
+      "surface": "Help Search",
+      "ui_file": "sfx2/uiconfig/ui/helpsearchpage.ui",
+      "widget_id": "search",
+      "query_scope": "help content",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "help.find-on-page",
+      "surface": "Find on Help Page",
+      "ui_file": "sfx2/uiconfig/ui/searchdialog.ui",
+      "widget_id": "searchterm",
+      "query_scope": "current help page",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "templates.manager",
+      "surface": "Template Manager",
+      "ui_file": "sfx2/uiconfig/ui/templatedlg.ui",
+      "widget_id": "search_filter",
+      "query_scope": "templates",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "document.find-bar",
+      "surface": "Find Bar",
+      "ui_file": "svx/uiconfig/ui/findbox.ui",
+      "widget_id": "find",
+      "query_scope": "active document",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "document.find-replace",
+      "surface": "Find and Replace",
+      "ui_file": "svx/uiconfig/ui/findreplacedialog.ui",
+      "widget_id": "searchterm",
+      "query_scope": "active document",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "changes.comment-filter",
+      "surface": "Manage Changes filter",
+      "ui_file": "svx/uiconfig/ui/redlinefilterpage.ui",
+      "widget_id": "commentedit",
+      "query_scope": "change comments",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "gallery.search",
+      "surface": "Gallery sidebar",
+      "ui_file": "svx/uiconfig/ui/sidebargallery.ui",
+      "widget_id": "search",
+      "query_scope": "gallery items",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "writer.find-entry",
+      "surface": "Writer Find Entry",
+      "ui_file": "sw/uiconfig/swriter/ui/findentrydialog.ui",
+      "widget_id": "entry",
+      "query_scope": "selected Writer data field",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "writer.reference-filter",
+      "surface": "Writer reference field selection",
+      "ui_file": "sw/uiconfig/swriter/ui/fldrefpage.ui",
+      "widget_id": "filter",
+      "query_scope": "reference targets",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "writer.quick-find",
+      "surface": "Writer Quick Find sidebar",
+      "ui_file": "sw/uiconfig/swriter/ui/sidebarquickfind.ui",
+      "widget_id": "searchterm",
+      "query_scope": "Writer document",
+      "regex_builder": "adjacent-advanced-builder"
+    },
+    {
+      "coverage_id": "security.certificate-search",
+      "surface": "Select Certificate",
+      "ui_file": "xmlsecurity/uiconfig/ui/selectcertificatedialog.ui",
+      "widget_id": "searchbox",
+      "query_scope": "certificate issuer names and email addresses",
+      "regex_builder": "adjacent-advanced-builder"
+    }
+  ],
+  "planned_fields": [
+    {
+      "coverage_id": "start-center.document-search",
+      "surface": "Start Center document search",
+      "ui_file": "sfx2/uiconfig/ui/startcenter.ui",
+      "widget_id": "start_search",
+      "query_scope": "recent documents and templates",
+      "regex_builder": "adjacent-advanced-builder",
+      "source_state": "not-yet-present",
+      "planned_layout": "Search field and advanced regex builder are anchored together in the Start Center header."
+    }
+  ],
+  "excluded_candidates": [
+    {
+      "coverage_id": "exclude.base-generated-values-query",
+      "ui_file": "dbaccess/uiconfig/ui/generatedvaluespage.ui",
+      "widget_id": "query",
+      "category": "configuration-expression",
+      "reason": "Stores a database generated-values SQL expression; it does not search a user-visible collection."
+    },
+    {
+      "coverage_id": "exclude.xml-filter-name",
+      "ui_file": "filter/uiconfig/ui/xmlfiltertabpagegeneral.ui",
+      "widget_id": "filtername",
+      "category": "object-name",
+      "reason": "Names an XML filter definition; it is not a query control."
+    },
+    {
+      "coverage_id": "exclude.remote-file-type-filter",
+      "ui_file": "fpicker/uiconfig/ui/remotefilesdialog.ui",
+      "widget_id": "filter_lb",
+      "category": "categorical-filter",
+      "reason": "Selects a file type from a finite list and does not accept a text query."
+    },
+    {
+      "coverage_id": "exclude.gtk-tiled-viewer-test-find",
+      "ui_file": "libreofficekit/qa/gtktiledviewer/gtv.ui",
+      "widget_id": "findbar_entry",
+      "category": "non-shipping-test-harness",
+      "reason": "Belongs to the LibreOfficeKit QA viewer, not the shipping Windows application UI."
+    },
+    {
+      "coverage_id": "exclude.calc-advanced-filter-range-list",
+      "ui_file": "sc/uiconfig/scalc/ui/advancedfilterdialog.ui",
+      "widget_id": "lbfilterarea",
+      "category": "range-selector",
+      "reason": "Selects the cell range containing filter criteria; it does not search displayed items."
+    },
+    {
+      "coverage_id": "exclude.calc-advanced-filter-range-entry",
+      "ui_file": "sc/uiconfig/scalc/ui/advancedfilterdialog.ui",
+      "widget_id": "edfilterarea",
+      "category": "range-selector",
+      "reason": "Accepts a Calc cell-range address for filter criteria; it is not a search bar."
+    },
+    {
+      "coverage_id": "exclude.calc-delete-row-lookup",
+      "ui_file": "sc/uiconfig/scalc/ui/deleterowentry.ui",
+      "widget_id": "ed_find",
+      "category": "transformation-parameter",
+      "reason": "Configures a delete-row transformation lookup value rather than searching an application surface."
+    },
+    {
+      "coverage_id": "exclude.calc-find-replace-transformation",
+      "ui_file": "sc/uiconfig/scalc/ui/findreplaceentry.ui",
+      "widget_id": "ed_find",
+      "category": "transformation-parameter",
+      "reason": "Configures the source value of a data transformation and is not an interactive search bar."
+    },
+    {
+      "coverage_id": "exclude.start-center-type-filter",
+      "ui_file": "sfx2/uiconfig/ui/startcenter.ui",
+      "widget_id": "cbFilter",
+      "category": "categorical-filter",
+      "reason": "Selects a document type from a fixed list; the planned start_search control covers text queries."
+    },
+    {
+      "coverage_id": "exclude.template-application-filter",
+      "ui_file": "sfx2/uiconfig/ui/templatedlg.ui",
+      "widget_id": "filter_application",
+      "category": "categorical-filter",
+      "reason": "Selects an application category from a fixed list; search_filter is the text query."
+    },
+    {
+      "coverage_id": "exclude.template-folder-filter",
+      "ui_file": "sfx2/uiconfig/ui/templatedlg.ui",
+      "widget_id": "filter_folder",
+      "category": "categorical-filter",
+      "reason": "Selects a template category from a fixed list; search_filter is the text query."
+    },
+    {
+      "coverage_id": "exclude.find-replace-style-list",
+      "ui_file": "svx/uiconfig/ui/findreplacedialog.ui",
+      "widget_id": "searchlist",
+      "category": "style-selector",
+      "reason": "Selects formatting or styles in pattern mode; searchterm is the covered text-query control."
+    },
+    {
+      "coverage_id": "exclude.calc-search-domain",
+      "ui_file": "svx/uiconfig/ui/findreplacedialog.ui",
+      "widget_id": "calcsearchin",
+      "category": "categorical-filter",
+      "reason": "Selects whether Calc searches formulas, values, or notes; it is not a text query."
+    },
+    {
+      "coverage_id": "exclude.comment-author-filter",
+      "ui_file": "sw/uiconfig/swriter/ui/commentspanel.ui",
+      "widget_id": "filter_author",
+      "category": "categorical-filter",
+      "reason": "Selects an author from a fixed list and does not accept a text query."
+    },
+    {
+      "coverage_id": "exclude-writer-condition-context",
+      "ui_file": "sw/uiconfig/swriter/ui/conditionpage.ui",
+      "widget_id": "filter",
+      "category": "categorical-filter",
+      "reason": "Selects a predefined Writer context such as table, frame, section, footnote, or endnote."
+    }
+  ]
+}

@@ -447,7 +447,8 @@
 ## D-026 — supersede transient archive behavior with notification and regex systems
 
 - Date: 2026-07-20
-- State: coverage contracts in progress; native implementation pending
+- State: exhaustive dialog and audited search coverage contracts implemented;
+  native implementation pending
 - Context: the operator requires every LibreOffice-owned dialog to become a
   customizable bottom-right notification form, with local Git-backed undo and
   a full bulk manager, and requires advanced documented regex support beside

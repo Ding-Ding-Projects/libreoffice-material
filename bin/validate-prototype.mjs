@@ -288,6 +288,37 @@ const checks = [
     },
   },
   {
+    name: 'SURFACE CONTRACT',
+    run: function () {
+      const script = mainScript();
+      const declaration = /\bvar\s+screens\s*=\s*(\[[\s\S]*?\]);/.exec(script);
+      insist(declaration, 'screens array declaration was not found');
+      let screens;
+      try {
+        screens = Function('"use strict"; return (' + declaration[1] + ');')();
+      } catch (error) {
+        throw new Error('screens array could not be parsed: ' + error.message);
+      }
+      const expected = [
+        ['start', 'Start'],
+        ['writer', 'Writer'],
+        ['calc', 'Calc'],
+        ['impress', 'Impress'],
+        ['draw', 'Draw'],
+        ['base', 'Base'],
+        ['math', 'Math'],
+        ['code', 'Features'],
+        ['history', 'History'],
+        ['gallery', 'Components'],
+        ['dialogs', 'Dialogs'],
+      ];
+      const actual = screens.map(function (screen) { return screen.slice(0, 2); });
+      insist(JSON.stringify(actual) === JSON.stringify(expected),
+        'expected the exact 11-surface archive map; got ' + JSON.stringify(actual));
+      return 'all 11 canonical archive surfaces remain directly navigable';
+    },
+  },
+  {
     name: 'REGEX ENGINE',
     run: function () {
       function compile(state) {
@@ -333,6 +364,37 @@ const checks = [
         "invalid regex '[' was not handled gracefully");
 
       return 'literal, anchored, digit, and invalid-pattern behavior is correct';
+    },
+  },
+  {
+    name: 'EXTENDED UI CONTRACT',
+    run: function () {
+      const script = mainScript();
+      const required = [
+        ['bottom-right dialog form', 'function dlgWrap('],
+        ['notification manager', 'function notificationManager('],
+        ['bulk notification actions', "case 'notebulk'"],
+        ['recoverable undo', "case 'noteundo'"],
+        ['local Git ledger', 'Local-only Git ledger'],
+        ['tombstone deletion', 'deletions are tombstones'],
+        ['no-remote guarantee', 'no remote or automatic push'],
+        ['regex documentation tabs', 'Regex builder documentation'],
+        ['regex examples', 'var RX_EXAMPLES='],
+        ['live regex test data', 'rxtest-'],
+      ];
+      const missing = required.filter(function (entry) {
+        return !script.includes(entry[1]);
+      }).map(function (entry) { return entry[0]; });
+      insist(missing.length === 0, 'missing extended UI invariants: ' + missing.join(', '));
+
+      const searchIds = [...script.matchAll(/\brenderSearch\(\s*'([^']+)'/g)]
+        .map(function (match) { return match[1]; })
+        .filter(function (id, index, values) { return values.indexOf(id) === index; })
+        .sort();
+      const expectedSearchIds = ['features', 'find', 'gallery', 'notify', 'start'];
+      insist(JSON.stringify(searchIds) === JSON.stringify(expectedSearchIds),
+        'expected shared builder on five prototype searches; got ' + searchIds.join(', '));
+      return 'notification forms/manager/history and five documented regex builders are guarded';
     },
   },
 ];

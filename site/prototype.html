@@ -20,9 +20,11 @@
   .lo-scroll::-webkit-scrollbar{width:12px;height:12px}
   .lo-scroll::-webkit-scrollbar-thumb{background:var(--outline);border-radius:8px;border:3px solid transparent;background-clip:padding-box}
   .lo-scroll::-webkit-scrollbar-track{background:transparent}
-  @keyframes lo-pop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
-  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:120;display:none;align-items:center;gap:12px;padding:13px 20px;border-radius:8px;background:var(--inv-s);color:var(--on-inv-s);box-shadow:0 10px 30px rgba(0,0,0,.4);font:500 13px/1 inherit}
-  #toast.show{display:flex;animation:lo-pop .16s ease}
+  @keyframes lo-pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+  @keyframes lo-slide-in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+  .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+  .lo-notification-card{animation:lo-slide-in .18s ease both}
+  .lo-notification-form{animation:lo-slide-in .18s ease both}
   a.skip{position:fixed;left:8px;top:8px;z-index:200;padding:10px 14px;border-radius:8px;background:#5d3fc0;color:#fff;transform:translateY(-160%);transition:transform .15s}
   a.skip:focus{transform:none}
   :focus-visible{outline:3px solid var(--p);outline-offset:2px}
@@ -33,7 +35,6 @@
 <body>
 <a class="skip" href="#window">Skip to the prototype</a>
 <div id="app" aria-label="LibreOffice Material interactive prototype"></div>
-<div id="toast" role="status" aria-live="polite"></div>
 <script>
 "use strict";
 /* =========================================================================
@@ -81,6 +82,17 @@ var ICONS = {
   restore:'<path d="M4 12a8 8 0 108-8 8 8 0 00-7 4"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/>',
   person:'<circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0114 0"/>',
   tag:'<path d="M9 4L7 20M17 4l-2 16M5 9h15M4 15h15"/>',
+  notifications:'<path d="M6 9a6 6 0 0112 0v5l2 3H4l2-3z"/><path d="M10 20h4"/>',
+  inbox:'<path d="M4 5h16v14H4z"/><path d="M4 14h5l2 2h2l2-2h5"/>',
+  archive:'<rect x="4" y="7" width="16" height="13" rx="2"/><path d="M3 4h18v3H3zM9 11h6"/>',
+  mark_email_read:'<path d="M3 6h18v12H3zM3 7l9 6 9-6"/><path d="M14 16l2 2 4-4"/>',
+  select_all:'<rect x="7" y="7" width="10" height="10" rx="1"/><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6L7 7M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/>',
+  visibility:'<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  done_all:'<path d="M2 12l4 4 7-8M9 16l3 3 10-11"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none"/>',
+  volume_up:'<path d="M4 10h4l5-4v12l-5-4H4zM16 9a4 4 0 010 6M18 6a8 8 0 010 12"/>',
+  lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/>',
   keyboard_command_key:'<path d="M9 9h6v6H9z"/><path d="M9 9a2 2 0 10-2-2 2 2 0 002 2zM15 9a2 2 0 112-2 2 2 0 01-2 2zM9 15a2 2 0 10-2 2 2 2 0 002-2zM15 15a2 2 0 112 2 2 2 0 01-2-2z"/>',
   play_arrow:'<path d="M8 5l11 7-11 7z" fill="currentColor" stroke="none"/>',
   lightbulb:'<path d="M9 18h6M10 21h4M8 14a5 5 0 118 0c-1 1-1.4 2-1.5 3h-5c-.1-1-.5-2-1.5-3z"/>',
@@ -292,21 +304,92 @@ var S = {
     start:   {q:'',flags:'i',regex:false,open:false,caret:null},
     features:{q:'',flags:'i',regex:false,open:false,caret:null},
     gallery: {q:'',flags:'i',regex:false,open:false,caret:null},
-    find:    {q:'revenue',flags:'i',regex:false,open:false,caret:7}
+    find:    {q:'revenue',flags:'i',regex:false,open:false,caret:7},
+    notify:  {q:'',flags:'i',regex:false,open:false,caret:null}
   },
   frReplace:'', frWholeWord:false,
+  noteManager:false, noteTab:'inbox', noteFocus:'n-001', noteSelected:{}, noteSeverity:'all', noteSource:'all', noteSort:'newest',
+  notePrefs:{width:'standard',visible:3,duration:0,accent:'purple',group:true,preview:true,sound:false,motion:true},
+  notes:[], noteHistory:[], noteAnnounce:'',
   _focusRx:null
 };
 
+/* ---- bottom-right notification records + local Git-history design model ----
+   The standalone prototype persists the same record/commit shape in localStorage
+   so the interaction can be explored without a service. The native design maps
+   it to one JSON record per notification in a local-only Git repository; delete
+   is a tombstone, restore is a new commit, and no remote is ever configured. */
+var NOTE_SEED=[
+  {id:'n-001',time:'Now',sort:600,severity:'info',title:'Document saved',body:'Q3 Board Report.odt was saved locally.',source:'Writer',document:'Q3 Board Report.odt',unread:true,archived:false,deleted:false,commit:'d8b41a2'},
+  {id:'n-002',time:'2 min',sort:590,severity:'success',title:'Accessibility check complete',body:'No blocking issues found. Two suggestions are ready to review.',source:'Accessibility',document:'Q3 Board Report.odt',unread:true,archived:false,deleted:false,commit:'7cd20f1'},
+  {id:'n-003',time:'9 min',sort:560,severity:'warning',title:'Linked image changed',body:'Brand-mark.svg changed outside LibreOffice. Reload or keep the embedded copy.',source:'Draw',document:'Brand Guidelines.odg',unread:false,archived:false,deleted:false,commit:'c119e90'},
+  {id:'n-004',time:'Yesterday',sort:310,severity:'error',title:'Printer unavailable',body:'HP LaserJet Pro M404 did not respond. The print job was retained.',source:'Print',document:'Q3 Board Report.odt',unread:false,archived:true,deleted:false,commit:'31a4bb8'},
+  {id:'n-005',time:'Yesterday',sort:300,severity:'info',title:'Import completed',body:'24 spreadsheet rows were imported.',source:'Calc',document:'2026 Operating Budget.ods',unread:false,archived:false,deleted:true,commit:'51f3d20'}
+];
+S.notes=NOTE_SEED.map(function(n){return Object.assign({},n);});
+S.noteHistory=[
+  {hash:'51f3d20',time:'Yesterday',summary:'Delete notification n-005 (tombstone)',ids:['n-005'],undoable:false,undone:false},
+  {hash:'31a4bb8',time:'Yesterday',summary:'Archive printer notification',ids:['n-004'],undoable:false,undone:false},
+  {hash:'d8b41a2',time:'Now',summary:'Record document saved notification',ids:['n-001'],undoable:false,undone:false}
+];
+try{
+  var noteSaved=JSON.parse(localStorage.getItem('lo-material-notification-store')||'null');
+  if(noteSaved&&Array.isArray(noteSaved.notes)&&Array.isArray(noteSaved.history)){
+    S.notes=noteSaved.notes; S.noteHistory=noteSaved.history;
+    if(noteSaved.prefs) S.notePrefs=Object.assign(S.notePrefs,noteSaved.prefs);
+  }
+}catch(_noteLoad){}
+
 /* ---- helpers ---- */
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-var toastTok=0;
-function toast(msg){
-  var el=document.getElementById('toast');
-  el.innerHTML=ic('bolt',20,'var(--p)')+'<span>'+esc(msg)+'</span>';
-  el.classList.add('show');
-  var t=++toastTok;
-  setTimeout(function(){ if(t===toastTok) el.classList.remove('show'); },1900);
+function persistNotes(){
+  try{ localStorage.setItem('lo-material-notification-store',JSON.stringify({notes:S.notes,history:S.noteHistory,prefs:S.notePrefs})); }catch(_noteSave){}
+}
+function noteHash(seed){
+  var h=2166136261; seed=String(seed);
+  for(var i=0;i<seed.length;i++){ h^=seed.charCodeAt(i); h=Math.imul(h,16777619); }
+  return ('0000000'+(h>>>0).toString(16)).slice(-7);
+}
+function noteById(id){ for(var i=0;i<S.notes.length;i++) if(S.notes[i].id===id) return S.notes[i]; return null; }
+function noteSnapshot(ids){ return ids.map(function(id){ var n=noteById(id); return n?{id:id,unread:n.unread,archived:n.archived,deleted:n.deleted}:null; }).filter(Boolean); }
+function noteCommit(summary,ids,before,undoable){
+  var hash=noteHash(summary+'|'+ids.join(',')+'|'+Date.now()+'|'+S.noteHistory.length);
+  S.noteHistory.unshift({hash:hash,time:'Now',summary:summary,ids:ids.slice(),before:before||[],undoable:undoable!==false,undone:false});
+  persistNotes(); return hash;
+}
+function noteChange(kind,ids,summary){
+  ids=ids.filter(function(id){return !!noteById(id);}); if(!ids.length) return;
+  var before=noteSnapshot(ids);
+  ids.forEach(function(id){ var n=noteById(id); if(!n)return;
+    if(kind==='read') n.unread=false;
+    if(kind==='unread') n.unread=true;
+    if(kind==='archive'){n.archived=true;n.unread=false;}
+    if(kind==='delete'){n.deleted=true;n.archived=false;n.unread=false;}
+    if(kind==='restore'){n.deleted=false;n.archived=false;n.unread=true;}
+  });
+  var hash=noteCommit(summary,ids,before,true);
+  S.noteAnnounce=summary+' — local commit '+hash;
+  S.noteSelected={}; persistNotes(); renderNotifications();
+}
+function noteUndo(){
+  var entry=null;
+  for(var i=0;i<S.noteHistory.length;i++){ if(S.noteHistory[i].undoable&&!S.noteHistory[i].undone&&S.noteHistory[i].before){entry=S.noteHistory[i];break;} }
+  if(!entry){S.noteAnnounce='Nothing left to undo.';renderNotifications();return;}
+  entry.before.forEach(function(prev){var n=noteById(prev.id);if(n){n.unread=prev.unread;n.archived=prev.archived;n.deleted=prev.deleted;}});
+  entry.undone=true;
+  var hash=noteCommit('Revert '+entry.hash+' — '+entry.summary,entry.ids,[],false);
+  S.noteAnnounce='Undid '+entry.summary+' — local commit '+hash;
+  persistNotes(); renderNotifications();
+}
+var noteSerial=20;
+function toast(msg,severity){
+  var id='n-'+String(++noteSerial).padStart(3,'0');
+  var text=String(msg||'Notification');
+  var sev=severity||(/error|failed|invalid|unavailable/i.test(text)?'error':/warning|unsaved/i.test(text)?'warning':'info');
+  var n={id:id,time:'Now',sort:Date.now(),severity:sev,title:text,body:'Action completed in the interactive design reference.',source:APP[S.screen]?APP[S.screen].label:'LibreOffice',document:(APP[S.screen]&&APP[S.screen].doc)||'Suite',unread:true,archived:false,deleted:false,commit:''};
+  S.notes.unshift(n); n.commit=noteCommit('Create notification '+id,[id],[],false);
+  S.noteAnnounce=text; persistNotes(); renderNotifications();
+  if(S.notePrefs.duration>0){ setTimeout(function(){ var live=noteById(id);if(live&&!live.deleted&&!live.archived)noteChange('archive',[id],'Auto-dismiss notification '+id); },S.notePrefs.duration*1000); }
 }
 function set(k,v){ S[k]=v; S.menuOpen=null; render(); }
 
@@ -326,6 +409,13 @@ var RX_TOKENS = [
   { g:'Groups', t:[['( )','Capture group','()',1],['(?: )','Non-capturing','(?:)',1],['|','Alternation','|',0],['(?= )','Lookahead','(?=)',1],['(?! )','Negative lookahead','(?!)',1]] },
   { g:'Escapes', t:[['\\.','Literal dot','\\.',0],['\\/','Slash','\\/',0],['\\(','Paren','\\(',0],['\\t','Tab','\\t',0],['\\n','Newline','\\n',0]] }
 ];
+var RX_EXAMPLES=[
+  {name:'Starts with Save',pattern:'^Save\\b',flags:'i',why:'Anchor to the beginning and stop at a word boundary.',test:'Save As\\nAutosave\\nSave document'},
+  {name:'Office documents',pattern:'\\.(?:odt|ods|odp|odg)$',flags:'i',why:'Match several file extensions at the end of a value.',test:'Report.odt\\nBudget.ODS\\nimage.png'},
+  {name:'UNO commands',pattern:'^\\.uno:[A-Za-z][A-Za-z0-9]+$',flags:'',why:'Validate the common command identifier shape.',test:'.uno:SaveAs\\n.uno:Bold\\nSaveAs'},
+  {name:'Two or more spaces',pattern:'\\s{2,}',flags:'g',why:'Find repeated whitespace for document cleanup.',test:'One space\\nTwo  spaces\\nA     gap'},
+  {name:'Numbered heading',pattern:'^Heading\\s+\\d+$',flags:'i',why:'Combine anchors, whitespace and a digit class.',test:'Heading 1\\nheading 22\\nSubheading 2'}
+];
 function compileRx(st){
   if(st.q===''){ return {ok:true, empty:true, test:function(){return true;}}; }
   if(!st.regex){ var q=st.q.toLowerCase(); return {ok:true, test:function(s){ return String(s).toLowerCase().indexOf(q)>=0; }}; }
@@ -342,16 +432,17 @@ function renderSearch(id, placeholder, total, matched, wrapStyle){
   var invalid = st.regex && st.q!=='' && !pred.ok;
   var border = invalid ? '2px solid var(--err-base)' : 'var(--bw) solid var(--outline-v)';
   var mono = st.regex ? ";font-family:'Cascadia Code',Consolas,monospace" : '';
-  var clearBtn = st.q ? '<button title="Clear" data-act="rxclear:'+id+'" data-hov="background:var(--outline-v)" style="width:28px;height:28px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center;flex:0 0 auto">'+ic('close',16)+'</button>' : '';
-  var modeBtn = '<button title="Regular-expression mode" aria-pressed="'+st.regex+'" data-act="rxmode:'+id+'" style="height:28px;padding:0 9px;border:'+(st.regex?'none':'var(--bw) solid var(--outline)')+';background:'+(st.regex?'var(--p)':'transparent')+';color:'+(st.regex?'var(--on-p)':'var(--on-sv)')+';border-radius:var(--r-sm);cursor:pointer;font:700 12px/1 monospace;flex:0 0 auto">.*</button>';
-  var buildBtn = '<button title="Regex builder" aria-expanded="'+st.open+'" data-act="rxtoggle:'+id+'" data-hov="background:var(--pc);color:var(--on-pc)" style="width:30px;height:30px;border:none;background:'+(st.open?'var(--pc)':'transparent')+';color:'+(st.open?'var(--on-pc)':'var(--on-sv)')+';border-radius:var(--r-sm);cursor:pointer;display:grid;place-items:center;flex:0 0 auto">'+ic('tune',20)+'</button>';
-  var row = '<div style="height:44px;display:flex;align-items:center;gap:8px;padding:0 8px 0 14px;border-radius:var(--r-pill);background:var(--sc);border:'+border+'">'
+  var clearBtn = st.q ? '<button type="button" aria-label="Clear search" title="Clear" data-act="rxclear:'+id+'" data-hov="background:var(--outline-v)" style="width:28px;height:28px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center;flex:0 0 auto">'+ic('close',16)+'</button>' : '';
+  var modeBtn = '<button type="button" aria-label="Use regular expressions" title="Regular-expression mode" aria-pressed="'+st.regex+'" data-act="rxmode:'+id+'" style="height:28px;padding:0 9px;border:'+(st.regex?'none':'var(--bw) solid var(--outline)')+';background:'+(st.regex?'var(--p)':'transparent')+';color:'+(st.regex?'var(--on-p)':'var(--on-sv)')+';border-radius:var(--r-sm);cursor:pointer;font:700 12px/1 monospace;flex:0 0 auto">.*</button>';
+  var buildBtn = '<button type="button" aria-label="Open advanced regular expression builder" title="Advanced regex builder · Alt+Down" aria-expanded="'+st.open+'" aria-controls="rx-builder-'+id+'" data-act="rxtoggle:'+id+'" data-hov="background:var(--pc);color:var(--on-pc)" style="width:30px;height:30px;border:none;background:'+(st.open?'var(--pc)':'transparent')+';color:'+(st.open?'var(--on-pc)':'var(--on-sv)')+';border-radius:var(--r-sm);cursor:pointer;display:grid;place-items:center;flex:0 0 auto">'+ic('tune',20)+'</button>';
+  var row = '<div role="search" style="height:44px;display:flex;align-items:center;gap:8px;padding:0 8px 0 14px;border-radius:var(--r-pill);background:var(--sc);border:'+border+'">'
     + ic('search',20,'var(--on-sv)')
-    + '<input id="rxin-'+id+'" value="'+esc(st.q)+'" aria-label="'+esc(placeholder)+'" placeholder="'+esc(placeholder)+'" spellcheck="false" autocomplete="off" autocapitalize="off" style="flex:1;min-width:0;border:none;background:transparent;outline:none;color:var(--on-s);font:400 14px/1 inherit'+mono+'">'
+    + '<input id="rxin-'+id+'" value="'+esc(st.q)+'" aria-label="'+esc(placeholder)+'" aria-invalid="'+invalid+'" aria-describedby="rx-status-'+id+'" placeholder="'+esc(placeholder)+'" spellcheck="false" autocomplete="off" autocapitalize="off" style="flex:1;min-width:0;border:none;background:transparent;outline:none;color:var(--on-s);font:400 14px/1 inherit'+mono+'">'
     + clearBtn + modeBtn + buildBtn
     + '</div>';
   var pop = st.open ? rxBuilder(id, pred, total, matched) : '';
-  return '<div data-silent="1" style="position:relative;'+(wrapStyle||'flex:1')+'">'+row+pop+'</div>';
+  var assist=invalid?('Invalid pattern: '+pred.error):(matched+' of '+total+' match');
+  return '<div data-silent="1" style="position:relative;'+(wrapStyle||'flex:1')+'">'+row+'<span id="rx-status-'+id+'" class="sr-only" aria-live="polite">'+esc(assist)+'</span>'+pop+'</div>';
 }
 function rxBuilder(id, pred, total, matched){
   var st=S.rx[id];
@@ -370,12 +461,140 @@ function rxBuilder(id, pred, total, matched){
   else if(st.regex && !pred.ok) status='<span style="color:var(--err-base);font-weight:600">Invalid pattern: '+esc(pred.error)+'</span>';
   else status='<span style="color:var(--p);font-weight:700">'+matched+'</span><span style="color:var(--on-sv)"> of '+total+' match'+(st.regex?' &nbsp;/'+esc(st.q)+'/'+esc((st.flags||'').replace(/[^gimsuy]/g,'')):'')+'</span>';
   var preview = st.q!=='' ? esc(st.q) : '<span style="color:var(--on-sv)">(empty)</span>';
-  return '<div class="lo-scroll" style="position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:70;max-height:340px;overflow:auto;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);box-shadow:0 16px 40px rgba(0,0,0,.28);padding:14px;animation:lo-pop .12s ease">'
-    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font:600 13px/1 inherit;color:var(--on-s)">Regex builder</span><span style="font:400 11px/1 inherit;color:var(--on-sv)">insert tokens · toggle flags · live matches</span><button title="Close" data-act="rxclose:'+id+'" data-hov="background:var(--outline-v)" style="margin-left:auto;width:28px;height:28px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('close',16)+'</button></div>'
-    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="mono" style="color:var(--on-sv)">/</span><div class="mono" style="flex:1;min-width:0;height:34px;display:flex;align-items:center;padding:0 10px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);overflow:hidden;white-space:nowrap;font-size:13px">'+preview+'</div><span class="mono" style="color:var(--on-sv)">/</span><div style="display:flex;gap:4px">'+flagsHtml+'</div></div>'
+  var tab=st.tab||'reference', tabs=[['reference','Reference'],['examples','Examples'],['test','Test']], tabsHtml='';
+  for(var z=0;z<tabs.length;z++){var on=tab===tabs[z][0];tabsHtml+='<button role="tab" aria-selected="'+on+'" data-act="rxtab:'+id+':'+tabs[z][0]+'" style="height:32px;padding:0 14px;border:none;border-radius:var(--r-pill);background:'+(on?'var(--p)':'transparent')+';color:'+(on?'var(--on-p)':'var(--on-sv)')+';font:600 12px/1 inherit;cursor:pointer">'+tabs[z][1]+'</button>';}
+  var reference='<div style="padding:2px 2px 0"><div style="display:grid;grid-template-columns:minmax(150px,.8fr) minmax(240px,1.7fr);gap:12px;margin:10px 0">'
+    + '<div style="padding:12px;border-radius:var(--r-cont);background:var(--pc);color:var(--on-pc);font:400 12px/1.45 inherit"><strong>Quick start</strong><br>Turn on <span class="mono">.*</span>, insert tokens at the caret, choose flags, then use Test before applying. Invalid patterns never run.</div>'
+    + '<div style="padding:12px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);font:400 12px/1.45 inherit;color:var(--on-sv)"><strong style="color:var(--on-s)">Native semantics</strong><br>This standalone preview uses the browser engine; the Windows implementation uses LibreOffice’s ICU engine. Literal and wildcard modes remain available. Native runs are debounced, cancellable, and bounded by time/stack limits.</div></div>'
     + tokHtml
+    + '<details style="margin-top:10px;padding:10px 12px;border-radius:var(--r-cont);background:var(--scl);color:var(--on-sv);font:400 12px/1.5 inherit"><summary style="cursor:pointer;font-weight:700;color:var(--on-s)">Flags, replacement and safety</summary><div style="margin-top:8px"><span class="mono">i</span> ignores case; <span class="mono">g</span> finds every occurrence; <span class="mono">m</span> makes anchors line-aware; <span class="mono">s</span> lets dot cross line breaks. Capture groups can be reused as <span class="mono">$1</span> in replacement-capable fields. Prefer bounded quantifiers and specific classes over nested wildcards. Regex syntax is shown left-to-right in every locale.</div></details>'
+    + '<div style="margin-top:9px;color:var(--on-sv);font:400 11px/1.4 inherit">Keyboard: <span class="mono">Alt+Down</span> opens this builder, <span class="mono">Esc</span> closes it, and every token is reachable with Tab.</div></div>';
+  var examples='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:10px">';
+  for(var ex=0;ex<RX_EXAMPLES.length;ex++){var x=RX_EXAMPLES[ex];examples+='<button data-act="rxexample:'+id+':'+ex+'" style="text-align:left;padding:11px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);background:var(--surface);color:var(--on-s);cursor:pointer"><span style="display:block;font:600 12px/1.3 inherit">'+esc(x.name)+'</span><span class="mono" style="display:block;color:var(--p);font-size:11px;margin:5px 0">/'+esc(x.pattern)+'/'+esc(x.flags)+'</span><span style="display:block;color:var(--on-sv);font:400 11px/1.35 inherit">'+esc(x.why)+'</span></button>';}
+  examples+='</div><div style="margin-top:10px;padding:10px 12px;border-radius:var(--r-cont);background:var(--scl);color:var(--on-sv);font:400 12px/1.45 inherit">Examples replace the current pattern and load Test data. Review the result before applying it to a document or command list.</div>';
+  var testText=st.test!=null?st.test:'Save As\nAutosave\nSave document';
+  var testLines=testText.split(/\r?\n/), testPred=compileRx(st), hitCount=0, testRows='';
+  for(var ql=0;ql<testLines.length;ql++){var hit=testPred.ok&&st.q!==''&&testPred.test(testLines[ql]);if(hit)hitCount++;testRows+='<div style="padding:5px 8px;border-radius:var(--r-sm);background:'+(hit?'var(--pc)':'transparent')+';color:'+(hit?'var(--on-pc)':'var(--on-sv)')+'"><span class="mono">'+esc(testLines[ql]||'␤')+'</span>'+(hit?'<strong style="float:right">match</strong>':'')+'</div>';}
+  var testPanel='<div style="padding-top:10px"><label for="rxtest-'+id+'" style="display:block;font:600 12px/1 inherit;color:var(--on-s);margin-bottom:6px">Test data — one value per line</label><textarea id="rxtest-'+id+'" rows="4" spellcheck="false" style="width:100%;resize:vertical;padding:10px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);background:var(--surface);color:var(--on-s);font:400 12px/1.45 &quot;Cascadia Code&quot;,Consolas,monospace;outline:none">'+esc(testText)+'</textarea><div aria-live="polite" style="margin:8px 0;color:'+(testPred.ok?'var(--p)':'var(--err-base)')+';font:600 12px/1.4 inherit">'+(testPred.ok?(hitCount+' of '+testLines.length+' test values match'):'Fix the invalid pattern before testing: '+esc(testPred.error))+'</div><div class="lo-scroll" style="max-height:130px;overflow:auto;padding:5px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);background:var(--scl);font-size:11px">'+testRows+'</div></div>';
+  var panel=tab==='examples'?examples:tab==='test'?testPanel:reference;
+  var anchor=(id==='gallery'||id==='notify')?'right:0':'left:0';
+  return '<section id="rx-builder-'+id+'" role="dialog" aria-label="Advanced regular expression builder" class="lo-scroll" style="position:absolute;top:calc(100% + 6px);'+anchor+';z-index:150;width:min(620px,calc(100vw - 56px));max-height:460px;overflow:auto;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);box-shadow:0 16px 40px rgba(0,0,0,.28);padding:14px;animation:lo-pop .12s ease">'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font:700 14px/1 inherit;color:var(--on-s)">Advanced regex builder</span><span style="font:400 11px/1 inherit;color:var(--on-sv)">Reference · examples · safe testing</span><button aria-label="Close regex builder" title="Close" data-act="rxclose:'+id+'" data-hov="background:var(--outline-v)" style="margin-left:auto;width:28px;height:28px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('close',16)+'</button></div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="mono" style="color:var(--on-sv)">/</span><div class="mono" style="flex:1;min-width:0;height:34px;display:flex;align-items:center;padding:0 10px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);overflow:hidden;white-space:nowrap;font-size:13px">'+preview+'</div><span class="mono" style="color:var(--on-sv)">/</span><div style="display:flex;gap:4px">'+flagsHtml+'</div></div>'
+    + '<div role="tablist" aria-label="Regex builder documentation" style="display:flex;gap:3px;padding:3px;border-radius:var(--r-pill);background:var(--sc);margin-top:10px;width:max-content">'+tabsHtml+'</div>'
+    + panel
     + '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:10px;border-top:var(--bw) solid var(--outline-v);font:400 12px/1.3 inherit">'+status+'<button data-act="rxclear:'+id+'" data-hov="background:var(--pc)" style="margin-left:auto;flex:0 0 auto;height:30px;padding:0 12px;border:var(--bw) solid var(--outline);background:transparent;color:var(--p);border-radius:var(--r-pill);cursor:pointer;font:600 12px/1 inherit">Clear</button></div>'
-    + '</div>';
+    + '</section>';
+}
+
+/* =========================================================================
+   Bottom-right notification system — cards, rich forms, bulk manager, and an
+   inspectable local Git-style commit ledger. All records remain recoverable:
+   Delete writes a tombstone, Restore writes another commit, and Undo applies
+   the inverse snapshot. The native implementation owns the actual local repo.
+   ========================================================================= */
+function noteAccent(){return {purple:'var(--p)',blue:'#00639b',teal:'#006a60'}[S.notePrefs.accent]||'var(--p)';}
+function noteSeverity(n){
+  var map={info:['info',noteAccent(),'Information'],success:['check','#2e7d32','Success'],warning:['warning','#9a5b00','Warning'],error:['error','var(--err-base)','Error']};
+  return map[n.severity]||map.info;
+}
+function noteFiltered(tab,ignoreQuery){
+  var pred=ignoreQuery?{test:function(){return true;}}:rxPredicate('notify');
+  return S.notes.filter(function(n){
+    var state=tab==='unread'?!n.deleted&&!n.archived&&n.unread:tab==='archived'?!n.deleted&&n.archived:tab==='deleted'?n.deleted:!n.deleted&&!n.archived;
+    var severity=S.noteSeverity==='all'||n.severity===S.noteSeverity;
+    var source=S.noteSource==='all'||n.source===S.noteSource;
+    return state&&severity&&source&&pred.test(n.title+' '+n.body+' '+n.source+' '+n.document+' '+n.time+' '+n.severity+' '+n.commit);
+  }).sort(function(a,b){return S.noteSort==='oldest'?a.sort-b.sort:S.noteSort==='source'?(a.source.localeCompare(b.source)||b.sort-a.sort):b.sort-a.sort;});
+}
+function noteCounts(){
+  var c={inbox:0,unread:0,archived:0,deleted:0};
+  S.notes.forEach(function(n){if(n.deleted)c.deleted++;else if(n.archived)c.archived++;else{c.inbox++;if(n.unread)c.unread++;}});return c;
+}
+function notificationCards(){
+  var active=S.notes.filter(function(n){return !n.deleted&&!n.archived;}).sort(function(a,b){return b.sort-a.sort;});
+  if(S.notePrefs.group){var grouped={},order=[];active.forEach(function(n){if(!grouped[n.source]){grouped[n.source]=[];order.push(n.source);}grouped[n.source].push(n);});active=[];order.forEach(function(source){active=active.concat(grouped[source]);});}
+  var max=+S.notePrefs.visible||3, shown=active.slice(0,max), width={compact:340,standard:400,wide:480}[S.notePrefs.width]||400;
+  var out='';
+  for(var i=shown.length-1;i>=0;i--){var n=shown[i], sev=noteSeverity(n);
+    out+='<article class="lo-notification-card" role="status" aria-label="'+esc(sev[2]+': '+n.title)+'" style="position:relative;width:min('+width+'px,calc(100vw - 32px));background:var(--surface);border:var(--bw) solid var(--outline-v);border-left:4px solid '+sev[1]+';border-radius:var(--r-cont);box-shadow:0 12px 30px rgba(0,0,0,.28);padding:13px 12px 12px 14px;color:var(--on-s);'+(S.notePrefs.motion?'':'animation:none')+'">'
+      + '<div style="display:flex;gap:10px;align-items:flex-start"><span style="display:grid;place-items:center;width:30px;height:30px;border-radius:var(--r-sm);background:var(--sc);color:'+sev[1]+';flex:0 0 auto">'+ic(sev[0],18)+'</span><div style="flex:1;min-width:0"><div style="display:flex;gap:8px;align-items:baseline"><strong style="font:650 13px/1.3 inherit;flex:1">'+esc(n.title)+'</strong><span style="font:400 10px/1 inherit;color:var(--on-sv)">'+esc(n.time)+'</span></div>'
+      + (S.notePrefs.preview?'<div style="font:400 12px/1.4 inherit;color:var(--on-sv);margin-top:3px">'+esc(n.body)+'</div>':'')
+      + '<div style="display:flex;align-items:center;gap:8px;margin-top:8px"><span style="font:600 10px/1 inherit;color:var(--p)">'+esc(n.source)+'</span><span class="mono" style="font-size:9px;color:var(--on-sv)">'+esc(n.commit)+'</span><button data-act="noteopen:'+n.id+'" style="margin-left:auto;height:28px;padding:0 10px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--p);font:600 11px/1 inherit;cursor:pointer">Details</button><button aria-label="Archive '+esc(n.title)+'" title="Archive" data-act="noteone:archive:'+n.id+'" style="width:28px;height:28px;border:none;border-radius:var(--r-sm);background:transparent;color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('close',16)+'</button></div></div></div></article>';
+  }
+  var overflow=active.length-shown.length;
+  if(overflow>0)out+='<button data-act="notemgrtoggle" style="align-self:flex-end;height:32px;padding:0 12px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-pill);background:var(--surface);color:var(--p);font:600 11px/1 inherit;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.18)">+'+overflow+' more notifications</button>';
+  return out;
+}
+function noteCheck(on,label,act){
+  return '<button aria-label="'+esc(label)+'" aria-pressed="'+on+'" data-act="'+act+'" style="width:20px;height:20px;padding:0;border:2px solid '+(on?'var(--p)':'var(--outline)')+';border-radius:var(--r-check);background:'+(on?'var(--p)':'transparent')+';color:var(--on-p);cursor:pointer;display:grid;place-items:center;flex:0 0 auto">'+(on?ic('check',14):'')+'</button>';
+}
+function noteManagerRows(items){
+  var out='';
+  for(var i=0;i<items.length;i++){var n=items[i],sev=noteSeverity(n),sel=!!S.noteSelected[n.id],focus=S.noteFocus===n.id;
+    out+='<div role="option" tabindex="0" aria-selected="'+focus+'" data-act="notefocus:'+n.id+'" style="display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:var(--r-cont);background:'+(focus?'var(--pc)':'transparent')+';color:'+(focus?'var(--on-pc)':'var(--on-s)')+';cursor:pointer;border:var(--bw) solid '+(focus?'var(--p)':'transparent')+'">'
+      + noteCheck(sel,'Select '+n.title,'noteselect:'+n.id)
+      + '<span style="display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);background:var(--surface);color:'+sev[1]+';flex:0 0 auto">'+ic(sev[0],17)+'</span><div style="flex:1;min-width:0"><div style="display:flex;gap:6px;align-items:center"><strong style="font:600 12px/1.3 inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(n.title)+'</strong>'+(n.unread?'<span style="width:7px;height:7px;border-radius:50%;background:var(--p);flex:0 0 auto" aria-label="Unread"></span>':'')+'</div><div style="font:400 11px/1.35 inherit;color:var(--on-sv);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px">'+esc(n.source)+' · '+esc(n.document)+'</div></div><span style="font:400 10px/1 inherit;color:var(--on-sv);flex:0 0 auto">'+esc(n.time)+'</span></div>';
+  }
+  if(!items.length)out='<div style="display:grid;place-items:center;min-height:220px;text-align:center;color:var(--on-sv);padding:30px"><div>'+ic('inbox',34)+'<div style="font:600 13px/1.3 inherit;color:var(--on-s);margin-top:10px">No notifications match</div><div style="font:400 11px/1.4 inherit;margin-top:4px">Change the state filter or search pattern.</div></div></div>';
+  return out;
+}
+function noteDetail(items){
+  var n=noteById(S.noteFocus); if(!n||items.indexOf(n)<0)n=items[0]; if(n)S.noteFocus=n.id;
+  if(!n)return '<aside style="width:270px;flex:0 0 auto;border-left:var(--bw) solid var(--outline-v);padding:18px;color:var(--on-sv)">Select a notification to inspect its record.</aside>';
+  var sev=noteSeverity(n);
+  return '<aside aria-label="Notification details" class="lo-scroll" style="width:280px;flex:0 0 auto;border-left:var(--bw) solid var(--outline-v);padding:18px;overflow:auto;background:var(--scl)"><div style="display:flex;align-items:center;gap:10px;color:'+sev[1]+'">'+ic(sev[0],22)+'<span style="font:700 10px/1 inherit;letter-spacing:.08em;text-transform:uppercase">'+sev[2]+'</span></div><h3 style="font:700 18px/1.25 inherit;margin:12px 0 7px;color:var(--on-s)">'+esc(n.title)+'</h3><p style="font:400 12px/1.5 inherit;color:var(--on-sv);margin:0 0 15px">'+esc(n.body)+'</p>'
+    + '<dl style="display:grid;grid-template-columns:auto 1fr;gap:8px 10px;margin:0 0 16px;font-size:11px"><dt style="color:var(--on-sv)">Source</dt><dd style="margin:0;color:var(--on-s)">'+esc(n.source)+'</dd><dt style="color:var(--on-sv)">Document</dt><dd style="margin:0;color:var(--on-s);overflow-wrap:anywhere">'+esc(n.document)+'</dd><dt style="color:var(--on-sv)">Record</dt><dd class="mono" style="margin:0;color:var(--on-s)">'+esc(n.id)+'</dd><dt style="color:var(--on-sv)">Commit</dt><dd class="mono" style="margin:0;color:var(--p)">'+esc(n.commit)+'</dd></dl>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:7px"><button data-act="noteone:'+(n.unread?'read':'unread')+':'+n.id+'" style="height:34px;padding:0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-pill);background:transparent;color:var(--p);font:600 11px/1 inherit;cursor:pointer">Mark '+(n.unread?'read':'unread')+'</button>'
+    + (n.deleted?'<button data-act="noteone:restore:'+n.id+'" style="height:34px;padding:0 12px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:600 11px/1 inherit;cursor:pointer">Restore</button>':'<button data-act="noteone:archive:'+n.id+'" style="height:34px;padding:0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-pill);background:transparent;color:var(--p);font:600 11px/1 inherit;cursor:pointer">Archive</button><button data-act="noteone:delete:'+n.id+'" style="height:34px;padding:0 12px;border:none;border-radius:var(--r-pill);background:var(--err);color:var(--on-err);font:600 11px/1 inherit;cursor:pointer">Delete</button>')+'</div></aside>';
+}
+function noteHistoryPanel(){
+  var out='<div style="padding:14px 16px 10px;display:flex;align-items:center;gap:10px;background:var(--pc);color:var(--on-pc);border-radius:var(--r-cont);margin:14px"><span style="display:grid;place-items:center;width:34px;height:34px;border-radius:var(--r-sm);background:var(--surface);color:var(--p)">'+ic('lock',19)+'</span><div style="flex:1"><strong style="font:650 12px/1.3 inherit">Local-only Git ledger</strong><div style="font:400 11px/1.4 inherit">One JSON record per notification · deletions are tombstones · no remote or automatic push</div></div><button data-act="noteundo" style="height:34px;padding:0 14px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:600 11px/1 inherit;cursor:pointer">Undo latest</button></div><div class="lo-scroll" style="padding:0 14px 14px;overflow:auto">';
+  for(var i=0;i<S.noteHistory.length;i++){var h=S.noteHistory[i];out+='<div style="display:grid;grid-template-columns:76px 1fr auto;gap:12px;align-items:center;padding:11px 9px;border-bottom:var(--bw) solid var(--outline-v);opacity:'+(h.undone?.58:1)+'"><span class="mono" style="font-size:11px;color:var(--p)">'+esc(h.hash)+'</span><div><div style="font:500 12px/1.35 inherit;color:var(--on-s)">'+esc(h.summary)+'</div><div style="font:400 10px/1.4 inherit;color:var(--on-sv)">'+h.ids.map(esc).join(', ')+'</div></div><span style="font:500 10px/1 inherit;color:var(--on-sv)">'+(h.undone?'REVERTED':esc(h.time))+'</span></div>';}
+  return out+'</div>';
+}
+function prefChoice(key,value,label,on){return '<button data-act="notifycfg:'+key+':'+value+'" aria-pressed="'+on+'" style="height:34px;padding:0 13px;border:'+(on?'none':'var(--bw) solid var(--outline)')+';border-radius:var(--r-pill);background:'+(on?'var(--p)':'transparent')+';color:'+(on?'var(--on-p)':'var(--on-s)')+';font:600 11px/1 inherit;cursor:pointer">'+esc(label)+'</button>';}
+function noteSettingsPanel(){var p=S.notePrefs;
+  function row(title,desc,control){return '<div style="display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:18px;align-items:center;padding:14px 0;border-bottom:var(--bw) solid var(--outline-v)"><div><div style="font:600 12px/1.3 inherit;color:var(--on-s)">'+title+'</div><div style="font:400 11px/1.4 inherit;color:var(--on-sv);margin-top:3px">'+desc+'</div></div><div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">'+control+'</div></div>';}
+  return '<div class="lo-scroll" style="padding:8px 20px 20px;overflow:auto"><div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--r-cont);background:var(--scl);margin:8px 0 2px">'+ic('settings',20,'var(--p)')+'<div><strong style="font:650 12px/1.3 inherit">Notification forms are anchored bottom right</strong><div style="font:400 11px/1.4 inherit;color:var(--on-sv)">Preferences apply to compact cards and every LibreOffice-owned dialog form.</div></div></div>'
+    + row('Form width','Compact is efficient; Wide preserves richer Options and Print layouts.',prefChoice('width','compact','Compact',p.width==='compact')+prefChoice('width','standard','Standard',p.width==='standard')+prefChoice('width','wide','Wide',p.width==='wide'))
+    + row('Visible cards','Overflow remains available through the manager.',prefChoice('visible','1','1',p.visible===1)+prefChoice('visible','3','3',p.visible===3)+prefChoice('visible','5','5',p.visible===5))
+    + row('Auto-dismiss','Critical prompts never dismiss automatically in the native policy.',prefChoice('duration','0','Off',p.duration===0)+prefChoice('duration','5','5 sec',p.duration===5)+prefChoice('duration','10','10 sec',p.duration===10))
+    + row('Informational accent','Severity colors remain semantic and are never replaced.',prefChoice('accent','purple','Purple',p.accent==='purple')+prefChoice('accent','blue','Blue',p.accent==='blue')+prefChoice('accent','teal','Teal',p.accent==='teal'))
+    + row('Preview text','Hide bodies when working in shared spaces.',prefChoice('preview',String(!p.preview),p.preview?'Shown':'Hidden',p.preview))
+    + row('Group by source','Combine related events while preserving individual records.',prefChoice('group',String(!p.group),p.group?'On':'Off',p.group))
+    + row('Sound','Visual and assistive announcements always remain available.',prefChoice('sound',String(!p.sound),p.sound?'On':'Off',p.sound))
+    + row('Motion','Reduced-motion system settings always override animation.',prefChoice('motion',String(!p.motion),p.motion?'On':'Off',p.motion))
+    + '<button data-act="notifytest" style="margin-top:16px;height:40px;padding:0 18px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:600 12px/1 inherit;cursor:pointer">Send preview notification</button></div>';
+}
+function notificationManager(){
+  var counts=noteCounts(), tabs=[['inbox','Inbox',counts.inbox],['unread','Unread',counts.unread],['archived','Archived',counts.archived],['deleted','Deleted',counts.deleted],['history','Git history',S.noteHistory.length],['settings','Customize','']];
+  var th='';for(var i=0;i<tabs.length;i++){var on=S.noteTab===tabs[i][0];th+='<button role="tab" aria-selected="'+on+'" data-act="notetab:'+tabs[i][0]+'" style="height:34px;padding:0 11px;border:none;border-radius:var(--r-pill);background:'+(on?'var(--p)':'transparent')+';color:'+(on?'var(--on-p)':'var(--on-sv)')+';font:600 11px/1 inherit;cursor:pointer;white-space:nowrap">'+esc(tabs[i][1])+(tabs[i][2]!==''?' <span class="mono" style="opacity:.75">'+tabs[i][2]+'</span>':'')+'</button>';}
+  var special=S.noteTab==='history'||S.noteTab==='settings';
+  var items=special?[]:noteFiltered(S.noteTab), selected=items.filter(function(n){return !!S.noteSelected[n.id];}), all=items.length>0&&selected.length===items.length;
+  var filterBar='';
+  if(!special){var sourceLabel=S.noteSource==='all'?'All sources':S.noteSource, severityLabel=S.noteSeverity==='all'?'All severities':S.noteSeverity[0].toUpperCase()+S.noteSeverity.slice(1), sortLabel={newest:'Newest first',oldest:'Oldest first',source:'Group by source'}[S.noteSort];
+    filterBar='<div style="display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap"><button data-act="notefilter:severity" style="height:30px;padding:0 10px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-pill);background:var(--surface);color:var(--on-sv);font:600 10px/1 inherit;cursor:pointer">'+esc(severityLabel)+' '+ic('expand_more',14)+'</button><button data-act="notefilter:source" style="height:30px;padding:0 10px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-pill);background:var(--surface);color:var(--on-sv);font:600 10px/1 inherit;cursor:pointer">'+esc(sourceLabel)+' '+ic('expand_more',14)+'</button><button data-act="notefilter:sort" style="height:30px;padding:0 10px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-pill);background:var(--surface);color:var(--on-sv);font:600 10px/1 inherit;cursor:pointer">'+esc(sortLabel)+' '+ic('sort',14)+'</button><span style="margin-left:auto;font:500 10px/1 inherit;color:var(--on-sv)">Select All applies to this query</span></div>';}
+  var bulk='';
+  if(!special)bulk='<div style="display:flex;align-items:center;gap:7px;padding:10px 14px;border-bottom:var(--bw) solid var(--outline-v)">'+noteCheck(all,'Select all matching notifications','noteselectall')+'<span style="font:500 11px/1 inherit;color:var(--on-sv);margin-right:4px">'+selected.length+' selected</span><button data-act="notebulk:read" '+(selected.length?'':'disabled')+' style="height:30px;padding:0 10px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--p);font:600 10px/1 inherit;cursor:pointer">Mark read</button><button data-act="notebulk:archive" '+(selected.length?'':'disabled')+' style="height:30px;padding:0 10px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--p);font:600 10px/1 inherit;cursor:pointer">Archive</button><button data-act="notebulk:'+(S.noteTab==='deleted'?'restore':'delete')+'" '+(selected.length?'':'disabled')+' style="height:30px;padding:0 10px;border:none;border-radius:var(--r-pill);background:transparent;color:'+(S.noteTab==='deleted'?'var(--p)':'var(--err-base)')+';font:600 10px/1 inherit;cursor:pointer">'+(S.noteTab==='deleted'?'Restore':'Delete')+'</button><button data-act="noteexport" style="height:30px;padding:0 10px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--p);font:600 10px/1 inherit;cursor:pointer">Export</button><button data-act="noteundo" style="margin-left:auto;height:30px;padding:0 11px;border:var(--bw) solid var(--outline);border-radius:var(--r-pill);background:transparent;color:var(--p);font:600 10px/1 inherit;cursor:pointer">Undo latest</button></div>';
+  var search=special?'':'<div style="padding:10px 14px;border-bottom:var(--bw) solid var(--outline-v)">'+renderSearch('notify','Search notifications',noteFiltered(S.noteTab,true).length,items.length,'width:100%')+filterBar+'</div>';
+  var body=S.noteTab==='history'?noteHistoryPanel():S.noteTab==='settings'?noteSettingsPanel():'<div style="display:flex;min-height:0;flex:1"><div role="listbox" aria-label="Notifications" class="lo-scroll" style="flex:1;min-width:0;overflow:auto;padding:8px">'+noteManagerRows(items)+'</div>'+noteDetail(items)+'</div>';
+  return '<section role="dialog" aria-label="Notification manager" class="lo-notification-form" style="position:fixed;right:22px;bottom:22px;z-index:190;width:min(820px,calc(100vw - 32px));height:min(680px,calc(100vh - 92px));display:flex;flex-direction:column;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);box-shadow:0 24px 70px rgba(0,0,0,.42);overflow:visible;'+(S.notePrefs.motion?'':'animation:none')+'">'
+    + '<header style="display:flex;align-items:center;gap:11px;padding:14px 16px 10px">'+ic('notifications',23,'var(--p)')+'<div style="flex:1"><h2 style="font:700 18px/1.2 inherit;margin:0;color:var(--on-s)">Notification manager</h2><div style="font:400 10px/1.35 inherit;color:var(--on-sv)">Bulk controls · recoverable delete · local Git audit trail</div></div><button aria-label="Close notification manager" data-act="notemgrtoggle" style="width:34px;height:34px;border:none;border-radius:var(--r-sm);background:transparent;color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('close',19)+'</button></header>'
+    + '<div role="tablist" aria-label="Notification views" class="lo-scroll" style="display:flex;gap:3px;padding:0 13px 10px;overflow:auto">'+th+'</div>'+search+bulk+'<div style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden">'+body+'</div></section>';
+}
+function notificationShell(){
+  var counts=noteCounts();
+  if(S.noteManager)return '<div aria-live="polite" class="sr-only">'+esc(S.noteAnnounce)+'</div>'+notificationManager();
+  return '<div aria-live="polite" class="sr-only">'+esc(S.noteAnnounce)+'</div><div aria-label="Current notifications" style="position:fixed;right:18px;bottom:76px;z-index:180;display:flex;flex-direction:column;align-items:flex-end;gap:9px">'+notificationCards()+'</div><button aria-label="Open notification manager, '+counts.unread+' unread" title="Notification manager" data-act="notemgrtoggle" style="position:fixed;right:20px;bottom:18px;z-index:181;width:48px;height:48px;border:none;border-radius:var(--r-cont);background:var(--p);color:var(--on-p);box-shadow:0 8px 22px rgba(0,0,0,.3);cursor:pointer;display:grid;place-items:center">'+ic('notifications',22)+(counts.unread?'<span style="position:absolute;right:-3px;top:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--err-base);color:var(--surface);border:2px solid var(--surface);font:700 10px/16px inherit">'+counts.unread+'</span>':'')+'</button>';
+}
+function renderNotifications(){var root=document.getElementById('notification-root');if(root)root.innerHTML=notificationShell();}
+function noteExport(){
+  var ids=Object.keys(S.noteSelected).filter(function(id){return S.noteSelected[id];});
+  var records=ids.length?S.notes.filter(function(n){return ids.indexOf(n.id)>=0;}):noteFiltered(S.noteTab);
+  var payload={schema:'org.libreoffice.material.notifications.v1',exportedAt:new Date().toISOString(),records:records,commits:S.noteHistory};
+  try{var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='libreoffice-notification-history.json';a.click();setTimeout(function(){URL.revokeObjectURL(url);},0);S.noteAnnounce='Exported '+records.length+' notification records.';}catch(_export){S.noteAnnounce='Export preview is unavailable in this browser.';}
+  renderNotifications();
 }
 
 /* ---- Find & Replace: regex applied to real document text ---- */
@@ -427,7 +646,8 @@ function render(){
   var isApp=['writer','calc','impress','draw','base','math'].indexOf(scr)>=0;
   var meta=APP[scr]||APP.writer;
 
-  var html = controlBar() + windowShell(isApp, meta) + footerNote() + menuAway();
+  var html = controlBar() + windowShell(isApp, meta) + footerNote() + menuAway()
+    + '<div id="notification-root" data-silent="1"></div>';
 
   var app=document.getElementById('app');
   var cssText='';
@@ -435,12 +655,18 @@ function render(){
   cssText+="font-family:'Segoe UI Variable Text','Segoe UI',system-ui,Roboto,sans-serif;color:var(--on-s);min-height:100vh;width:100%;background:var(--desk);display:flex;flex-direction:column;align-items:center;font-size:var(--fs);line-height:"+D.lh+";padding-bottom:40px";
   app.setAttribute('style',cssText);
   app.innerHTML=html;
+  renderNotifications();
 
   if(st._focusRx){
     var rin=document.getElementById('rxin-'+st._focusRx);
     if(rin){ rin.focus(); var rst=S.rx[st._focusRx]; var c=(rst && rst.caret!=null)?rst.caret:rin.value.length;
       try{ rin.setSelectionRange(c,c); }catch(_){} }
     st._focusRx=null;
+  }
+  if(st._focusRxTest){
+    var rt=document.getElementById('rxtest-'+st._focusRxTest);
+    if(rt){rt.focus();try{rt.setSelectionRange(rt.value.length,rt.value.length);}catch(_rt){}}
+    st._focusRxTest=null;
   }
 }
 
@@ -1038,10 +1264,10 @@ function dialogsBody(){
   else if(st.dialog==='save') dialog=saveDialog();
   else if(st.dialog==='print') dialog=printDialog();
 
-  return '<div style="position:relative;height:600px;background:var(--scl);overflow:hidden">'
-    + '<div style="position:absolute;inset:0;opacity:.4;filter:blur(1px);padding:40px 60px"><div style="height:100%;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:6px"></div></div>'
-    + '<div style="position:absolute;inset:0;background:var(--scrim)"></div>'
-    + '<div data-silent="1" style="position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:5;display:inline-flex;gap:2px;padding:3px;border-radius:20px;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 4px 12px rgba(0,0,0,.2)">'+pickHtml+'</div>'
+  return '<div style="position:relative;height:600px;background:var(--scl);overflow:visible">'
+    + '<div style="position:absolute;inset:0;opacity:.5;padding:62px 34px 28px"><div style="height:100%;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:6px;padding:30px"><div style="height:18px;width:42%;background:var(--outline-v);border-radius:var(--r-sm);margin-bottom:16px"></div><div style="height:10px;width:80%;background:var(--outline-v);border-radius:var(--r-sm);opacity:.55"></div></div></div>'
+    + '<div style="position:absolute;inset:0;background:var(--scrim);opacity:.72"></div>'
+    + '<div data-silent="1" style="position:absolute;top:14px;left:14px;z-index:5;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><div style="display:inline-flex;gap:2px;padding:3px;border-radius:20px;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 4px 12px rgba(0,0,0,.2)">'+pickHtml+'</div><button data-act="notemgrtoggle" style="height:36px;padding:0 13px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-pill);background:var(--surface);color:var(--p);font:600 11px/1 inherit;cursor:pointer;display:flex;align-items:center;gap:7px">'+ic('notifications',17)+'Manager &amp; customization</button></div>'
     + dialog
     + '</div>';
 }
@@ -1050,8 +1276,8 @@ function dlgFooter(buttons){ return '<div style="display:flex;align-items:center
 function ghostBtn(label){ return '<button data-hov="background:var(--pc)" style="height:40px;padding:0 20px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 14px/1 inherit;cursor:pointer">'+label+'</button>'; }
 function outBtn(label){ return '<button data-hov="background:var(--pc)" style="height:40px;padding:0 20px;border:var(--bw) solid var(--outline);border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 14px/1 inherit;cursor:pointer">'+label+'</button>'; }
 function fillBtn(label){ return '<button data-hov="background:var(--pa-hover)" style="height:40px;padding:0 28px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:500 14px/1 inherit;cursor:pointer">'+label+'</button>'; }
-function dlgHead(title){ return '<div style="display:flex;align-items:center;padding:18px 20px 14px"><span style="font:600 18px/1 inherit;color:var(--on-s)">'+title+'</span><button title="Close" data-hov="background:var(--outline-v)" style="margin-left:auto;width:34px;height:34px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('close',20)+'</button></div>'; }
-function dlgWrap(w,inner){ return '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min('+w+'px,94%);background:var(--sc);border:var(--bw) solid var(--outline-v);border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.4);overflow:hidden;animation:lo-pop .16s ease">'+inner+'</div>'; }
+function dlgHead(title){ return '<div style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;border-bottom:var(--bw) solid var(--outline-v)"><span style="display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r-sm);background:var(--pc);color:var(--on-pc)">'+ic('notifications',18)+'</span><span style="min-width:0"><strong style="display:block;font:650 16px/1.2 inherit;color:var(--on-s)">'+title+'</strong><small style="display:block;font:500 10px/1.3 inherit;color:var(--on-sv);margin-top:2px">Actionable notification form · bottom right</small></span><button aria-label="Close '+String(title).replace(/<[^>]+>/g,'')+'" title="Close" data-hov="background:var(--outline-v)" style="margin-left:auto;width:34px;height:34px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center">'+ic('close',20)+'</button></div>'; }
+function dlgWrap(w,inner){ var pref={compact:440,standard:560,wide:720}[S.notePrefs.width]||560, actual=Math.min(w,pref); return '<section role="dialog" aria-modal="true" aria-label="Bottom-right notification form" class="lo-notification-form" style="position:absolute;right:14px;bottom:14px;z-index:10;width:min('+actual+'px,calc(100% - 28px));max-height:calc(100% - 70px);background:var(--sc);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);box-shadow:0 24px 64px rgba(0,0,0,.44);overflow:visible">'+inner+'</section>'; }
 function optionsDialog(){
   var ON=[['LibreOffice',0,'chevron_right',0],['Load/Save',0,'chevron_right',0],['Language Settings',0,'chevron_right',0],['LibreOffice Writer',0,'expand_more',1],['General',16,'',0],['View',16,'',0]];
   var nav='';
@@ -1131,9 +1357,7 @@ function findReplaceDialog(){
     + outBtn('Replace')
     + '<button data-act="frreplaceall" data-hov="background:var(--pa-hover)" style="height:40px;padding:0 22px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:600 14px/1 inherit;cursor:pointer">Replace All</button>'
     + '</div>';
-  // overflow:visible so the regex-builder popover can escape the dialog box
-  return '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(680px,94%);background:var(--sc);border:var(--bw) solid var(--outline-v);border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.4);overflow:visible;animation:lo-pop .16s ease">'
-    + dlgHead('Find &amp; Replace') + body + footer + '</div>';
+  return dlgWrap(680,dlgHead('Find &amp; Replace') + body + footer);
 }
 
 /* ---- status bar ---- */
@@ -1179,6 +1403,9 @@ app.addEventListener('click', function(e){
     case 'menu': { var l=decodeURIComponent(arg); S.menuOpen = S.menuOpen===l ? null : l; render(); break; }
     case 'menuitem': { var lbl=decodeURIComponent(arg); S.menuOpen=null;
       if(/Find & Replace/.test(lbl)){ S.screen='dialogs'; S.dialog='find'; }
+      else if(/^Save As/.test(lbl)){ S.screen='dialogs'; S.dialog='save'; }
+      else if(/^Print/.test(lbl)){ S.screen='dialogs'; S.dialog='print'; }
+      else if(/^Options/.test(lbl)){ S.screen='dialogs'; S.dialog='options'; }
       render(); toast(lbl); break; }
     case 'closemenus': S.menuOpen=null; render(); break;
     case 'toggle': S[arg]=!S[arg]; render(); break;
@@ -1198,18 +1425,33 @@ app.addEventListener('click', function(e){
       var tk=RX_TOKENS[gi].t[ti], rs=S.rx[tid]; var cc=(rs.caret==null?rs.q.length:rs.caret);
       rs.q = rs.q.slice(0,cc)+tk[2]+rs.q.slice(cc); rs.caret = cc + tk[2].length - (tk[3]||0);
       rs.regex=true; S._focusRx=tid; render(); break; }
+    case 'rxtab': { var tb=arg.indexOf(':'); var tbid=arg.slice(0,tb), tab=arg.slice(tb+1);S.rx[tbid].tab=tab;render();break; }
+    case 'rxexample': { var ep=arg.indexOf(':');var eid=arg.slice(0,ep),ex=RX_EXAMPLES[+arg.slice(ep+1)];if(ex){S.rx[eid].q=ex.pattern;S.rx[eid].flags=ex.flags;S.rx[eid].regex=true;S.rx[eid].test=ex.test;S.rx[eid].tab='test';S.rx[eid].caret=ex.pattern.length;}render();break; }
+    case 'notemgrtoggle': S.noteManager=!S.noteManager;S.noteSelected={};renderNotifications();break;
+    case 'notetab': S.noteTab=arg;S.noteSelected={};renderNotifications();break;
+    case 'notefilter': {if(arg==='severity'){var sv=['all','info','success','warning','error'],si=sv.indexOf(S.noteSeverity);S.noteSeverity=sv[(si+1)%sv.length];}else if(arg==='source'){var sources=['all'];S.notes.forEach(function(n){if(sources.indexOf(n.source)<0)sources.push(n.source);});var so=sources.indexOf(S.noteSource);S.noteSource=sources[(so+1)%sources.length];}else{var sorts=['newest','oldest','source'],sr=sorts.indexOf(S.noteSort);S.noteSort=sorts[(sr+1)%sorts.length];}S.noteSelected={};renderNotifications();break;}
+    case 'notefocus': S.noteFocus=arg;var nf=noteById(arg);if(nf&&nf.unread)noteChange('read',[arg],'Mark notification '+arg+' read');else renderNotifications();break;
+    case 'noteselect': S.noteSelected[arg]=!S.noteSelected[arg];renderNotifications();break;
+    case 'noteselectall': {var ni=noteFiltered(S.noteTab),all=ni.length&&ni.every(function(n){return !!S.noteSelected[n.id];});ni.forEach(function(n){S.noteSelected[n.id]=!all;});renderNotifications();break;}
+    case 'notebulk': {var ids=Object.keys(S.noteSelected).filter(function(id){return S.noteSelected[id];});var labels={read:'Mark selected notifications read',archive:'Archive selected notifications',delete:'Delete selected notifications (tombstones)',restore:'Restore selected notifications'};noteChange(arg,ids,labels[arg]||'Update selected notifications');break;}
+    case 'noteone': {var np=arg.indexOf(':'),kind=arg.slice(0,np),nid=arg.slice(np+1);var verbs={read:'Mark notification read',unread:'Mark notification unread',archive:'Archive notification',delete:'Delete notification (tombstone)',restore:'Restore notification'};noteChange(kind,[nid],(verbs[kind]||'Update notification')+' '+nid);break;}
+    case 'noteopen': S.noteFocus=arg;S.noteManager=true;renderNotifications();break;
+    case 'noteundo': noteUndo();break;
+    case 'noteexport': noteExport();break;
+    case 'notifycfg': {var cp=arg.indexOf(':'),ck=arg.slice(0,cp),cv=arg.slice(cp+1);if(ck==='visible'||ck==='duration')cv=parseInt(cv,10);else if(ck==='preview'||ck==='group'||ck==='sound'||ck==='motion')cv=cv==='true';S.notePrefs[ck]=cv;S.noteAnnounce='Notification preference updated: '+ck;persistNotes();render();break;}
+    case 'notifytest': toast('Preview notification — preferences applied','success');break;
     case 'frreplaceall': { var fre=frCompile(true), n=0; if(fre){ DOC_RUNS.forEach(function(r){ var mm=r.match(fre); if(mm) n+=mm.length; }); }
       toast(n ? ('Replaced '+n+' occurrence'+(n===1?'':'s')+(S.frReplace ? (' with “'+S.frReplace+'”') : '')) : 'No matches to replace'); break; }
   }
 });
 
-/* global toast-on-click (matches the design's behavior; skips silent zones) */
+/* Global action feedback is routed to bottom-right, persistent notification cards. */
 app.addEventListener('click', function(e){
   var b=e.target.closest('button');
   if(!b || b.disabled || b.closest('[data-silent]')) return;
   var act=b.getAttribute('data-act')||'';
-  // items that already produce their own toast / are pure navigation are skipped
-  if(/^(toast:|menuitem:|feat:|menu:|set:featCat|frreplaceall)/.test(act)) return;
+  // Items that already produce feedback / manage state without a user-facing outcome are skipped.
+  if(/^(toast:|menuitem:|feat:|menu:|set:featCat|frreplaceall|note|notify|rx)/.test(act)) return;
   var label=(b.getAttribute('title')||b.textContent||'').trim();
   if(label) toast(label);
 }, true);
@@ -1218,9 +1460,21 @@ app.addEventListener('click', function(e){
 app.addEventListener('input', function(e){
   var t=e.target; if(!t || !t.id) return;
   if(t.id==='fr-replace'){ S.frReplace=t.value; return; } // no re-render: keep native caret/focus
+  if(t.id.indexOf('rxtest-')===0){var txid=t.id.slice(7);if(S.rx[txid]){S.rx[txid].test=t.value;S._focusRxTest=txid;render();}return;}
   if(t.id.indexOf('rxin-')!==0) return;
   var id=t.id.slice(5); if(!S.rx[id]) return;
   S.rx[id].q=t.value; S.rx[id].caret=t.selectionStart; S._focusRx=id; render();
+});
+
+app.addEventListener('keydown',function(e){
+  var t=e.target,id=t&&t.id&&t.id.indexOf('rxin-')===0?t.id.slice(5):null;
+  if(id&&e.altKey&&e.key==='ArrowDown'){e.preventDefault();S.rx[id].open=true;S._focusRx=id;render();return;}
+  if(e.key==='Escape'){
+    var openId=null;for(var k in S.rx){if(S.rx[k].open){openId=k;break;}}
+    if(openId){e.preventDefault();S.rx[openId].open=false;S._focusRx=openId;render();}
+    else if(S.noteManager){e.preventDefault();S.noteManager=false;renderNotifications();}
+  }
+  if((e.key==='Enter'||e.key===' ')&&t&&t.matches&&t.matches('[data-act]')&&!/^(BUTTON|INPUT|TEXTAREA|SELECT)$/.test(t.tagName)){e.preventDefault();t.click();}
 });
 
 /* hover system (mirrors the design's style-hover attribute) */

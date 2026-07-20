@@ -49,7 +49,7 @@ Evidence keys:
   See also the [screenshot index](SCREENSHOTS.md) and
   [evidence contract](HEADLESS_UI_EVIDENCE.md).
 - `E-PROT` — the dependency-free [interactive prototype](../site/prototype.html)
-  and its 7/7 validator. It is design evidence only, never build/runtime proof.
+  and its 9/9 validator. It is design evidence only, never build/runtime proof.
 - `E-UPD` — focused Windows updater source tests and the locally built current
   major-upgrade implementation at
   [`7029dccf4`](https://github.com/Ding-Ding-Projects/libreoffice-material/commit/7029dccf4),

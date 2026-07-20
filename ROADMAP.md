@@ -244,7 +244,8 @@ every search bar, and a Find & Replace dialog. Its tokens mirror
 `material/definition.xml` (documented in
 [`docs/DESIGN_TOKENS.md`](docs/DESIGN_TOKENS.md)), and
 [`bin/validate-prototype.mjs`](bin/validate-prototype.mjs) guards its invariants
-(7/7). It specifies the design the native work targets and is **not** a capture
+(9/9), including the exact 11-surface map, notification manager/history
+contract, and five shared regex-builder instances. It specifies the design the native work targets and is **not** a capture
 of a compiled build, so it does not advance any acceptance gate or the
 verified-capture count. The exact-source local MSI and Start Center evidence are
 tracked separately. The corrected normal
@@ -404,6 +405,13 @@ customizable bottom-right notification form. The registry validator fails on
 new, removed, duplicated, reclassified, or implicitly governed roots. It is a
 coverage milestone only: notification hosting, customization, local Git-backed
 undo/history, bulk management, and exact-build runtime proof remain open.
+
+The companion search contract registers 26 audited shipping text-query fields,
+one planned Start Center field, and 15 explicit non-search exclusions. It fails
+on missing, duplicated, stale, or newly unclassified candidates and requires an
+adjacent advanced builder policy on every shipping field. This closes the
+coverage audit only; reusable native controller/UI implementation and per-field
+behavior proof remain open.
 
 The rewrite also removes promotional and recurring nagging prompts while
 preserving data-loss, security, credential, destructive-action, and required

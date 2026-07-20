@@ -986,7 +986,15 @@ function Invoke-CygwinScript {
     Write-Section $Name
     # Feed multi-line commands on stdin. Windows PowerShell can split a
     # newline-bearing argument passed after bash -c, corrupting shell syntax.
-    $ScriptText | & $bash --noprofile --norc -o igncr -eo pipefail -s 2>&1 | Tee-Object -LiteralPath $log
+    # Merge stderr inside Bash instead of with PowerShell's 2>&1 redirection;
+    # the latter turns a harmless native warning into a terminating error when
+    # this script correctly runs with $ErrorActionPreference set to Stop.
+    $wrappedScript = @"
+{
+$ScriptText
+} 2>&1
+"@
+    $wrappedScript | & $bash --noprofile --norc -o igncr -eo pipefail -s | Tee-Object -LiteralPath $log
     $exitCode = $LASTEXITCODE
     if ($exitCode -ne 0) {
         throw ('{0} failed with exit code {1}. See {2}' -f $Name, $exitCode, $log)

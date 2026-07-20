@@ -949,3 +949,6 @@ build or runtime evidence.
   preflight probe, covering configure, profile assertion, native tests, and
   product build. The clean failed-run root is preserved rather than overwritten;
   the repaired commit will use a distinct isolated build root for a fresh run.
+- A no-profile runner smoke emitted both stdout and a warning on stderr, logged
+  both streams, and returned successfully; stderr is now merged inside Bash so
+  ordinary configure warnings cannot abort the PowerShell controller.

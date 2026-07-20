@@ -42,7 +42,7 @@ No phase is currently marked verified.
 Current evidence: the Windows harness preflight passed on 2026-07-16 using a
 temporary Notepad process, but no LibreOffice window was involved. The local
 [one-click Windows script](docs/LOCAL_WINDOWS_BUILD.md) now provisions an
-isolated VS 2022/Cygwin profile, validates it, and creates a clean LF source
+isolated VS 2022 C++/CLI/Cygwin profile, validates it, and creates a clean LF source
 snapshot; its read-only preflight ran on 2026-07-19 and correctly reported the
 missing dedicated VS 2022 and isolated Cygwin profiles without creating either
 default root. The installing bootstrap has not run. This host currently has

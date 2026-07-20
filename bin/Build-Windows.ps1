@@ -57,6 +57,7 @@ $script:DownloadRecords = New-Object 'System.Collections.Generic.List[object]'
 
 $script:RequiredVsComponents = @(
     'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+    'Microsoft.VisualStudio.Component.VC.CLI.Support',
     'Microsoft.VisualStudio.Component.VC.ATL',
     'Microsoft.VisualStudio.Component.VC.Redist.MSM',
     'Microsoft.VisualStudio.Component.VC.CMake.Project'
@@ -65,6 +66,7 @@ $script:RequiredVsComponents = @(
 $script:VsBootstrapComponents = @(
     'Microsoft.VisualStudio.Workload.VCTools',
     'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+    'Microsoft.VisualStudio.Component.VC.CLI.Support',
     'Microsoft.VisualStudio.Component.VC.ATL',
     'Microsoft.VisualStudio.Component.VC.Redist.MSM',
     'Microsoft.VisualStudio.Component.VC.CMake.Project',

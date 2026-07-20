@@ -299,7 +299,8 @@ and the imported build files before configuring a machine.
 > **Local one-click build:** [`Build-Windows.cmd`](Build-Windows.cmd) now calls
 > the source-controlled bootstrapper described in
 > [`docs/LOCAL_WINDOWS_BUILD.md`](docs/LOCAL_WINDOWS_BUILD.md). It provisions
-> an isolated Visual Studio 2022 Build Tools/Cygwin profile when needed,
+> an isolated Visual Studio 2022 Build Tools profile with C++/CLI and Cygwin
+> when needed,
 > verifies it, and builds from an LF snapshot without touching this checkout.
 > This host currently has Visual Studio 2026 rather than the required dedicated
 > VS 2022 instance and no isolated Cygwin profile. Its read-only local preflight

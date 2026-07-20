@@ -26,8 +26,8 @@ repairs an isolated toolchain:
 
 - Visual Studio <strong>2022</strong> Build Tools at
   <code>%ProgramData%\LibreOfficeMaterialTools\VS2022</code>, with MSVC x64/x86,
-  ATL, CRT merge modules, CMake, Windows SDK 26100, and the .NET Framework
-  4.8.1 developer tools;
+  C++/CLI, ATL, CRT merge modules, CMake, Windows SDK 26100, and the .NET
+  Framework 4.8.1 developer tools;
 - Cygwin at <code>%ProgramData%\LibreOfficeMaterialTools\cygwin64</code>, with
   the exact Autotools, Perl, NASM, Ninja, archive, XML, Git, Python, and
   packaging packages used by the Windows CI profile, cached locally below the
@@ -49,8 +49,8 @@ executables must match source-pinned SHA-256 values:
 | <code>pkgconf-2.4.3.exe</code> | <code>791cd6dbc56f7268fbf9c4652d6634b0f5c59687ab4e504565e58245952edd41</code> |
 
 After provisioning, it independently verifies the VS 2022 component set,
-ATL and CRT merge modules, a complete Windows SDK including MIDL and x86 MSI
-tools, the legacy CLI .NET Framework tools, every requested Cygwin package,
+including C++/CLI, ATL and CRT merge modules, a complete Windows SDK including
+MIDL and x86 MSI tools, the legacy CLI .NET Framework tools, every requested Cygwin package,
 the Perl <code>Archive::Zip</code>, <code>Font::TTF</code>, and
 <code>IO::String</code> modules, Windows-built Make, pinned
 <code>pkgconf</code>, and NASM 2.16 or newer. A bootstrap manifest records

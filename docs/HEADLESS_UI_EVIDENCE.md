@@ -69,7 +69,7 @@ These are audited capabilities and constraints, not a LibreOffice run result.
 
 No local fork executable exists. [`LOCAL_WINDOWS_BUILD.md`](LOCAL_WINDOWS_BUILD.md)
 now defines a source-controlled one-click bootstrap that installs a dedicated
-VS 2022/Cygwin profile, verifies it, and builds from an LF source snapshot. It
+VS 2022 C++/CLI/Cygwin profile, verifies it, and builds from an LF source snapshot. It
 uses one hidden elevated bootstrap, isolated Cygwin Git, safe short build
 roots, and per-invocation logs; no bootstrap or local build has executed. This host currently has Visual Studio
 2026 rather than the required dedicated VS 2022 instance and no isolated

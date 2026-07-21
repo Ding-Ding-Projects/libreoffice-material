@@ -228,6 +228,11 @@ $hasStartupProfile = $evidence.application.PSObject.Properties.Name -contains `
 $startupProfile = if ($hasStartupProfile) {
     [string](Get-RequiredEvidenceValue $evidence 'application.startup_profile')
 }
+else {
+    # Schema-v2 Start Center manifests accepted before the no-nag extension did
+    # not record this field; their legacy semantics are the configured profile.
+    'configured'
+}
 
 function Get-RequiredEvidenceTimestamp {
     param(
@@ -246,11 +251,6 @@ function Get-RequiredEvidenceTimestamp {
         throw "Evidence field must be an ISO-8601 timestamp: $FieldPath"
     }
     return $parsed
-}
-else {
-    # Schema-v2 Start Center manifests accepted before the no-nag extension did
-    # not record this field; their legacy semantics are the configured profile.
-    'configured'
 }
 Assert-Evidence (@('configured', 'fresh', 'legacy') -ccontains $startupProfile) `
     'application.startup_profile must be configured, fresh, or legacy.'

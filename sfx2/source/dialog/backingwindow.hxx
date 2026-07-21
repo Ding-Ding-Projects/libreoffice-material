@@ -26,6 +26,7 @@
 #include <vcl/weld/Button.hxx>
 #include <vcl/weld/ComboBox.hxx>
 #include <vcl/weld/Container.hxx>
+#include <vcl/weld/Entry.hxx>
 #include <vcl/weld/Label.hxx>
 #include <vcl/weld/MenuButton.hxx>
 #include <vcl/weld/ToggleButton.hxx>
@@ -41,6 +42,11 @@
 #include <com/sun/star/frame/XFrame.hpp>
 
 #include <memory>
+
+namespace sfx2
+{
+class RegexSearchController;
+}
 
 class BackingWindow : public InterimItemWindow
 {
@@ -63,6 +69,9 @@ class BackingWindow : public InterimItemWindow
     std::unique_ptr<weld::ComboBox> mxFilter;
     std::unique_ptr<weld::MenuButton> mxActions;
 
+    std::unique_ptr<weld::Entry> mxStartSearch;
+    std::unique_ptr<weld::Button> mxStartSearchRegexBuilder;
+
     std::unique_ptr<weld::Button> mxWriterAllButton;
     std::unique_ptr<weld::Button> mxCalcAllButton;
     std::unique_ptr<weld::Button> mxImpressAllButton;
@@ -83,6 +92,9 @@ class BackingWindow : public InterimItemWindow
     std::unique_ptr<weld::CustomWeld> mxAllRecentThumbnailsWin;
     std::unique_ptr<TemplateDefaultView> mxLocalView;
     std::unique_ptr<weld::CustomWeld> mxLocalViewWin;
+    // Owns the recent-documents search field's advanced regex builder. Declared after (destroyed
+    // before) the entry and button whose callbacks it manages.
+    std::unique_ptr<sfx2::RegexSearchController> mxStartSearchController;
     bool mbLocalViewInitialized;
 
     css::uno::Reference<css::datatransfer::dnd::XDropTarget> mxDropTarget;
@@ -98,6 +110,7 @@ class BackingWindow : public InterimItemWindow
 
     DECL_LINK(ToggleHdl, weld::Toggleable&, void);
     DECL_LINK(FilterHdl, weld::ComboBox&, void);
+    DECL_LINK(SearchModifyHdl, weld::TextWidget&, void);
     DECL_LINK(ClickHdl, weld::Button&, void);
     DECL_LINK(ClickHelpHdl, weld::Button&, void);
     DECL_LINK(MenuSelectHdl, const OUString&, void);

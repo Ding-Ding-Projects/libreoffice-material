@@ -18,6 +18,7 @@
  */
 
 #include "backingwindow.hxx"
+#include <set>
 #include <utility>
 #include <vcl/event.hxx>
 #include <vcl/help.hxx>
@@ -26,6 +27,9 @@
 #include <vcl/syswin.hxx>
 #include <vcl/weld/Builder.hxx>
 #include <vcl/weld/Menu.hxx>
+
+#include <sfx2/RegexSearchController.hxx>
+#include <unotools/textsearch.hxx>
 
 #include <unotools/historyoptions.hxx>
 #include <unotools/moduleoptions.hxx>
@@ -84,6 +88,8 @@ BackingWindow::BackingWindow(vcl::Window* i_pParent)
     , mxWelcomeSubtitle(m_xBuilder->weld_label(u"welcome_subtitle"_ustr))
     , mxFilter(m_xBuilder->weld_combo_box(u"cbFilter"_ustr))
     , mxActions(m_xBuilder->weld_menu_button(u"mbActions"_ustr))
+    , mxStartSearch(m_xBuilder->weld_entry(u"start_search"_ustr))
+    , mxStartSearchRegexBuilder(m_xBuilder->weld_button(u"start_search_regex_builder"_ustr))
     , mxWriterAllButton(m_xBuilder->weld_button(u"writer_all"_ustr))
     , mxCalcAllButton(m_xBuilder->weld_button(u"calc_all"_ustr))
     , mxImpressAllButton(m_xBuilder->weld_button(u"impress_all"_ustr))
@@ -134,6 +140,16 @@ BackingWindow::BackingWindow(vcl::Window* i_pParent)
     Reference<XDesktop2> xDesktop = Desktop::create( comphelper::getProcessComponentContext() );
     mxDesktopDispatchProvider = xDesktop;
 
+    // Bind the recent-documents search field to the shared advanced regex builder. The default
+    // reproduces the legacy literal, case-sensitive substring behaviour; regular expressions and
+    // case-insensitive search are opt-in through the builder.
+    mxStartSearchController = std::make_unique<sfx2::RegexSearchController>(
+        m_xContainer.get(), *mxStartSearch, *mxStartSearchRegexBuilder,
+        LINK(this, BackingWindow, SearchModifyHdl));
+    sfx2::RegexSearchState aState = mxStartSearchController->GetState();
+    aState.Mode = sfx2::RegexSearchMode::Literal;
+    aState.Flags.CaseInsensitive = false;
+    mxStartSearchController->SetState(aState);
 }
 
 IMPL_LINK(BackingWindow, ClickHelpHdl, weld::Button&, rButton, void)
@@ -160,6 +176,10 @@ void BackingWindow::dispose()
         mxDropTargetListener.clear();
     }
     mxDropTarget.clear();
+    // Destroy the controller before the entry and button whose callbacks it restores.
+    mxStartSearchController.reset();
+    mxStartSearch.reset();
+    mxStartSearchRegexBuilder.reset();
     mxOpenButton.reset();
     mxRemoteButton.reset();
     mxRecentButton.reset();
@@ -506,12 +526,39 @@ void BackingWindow::applyFilter()
         else
             aFilter = static_cast<sfx2::ApplicationType>(1 << (nFilter - 1));
         mxAllRecentThumbnails->setFilter(aFilter);
+        // Re-apply the live text search over the newly narrowed recent-document set.
+        if (mxStartSearchController)
+            SearchModifyHdl(*mxStartSearch);
     }
 }
 
 IMPL_LINK_NOARG( BackingWindow, FilterHdl, weld::ComboBox&, void )
 {
     applyFilter();
+}
+
+IMPL_LINK_NOARG(BackingWindow, SearchModifyHdl, weld::TextWidget&, void)
+{
+    const sfx2::RegexSearchState& rState = mxStartSearchController->GetState();
+    const bool bEmpty = rState.Pattern.isEmpty();
+    const bool bValid = bEmpty || sfx2::RegexSearchService::Validate(rState).IsValid;
+    // TextSearch intentionally equates straight and typographic quotes in literal mode. Keep the
+    // old exact substring semantics until the user chooses different matching options.
+    const bool bLegacyCompatibleLiteral
+        = rState.Mode == sfx2::RegexSearchMode::Literal && !rState.Flags.CaseInsensitive;
+    std::unique_ptr<utl::TextSearch> xSearch;
+    if (bValid && !bEmpty && !bLegacyCompatibleLiteral)
+        xSearch = std::make_unique<utl::TextSearch>(mxStartSearchController->GetSearchOptions());
+
+    std::set<OUString> aVisibleTitles;
+    for (const OUString& rTitle : mxAllRecentThumbnails->getRecentDocumentTitles())
+    {
+        if (bEmpty
+            || (bLegacyCompatibleLiteral && rTitle.indexOf(rState.Pattern) >= 0)
+            || (xSearch && xSearch->searchForward(rTitle)))
+            aVisibleTitles.insert(rTitle);
+    }
+    mxAllRecentThumbnails->setSearchFilter(aVisibleTitles, bEmpty);
 }
 
 IMPL_LINK( BackingWindow, ToggleHdl, weld::Toggleable&, rButton, void )

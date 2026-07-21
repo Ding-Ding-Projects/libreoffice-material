@@ -42,6 +42,7 @@ EXPECTED_SHIPPING_CONTROLS = {
     ("sw/uiconfig/swriter/ui/fldrefpage.ui", "filter"),
     ("sw/uiconfig/swriter/ui/sidebarquickfind.ui", "searchterm"),
     ("xmlsecurity/uiconfig/ui/selectcertificatedialog.ui", "searchbox"),
+    ("sfx2/uiconfig/ui/startcenter.ui", "start_search"),
 }
 
 SPEC = importlib.util.spec_from_file_location("check_search_field_coverage", VALIDATOR_PATH)
@@ -133,10 +134,13 @@ class SearchFieldCoverageTests(unittest.TestCase):
     def test_repository_registry_is_valid_and_complete(self) -> None:
         errors, stats = validator.validate_registry(REPO_ROOT, REGISTRY_PATH)
         self.assertEqual([], errors)
-        self.assertEqual(26, stats.shipping_fields)
-        self.assertEqual(1, stats.planned_fields)
+        # Start Center now ships (the start_search control exists in the tree and
+        # is a source-integrated regex-search field), so it moved from the planned
+        # group into the audited shipping set.
+        self.assertEqual(27, stats.shipping_fields)
+        self.assertEqual(0, stats.planned_fields)
         self.assertEqual(16, stats.excluded_candidates)
-        self.assertEqual(38, stats.discovered_candidates)
+        self.assertEqual(39, stats.discovered_candidates)
 
     def test_duplicate_control_coverage_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -258,7 +262,7 @@ class SearchFieldCoverageTests(unittest.TestCase):
         ]
         self.assertEqual(len(controls), len(set(controls)))
 
-    def test_registry_locks_the_audited_shipping_set_and_start_center_plan(self) -> None:
+    def test_registry_locks_the_audited_shipping_set_including_start_center(self) -> None:
         registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
         actual_shipping = {
             (entry["ui_file"], entry["widget_id"])
@@ -269,10 +273,11 @@ class SearchFieldCoverageTests(unittest.TestCase):
             for entry in registry["planned_fields"]
         }
 
+        # Start Center's start_search shipped, so it belongs to the audited
+        # shipping set and the planned group is now empty.
+        self.assertIn(("sfx2/uiconfig/ui/startcenter.ui", "start_search"), actual_shipping)
         self.assertSetEqual(EXPECTED_SHIPPING_CONTROLS, actual_shipping)
-        self.assertSetEqual(
-            {("sfx2/uiconfig/ui/startcenter.ui", "start_search")}, actual_planned
-        )
+        self.assertSetEqual(set(), actual_planned)
 
 
 if __name__ == "__main__":

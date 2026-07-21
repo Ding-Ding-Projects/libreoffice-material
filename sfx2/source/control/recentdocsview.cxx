@@ -192,6 +192,28 @@ void RecentDocsView::setFilter(ApplicationType aFilter)
     Reload();
 }
 
+std::vector<OUString> RecentDocsView::getRecentDocumentTitles() const
+{
+    std::vector<OUString> aTitles;
+    aTitles.reserve(mItemList.size());
+    for (const std::unique_ptr<ThumbnailViewItem>& rxItem : mItemList)
+        aTitles.push_back(rxItem->getTitle());
+    return aTitles;
+}
+
+void RecentDocsView::setSearchFilter(const std::set<OUString>& rVisibleTitles, bool bShowAll)
+{
+    if (bShowAll)
+    {
+        filterItems(ViewFilterAll());
+        return;
+    }
+
+    filterItems([rVisibleTitles](const ThumbnailViewItem* pItem) {
+        return rVisibleTitles.find(pItem->getTitle()) != rVisibleTitles.end();
+    });
+}
+
 void RecentDocsView::clearUnavailableFiles()
 {
     if (ConfirmationDlg::Query<officecfg::Office::Common::Misc::QueryClearUnavailableDocuments>(

@@ -33,6 +33,7 @@
 #include <sfx2/sfxresid.hxx>
 #include <sfx2/childwin.hxx>
 #include <sfx2/bindings.hxx>
+#include <sfx2/RegexSearchController.hxx>
 
 #include <svx/srchdlg.hxx>
 #include <comphelper/lok.hxx>
@@ -128,6 +129,7 @@ QuickFindPanel::QuickFindPanel(weld::Widget* pParent, const uno::Reference<frame
                                SfxBindings* pBindings)
     : PanelLayout(pParent, u"QuickFindPanel"_ustr, u"modules/swriter/ui/sidebarquickfind.ui"_ustr)
     , m_xSearchComboBox(m_xBuilder->weld_combo_box(u"searchterm"_ustr))
+    , m_xRegexBuilderButton(m_xBuilder->weld_button(u"searchterm_regex_builder"_ustr))
     , m_xSearchOptionsToolbar(m_xBuilder->weld_toolbar(u"searchoptionstoolbar"_ustr))
     , m_xFindAndReplaceToolbar(m_xBuilder->weld_toolbar(u"findandreplacetoolbar"_ustr))
     , m_xFindAndReplaceToolbarDispatch(
@@ -158,8 +160,28 @@ QuickFindPanel::QuickFindPanel(weld::Widget* pParent, const uno::Reference<frame
     m_xSearchComboBox->connect_focus_in(LINK(this, QuickFindPanel, SearchComboBoxFocusInHandler));
     m_xSearchComboBox->connect_entry_activate(
         LINK(this, QuickFindPanel, SearchComboBoxActivateHandler));
-    m_xSearchComboBox->connect_changed(LINK(this, QuickFindPanel, SearchComboBoxChangedHandler));
     m_xSearchComboBox->connect_key_press(LINK(this, QuickFindPanel, SearchComboBoxKeyInputHandler));
+
+    // Bind the Quick Find search box to the shared advanced regex builder. The controller owns the
+    // combo box's changed callback and forwards it to SearchComboBoxChangedHandler; a second direct
+    // connect_changed must not be installed while the controller is alive.
+    m_xRegexSearchController = std::make_unique<sfx2::RegexSearchController>(
+        m_xContainer.get(), *m_xSearchComboBox, *m_xRegexBuilderButton,
+        LINK(this, QuickFindPanel, SearchComboBoxChangedHandler));
+    // Preserve the panel's current default: literal matching (regular expressions off) and
+    // case-insensitive search (Match case off). Regular expressions are opt-in through the builder.
+    sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+    aState.Mode = m_xRegularExpressionsCheckButton->get_active()
+                      ? sfx2::RegexSearchMode::RegularExpression
+                      : sfx2::RegexSearchMode::Literal;
+    aState.Flags.CaseInsensitive = true;
+    m_xRegexSearchController->SetState(aState);
+    // Keep the sync between the native "Regular expressions" option and the builder's mode
+    // two-way: a manual toggle of the check button must update the controller, otherwise the
+    // changed handler's controller-Mode->check-button mirror would silently clear it on the next
+    // edit and the search would run literally.
+    m_xRegularExpressionsCheckButton->connect_toggled(
+        LINK(this, QuickFindPanel, RegularExpressionsCheckButtonToggledHandler));
 
     m_xSearchOptionsToolbar->connect_clicked(
         LINK(this, QuickFindPanel, SearchOptionsToolbarClickedHandler));
@@ -234,6 +256,9 @@ IMPL_LINK(QuickFindPanel, SearchComboBoxKeyInputHandler, const KeyEvent&, rKeyEv
 
 QuickFindPanel::~QuickFindPanel()
 {
+    // Destroy the controller before the combo box and builder button whose callbacks it restores.
+    m_xRegexSearchController.reset();
+    m_xRegexBuilderButton.reset();
     m_xSearchComboBox.reset();
     m_xSearchFindsList.reset();
     m_xAcceleratorExecute.reset();
@@ -245,8 +270,31 @@ IMPL_LINK_NOARG(QuickFindPanel, SearchComboBoxFocusInHandler, weld::Widget&, voi
         m_xSearchComboBox->select_entry_region(0, m_xSearchComboBox->get_active_text().getLength());
 }
 
+IMPL_LINK_NOARG(QuickFindPanel, RegularExpressionsCheckButtonToggledHandler, weld::Toggleable&, void)
+{
+    // Second half of the two-way sync: reflect a manual toggle of the panel's "Regular
+    // expressions" option back into the shared builder's controller. This keeps the changed
+    // handler's controller-Mode->check-button mirror idempotent instead of clobbering the user's
+    // choice, so the option the user set is the one FillSearchFindsList honours.
+    sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+    const sfx2::RegexSearchMode eMode = m_xRegularExpressionsCheckButton->get_active()
+                                            ? sfx2::RegexSearchMode::RegularExpression
+                                            : sfx2::RegexSearchMode::Literal;
+    if (aState.Mode == eMode)
+        return;
+    aState.Mode = eMode;
+    m_xRegexSearchController->SetState(aState);
+}
+
 IMPL_LINK_NOARG(QuickFindPanel, SearchComboBoxChangedHandler, weld::ComboBox&, void)
 {
+    // Mirror the advanced builder's Literal/RegularExpression choice into the panel's existing
+    // "Regular expressions" option so the document search engine honours it. The engine still
+    // computes its full option set (case, whole words, similarity, comments) from these check
+    // buttons, so there is no second matching path.
+    const sfx2::RegexSearchState& rState = m_xRegexSearchController->GetState();
+    m_xRegularExpressionsCheckButton->set_active(rState.Mode == sfx2::RegexSearchMode::RegularExpression);
+
     m_xSearchComboBox->set_entry_message_type(weld::EntryMessageType::Normal);
     m_xSearchFindsList->clear();
     m_xSearchFindFoundTimesLabel->set_label(OUString());

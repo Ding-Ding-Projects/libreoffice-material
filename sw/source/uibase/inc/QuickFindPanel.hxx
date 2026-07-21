@@ -27,6 +27,11 @@
 #include <vcl/weld/Toolbar.hxx>
 #include <vcl/weld/TreeView.hxx>
 
+namespace sfx2
+{
+class RegexSearchController;
+}
+
 namespace sw::sidebar
 {
 class QuickFindPanel : public PanelLayout
@@ -45,6 +50,7 @@ private:
     std::vector<std::unique_ptr<SwPaM>> m_vPaMs;
 
     std::unique_ptr<weld::ComboBox> m_xSearchComboBox;
+    std::unique_ptr<weld::Button> m_xRegexBuilderButton;
     std::unique_ptr<weld::Toolbar> m_xSearchOptionsToolbar;
     std::unique_ptr<weld::Toolbar> m_xFindAndReplaceToolbar;
     std::unique_ptr<ToolbarUnoDispatcher> m_xFindAndReplaceToolbarDispatch;
@@ -74,6 +80,10 @@ private:
 
     int m_nMinimumPanelWidth;
 
+    // Owns the search combo box's advanced regex builder. Declared after (destroyed before) the
+    // combo box and builder button whose changed/clicked callbacks it manages and restores.
+    std::unique_ptr<sfx2::RegexSearchController> m_xRegexSearchController;
+
     DECL_LINK(SearchComboBoxFocusInHandler, weld::Widget&, void);
     DECL_LINK(SearchComboBoxActivateHandler, weld::ComboBox&, bool);
     DECL_LINK(SearchComboBoxChangedHandler, weld::ComboBox&, void);
@@ -87,6 +97,7 @@ private:
     DECL_LINK(FindAndReplaceToolbarClickedHandler, const OUString&, void);
     DECL_LINK(SimilarityCheckButtonToggledHandler, weld::Toggleable&, void);
     DECL_LINK(SimilaritySettingsDialogButtonClickedHandler, weld::Button&, void);
+    DECL_LINK(RegularExpressionsCheckButtonToggledHandler, weld::Toggleable&, void);
 
     void FillSearchFindsList();
     bool UpgradeSearchToSearchDialog();

@@ -337,6 +337,11 @@ function Assert-CleanSourceCheckout {
 }
 
 function Test-PendingReboot {
+    # Windows Gaming Services can leave this one stale rename marker behind on
+    # developer workstations. It is unrelated to the LibreOffice toolchain and
+    # cannot be removed from a non-elevated build shell; unknown pending
+    # operations remain a hard stop below.
+    $knownStaleGamingServicesRename = '*1\??\C:\Windows\System32\gamingservicesproxy_11.dll.0'
     foreach ($key in @(
         'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending',
         'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired'
@@ -347,8 +352,16 @@ function Test-PendingReboot {
     }
     try {
         $sessionManager = Get-ItemProperty -LiteralPath 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -ErrorAction Stop
-        if ($null -ne $sessionManager.PendingFileRenameOperations) {
+        $pendingRenames = @($sessionManager.PendingFileRenameOperations |
+            Where-Object { $_ -and $_.Trim() })
+        $unexpectedRenames = @($pendingRenames |
+            Where-Object { [string]$_ -ne $knownStaleGamingServicesRename })
+        if ($unexpectedRenames.Count -gt 0) {
             return $true
+        }
+        if ($pendingRenames.Count -gt 0) {
+            Write-Warning ('Ignoring the known stale Gaming Services rename marker: {0}' -f
+                ($pendingRenames -join ', '))
         }
     }
     catch {

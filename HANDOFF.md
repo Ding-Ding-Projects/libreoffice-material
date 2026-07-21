@@ -128,14 +128,13 @@ and statically validated only.
   MSI run for the pre-fix tip was in progress at handoff time and will fail
   the same way; watch the run triggered by `b420ce9ae` instead.
 - **Wave-2 Batch B is an UNVALIDATED WIP snapshot** on
-  `origin/claude/wave2-batch-b` (`3ffad98ac`), stopped mid-implementation on
+  `origin/claude/wave2-batch-b` (`7785d5282`), stopped mid-implementation on
   operator request. It contains partial work for nine rows (WIN-NAV-002,
   WIN-CON-007, WIN-WR-004, WIN-FBK-005, WIN-FBK-008, WIN-CA-001, WIN-CA-002,
-  WIN-IM-002, WIN-CONCEPT-003) plus five new checker/registry pairs. Before
-  ANY merge: strip the accidental debris committed with it (`design/**` — an
-  extraction of the operator archive that must never live in the repo;
-  `e1.txt`, `e2.txt`, `err.txt`), complete the nine rows, run the full gate
-  to green. Do not delete this branch until its work is merged or
+  WIN-IM-002, WIN-CONCEPT-003) plus five new checker/registry pairs. The accidental debris (`design/**` archive extraction, stray `e*.txt`)
+  has already been stripped at this tip, and main's weld include fixes are
+  merged in. Before ANY merge: complete the nine rows and run the full
+  build-free gate to green. Do not delete this branch until its work is merged or
   consciously superseded.
 - **Wave-2 Batch C (staged, not started)**: WIN-SYS-001, -002, -003, -004,
   -005, -006, -007, -009, -010, -011, -015 (system dialog flows),

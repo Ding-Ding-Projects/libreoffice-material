@@ -123,7 +123,7 @@ public static class LibreOfficeMaterialProcessPath
 function Write-Utf8Lf {
     param(
         [Parameter(Mandatory = $true)] [string]$Path,
-        [Parameter(Mandatory = $true)] [string]$Text
+        [Parameter(Mandatory = $true)] [AllowEmptyString()] [string]$Text
     )
 
     $normalized = $Text.Replace("`r`n", "`n").Replace("`r", "`n")

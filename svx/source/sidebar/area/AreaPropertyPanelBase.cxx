@@ -1385,6 +1385,37 @@ sal_Int32 AreaPropertyPanelBase::GetSelectedTransparencyTypeIndex() const
     return mxLBTransType->get_active();
 }
 
+void AreaPropertyPanelBase::ApplyNoSelectionDisabledPolicy()
+{
+    // Every fill control stays visible (no layout jump) but becomes insensitive,
+    // per the §11.2 no-selection policy. This mirrors the disabled states already
+    // defined for these controls in the Material definition.xml.
+    mxColorTextFT->set_visible(true);
+    mxColorTextFT->set_sensitive(false);
+    mxLbFillType->set_visible(true);
+    mxLbFillType->set_sensitive(false);
+    mxLbFillAttr->set_visible(true);
+    mxLbFillAttr->set_sensitive(false);
+    mxToolBoxColor->set_visible(true);
+    mxToolBoxColor->set_sensitive(false);
+    mxTrspTextFT->set_visible(true);
+    mxTrspTextFT->set_sensitive(false);
+    mxLBTransType->set_visible(true);
+    mxLBTransType->set_sensitive(false);
+    mxMTRTransparent->set_visible(true);
+    mxMTRTransparent->set_sensitive(false);
+    mxSldTransparent->set_visible(true);
+    mxSldTransparent->set_sensitive(false);
+    mxBTNGradient->set_visible(true);
+    mxBTNGradient->set_sensitive(false);
+    mxMTRAngle->set_visible(true);
+    mxMTRAngle->set_sensitive(false);
+    mxGradientStyle->set_visible(true);
+    mxGradientStyle->set_sensitive(false);
+    mxBmpImport->set_visible(true);
+    mxBmpImport->set_sensitive(false);
+}
+
 basegfx::BColorStops AreaPropertyPanelBase::createColorStops()
 {
     basegfx::BColorStops aColorStops = maColorStops;

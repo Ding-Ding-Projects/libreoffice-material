@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "contract": "material-impress-draw-surfaces",
+  "platform": "windows",
+  "definition_file": "vcl/uiconfig/theme_definitions/material/definition.xml",
+  "chapter": "docs/design/11-impress-draw.md",
+  "expected_surfaces": 3,
+  "surfaces": [
+    {
+      "surface_id": "draw.tool-rail",
+      "title": "Draw tool rail (docked vertical toolbar)",
+      "chapter_section": "11.2",
+      "status": "source-declared",
+      "notes": "Rail fill and button states are theme-drawn through ControlType::Toolbar; the definition parts below are the normative contract. No app-side color code owns the fill.",
+      "owner_sources": [
+        "vcl/uiconfig/theme_definitions/material/definition.xml",
+        "vcl/source/gdi/FileDefinitionWidgetDraw.cxx",
+        "sd/uiconfig/sdraw/toolbar/toolbar.xml"
+      ],
+      "owner_markers": [
+        {"source": "vcl/source/gdi/FileDefinitionWidgetDraw.cxx", "markers": ["ControlPart::DrawBackgroundVert"]},
+        {"source": "sd/uiconfig/sdraw/toolbar/toolbar.xml", "markers": [".uno:SelectObject"]}
+      ],
+      "definition_parts": [
+        {
+          "control": "toolbar",
+          "part": "DrawBackgroundVert",
+          "states": [
+            {"role": "rail-fill", "attrs": {}, "tokens": {"stroke": "@surface-container", "fill": "@surface-container"}}
+          ]
+        },
+        {
+          "control": "toolbar",
+          "part": "ThumbVert",
+          "states": [
+            {"role": "drag-grip", "attrs": {}, "tokens": {"stroke": "@outline-variant", "fill": "@outline-variant", "radius": "@corner-indicator"}}
+          ]
+        },
+        {
+          "control": "toolbar",
+          "part": "Button",
+          "states": [
+            {"role": "checked", "attrs": {"enabled": "true", "button-value": "true"}, "tokens": {"stroke": "@primary", "fill": "@primary-container", "stroke-width": "@stroke-thin", "radius": "@corner-toolbar"}},
+            {"role": "hover", "attrs": {"enabled": "true", "rollover": "true"}, "tokens": {"stroke": "@primary-container", "fill": "@primary-container", "radius": "@corner-toolbar"}},
+            {"role": "pressed", "attrs": {"enabled": "true", "pressed": "true"}, "tokens": {"stroke": "@primary-hover", "fill": "@primary-hover", "radius": "@corner-toolbar"}},
+            {"role": "focused", "attrs": {"enabled": "true", "focused": "true"}, "tokens": {"stroke": "@primary", "fill": "@surface-container", "stroke-width": "@stroke-standard", "radius": "@corner-toolbar"}},
+            {"role": "disabled-checked", "attrs": {"enabled": "false", "button-value": "true"}, "tokens": {"stroke": "@outline", "fill": "@disabled-container", "stroke-width": "@stroke-thin", "radius": "@corner-toolbar"}}
+          ]
+        }
+      ],
+      "status_model": null,
+      "token_consumption": [],
+      "disabled_policy": null,
+      "runtime_verified": false
+    },
+    {
+      "surface_id": "draw.property-panel",
+      "title": "Draw Fill/Line property panel (shared weld sidebar)",
+      "chapter_section": "11.2",
+      "status": "source-declared",
+      "notes": "The sidebarline.ui/sidebararea.ui panels are shared by Writer/Calc/Impress/Base; the no-selection policy is additive and does not alter existing update paths.",
+      "owner_sources": [
+        "vcl/uiconfig/theme_definitions/material/definition.xml",
+        "svx/uiconfig/ui/sidebarline.ui",
+        "svx/uiconfig/ui/sidebararea.ui",
+        "svx/source/sidebar/line/LinePropertyPanelBase.cxx",
+        "svx/source/sidebar/area/AreaPropertyPanelBase.cxx"
+      ],
+      "owner_markers": [],
+      "definition_parts": [
+        {
+          "control": "listbox",
+          "part": "Entire",
+          "states": [
+            {"role": "outlined-field", "attrs": {"enabled": "true"}, "tokens": {"stroke": "@outline", "fill": "@surface", "stroke-width": "@stroke-thin", "radius": "@corner-container"}},
+            {"role": "disabled", "attrs": {"enabled": "false"}, "tokens": {"stroke": "@outline-variant", "fill": "@disabled-container"}}
+          ]
+        },
+        {
+          "control": "listbox",
+          "part": "ButtonDown",
+          "part_attrs": {"width": "@size-standard-control", "height": "@size-standard-control"},
+          "states": [
+            {"role": "rest", "attrs": {"enabled": "true"}, "tokens": {"stroke": "@primary-container", "fill": "@primary-container", "radius": "@corner-container"}}
+          ]
+        },
+        {
+          "control": "slider",
+          "part": "Button",
+          "part_attrs": {"width": "@size-compact-control", "height": "@size-compact-control"},
+          "states": [
+            {"role": "thumb-rest", "attrs": {"enabled": "true"}, "tokens": {"stroke": "@primary", "fill": "@primary", "radius": "@corner-control"}},
+            {"role": "thumb-hover", "attrs": {"enabled": "true", "rollover": "true"}, "tokens": {"fill": "@primary-action-hover", "radius": "@corner-container"}},
+            {"role": "thumb-focused", "attrs": {"enabled": "true", "focused": "true"}, "tokens": {"stroke": "@on-surface", "fill": "@primary", "stroke-width": "@stroke-standard", "radius": "@corner-container"}},
+            {"role": "thumb-disabled", "attrs": {"enabled": "false"}, "tokens": {"stroke": "@outline", "fill": "@outline-variant", "radius": "@corner-control"}}
+          ]
+        },
+        {
+          "control": "slider",
+          "part": "TrackHorzLeft",
+          "states": [
+            {"role": "filled-track", "attrs": {"enabled": "true"}, "element": "line", "tokens": {"stroke": "@primary", "stroke-width": "@stroke-track"}}
+          ]
+        },
+        {
+          "control": "slider",
+          "part": "TrackHorzRight",
+          "states": [
+            {"role": "remainder-track", "attrs": {"enabled": "true"}, "element": "line", "tokens": {"stroke": "@outline-variant", "stroke-width": "@stroke-track"}}
+          ]
+        }
+      ],
+      "status_model": null,
+      "token_consumption": [],
+      "disabled_policy": [
+        {
+          "source": "svx/source/sidebar/line/LinePropertyPanelBase.cxx",
+          "method": "LinePropertyPanelBase::ApplyNoSelectionDisabledPolicy",
+          "controls": [
+            "mxTBColor", "mxLineStyleTB", "mxFTWidth", "mxTBWidth",
+            "mxFTTransparency", "mxMFTransparent", "mxArrowHeadStyleFT", "mxArrowHeadStyleTB"
+          ]
+        },
+        {
+          "source": "svx/source/sidebar/area/AreaPropertyPanelBase.cxx",
+          "method": "AreaPropertyPanelBase::ApplyNoSelectionDisabledPolicy",
+          "controls": [
+            "mxColorTextFT", "mxLbFillType", "mxLbFillAttr", "mxToolBoxColor",
+            "mxTrspTextFT", "mxLBTransType", "mxMTRTransparent", "mxSldTransparent",
+            "mxBTNGradient", "mxMTRAngle", "mxGradientStyle", "mxBmpImport"
+          ]
+        }
+      ],
+      "runtime_verified": false
+    },
+    {
+      "surface_id": "draw.status-bar",
+      "title": "Draw status bar (page/selection model and zoom control)",
+      "chapter_section": "11.2",
+      "status": "source-declared",
+      "notes": "The 'Page N of N · K objects selected' text model lives in drviewsa.cxx; the zoom control routes its Material text color through the token accessor, inert under the native theme.",
+      "owner_sources": [
+        "sd/source/ui/view/drviewsa.cxx",
+        "sd/source/ui/app/scalectrl.cxx"
+      ],
+      "owner_markers": [],
+      "definition_parts": [],
+      "status_model": {
+        "source": "sd/source/ui/view/drviewsa.cxx",
+        "resource_file": "sd/inc/strings.hrc",
+        "resource": "STR_SD_DRAW_OBJECTS_SELECTED",
+        "resource_text_contains": "objects selected",
+        "markers": [
+          "DocumentType::Draw",
+          "GetMarkedObjectList().GetMarkCount()",
+          "SdResId(STR_SD_DRAW_OBJECTS_SELECTED)",
+          "replaceFirst(\"%1\""
+        ]
+      },
+      "token_consumption": [
+        {
+          "source": "sd/source/ui/app/scalectrl.cxx",
+          "include": "<vcl/MaterialTokens.hxx>",
+          "markers": [
+            "VCL_FILE_WIDGET_THEME",
+            "MaterialTokens::fromThemeDefinition",
+            "findColor(\"on-surface-variant\")",
+            "SetControlForeground"
+          ]
+        }
+      ],
+      "disabled_policy": null,
+      "runtime_verified": false
+    }
+  ]
+}

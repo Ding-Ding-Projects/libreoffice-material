@@ -1,0 +1,56 @@
+{
+  "_comment": [
+    "Registry for the shared Material destructive-confirmation helper (docs/design/08-dialogs.md",
+    "8.1). It is a source-implementation ledger only: it does not claim a native build or runtime",
+    "pixel evidence. The helper composes the modal footer (Help | spacer | safe secondary |",
+    "destructive primary), carries the destructive-action role on the primary, and binds the safe",
+    "action as both the initial focus and the Enter default so keyboard activation can never destroy",
+    "data. 'migrations' lists the real weld::MessageDialog destructive confirmations converted to the",
+    "helper in this wave. Validate with bin/check-material-dialog-anatomy.py and",
+    "bin/test_material_dialog_anatomy.py."
+  ],
+  "helper": {
+    "ui_file": "sfx2/uiconfig/ui/materialdestructiveconfirmdialog.ui",
+    "dialog_id": "MaterialDestructiveConfirmDialog",
+    "message_type": "warning",
+    "source": "sfx2/source/dialog/destructiveconfirmation.cxx",
+    "header": "include/sfx2/destructiveconfirmation.hxx",
+    "entry_point": "ConfirmDestructiveAction",
+    "safe_response": "RET_CANCEL",
+    "destructive_response": "RET_OK",
+    "footer_order": ["help", "safe", "destructive"],
+    "destructive_role_class": "destructive-action"
+  },
+  "migrations": [
+    {
+      "id": "sfx2-newstyle-overwrite-style",
+      "file": "sfx2/source/dialog/newstyle.cxx",
+      "act": "overwrite an existing paragraph/character style",
+      "verb": "Overwrite"
+    },
+    {
+      "id": "sc-tabvwshf-delete-pivot-sheet",
+      "file": "sc/source/ui/view/tabvwshf.cxx",
+      "act": "delete selected sheets that contain a pivot table",
+      "verb": "Delete"
+    },
+    {
+      "id": "sc-tabvwshf-delete-data-sheet",
+      "file": "sc/source/ui/view/tabvwshf.cxx",
+      "act": "delete selected sheets that contain data",
+      "verb": "Delete"
+    },
+    {
+      "id": "sd-drviews4-delete-layer",
+      "file": "sd/source/ui/view/drviews4.cxx",
+      "act": "delete a draw/impress layer and all objects on it",
+      "verb": "Delete"
+    },
+    {
+      "id": "sw-glosbib-delete-category",
+      "file": "sw/source/ui/misc/glosbib.cxx",
+      "act": "delete an AutoText category",
+      "verb": "Delete"
+    }
+  ]
+}

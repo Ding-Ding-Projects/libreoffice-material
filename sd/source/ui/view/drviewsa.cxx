@@ -745,6 +745,17 @@ void DrawViewShell::GetStatusBarState(SfxItemSet& rSet)
             }
         }
 
+        // Draw appends the selection count to the page number, yielding
+        // "Page N of N · K objects selected" (docs/design/11-impress-draw.md
+        // §11.2). Impress keeps its own status composition, so this is scoped to
+        // the Draw document type and never alters the presentation shell.
+        if (GetDoc()->GetDocumentType() == DocumentType::Draw)
+        {
+            const size_t nSelectedObjects = mpDrawView->GetMarkedObjectList().GetMarkCount();
+            aOUString += SdResId(STR_SD_DRAW_OBJECTS_SELECTED)
+                             .replaceFirst("%1", OUString::number(nSelectedObjects));
+        }
+
         rSet.Put (SfxStringItem (SID_STATUS_PAGE, aOUString));
     }
     // Layout

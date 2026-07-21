@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include <sfx2/destructiveconfirmation.hxx>
 #include <sfx2/dialogrequesthelper.hxx>
 #include <sfx2/request.hxx>
 #include <sfx2/bindings.hxx>
@@ -311,13 +312,12 @@ void ScTabViewShell::ExecuteTable( SfxRequest& rReq )
                                                         .replaceAll( "%d", aTabSelCnt )
                                                         + " " + aQueryDeleteTab;
 
-                        std::unique_ptr<weld::MessageDialog> xQueryBox(Application::CreateMessageDialog(GetFrameWeld(),
-                                                                       VclMessageType::Question, VclButtonsType::YesNo,
-                                                                       aStr));
-                        xQueryBox->set_default_response(RET_NO);
-
-                        // Hard warning as there is potential of data loss on deletion
-                        bDoIt = (RET_YES == xQueryBox->run());
+                        // Deleting a sheet that holds a pivot table is irreversible: the shared
+                        // Material destructive-confirmation helper binds the safe action as the
+                        // keyboard default.
+                        sfx2::DestructiveConfirmation aConfirm;
+                        aConfirm.sPrimaryText = aStr;
+                        bDoIt = sfx2::ConfirmDestructiveAction(GetFrameWeld(), aConfirm);
                     }
                     else
                     {
@@ -335,13 +335,13 @@ void ScTabViewShell::ExecuteTable( SfxRequest& rReq )
                         // Do not ask for confirmation if all selected tabs are empty
                         if (bHasData)
                         {
-                            std::unique_ptr<weld::MessageDialog> xQueryBox(Application::CreateMessageDialog(GetFrameWeld(),
-                                                                           VclMessageType::Question, VclButtonsType::YesNo,
-                                                                           aQueryDeleteTab));
-                            xQueryBox->set_default_response(RET_YES);
-
-                            // no parameter given, ask for confirmation
-                            bDoIt = (RET_YES == xQueryBox->run());
+                            // Deleting sheets with data is irreversible. Route through the shared
+                            // Material destructive-confirmation helper so the safe action is the
+                            // initial focus and Enter default (previously the destructive Yes was the
+                            // default, so Enter could delete data).
+                            sfx2::DestructiveConfirmation aConfirm;
+                            aConfirm.sPrimaryText = aQueryDeleteTab;
+                            bDoIt = sfx2::ConfirmDestructiveAction(GetFrameWeld(), aConfirm);
                         }
                         else
                             bDoIt = true;

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "contract": "windows-native-regex-search-integrations",
   "platform": "windows",
-  "expected_integrations": 11,
+  "expected_integrations": 12,
   "integrations": [
     {
       "coverage_id": "calc.go-to-sheet",
@@ -290,6 +290,27 @@
           "match_subject": "rDisplayName"
         }
       ],
+      "runtime_verified": false
+    },
+    {
+      "coverage_id": "gallery.search",
+      "surface": "Gallery sidebar",
+      "status": "source-integrated",
+      "ui_file": "svx/uiconfig/ui/sidebargallery.ui",
+      "entry_id": "search",
+      "builder_button_id": "search_regex_builder",
+      "header_file": "svx/source/inc/galbrws1.hxx",
+      "source_file": "svx/source/gallery2/galbrws1.cxx",
+      "owner_type": "GalleryBrowser",
+      "owner_changed_handler": "SearchHdl",
+      "entry_member": "mxSearchField",
+      "builder_member": "mxRegexBuilderButton",
+      "controller_member": "mxRegexSearchController",
+      "controller_parent": "mxSearchContainer.get()",
+      "widget_kind": "entry",
+      "matcher_strategy": "legacy-literal-or-compiled-once-utl-textsearch",
+      "default_mode": "literal-case-insensitive-contains-compatible",
+      "match_subject": "rTitle",
       "runtime_verified": false
     }
   ]

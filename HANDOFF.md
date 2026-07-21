@@ -1,6 +1,6 @@
 # Windows-only handoff — 2026-07-20
 
-This handoff is the pushed `main` tip `2498c3893` (the source/build SHA immediately
+This handoff is the pushed `main` tip `cf50bbc5766ebd7eeaf6332d65509b9090a2aabf` (the source/build SHA immediately
 before this documentation-only commit is
 `f8f7d8f6e5c3b638ae710652afcf6681f409225f`).
 

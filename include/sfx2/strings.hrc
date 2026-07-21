@@ -233,6 +233,7 @@
 #define STR_SFX_QUERY_WRONG_TYPE                NC_("STR_SFX_QUERY_WRONG_TYPE", "The value entered does not match the specified type.\nThe value will be stored as text.")
 
 #define STR_QUERY_OVERWRITE                     NC_("STR_QUERY_OVERWRITE", "Style already exists. Overwrite?")
+#define STR_QUERY_OVERWRITE_BTN                 NC_("STR_QUERY_OVERWRITE_BTN", "Overwrite")
 
 #define STR_RESET                               NC_("STR_RESET", "~Reset")
 #define STR_TABPAGE_INVALIDNAME                 NC_("STR_TABPAGE_INVALIDNAME", "This name is already in use.")

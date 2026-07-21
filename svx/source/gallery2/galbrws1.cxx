@@ -20,7 +20,6 @@
 #include <sal/config.h>
 
 #include <tools/datetime.hxx>
-#include <tools/wldcrd.hxx>
 #include <utility>
 #include <vcl/commandevent.hxx>
 #include <vcl/event.hxx>
@@ -34,6 +33,8 @@
 #include <sfx2/app.hxx>
 #include <sfx2/viewfrm.hxx>
 #include <sfx2/bindings.hxx>
+#include <sfx2/RegexSearchController.hxx>
+#include <unotools/textsearch.hxx>
 #include <galobj.hxx>
 #include <svx/svxids.hrc>
 #include <svx/gallery1.hxx>
@@ -142,12 +143,13 @@ GalleryBrowser::GalleryBrowser(
     , mxIconButton(rBuilder.weld_toggle_button(u"icon"_ustr))
     , mxListButton(rBuilder.weld_toggle_button(u"list"_ustr))
     , mxSearchField(rBuilder.weld_entry(u"search"_ustr))
+    , mxRegexBuilderButton(rBuilder.weld_button(u"search_regex_builder"_ustr))
+    , mxSearchContainer(rBuilder.weld_widget(u"container"_ustr))
     , mxInfoBar(rBuilder.weld_label(u"label"_ustr))
     , maPreviewSize(28, 28)
     , mnCurActionPos      ( 0xffffffff )
     , meMode              ( GALLERYBROWSERMODE_NONE )
     , meLastMode          ( GALLERYBROWSERMODE_NONE )
-    , m_aCharacterClassficator( ::comphelper::getProcessComponentContext(), SvtSysLocale().GetLanguageTag() )
 {
     mxNewTheme->connect_clicked( LINK( this, GalleryBrowser, ClickNewThemeHdl ) );
 
@@ -191,11 +193,24 @@ GalleryBrowser::GalleryBrowser(
     mxListView->connect_item_activated(LINK(this, GalleryBrowser, RowActivatedHdl));
     mxDragDropTargetHelper.reset(new GalleryDragDrop(this, mxListView->get_drop_target()));
     mxListView->connect_drag_begin(LINK(this, GalleryBrowser, DragBeginHdl));
-    mxSearchField->connect_changed( LINK( this, GalleryBrowser, SearchHdl));
 
     SetMode( ( GALLERYBROWSERMODE_PREVIEW != GalleryBrowser::meInitMode ) ? GalleryBrowser::meInitMode : GALLERYBROWSERMODE_ICON );
 
     FillThemeEntries();
+
+    // Bind the Gallery search field to the shared advanced regex builder. The controller takes
+    // ownership of the entry's changed callback and forwards it to SearchHdl. The seeded default is
+    // a literal case-insensitive substring filter -- substring-compatible with the legacy wildcard
+    // filter for plain queries, but treating '*' and '?' as literal characters rather than
+    // wildcards; regular expressions and case-sensitive matching are opt-in through the builder
+    // popover.
+    mxRegexSearchController = std::make_unique<sfx2::RegexSearchController>(
+        mxSearchContainer.get(), *mxSearchField, *mxRegexBuilderButton,
+        LINK(this, GalleryBrowser, SearchHdl));
+    sfx2::RegexSearchState aState = mxRegexSearchController->GetState();
+    aState.Mode = sfx2::RegexSearchMode::Literal;
+    aState.Flags.CaseInsensitive = true;
+    mxRegexSearchController->SetState(aState);
 }
 
 GalleryBrowser::~GalleryBrowser()
@@ -1535,47 +1550,75 @@ void GalleryBrowser::FillThemeEntries()
     }
     maFoundThemeEntries.assign(maAllThemeEntries.begin(), maAllThemeEntries.end());
 }
-IMPL_LINK(GalleryBrowser, SearchHdl, weld::TextWidget&, searchEdit, void)
+IMPL_LINK_NOARG(GalleryBrowser, SearchHdl, weld::TextWidget&, void)
 {
-    OUString search =   searchEdit.get_text().trim();
+    const sfx2::RegexSearchState& rState = mxRegexSearchController->GetState();
+    // The legacy handler decided emptiness on searchEdit.get_text().trim(), so an all-whitespace
+    // query reopened the full theme list instead of filtering to nothing. Preserve that: a
+    // whitespace-only pattern counts as empty here, otherwise the else-branch below would clear the
+    // theme dropdown and both object views (SelectTheme("")). The match itself still runs on the raw
+    // pattern, so whitespace around a non-empty query stays a literal part of the search.
+    const bool bEmpty = rState.Pattern.trim().isEmpty();
+    const bool bValid = bEmpty || sfx2::RegexSearchService::Validate(rState).IsValid;
+    // When the user turns case-insensitivity off, run the literal match through OUString::indexOf
+    // instead of utl::TextSearch: TextSearch equates straight and typographic quotes even in literal
+    // mode, whereas a plain substring compare must keep them distinct. The default (case-insensitive)
+    // path below uses TextSearch.
+    const bool bLegacyCompatibleLiteral
+        = rState.Mode == sfx2::RegexSearchMode::Literal && !rState.Flags.CaseInsensitive;
+    std::unique_ptr<utl::TextSearch> xSearch;
+    if (bValid && !bEmpty && !bLegacyCompatibleLiteral)
+        xSearch = std::make_unique<utl::TextSearch>(mxRegexSearchController->GetSearchOptions());
+
     OUString curThemeName;
-    ::std::set<OUString> aFoundThemes;
     if (mpCurTheme)
-    {
         curThemeName = mpCurTheme->GetName();
-    }
-    if (search.isEmpty())
+
+    // Decide each entry through the default literal case-insensitive substring filter, then rebuild
+    // the found-entry set and its theme grouping with the same structure the legacy wildcard filter
+    // used. This is a deliberate literal default: it matches the legacy filter for plain queries but
+    // is not identical to it -- '*' and '?' are literal characters here rather than wildcards. Regex
+    // and case-sensitive matching stay opt-in through the builder. The per-entry title order is kept
+    // in lock-step with maAllThemeEntries so the theme selection and list repopulation below follow
+    // the previous grouping behaviour.
+    std::vector<OUString> aAllTitles;
+    aAllTitles.reserve(maAllThemeEntries.size());
+    for (const ThemeEntry& rEntry : maAllThemeEntries)
+        aAllTitles.push_back(rEntry.maEntryTitle);
+
+    ::std::set<OUString> aFoundThemes;
+    bool currentThemeFound = false;
+    maFoundThemeEntries.clear();
+    size_t nEntryIndex = 0;
+    for (const OUString& rTitle : aAllTitles)
     {
-        maFoundThemeEntries.assign(maAllThemeEntries.begin(), maAllThemeEntries.end());
-        if (maAllThemeEntries.begin() != maAllThemeEntries.end())
-            curThemeName = maAllThemeEntries.begin()->maThemeName;
+        const ThemeEntry& rEntry = maAllThemeEntries[nEntryIndex++];
+        if (bEmpty
+            || (bLegacyCompatibleLiteral && rTitle.indexOf(rState.Pattern) >= 0)
+            || (xSearch && xSearch->searchForward(rTitle)))
+        {
+            maFoundThemeEntries.push_back(rEntry);
+            aFoundThemes.insert(rEntry.maThemeName);
+            if (curThemeName == rEntry.maThemeName)
+                currentThemeFound = true;
+        }
     }
-    else
+
+    if (bEmpty)
     {
-        search = "*" + search + "*";
-        WildCard aSearchExpression(m_aCharacterClassficator.lowercase(search));
-        bool currentThemeFound = false;
-        maFoundThemeEntries.clear();
-        for (const auto& rEntry : maAllThemeEntries)
-        {
-            if (aSearchExpression.Matches(m_aCharacterClassficator.lowercase(rEntry.maEntryTitle)))
-            {
-                maFoundThemeEntries.push_back(rEntry);
-                aFoundThemes.insert(rEntry.maThemeName);
-                if (curThemeName == rEntry.maThemeName)
-                    currentThemeFound = true;
-            }
-        }
-        if (!currentThemeFound)
-        {
-            if (maFoundThemeEntries.begin() != maFoundThemeEntries.end())
-                curThemeName = maFoundThemeEntries.begin()->maThemeName;
-            else
-                curThemeName.clear();
-        }
+        if (maFoundThemeEntries.begin() != maFoundThemeEntries.end())
+            curThemeName = maFoundThemeEntries.begin()->maThemeName;
     }
+    else if (!currentThemeFound)
+    {
+        if (maFoundThemeEntries.begin() != maFoundThemeEntries.end())
+            curThemeName = maFoundThemeEntries.begin()->maThemeName;
+        else
+            curThemeName.clear();
+    }
+
     mxThemes->clear();
-    if (search.isEmpty())
+    if (bEmpty)
     {
         for (size_t i = 0, nCount = mpGallery->GetThemeCount(); i < nCount; ++i)
             ImplInsertThemeEntry( mpGallery->GetThemeInfo( i ) );

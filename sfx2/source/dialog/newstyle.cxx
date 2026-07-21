@@ -19,6 +19,7 @@
 
 #include <svl/style.hxx>
 
+#include <sfx2/destructiveconfirmation.hxx>
 #include <sfx2/newstyle.hxx>
 #include <sfx2/strings.hrc>
 #include <sfx2/sfxresid.hxx>
@@ -45,7 +46,12 @@ IMPL_LINK_NOARG(SfxNewStyleDlg, OKClickHdl, weld::Button&, void)
             return;
         }
 
-        if (RET_YES == m_xQueryOverwriteBox->run())
+        // Overwriting an existing style is irreversible: route through the shared Material
+        // destructive-confirmation helper so the safe action is the keyboard default.
+        sfx2::DestructiveConfirmation aConfirm;
+        aConfirm.sPrimaryText = SfxResId(STR_QUERY_OVERWRITE);
+        aConfirm.sDestructiveLabel = SfxResId(STR_QUERY_OVERWRITE_BTN);
+        if (sfx2::ConfirmDestructiveAction(m_xDialog.get(), aConfirm))
             m_xDialog->response(RET_OK);
     }
     else
@@ -69,8 +75,6 @@ SfxNewStyleDlg::SfxNewStyleDlg(weld::Widget* pParent, SfxStyleSheetBasePool& rIn
     , m_eSearchFamily(eFam)
     , m_xColBox(m_xBuilder->weld_entry_tree_view(u"stylegrid"_ustr, u"stylename"_ustr, u"styles"_ustr))
     , m_xOKBtn(m_xBuilder->weld_button(u"ok"_ustr))
-    , m_xQueryOverwriteBox(Application::CreateMessageDialog(m_xDialog.get(), VclMessageType::Question, VclButtonsType::YesNo,
-                                                                           SfxResId(STR_QUERY_OVERWRITE)))
 {
     m_xColBox->set_entry_width_chars(20);
     m_xColBox->set_height_request_by_rows(8);

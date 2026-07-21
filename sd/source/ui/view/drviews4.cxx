@@ -30,6 +30,7 @@
 #include <svx/ruler.hxx>
 #include <svx/svdobjkind.hxx>
 #include <editeng/outliner.hxx>
+#include <sfx2/destructiveconfirmation.hxx>
 #include <sfx2/ipclient.hxx>
 #include <sfx2/dispatch.hxx>
 #include <svx/svdopath.hxx>
@@ -163,10 +164,11 @@ void DrawViewShell::DeleteActualLayer()
     // replace placeholder
     aString = aString.replaceFirst("$", aDisplayName);
 
-    std::unique_ptr<weld::MessageDialog> xQueryBox(Application::CreateMessageDialog(GetFrameWeld(),
-                                                   VclMessageType::Question, VclButtonsType::YesNo,
-                                                   aString));
-    if (xQueryBox->run() == RET_YES)
+    // Deleting a layer discards every object on it: the shared Material destructive-confirmation
+    // helper binds the safe action as the initial focus and Enter default.
+    sfx2::DestructiveConfirmation aConfirm;
+    aConfirm.sPrimaryText = aString;
+    if (sfx2::ConfirmDestructiveAction(GetFrameWeld(), aConfirm))
     {
         if (const SdrLayer* pLayer = rAdmin.GetLayer(aName))
             mpDrawView->DeleteLayer(pLayer->GetName());

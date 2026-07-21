@@ -54,8 +54,6 @@ private:
     std::unique_ptr<weld::EntryTreeView> m_xColBox;
     std::unique_ptr<weld::Button> m_xOKBtn;
 
-    std::unique_ptr<weld::MessageDialog> m_xQueryOverwriteBox;
-
     DECL_DLLPRIVATE_LINK(OKHdl, const weld::TreeIter&, bool);
     DECL_DLLPRIVATE_LINK(OKClickHdl, weld::Button&, void);
     DECL_DLLPRIVATE_LINK(ModifyHdl, weld::ComboBox&, void);

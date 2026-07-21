@@ -80,6 +80,13 @@ public:
     void SetGradient (const basegfx::BGradient& rGradient);
     sal_Int32 GetSelectedTransparencyTypeIndex() const;
 
+    // No-selection / disabled policy (docs/design/11-impress-draw.md §11.2): keep
+    // every fill control visible but insensitive so the sidebar does not re-lay-out
+    // (no layout jump) when the canvas selection empties. Additive and shared-safe:
+    // existing update paths are untouched; a host view invokes this when it has no
+    // object selected, and any normal NotifyItemUpdate re-enables the controls.
+    void ApplyNoSelectionDisabledPolicy();
+
     // constructor/destructor
     AreaPropertyPanelBase(
         weld::Widget* pParent,

@@ -21,11 +21,22 @@ exact, fail-closed marker set implied by that combination:
                           before the user opts in through the builder.  The
                           declared mode pins the ``CaseInsensitive`` flag the
                           constructor MUST set; the value is never optional.
-* ``matcher_strategy`` -- how the owner's changed handler turns the controller
-                          state into results.  Each strategy has its own required
-                          marker contract (local compiled-once matching, options
-                          hand-off to an existing engine, or native-regex toggle
-                          synchronisation).
+* ``matcher_strategy`` -- how the controller state becomes results.  Three
+                          strategies validate the owner's *changed handler* itself
+                          (local compiled-once matching, options hand-off to an
+                          existing engine, or native-regex toggle synchronisation).
+                          The fourth strategy,
+                          ``controller-driven-search-sites``, decouples the match
+                          from the changed handler: the changed handler becomes a
+                          declared, matching-free *trigger* and the real search runs
+                          in one or more declared ``search_sites`` (a shared method,
+                          a button-triggered handler, or an enumeration/predicate
+                          pair).  Each site is validated with the same fail-closed
+                          marker contract, merely relocated -- state/options obtained
+                          exactly once per invocation, the legacy default preserved
+                          through the compatibility route, regex/options opt-in only
+                          through the controller, and no undeclared matcher hiding
+                          anywhere in the owner source.
 
 Adding a parameter combination never weakens the checker: an unsupported or
 mismatched combination fails closed.  If a search surface cannot honestly satisfy
@@ -82,15 +93,19 @@ MATCHER_STRATEGIES = (
     "legacy-literal-or-compiled-once-utl-textsearch",
     "options-handoff-to-existing-search-engine",
     "native-regex-option-sync",
+    "controller-driven-search-sites",
 )
 
 DEFAULT_MODES = (
     "literal-case-sensitive-indexof-compatible",
     "literal-case-insensitive-contains-compatible",
     "engine-preserving-current-default",
+    "regex-native-case-insensitive",
 )
 
-# Which default_mode values each strategy may declare.
+# Which default_mode values each strategy may declare.  The
+# controller-driven-search-sites strategy accepts every default_mode; the per-site
+# ``site_route`` further constrains which mode is valid (see SITE_ROUTE_DEFAULT_MODES).
 STRATEGY_DEFAULT_MODES = {
     "legacy-literal-or-compiled-once-utl-textsearch": {
         "literal-case-sensitive-indexof-compatible",
@@ -102,6 +117,12 @@ STRATEGY_DEFAULT_MODES = {
     "native-regex-option-sync": {
         "engine-preserving-current-default",
     },
+    "controller-driven-search-sites": {
+        "literal-case-sensitive-indexof-compatible",
+        "literal-case-insensitive-contains-compatible",
+        "engine-preserving-current-default",
+        "regex-native-case-insensitive",
+    },
 }
 
 # The CaseInsensitive flag the constructor MUST seed for a given default_mode.
@@ -112,6 +133,7 @@ MODE_CASE_INSENSITIVE = {
     "literal-case-sensitive-indexof-compatible": False,
     "literal-case-insensitive-contains-compatible": True,
     "engine-preserving-current-default": None,
+    "regex-native-case-insensitive": True,
 }
 # default_mode values that additionally require the constructor to seed
 # ``aState.Mode = sfx2::RegexSearchMode::Literal;``.  Engine-preserving surfaces
@@ -120,6 +142,64 @@ MODE_REQUIRES_LITERAL_SEED = {
     "literal-case-sensitive-indexof-compatible",
     "literal-case-insensitive-contains-compatible",
 }
+# default_mode values that instead require the constructor to seed
+# ``aState.Mode = sfx2::RegexSearchMode::RegularExpression;``.  This is the honest
+# default for a surface whose *legacy* matcher already runs a case-insensitive
+# regular expression (e.g. the Manage Changes comment filter): pinning Literal
+# there would silently regress an existing regex into a literal substring.
+MODE_REQUIRES_REGEX_SEED = {
+    "regex-native-case-insensitive",
+}
+
+# ---------------------------------------------------------------------------
+# controller-driven-search-sites vocabulary.
+#
+# This strategy decouples *where* the search executes from the widget's changed
+# handler.  The widget's changed handler becomes a declared, matching-free trigger
+# (``changed_handler_role``); the real matching lives in one or more declared
+# ``search_sites``, each validated against the same fail-closed marker contract the
+# in-handler strategies use, merely relocated.  Every token below is fail-closed.
+# ---------------------------------------------------------------------------
+
+# What the widget's changed handler is allowed to do.  Mapped to the substring the
+# declared ``changed_handler_trigger`` MUST contain, so the role name cannot drift
+# from the marker it certifies.  ``forward-to-site`` is validated separately: its
+# trigger must name a declared site method.
+CHANGED_HANDLER_ROLES = {
+    "debounce-timer-start": ".Start(",
+    "button-enabler": "set_sensitive",
+    "deferred-dirty-flag": "= true",
+    "forward-to-site": None,
+}
+
+SITE_ROUTES = (
+    "legacy-literal-filter",
+    "options-handoff",
+    "live-predicate",
+)
+
+# Which default_mode each site_route may pair with.  A single registry entry has
+# one default_mode, so mixing routes with incompatible mode requirements is
+# rejected here.
+SITE_ROUTE_DEFAULT_MODES = {
+    "legacy-literal-filter": {
+        "literal-case-sensitive-indexof-compatible",
+        "literal-case-insensitive-contains-compatible",
+    },
+    "live-predicate": {
+        "literal-case-sensitive-indexof-compatible",
+        "literal-case-insensitive-contains-compatible",
+    },
+    "options-handoff": {
+        "engine-preserving-current-default",
+        "regex-native-case-insensitive",
+    },
+}
+
+# Site routes whose body compiles a utl::TextSearch (legacy-literal-filter) or
+# whose enumeration site does (live-predicate).  Used to pin the *total* number of
+# compiled matchers in the owner source so an undeclared matcher cannot hide.
+SITE_ROUTES_THAT_COMPILE = {"legacy-literal-filter", "live-predicate"}
 
 
 class ValidationError(RuntimeError):
@@ -406,6 +486,8 @@ def _validate_constructor(
     required = [f"{controller_member}->SetState(aState);"]
     if default_mode in MODE_REQUIRES_LITERAL_SEED:
         required.append("aState.Mode = sfx2::RegexSearchMode::Literal;")
+    if default_mode in MODE_REQUIRES_REGEX_SEED:
+        required.append("aState.Mode = sfx2::RegexSearchMode::RegularExpression;")
     if case_insensitive is not None:
         # The seeded CaseInsensitive flag is cross-validated against the declared
         # default_mode and is never optional.
@@ -531,6 +613,270 @@ def _validate_native_sync_handler(
             (f"{controller_member}->GetSearchOptions()", "search-options"),
         ),
         errors,
+    )
+
+
+# ---------------------------------------------------------------------------
+# controller-driven-search-sites strategy.
+#
+# The widget's changed handler becomes a declared, matching-free *trigger* and the
+# real search executes in one or more declared ``search_sites``.  Each site is
+# validated with the same fail-closed marker contract the in-handler strategies use,
+# merely relocated: the site obtains the controller state/options exactly once, the
+# match subject is tested through the exact legacy-preserving compatibility route,
+# regex/options beyond the default stay opt-in through the controller, and no
+# undeclared compiled matcher may hide anywhere else in the owner source.
+# ---------------------------------------------------------------------------
+
+
+def _validate_changed_handler_trigger(
+    context: str,
+    body: str,
+    controller_member: str,
+    role: str,
+    trigger: str,
+    site_signatures: tuple[str, ...],
+    errors: list[str],
+) -> None:
+    """The widget's changed handler must be a matching-free trigger.
+
+    It carries the declared trigger marker (whose shape is pinned by the role) and
+    performs no local matching -- matching lives only in declared sites.
+    """
+    _forbid_local_matching(
+        context,
+        body,
+        (
+            ("std::make_unique<utl::TextSearch>", "changed-compiled-matcher"),
+            ("->searchForward", "changed-matching"),
+            (".indexOf(rState.Pattern)", "changed-legacy-literal"),
+            (f"{controller_member}->GetSearchOptions()", "changed-search-options"),
+        ),
+        errors,
+    )
+    if not trigger:
+        return
+    if body.count(trigger) != 1:
+        errors.append(f"{context}:changed-handler-trigger:{trigger} expected exactly 1")
+    role_marker = CHANGED_HANDLER_ROLES.get(role)
+    if role_marker is not None and role_marker not in trigger:
+        errors.append(
+            f"{context}:changed-handler-role:{role} trigger must contain {role_marker!r}"
+        )
+    if role == "forward-to-site":
+        called = re.findall(r"([A-Za-z_]\w*)\s*\(", trigger)
+        if not called or not any(
+            name in sig for name in called for sig in site_signatures
+        ):
+            errors.append(
+                f"{context}:changed-handler-role:forward-to-site trigger must name a declared site"
+            )
+
+
+def _validate_live_predicate_site(
+    context: str,
+    site_index: int,
+    enum_body: str,
+    pred_body: str,
+    controller_member: str,
+    matcher_member: str,
+    match_subject: str,
+    errors: list[str],
+) -> None:
+    """Compile once in the enumeration; test each item in the predicate.
+
+    A live per-item predicate cannot compile a matcher per item (that would be a
+    second compile site and a performance regression), yet it must stay live so the
+    filter cannot go stale while the underlying collection changes.  The enumeration
+    entry obtains the state once and compiles the controller's matcher once into a
+    member; the predicate applies the exact compatibility route through that member.
+    """
+    prefix = f"{context}:site[{site_index}]"
+    enum_normalized = " ".join(enum_body.split())
+    pred_normalized = " ".join(pred_body.split())
+
+    for marker, count, label in (
+        (f"{controller_member}->GetState()", 1, "enum-state"),
+        ("sfx2::RegexSearchService::Validate(rState)", 1, "enum-validation"),
+        ("std::make_unique<utl::TextSearch>", 1, "enum-compiled-matcher"),
+        (f"{controller_member}->GetSearchOptions()", 1, "enum-search-options"),
+    ):
+        if enum_body.count(marker) != count:
+            errors.append(f"{prefix}:{label}:expected exactly {count}")
+
+    compile_marker = (
+        f"{matcher_member} = std::make_unique<utl::TextSearch>("
+        f"{controller_member}->GetSearchOptions());"
+    )
+    if compile_marker not in enum_normalized:
+        errors.append(f"{prefix}:enum-compile-target:matcher member assignment missing")
+    for marker in (
+        "const bool bValid = bEmpty || "
+        "sfx2::RegexSearchService::Validate(rState).IsValid;",
+        "const bool bLegacyCompatibleLiteral = rState.Mode == "
+        "sfx2::RegexSearchMode::Literal && !rState.Flags.CaseInsensitive;",
+        "if (bValid && !bEmpty && !bLegacyCompatibleLiteral)",
+    ):
+        if marker not in enum_normalized:
+            errors.append(f"{prefix}:enum-guard:missing {marker}")
+
+    compile_at = enum_body.find("std::make_unique<utl::TextSearch>")
+    loop_match = re.search(r"\bfor\s*\(", enum_body)
+    if compile_at < 0 or (loop_match is not None and compile_at > loop_match.start()):
+        errors.append(f"{prefix}:enum-compiled-once:matcher must be built before any loop")
+
+    # The per-item test never lives in the enumeration.
+    _forbid_local_matching(
+        context,
+        enum_body,
+        (
+            ("->searchForward", "enum-matching"),
+            (".indexOf(rState.Pattern)", "enum-legacy-literal"),
+        ),
+        errors,
+    )
+
+    if pred_body.count(f"{controller_member}->GetState()") != 1:
+        errors.append(f"{prefix}:predicate-state:expected exactly 1")
+    if pred_body.count(f"{match_subject}.indexOf(rState.Pattern)") != 1:
+        errors.append(f"{prefix}:predicate-legacy-literal:expected exactly 1")
+    if pred_body.count(f"{matcher_member}->searchForward({match_subject})") != 1:
+        errors.append(f"{prefix}:predicate-matching:expected exactly 1")
+
+    predicate_route = (
+        "bEmpty || (bLegacyCompatibleLiteral && "
+        f"{match_subject}.indexOf(rState.Pattern) >= 0) || "
+        f"({matcher_member} && {matcher_member}->searchForward({match_subject}))"
+    )
+    if predicate_route not in pred_normalized:
+        errors.append(f"{prefix}:predicate-route:compatibility expression missing")
+    if (
+        "const bool bLegacyCompatibleLiteral = rState.Mode == "
+        "sfx2::RegexSearchMode::Literal && !rState.Flags.CaseInsensitive;"
+    ) not in pred_normalized:
+        errors.append(f"{prefix}:predicate-guard:bLegacyCompatibleLiteral missing")
+
+    # No per-item compile or options; those belong to the enumeration only.
+    _forbid_local_matching(
+        context,
+        pred_body,
+        (
+            ("std::make_unique<utl::TextSearch>", "predicate-compiled-matcher"),
+            (f"{controller_member}->GetSearchOptions()", "predicate-search-options"),
+        ),
+        errors,
+    )
+
+
+def _validate_controller_driven_sites(
+    context: str,
+    entry: Mapping[str, Any],
+    source: str,
+    header: str,
+    controller_member: str,
+    default_mode: str,
+    changed_handler_body: str,
+    errors: list[str],
+) -> None:
+    role = _required_text(entry, "changed_handler_role", context, errors)
+    trigger = _required_text(entry, "changed_handler_trigger", context, errors)
+    if role and role not in CHANGED_HANDLER_ROLES:
+        errors.append(f"{context}:changed_handler_role:unsupported role")
+        role = ""
+
+    raw_sites = entry.get("search_sites")
+    if not isinstance(raw_sites, list) or not raw_sites:
+        errors.append(f"{context}:search_sites:non-empty array required")
+        raw_sites = []
+
+    site_signatures: list[str] = []
+    compiling_sites = 0
+    for site_index, raw_site in enumerate(raw_sites):
+        prefix = f"{context}:site[{site_index}]"
+        if not isinstance(raw_site, dict):
+            errors.append(f"{prefix}:object required")
+            continue
+        signature = _required_text(raw_site, "signature", prefix, errors)
+        route = _required_text(raw_site, "site_route", prefix, errors)
+        if signature:
+            site_signatures.append(signature)
+        if route and route not in SITE_ROUTES:
+            errors.append(f"{prefix}:site_route:unsupported route")
+            route = ""
+        if (
+            route
+            and default_mode
+            and default_mode not in SITE_ROUTE_DEFAULT_MODES[route]
+        ):
+            errors.append(
+                f"{prefix}:site_route:{route} incompatible with default_mode {default_mode}"
+            )
+        if route in SITE_ROUTES_THAT_COMPILE:
+            compiling_sites += 1
+        if not route or not signature:
+            continue
+
+        site_body = _function_body(source, signature)
+        if site_body is None:
+            errors.append(f"{prefix}:signature:site body not found for {signature}")
+            continue
+        site_normalized = " ".join(site_body.split())
+
+        if route == "legacy-literal-filter":
+            match_subject = _required_text(raw_site, "match_subject", prefix, errors)
+            if match_subject:
+                _validate_legacy_handler(
+                    prefix, site_body, site_normalized, controller_member,
+                    match_subject, errors,
+                )
+        elif route == "options-handoff":
+            handoff_sink = _required_text(raw_site, "handoff_sink", prefix, errors)
+            _validate_options_handoff_handler(
+                prefix, site_body, site_normalized, controller_member,
+                handoff_sink, errors,
+            )
+        elif route == "live-predicate":
+            enum_signature = _required_text(
+                raw_site, "enumeration_signature", prefix, errors
+            )
+            matcher_member = _required_text(raw_site, "matcher_member", prefix, errors)
+            match_subject = _required_text(raw_site, "match_subject", prefix, errors)
+            if enum_signature:
+                # A forward-to-site changed handler may name the enumeration entry
+                # rather than the per-item predicate, so both count as declared.
+                site_signatures.append(enum_signature)
+            enum_body = _function_body(source, enum_signature) if enum_signature else None
+            if enum_signature and enum_body is None:
+                errors.append(
+                    f"{prefix}:enumeration_signature:enumeration body not found"
+                )
+            elif enum_body is not None and matcher_member and match_subject:
+                _validate_live_predicate_site(
+                    context, site_index, enum_body, site_body, controller_member,
+                    matcher_member, match_subject, errors,
+                )
+            if matcher_member and (
+                f"std::unique_ptr<utl::TextSearch> {matcher_member};" not in header
+            ):
+                errors.append(
+                    f"{prefix}:matcher-member:std::unique_ptr<utl::TextSearch> "
+                    f"{matcher_member} member missing"
+                )
+
+    # Every compiled matcher in the owner source must belong to a declared compiling
+    # site; a stray make_unique<utl::TextSearch> is an undeclared bypass matcher.
+    total_compiles = source.count("std::make_unique<utl::TextSearch>")
+    if total_compiles != compiling_sites:
+        errors.append(
+            f"{context}:undeclared-matcher:source has {total_compiles} compiled matcher(s), "
+            f"expected {compiling_sites} from declared sites"
+        )
+    if compiling_sites and "#include <unotools/textsearch.hxx>" not in source:
+        errors.append(f"{context}:source-wiring:missing #include <unotools/textsearch.hxx>")
+
+    _validate_changed_handler_trigger(
+        context, changed_handler_body, controller_member, role, trigger,
+        tuple(site_signatures), errors,
     )
 
 
@@ -741,6 +1087,8 @@ def violations(
                 errors.append(f"{context}:source-wiring:missing {marker}")
         if f"{entry_member}->connect_changed" in source:
             errors.append(f"{context}:source-wiring:direct changed handler bypasses controller")
+        if f"{button_member}->connect_clicked" in source:
+            errors.append(f"{context}:source-wiring:direct builder click bypasses controller")
 
         # The handler argument type is the type the declared widget_kind's
         # controller overload forwards, so it also cross-checks widget_kind.
@@ -788,6 +1136,11 @@ def violations(
             elif matcher_strategy == "native-regex-option-sync":
                 _validate_native_sync_handler(
                     context, body, controller_member, native_regex_toggle, errors
+                )
+            elif matcher_strategy == "controller-driven-search-sites":
+                _validate_controller_driven_sites(
+                    context, entry, source, header, controller_member,
+                    default_mode, body, errors,
                 )
 
     return errors

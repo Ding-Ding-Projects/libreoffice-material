@@ -1646,16 +1646,33 @@ try {
         $script:McpUrl = "http://127.0.0.1:$driverPort/mcp"
         $driverStdout = Join-Path $script:LogsRoot 'lowlevel-mcp.stdout.log'
         $driverStderr = Join-Path $script:LogsRoot 'lowlevel-mcp.stderr.log'
-        $uvPath = (Get-Command uv -ErrorAction Stop).Source
-        $dedicatedDriver = Start-Process -FilePath $uvPath -ArgumentList @(
-            'run',
-            '--directory', $script:ResolvedDriverRoot,
-            'lowlevel-computer-use-mcp',
-            '--http',
-            '--host', '127.0.0.1',
-            '--port', [string]$driverPort
-        ) -WindowStyle Hidden -RedirectStandardOutput $driverStdout `
-            -RedirectStandardError $driverStderr -PassThru
+        # Prefer the checked-out driver's venv entry point.  Starting through
+        # `uv run` leaves a short-lived wrapper PID while the actual server is
+        # re-parented, which can race the listener ancestry/identity check on
+        # Windows.  The direct entry point keeps the server PID authoritative.
+        $driverExecutable = Join-Path $script:ResolvedDriverRoot `
+            '.venv\Scripts\lowlevel-computer-use-mcp.exe'
+        if (Test-Path -LiteralPath $driverExecutable -PathType Leaf) {
+            $dedicatedDriver = Start-Process -FilePath $driverExecutable -ArgumentList @(
+                '--http',
+                '--host', '127.0.0.1',
+                '--port', [string]$driverPort
+            ) -WorkingDirectory $script:ResolvedDriverRoot -WindowStyle Hidden `
+                -RedirectStandardOutput $driverStdout `
+                -RedirectStandardError $driverStderr -PassThru
+        }
+        else {
+            $uvPath = (Get-Command uv -ErrorAction Stop).Source
+            $dedicatedDriver = Start-Process -FilePath $uvPath -ArgumentList @(
+                'run',
+                '--directory', $script:ResolvedDriverRoot,
+                'lowlevel-computer-use-mcp',
+                '--http',
+                '--host', '127.0.0.1',
+                '--port', [string]$driverPort
+            ) -WindowStyle Hidden -RedirectStandardOutput $driverStdout `
+                -RedirectStandardError $driverStderr -PassThru
+        }
         $results.driver.dedicated_server = $true
         $results.driver.server_pid = [int]$dedicatedDriver.Id
     }

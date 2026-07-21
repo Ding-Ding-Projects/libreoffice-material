@@ -126,23 +126,57 @@
                                 <property name="hexpand">True</property>
                                 <property name="column-spacing">12</property>
                                 <child>
-                                  <object class="GtkComboBoxText" id="cmbSearchText">
+                                  <object class="GtkBox" id="cmbSearchText_box">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
-                                    <property name="valign">start</property>
-                                    <property name="hexpand">True</property>
-                                    <property name="has-entry">True</property>
-                                    <child internal-child="entry">
-                                      <object class="GtkEntry" id="combobox-entry2">
-                                        <property name="can-focus">True</property>
-                                        <property name="activates-default">True</property>
-                                        <property name="truncate-multiline">True</property>
+                                    <property name="orientation">horizontal</property>
+                                    <property name="spacing">6</property>
+                                    <child>
+                                      <object class="GtkComboBoxText" id="cmbSearchText">
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="valign">start</property>
+                                        <property name="hexpand">True</property>
+                                        <property name="has-entry">True</property>
+                                        <child internal-child="entry">
+                                          <object class="GtkEntry" id="combobox-entry2">
+                                            <property name="can-focus">True</property>
+                                            <property name="activates-default">True</property>
+                                            <property name="truncate-multiline">True</property>
+                                          </object>
+                                        </child>
+                                        <child internal-child="accessible">
+                                          <object class="AtkObject" id="cmbSearchText-atkobject">
+                                            <property name="AtkObject::accessible-description" translatable="yes" context="fmsearchdialog|extended_tip|cmbSearchText">Enter the search term in the box or select it from the list.</property>
+                                          </object>
+                                        </child>
                                       </object>
+                                      <packing>
+                                        <property name="expand">True</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">0</property>
+                                      </packing>
                                     </child>
-                                    <child internal-child="accessible">
-                                      <object class="AtkObject" id="cmbSearchText-atkobject">
-                                        <property name="AtkObject::accessible-description" translatable="yes" context="fmsearchdialog|extended_tip|cmbSearchText">Enter the search term in the box or select it from the list.</property>
+                                    <child>
+                                      <object class="GtkButton" id="cmbSearchText_regex_builder">
+                                        <property name="label">.*</property>
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">True</property>
+                                        <property name="receives-default">False</property>
+                                        <property name="valign">start</property>
+                                        <property name="tooltip-text" translatable="yes" context="fmsearchdialog|cmbSearchText_regex_builder|tooltip_text">Build and test a regular expression</property>
+                                        <child internal-child="accessible">
+                                          <object class="AtkObject" id="cmbSearchText_regex_builder-atkobject">
+                                            <property name="AtkObject::accessible-name" translatable="yes" context="fmsearchdialog|cmbSearchText_regex_builder-atkobject">Regular expression builder</property>
+                                            <property name="AtkObject::accessible-description" translatable="yes" context="fmsearchdialog|extended_tip|cmbSearchText_regex_builder">Open the advanced regular expression builder for the form record search field.</property>
+                                          </object>
+                                        </child>
                                       </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
                                     </child>
                                   </object>
                                   <packing>

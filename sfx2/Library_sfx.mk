@@ -179,6 +179,7 @@ $(eval $(call gb_Library_add_exception_objects,sfx,\
     sfx2/source/dialog/SfxTabPage \
     sfx2/source/dialog/basedlgs \
     sfx2/source/dialog/checkin \
+    sfx2/source/dialog/destructiveconfirmation \
     sfx2/source/dialog/dialoghelper \
     sfx2/source/dialog/charmappopup \
     sfx2/source/dialog/dinfdlg \
@@ -262,10 +263,18 @@ $(eval $(call gb_Library_add_exception_objects,sfx,\
     sfx2/source/notify/hintpost \
     sfx2/source/notify/openurlhint \
     sfx2/source/notification/LocalGitRepository \
+    sfx2/source/notification/NotificationCard \
     sfx2/source/notification/NotificationCenterService \
     sfx2/source/notification/NotificationConfiguration \
     sfx2/source/notification/NotificationJson \
+    sfx2/source/notification/NotificationManagerController \
+    sfx2/source/notification/NotificationOverlayWindow \
+    sfx2/source/notification/NotificationPresenter \
+    sfx2/source/notification/NotificationRouter \
+    sfx2/source/notification/NotificationStackController \
     sfx2/source/notification/NotificationStore \
+    sfx2/source/notification/NotificationTheme \
+    sfx2/source/notification/NotificationViewModel \
     sfx2/source/safemode/safemode \
     sfx2/source/sidebar/Sidebar \
     sfx2/source/sidebar/SidebarChildWindow \

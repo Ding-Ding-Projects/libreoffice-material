@@ -20,6 +20,8 @@
 #include <scalectrl.hxx>
 
 #include <vcl/commandevent.hxx>
+#include <vcl/MaterialTokens.hxx>
+#include <vcl/settings.hxx>
 #include <vcl/status.hxx>
 #include <vcl/svapp.hxx>
 #include <vcl/weld/Builder.hxx>
@@ -34,10 +36,38 @@
 #include <ViewShellBase.hxx>
 #include <drawdoc.hxx>
 #include <app.hrc>
+
+#include <cstdlib>
+#include <optional>
+#include <string_view>
 #include <sdresid.hxx>
 #include <strings.hrc>
 
 #define TABLE_COUNT 9
+
+namespace
+{
+// Resolve the Material @on-surface-variant token for the status-bar scale text,
+// but only when the Material file-widget theme is the active, documented
+// activation (VCL_FILE_WIDGET_THEME=material, per the docs/design/11-impress-draw.md
+// verification checkpoints). Under the default/native theme this returns nothing,
+// so the zoom control never touches the status-bar foreground and existing
+// behavior is preserved. The value flows through vcl::MaterialTokens -- the single
+// named-token table over definition.xml -- rather than any raw color literal.
+std::optional<Color> lcl_getMaterialStatusTextColor()
+{
+    const char* pThemeName = std::getenv("VCL_FILE_WIDGET_THEME");
+    if (!pThemeName || std::string_view(pThemeName) != "material")
+        return std::nullopt;
+
+    const bool bDark = Application::GetSettings().GetStyleSettings().GetWindowColor().IsDark();
+    const vcl::MaterialTokens aTokens
+        = vcl::MaterialTokens::fromThemeDefinition(bDark ? "dark"_ostr : OString());
+    if (!aTokens.isValid())
+        return std::nullopt;
+    return aTokens.findColor("on-surface-variant");
+}
+}
 
 SFX_IMPL_STATUSBAR_CONTROL(SdScaleControl, SfxStringItem);
 
@@ -63,6 +93,11 @@ void SdScaleControl::StateChangedAtStatusBarControl(sal_uInt16 /*nSID*/, SfxItem
         return;
     }
     GetStatusBar().SetItemText(GetId(), pStringItem->GetValue());
+
+    // When the Material theme is active, paint the scale text in the Material
+    // @on-surface-variant token obtained from the token accessor; inert otherwise.
+    if (const std::optional<Color> oColor = lcl_getMaterialStatusTextColor())
+        GetStatusBar().SetControlForeground(*oColor);
 }
 
 void SdScaleControl::Command(const CommandEvent& rCEvt)

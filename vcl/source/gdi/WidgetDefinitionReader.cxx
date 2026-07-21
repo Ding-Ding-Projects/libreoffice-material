@@ -932,6 +932,98 @@ void WidgetDefinitionReader::readPart(tools::XmlWalker& rWalker,
     rWalker.parent();
 }
 
+bool WidgetDefinitionReader::readTokenTables(
+    std::map<OString, std::map<OString, Color>>& rColorPalettes,
+    std::map<OString, sal_Int32>& rRadiusTokens, std::map<OString, sal_Int32>& rMetricTokens) const
+{
+    rColorPalettes.clear();
+    rRadiusTokens.clear();
+    rMetricTokens.clear();
+
+    if (!lcl_fileExists(m_rDefinitionFile))
+        return false;
+
+    // Reuse the exact palette/shape/metric reading path read()'s first pass drives,
+    // so this query cannot diverge from the tokens the renderer resolves. Aggregate
+    // validity locally; reader member state is left untouched.
+    bool bValid = true;
+    bool bHasShapes = false;
+    bool bHasMetrics = false;
+
+    SvFileStream aTokenStream(m_rDefinitionFile, StreamMode::READ);
+    tools::XmlWalker aTokenWalker;
+    if (!aTokenWalker.open(&aTokenStream) || aTokenWalker.name() != "widgets")
+        return false;
+
+    aTokenWalker.children();
+    while (aTokenWalker.isValid())
+    {
+        if (aTokenWalker.name() == "palette")
+        {
+            OString const aScheme = aTokenWalker.attribute("scheme"_ostr);
+            std::map<OString, Color> aColorTokens;
+            if (!readColorPalette(aTokenWalker, aColorTokens))
+                bValid = false;
+            if (!rColorPalettes.emplace(aScheme, std::move(aColorTokens)).second)
+            {
+                SAL_WARN("vcl.gdi", "Duplicate file-widget color palette scheme: " << aScheme);
+                bValid = false;
+            }
+        }
+        else if (aTokenWalker.name() == "shapes")
+        {
+            std::map<OString, sal_Int32> aShapeTokens;
+            if (!readShapeTokens(aTokenWalker, aShapeTokens))
+                bValid = false;
+            if (bHasShapes)
+            {
+                SAL_WARN("vcl.gdi", "Duplicate file-widget shapes section");
+                bValid = false;
+            }
+            else
+                rRadiusTokens = std::move(aShapeTokens);
+            bHasShapes = true;
+        }
+        else if (aTokenWalker.name() == "metrics")
+        {
+            std::map<OString, sal_Int32> aTokens;
+            if (!readMetricTokens(aTokenWalker, aTokens))
+                bValid = false;
+            if (bHasMetrics)
+            {
+                SAL_WARN("vcl.gdi", "Duplicate file-widget metrics section");
+                bValid = false;
+            }
+            else
+                rMetricTokens = std::move(aTokens);
+            bHasMetrics = true;
+        }
+        aTokenWalker.next();
+    }
+    aTokenWalker.parent();
+
+    if (rColorPalettes.empty() || !bHasShapes || !bHasMetrics)
+        bValid = false;
+
+    // Every palette scheme must expose the same set of token names, mirroring the
+    // invariant read() enforces before selecting the active scheme.
+    if (!rColorPalettes.empty())
+    {
+        auto const& rReferencePalette = rColorPalettes.begin()->second;
+        for (auto const& [rScheme, rColorTokens] : rColorPalettes)
+        {
+            if (!haveSameColorTokenNames(rReferencePalette, rColorTokens))
+            {
+                SAL_WARN("vcl.gdi",
+                         "Mismatched file-widget color token set for palette scheme: " << rScheme);
+                bValid = false;
+            }
+        }
+    }
+
+    return bValid;
+}
+
 bool WidgetDefinitionReader::read(WidgetDefinition& rWidgetDefinition)
 {
     if (!lcl_fileExists(m_rDefinitionFile))

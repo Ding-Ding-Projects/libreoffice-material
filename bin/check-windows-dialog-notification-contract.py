@@ -50,6 +50,110 @@ CSV_FIELDS = (
     "exclusion_reason",
 )
 
+# --------------------------------------------------------------------------------------------------
+# Routing classifier (mirrors sfx2::NotificationRouter::Classify).
+#
+# The runtime router keeps a prompt modal iff it collects input, confirms a destructive act, handles
+# credentials, or enforces security; everything purely informational may route to the bottom-right
+# notification form. A static ``.ui`` scan cannot prove a dialog is purely informational -- most
+# LibreOffice dialogs build their entries, trees, and even their buttons at the C++ call site -- so
+# the ledger is deliberately conservative in the SAFE direction: a dialog stays ``native-exclusion``
+# unless it presents affirmative static evidence of an acknowledgment-only message box. The only
+# dialogs cleared for the notification form are ``GtkMessageDialog`` roots whose button set is a
+# built-in acknowledgment (``ok``/``close``) with no input widgets and no
+# destructive/credential/security signal.
+# --------------------------------------------------------------------------------------------------
+INPUT_WIDGET_CLASSES = frozenset(
+    {
+        "GtkEntry",
+        "GtkSearchEntry",
+        "GtkSpinButton",
+        "GtkComboBox",
+        "GtkComboBoxText",
+        "GtkTreeView",
+        "GtkTextView",
+        "GtkFontButton",
+        "GtkColorButton",
+        "GtkFontChooserWidget",
+        "GtkColorChooserWidget",
+        "GtkFileChooserWidget",
+        "GtkFileChooserButton",
+        "GtkCalendar",
+        "GtkScale",
+        "GtkCheckButton",
+        "GtkRadioButton",
+        "GtkToggleButton",
+        "GtkSwitch",
+        "GtkIconView",
+        "GtkNotebook",
+    }
+)
+# LibreOffice custom widget classes whose names carry these fragments are value-entry/selection
+# controls too (e.g. SvxColorListBox, weld metric/numeric entries).
+INPUT_CLASS_SUBSTRINGS = (
+    "Entry",
+    "SpinButton",
+    "ComboBox",
+    "TreeView",
+    "Edit",
+    "Slider",
+    "Numeric",
+    "Metric",
+    "Chooser",
+    "ValueSet",
+)
+DESTRUCTIVE_TOKENS = (
+    "delete",
+    "remove",
+    "discard",
+    "overwrite",
+    "replace",
+    "reset",
+    "erase",
+    "purge",
+    "revert",
+    "querysave",
+    "dontsave",
+    "deltab",
+    "unlink",
+    "destructive",
+)
+CREDENTIAL_TOKENS = (
+    "password",
+    "passwd",
+    "masterpass",
+    "login",
+    "credential",
+    "kerberos",
+    "oauth",
+    "retypepass",
+    "setmaster",
+)
+SECURITY_TOKENS = (
+    "security",
+    "macrosecurity",
+    "certificate",
+    "certificat",
+    "signature",
+    "digitalsign",
+    "certpath",
+    "trustcenter",
+    "runstreamscript",
+)
+ACK_BUTTON_ENUMS = frozenset({"ok", "close"})
+ACK_ACTION_IDS = frozenset({"ok", "close", "help", "yestoall"})
+
+# Ordered (reason -> exclusion_reason phrase). Precedence is credential, security, destructive,
+# input, then the interactive/decision fallbacks.
+EXCLUSION_REASONS = {
+    "credential": "collects credentials, kept modal (router Classify: KeepModal)",
+    "security": "security/trust decision, kept modal (router Classify: KeepModal)",
+    "destructive": "destructive confirmation, kept modal (router Classify: KeepModal)",
+    "input": "collects input, kept modal (router Classify: KeepModal)",
+    "decision": "modal decision prompt, not acknowledgment-only (router Classify: KeepModal)",
+    "interactive": "interactive dialog shell, not acknowledgment-only (router Classify: KeepModal)",
+}
+
 
 class ValidationError(RuntimeError):
     """Raised when the dialog coverage contract is incomplete or invalid."""
@@ -356,6 +460,138 @@ def merge_entries(
     ]
 
 
+@dataclass(frozen=True)
+class DialogSignals:
+    """Routing signals scanned from one top-level dialog object subtree."""
+
+    has_input: bool
+    has_password: bool
+    message_type: str
+    buttons: str
+    action_ids: tuple[str, ...]
+
+
+def _scan_dialog_signals(element: ET.Element) -> DialogSignals:
+    has_input = False
+    has_password = False
+    message_type = ""
+    buttons = ""
+    action_ids: list[str] = []
+    for node in element.iter():
+        tag = _tag_name(node.tag)
+        if tag == "object":
+            widget_class = node.get("class", "")
+            if widget_class in INPUT_WIDGET_CLASSES or any(
+                fragment in widget_class for fragment in INPUT_CLASS_SUBSTRINGS
+            ):
+                has_input = True
+            if widget_class in ("GtkEntry", "GtkSearchEntry"):
+                for prop in node:
+                    if (
+                        _tag_name(prop.tag) == "property"
+                        and prop.get("name") == "visibility"
+                        and (prop.text or "").strip().lower() in ("false", "0", "no")
+                    ):
+                        has_password = True
+        elif tag == "property":
+            name = node.get("name")
+            if name == "message-type":
+                message_type = (node.text or "").strip().lower()
+            elif name == "buttons":
+                buttons = (node.text or "").strip().lower()
+        elif tag == "action-widget":
+            action_ids.append((node.text or "").strip().lower())
+    return DialogSignals(has_input, has_password, message_type, buttons, tuple(action_ids))
+
+
+def _token_hit(text: str, tokens: Sequence[str]) -> bool:
+    lowered = text.lower()
+    return any(token in lowered for token in tokens)
+
+
+def _is_acknowledgment_only(signals: DialogSignals) -> bool:
+    """True iff the button set is a built-in ok/close acknowledgment (no user decision)."""
+
+    if signals.action_ids:
+        return all(a in ACK_ACTION_IDS for a in signals.action_ids) and any(
+            a in ACK_BUTTON_ENUMS for a in signals.action_ids
+        )
+    if signals.buttons:
+        return signals.buttons in ACK_BUTTON_ENUMS
+    # No explicit buttons: the set is supplied at the C++ call site, so it cannot be cleared as
+    # acknowledgment-only from source. Fail safe -> keep modal.
+    return False
+
+
+def classify_route(
+    ui_path: str, object_id: str, widget_class: str, signals: DialogSignals
+) -> tuple[str, str]:
+    """Return (policy, exclusion_reason) mirroring sfx2::NotificationRouter::Classify.
+
+    Precedence: credential, security, destructive, input, then the acknowledgment-only test that is
+    the sole path to the notification form. Everything else stays native-exclusion.
+    """
+
+    locator = f"{ui_path} {object_id}".lower()
+    if signals.has_password or _token_hit(locator, CREDENTIAL_TOKENS):
+        return EXCLUSION_POLICY, EXCLUSION_REASONS["credential"]
+    if _token_hit(locator, SECURITY_TOKENS):
+        return EXCLUSION_POLICY, EXCLUSION_REASONS["security"]
+    if _token_hit(locator, DESTRUCTIVE_TOKENS):
+        return EXCLUSION_POLICY, EXCLUSION_REASONS["destructive"]
+    if signals.has_input:
+        return EXCLUSION_POLICY, EXCLUSION_REASONS["input"]
+    if widget_class == "GtkMessageDialog":
+        if _is_acknowledgment_only(signals):
+            return NOTIFICATION_POLICY, ""
+        return EXCLUSION_POLICY, EXCLUSION_REASONS["decision"]
+    return EXCLUSION_POLICY, EXCLUSION_REASONS["interactive"]
+
+
+def classify_ui_text(
+    ui_path: str, object_id: str, widget_class: str, xml_text: str
+) -> tuple[str, str]:
+    """Convenience for tests: classify a single dialog object from inline .ui XML."""
+
+    root = ET.fromstring(xml_text)
+    for child in root.iter():
+        if _tag_name(child.tag) == "object" and child.get("class") == widget_class:
+            return classify_route(ui_path, object_id, widget_class, _scan_dialog_signals(child))
+    raise ValidationError(f"no {widget_class} object found in supplied XML")
+
+
+def reclassify_entries(repo_root: Path) -> list[ContractEntry]:
+    """Derive an explicit policy for every discovered dialog from its .ui content signals."""
+
+    repo_root = repo_root.resolve()
+    entries: list[ContractEntry] = []
+    for path in repository_ui_paths(repo_root):
+        relative_path = path.relative_to(repo_root).as_posix()
+        try:
+            root = ET.parse(path).getroot()
+        except (ET.ParseError, OSError) as error:
+            raise ValidationError(f"cannot parse {relative_path}: {error}") from error
+        for child in root:
+            if _tag_name(child.tag) != "object":
+                continue
+            widget_class = child.get("class", "")
+            if widget_class not in DIALOG_CLASSES:
+                continue
+            object_id = child.get("id", "").strip()
+            signals = _scan_dialog_signals(child)
+            policy, reason = classify_route(relative_path, object_id, widget_class, signals)
+            profile = DEFAULT_NOTIFICATION_PROFILE if policy == NOTIFICATION_POLICY else ""
+            entries.append(
+                ContractEntry(
+                    key=DialogKey(relative_path, object_id, widget_class),
+                    policy=policy,
+                    notification_profile=profile,
+                    exclusion_reason=reason,
+                )
+            )
+    return sorted(entries, key=lambda entry: entry.key)
+
+
 def write_registry(registry_path: Path, entries: Sequence[ContractEntry]) -> None:
     registry_path.parent.mkdir(parents=True, exist_ok=True)
     with registry_path.open("w", encoding="utf-8", newline="") as stream:
@@ -397,6 +633,11 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         action="store_true",
         help="regenerate coverage, preserving exact existing policies and defaulting new rows",
     )
+    parser.add_argument(
+        "--reclassify",
+        action="store_true",
+        help="regenerate every policy from .ui content signals (mirrors the router's KeepModal rule)",
+    )
     return parser.parse_args(argv)
 
 
@@ -409,7 +650,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         else repo_root / "qa/windows-ui-contract/dialog-notification-policy.csv"
     )
     try:
-        if args.update:
+        if args.reclassify:
+            write_registry(registry_path, reclassify_entries(repo_root))
+        elif args.update:
             discovered = discover_dialogs(repo_root)
             existing = read_registry(registry_path) if registry_path.exists() else []
             write_registry(registry_path, merge_entries(discovered, existing))

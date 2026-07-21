@@ -31,6 +31,7 @@
 #include <svx/fmsrcimp.hxx>
 #include <strings.hrc>
 #include <cuifmsearch.hxx>
+#include <sfx2/RegexSearchController.hxx>
 #include <svl/cjkoptions.hxx>
 #include <comphelper/processfactory.hxx>
 #include <comphelper/string.hxx>
@@ -99,6 +100,7 @@ FmSearchDialog::FmSearchDialog(weld::Window* pParent, const OUString& sInitialTe
     , m_pftHint(m_xBuilder->weld_label(u"ftHint"_ustr))
     , m_pbSearchAgain(m_xBuilder->weld_button(u"pbSearchAgain"_ustr))
     , m_pbClose(m_xBuilder->weld_button(u"close"_ustr))
+    , m_xRegexBuilderButton(m_xBuilder->weld_button(u"cmbSearchText_regex_builder"_ustr))
 {
     m_pcmbSearchText->set_size_request(m_pcmbSearchText->get_approximate_digit_width() * 38, -1);
     m_plbForm->set_size_request(m_plbForm->get_approximate_digit_width() * 38, -1);
@@ -150,6 +152,21 @@ FmSearchDialog::FmSearchDialog(weld::Window* pParent, const OUString& sInitialTe
     }
     else
         Init(fmscInitial.strUsedFields, sInitialText);
+
+    // Bind the search combo box to the adjacent advanced regular-expression builder. The
+    // controller forwards the combo's changed events to OnSearchTextModified and restores the
+    // original callback when destroyed, so no direct connect_changed is installed above.
+    m_xRegexSearchController = std::make_unique<sfx2::RegexSearchController>(
+        m_xDialog.get(), *m_pcmbSearchText, *m_xRegexBuilderButton,
+        LINK(this, FmSearchDialog, OnSearchTextModified));
+    // Preserve the dialog's current match mode and case default (FmSearchEngine is case-sensitive
+    // by default, m_nTransliterationFlags == NONE): seed the builder from the native "Regular
+    // expression" check button so opening the dialog changes nothing until the user opts in.
+    sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+    aState.Mode = m_pcbRegular->get_active() ? sfx2::RegexSearchMode::RegularExpression
+                                             : sfx2::RegexSearchMode::Literal;
+    aState.Flags.CaseInsensitive = false;
+    m_xRegexSearchController->SetState(aState);
 }
 
 FmSearchDialog::~FmSearchDialog()
@@ -177,7 +194,6 @@ void FmSearchDialog::Init(std::u16string_view strVisibleFields, const OUString& 
     m_plbPosition->connect_changed(LINK(this, FmSearchDialog, OnPositionSelected));
     m_plbField->connect_changed(LINK(this, FmSearchDialog, OnFieldSelected));
 
-    m_pcmbSearchText->connect_changed(LINK(this, FmSearchDialog, OnSearchTextModified));
     m_pcmbSearchText->set_entry_completion(false);
     m_pcmbSearchText->connect_focus_in(LINK(this, FmSearchDialog, OnFocusGrabbed));
 
@@ -349,6 +365,28 @@ IMPL_LINK(FmSearchDialog, OnClickedSpecialSettings, weld::Button&, rButton, void
 
 IMPL_LINK_NOARG(FmSearchDialog, OnSearchTextModified, weld::ComboBox&, void)
 {
+    // The shared builder is the advanced entry point for switching between literal and
+    // regular-expression matching. Reflect its mode in the dialog's native "Regular expression"
+    // check button and drive FmSearchEngine: the engine caches its regex flag from the checkbox's
+    // toggled signal, which a programmatic set_active() does not emit, so the toggle handler is
+    // invoked explicitly. Mirror only when the mode actually differs so a plain text edit never
+    // reverts a manual checkbox change (OnCheckBoxToggled feeds manual toggles back into the
+    // controller), keeping the checkbox, the engine and the saved setting coherent.
+    if (m_xRegexSearchController && !m_bMirroringRegexMode)
+    {
+        const sfx2::RegexSearchState& rState = m_xRegexSearchController->GetState();
+        if (m_pcbRegular->get_active()
+            != (rState.Mode == sfx2::RegexSearchMode::RegularExpression))
+        {
+            m_bMirroringRegexMode = true;
+            m_pcbRegular->set_active(rState.Mode == sfx2::RegexSearchMode::RegularExpression);
+            // set_active() does not emit the toggled signal, so run the handler by hand to push
+            // the new mode into FmSearchEngine and update the dependent option controls.
+            OnCheckBoxToggled(*m_pcbRegular);
+            m_bMirroringRegexMode = false;
+        }
+    }
+
     if ((!m_pcmbSearchText->get_active_text().isEmpty()) || !m_prbSearchForText->get_active())
         m_pbSearchAgain->set_sensitive(true);
     else
@@ -435,6 +473,25 @@ IMPL_LINK(FmSearchDialog, OnCheckBoxToggled, weld::Toggleable&, rBox, void)
                 m_ppbApproxSettings->set_sensitive(true);
             else
                 m_ppbApproxSettings->set_sensitive(false);
+        }
+
+        // Feed a manual toggle of the native "Regular expression" check button back into the
+        // shared builder controller so its stored mode matches the engine and the saved setting,
+        // and so a later text edit does not revert the user's choice via OnSearchTextModified.
+        // Skip while that handler is mirroring the other way to avoid re-entrancy.
+        if (&rBox == m_pcbRegular.get() && m_xRegexSearchController && !m_bMirroringRegexMode)
+        {
+            const sfx2::RegexSearchMode eMode = m_pcbRegular->get_active()
+                                                    ? sfx2::RegexSearchMode::RegularExpression
+                                                    : sfx2::RegexSearchMode::Literal;
+            sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+            if (aState.Mode != eMode)
+            {
+                aState.Mode = eMode;
+                m_bMirroringRegexMode = true;
+                m_xRegexSearchController->SetState(aState);
+                m_bMirroringRegexMode = false;
+            }
         }
     }
     else if (&rBox == m_pHalfFullFormsCJK.get())

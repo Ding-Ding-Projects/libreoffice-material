@@ -26,10 +26,11 @@
 #include <vcl/weld/Label.hxx>
 #include <vcl/weld/ToggleButton.hxx>
 #include <vcl/weld/TreeView.hxx>
+#include <vcl/weld/Widget.hxx>
 #include <vcl/weld/customweld.hxx>
 #include <svx/galmisc.hxx>
 #include <svx/galctrl.hxx>
-#include <unotools/charclass.hxx>
+#include <memory>
 #include <vector>
 #include <com/sun/star/util/XURLTransformer.hpp>
 #include <com/sun/star/frame/XDispatch.hpp>
@@ -79,6 +80,11 @@ namespace svx::sidebar
 class GalleryControl;
 }
 
+namespace sfx2
+{
+class RegexSearchController;
+}
+
 struct ThemeEntry
 {
     OUString maThemeName;
@@ -120,6 +126,8 @@ private:
     std::unique_ptr<weld::ToggleButton> mxIconButton;
     std::unique_ptr<weld::ToggleButton> mxListButton;
     std::unique_ptr<weld::Entry> mxSearchField;
+    std::unique_ptr<weld::Button> mxRegexBuilderButton;
+    std::unique_ptr<weld::Widget> mxSearchContainer;
     std::unique_ptr<weld::Label> mxInfoBar;
     Size maPreviewSize;
     rtl::Reference<GalleryTransferable> m_xHelper;
@@ -133,8 +141,11 @@ private:
     css::uno::Reference<css::uno::XComponentContext> m_xContext;
     css::uno::Reference<css::util::XURLTransformer> m_xTransformer;
 
-    CharClass m_aCharacterClassficator;
     SfxListener maLocalListener;
+
+    // Declared last so it is destroyed first: the controller re-installs the search entry's and
+    // builder button's original callbacks in its destructor and must outlive neither widget.
+    std::unique_ptr<sfx2::RegexSearchController> mxRegexSearchController;
 
     void ImplInsertThemeEntry(const GalleryThemeEntry* pEntry);
     static void ImplFillExchangeData(const GalleryTheme& rThm, ExchangeData& rData);

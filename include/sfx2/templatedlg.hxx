@@ -43,6 +43,10 @@ class TextWidget;
 class TreeView;
 class Window;
 }
+namespace sfx2
+{
+class RegexSearchController;
+}
 
 class SFX2_DLLPUBLIC SfxTemplateManagerDlg : public weld::GenericDialogController
 {
@@ -140,6 +144,8 @@ protected:
     std::unique_ptr<weld::CustomWeld> mxLocalViewWeld;
     std::unique_ptr<weld::Toggleable> mxListViewButton;
     std::unique_ptr<weld::Toggleable> mxThumbnailViewButton;
+    std::unique_ptr<weld::Button> m_xRegexBuilderButton;
+    std::unique_ptr<sfx2::RegexSearchController> m_xRegexSearchController;
     bool bMakeSelItemVisible;
 };
 

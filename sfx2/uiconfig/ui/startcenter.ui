@@ -503,6 +503,60 @@
                     <property name="position">1</property>
                   </packing>
                 </child>
+                <child>
+                  <object class="GtkBox" id="start_search_box">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="orientation">horizontal</property>
+                    <property name="spacing">6</property>
+                    <property name="margin-top">4</property>
+                    <child>
+                      <object class="GtkEntry" id="start_search">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="hexpand">True</property>
+                        <property name="truncate-multiline">True</property>
+                        <property name="placeholder-text" translatable="yes" context="startcenter|start_search-placeholder">Search recent documents</property>
+                        <child internal-child="accessible">
+                          <object class="AtkObject" id="start_search-atkobject">
+                            <property name="AtkObject::accessible-name" translatable="yes" context="startcenter|start_search-atkobject">Search Documents</property>
+                            <property name="AtkObject::accessible-description" translatable="yes" context="startcenter|extended_tip|start_search">Type to filter the list of recent documents by name.</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="start_search_regex_builder">
+                        <property name="label">.*</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">False</property>
+                        <property name="tooltip-text" translatable="yes" context="startcenter|start_search_regex_builder|tooltip_text">Build and test a regular expression</property>
+                        <child internal-child="accessible">
+                          <object class="AtkObject" id="start_search_regex_builder-atkobject">
+                            <property name="AtkObject::accessible-name" translatable="yes" context="startcenter|start_search_regex_builder-atkobject">Regular expression builder</property>
+                            <property name="AtkObject::accessible-description" translatable="yes" context="startcenter|extended_tip|start_search_regex_builder">Open the advanced regular expression builder for the recent-documents search field.</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>

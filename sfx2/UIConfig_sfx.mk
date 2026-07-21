@@ -48,6 +48,7 @@ $(eval $(call gb_UIConfig_add_uifiles,sfx,\
 	sfx2/uiconfig/ui/linkeditdialog \
 	sfx2/uiconfig/ui/loadtemplatedialog \
 	sfx2/uiconfig/ui/managestylepage \
+	sfx2/uiconfig/ui/materialdestructiveconfirmdialog \
 	sfx2/uiconfig/ui/navigator \
 	sfx2/uiconfig/ui/newstyle \
 	sfx2/uiconfig/ui/notebookbar \
@@ -55,6 +56,9 @@ $(eval $(call gb_UIConfig_add_uifiles,sfx,\
 	sfx2/uiconfig/ui/panel \
 	sfx2/uiconfig/ui/password \
 	sfx2/uiconfig/ui/notebookbarpopup \
+	sfx2/uiconfig/ui/notificationcard \
+	sfx2/uiconfig/ui/notificationmanager \
+	sfx2/uiconfig/ui/notificationstack \
 	sfx2/uiconfig/ui/printeroptionsdialog \
 	sfx2/uiconfig/ui/propertychip \
 	sfx2/uiconfig/ui/propertychiprow \

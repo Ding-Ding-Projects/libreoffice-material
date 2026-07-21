@@ -48,6 +48,11 @@ struct SearchDlg_Impl;
 enum class ModifyFlags;
 enum class TransliterationFlags;
 
+namespace sfx2
+{
+class RegexSearchController;
+}
+
 struct SearchAttrInfo
 {
     SearchAttrInfo()
@@ -190,6 +195,7 @@ private:
 
     std::unique_ptr<weld::Frame> m_xSearchFrame;
     std::unique_ptr<weld::ComboBox> m_xSearchLB;
+    std::unique_ptr<weld::Button> m_xSearchRegexBuilder;
     std::unique_ptr<weld::ComboBox> m_xSearchTmplLB;
     std::unique_ptr<weld::Label> m_xSearchAttrText;
     std::unique_ptr<weld::Label> m_xSearchLabel;
@@ -244,8 +250,12 @@ private:
     std::unique_ptr<weld::RadioButton> m_xColumnsBtn;
     std::unique_ptr<weld::CheckButton> m_xAllSheetsCB;
     std::unique_ptr<weld::Label> m_xCalcStrFT;
+    // Must be declared after m_xSearchLB and m_xSearchRegexBuilder so it is destroyed
+    // first: the controller owns the changed callback of the widgets it references.
+    std::unique_ptr<sfx2::RegexSearchController> m_xSearchRegexController;
 
     DECL_DLLPRIVATE_LINK( ModifyHdl_Impl, weld::ComboBox&, void );
+    DECL_DLLPRIVATE_LINK( SearchTermModifyHdl_Impl, weld::ComboBox&, void );
     DECL_DLLPRIVATE_LINK( FlagHdl_Impl, weld::Toggleable&, void );
     DECL_DLLPRIVATE_LINK( CommandHdl_Impl, weld::Button&, void );
     DECL_DLLPRIVATE_LINK(TemplateHdl_Impl, weld::Toggleable&, void);
@@ -257,6 +267,9 @@ private:
     DECL_DLLPRIVATE_LINK(AttributeHdl_Impl, weld::Button&, void);
     DECL_DLLPRIVATE_LINK( TimeoutHdl_Impl, Timer*, void );
     SVX_DLLPRIVATE void ClickHdl_Impl(const weld::Widget* pCtrl);
+    // Mirror the native "Regular expressions" toggle state into the shared regex builder's
+    // controller so the one-way builder->toggle sync never fights the dialog's own mode logic.
+    SVX_DLLPRIVATE void SyncRegexControllerFromToggle();
 
     SVX_DLLPRIVATE void Construct_Impl();
     SVX_DLLPRIVATE void InitControls_Impl();

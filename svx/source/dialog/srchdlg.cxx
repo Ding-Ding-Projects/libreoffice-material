@@ -50,6 +50,7 @@
 #include <svl/itempool.hxx>
 
 #include <sfx2/app.hxx>
+#include <sfx2/RegexSearchController.hxx>
 #include <toolkit/helper/vclunohelper.hxx>
 
 #include <svx/srchdlg.hxx>
@@ -250,6 +251,7 @@ SvxSearchDialog::SvxSearchDialog(weld::Window* pParent, SfxChildWindow* pChildWi
     , m_nTransliterationFlags(TransliterationFlags::NONE)
     , m_xSearchFrame(m_xBuilder->weld_frame(u"searchframe"_ustr))
     , m_xSearchLB(m_xBuilder->weld_combo_box(u"searchterm"_ustr))
+    , m_xSearchRegexBuilder(m_xBuilder->weld_button(u"searchterm_regex_builder"_ustr))
     , m_xSearchTmplLB(m_xBuilder->weld_combo_box(u"searchlist"_ustr))
     , m_xSearchAttrText(m_xBuilder->weld_label(u"searchdesc"_ustr))
     , m_xSearchLabel(m_xBuilder->weld_label(u"searchlabel"_ustr))
@@ -336,6 +338,22 @@ SvxSearchDialog::SvxSearchDialog(weld::Window* pParent, SfxChildWindow* pChildWi
     m_xReplaceTmplLB->set_size_request(nTermWidth, -1);
 
     Construct_Impl();
+
+    // Bind the search term combo box to the shared advanced regex builder. The controller
+    // takes over the combo box's changed callback and forwards it to SearchTermModifyHdl_Impl,
+    // which mirrors the builder's mode into the dialog's native "Regular expressions" toggle.
+    m_xSearchRegexController = std::make_unique<sfx2::RegexSearchController>(
+        m_xDialog.get(), *m_xSearchLB, *m_xSearchRegexBuilder,
+        LINK(this, SvxSearchDialog, SearchTermModifyHdl_Impl));
+
+    // Preserve the dialog's current default: literal search (native regex toggle off) and
+    // case-insensitive matching (Match case off). The mode is seeded from the live toggle so
+    // a restored regex setting is honoured; case sensitivity mirrors the engine default.
+    sfx2::RegexSearchState aState = m_xSearchRegexController->GetState();
+    aState.Mode = m_xRegExpBtn->get_active() ? sfx2::RegexSearchMode::RegularExpression
+                                             : sfx2::RegexSearchMode::Literal;
+    aState.Flags.CaseInsensitive = true;
+    m_xSearchRegexController->SetState(aState);
 }
 
 IMPL_LINK_NOARG(SvxSearchDialog, PresentTimeoutHdl_Impl, Timer*, void)
@@ -630,7 +648,8 @@ void SvxSearchDialog::InitControls_Impl()
     m_xFormatBtn->set_sensitive(false);
     m_xAttributeBtn->set_sensitive(false);
 
-    m_xSearchLB->connect_changed( LINK( this, SvxSearchDialog, ModifyHdl_Impl ) );
+    // m_xSearchLB's changed callback is owned by m_xSearchRegexController (wired in the
+    // constructor); it forwards to SearchTermModifyHdl_Impl. Do not connect_changed here.
     m_xReplaceLB->connect_changed( LINK( this, SvxSearchDialog, ModifyHdl_Impl ) );
 
     Link<weld::Widget&,void> aLink = LINK( this, SvxSearchDialog, FocusHdl_Impl );
@@ -790,6 +809,10 @@ void SvxSearchDialog::Init_Impl( bool bSearchPattern )
         m_xSelectionBtn->set_active(m_pSearchItem->GetSelection());
     if (!(m_nModifyFlag & ModifyFlags::Regexp))
         m_xRegExpBtn->set_active(m_pSearchItem->GetRegExp());
+    // Mirror the restored "Regular expressions" state into the controller now, before the
+    // search string is pushed into the combo box below: a programmatic set_entry_text can fire
+    // the controller's changed callback, whose builder->toggle sync must already be consistent.
+    SyncRegexControllerFromToggle();
     if (!(m_nModifyFlag & ModifyFlags::Wildcard))
         m_xWildcardBtn->set_active(m_pSearchItem->GetWildcard());
     if (!(m_nModifyFlag & ModifyFlags::Layout))
@@ -950,6 +973,7 @@ void SvxSearchDialog::Init_Impl( bool bSearchPattern )
             m_xSearchTmplLB->grab_focus();
         m_xReplaceTmplLB->show();
         m_xSearchLB->hide();
+        m_xSearchRegexBuilder->hide();
         m_xReplaceLB->hide();
 
         m_xWordBtn->set_sensitive(false);
@@ -991,6 +1015,7 @@ void SvxSearchDialog::Init_Impl( bool bSearchPattern )
         }
 
         m_xSearchLB->show();
+        m_xSearchRegexBuilder->show();
 
         if (m_bConstruct)
             // Grab focus only after creating
@@ -1124,6 +1149,27 @@ void SvxSearchDialog::InitAttrList_Impl( const SfxItemSet* pSSet,
 IMPL_LINK( SvxSearchDialog, LBSelectHdl_Impl, weld::ComboBox&, rCtrl, void )
 {
     ClickHdl_Impl(&rCtrl);
+}
+
+void SvxSearchDialog::SyncRegexControllerFromToggle()
+{
+    if (!m_xSearchRegexController)
+        return;
+    sfx2::RegexSearchState aState = m_xSearchRegexController->GetState();
+    const sfx2::RegexSearchMode eMode = m_xRegExpBtn->get_active()
+                                            ? sfx2::RegexSearchMode::RegularExpression
+                                            : sfx2::RegexSearchMode::Literal;
+    if (aState.Mode != eMode)
+    {
+        aState.Mode = eMode;
+        // GetState() returns the controller's cached pattern, which can be stale on the VCL
+        // (Windows) backend: Init_Impl pre-fills the search term with a programmatic
+        // set_entry_text that never fires the combo's changed handler, so the controller was
+        // never told about it. Refresh the pattern from the live widget so SetState()'s
+        // SetSearchText() writes the current term back instead of erasing the visible search.
+        aState.Pattern = m_xSearchLB->get_active_text();
+        m_xSearchRegexController->SetState(aState);
+    }
 }
 
 IMPL_LINK( SvxSearchDialog, FlagHdl_Impl, weld::Toggleable&, rCtrl, void )
@@ -1262,6 +1308,11 @@ void SvxSearchDialog::ClickHdl_Impl(const weld::Widget* pCtrl)
         m_xJapMatchFullHalfWidthCB->set_sensitive(!bEnableJapOpt );
         m_xJapOptionsBtn->set_sensitive( bEnableJapOpt );
     }
+
+    // The "Regular expressions" toggle participates in mutual exclusion with Wildcards,
+    // Similarity and Styles above; once its final state is settled, mirror it into the
+    // regex builder's controller so a later builder->toggle sync stays consistent.
+    SyncRegexControllerFromToggle();
 
     if (m_pImpl->bSaveToModule)
         SaveToModule_Impl();
@@ -1473,6 +1524,36 @@ IMPL_LINK( SvxSearchDialog, ModifyHdl_Impl, weld::ComboBox&, rEd, void )
     }
 }
 
+IMPL_LINK_NOARG(SvxSearchDialog, SearchTermModifyHdl_Impl, weld::ComboBox&, void)
+{
+    // native-regex-option-sync: reflect the shared advanced regex builder's mode into the
+    // dialog's existing "Regular expressions" toggle. The dialog computes its own
+    // SearchOptions from that toggle, so there is deliberately no second matching path here.
+    const sfx2::RegexSearchState& rState = m_xSearchRegexController->GetState();
+    const bool bRegExp = rState.Mode == sfx2::RegexSearchMode::RegularExpression;
+    const bool bModeToggleChanged = m_xRegExpBtn->get_active() != bRegExp;
+    m_xRegExpBtn->set_active(rState.Mode == sfx2::RegexSearchMode::RegularExpression);
+
+    // set_active() above does not emit the toggled signal, so on its own it would bypass
+    // ClickHdl_Impl's mutual exclusion and could leave "Regular expressions" visibly checked
+    // alongside "Wildcards"/"Similarity" (e.g. when a pattern is applied from the builder while
+    // one of those is active). When the toggle actually flips, route the change through
+    // ClickHdl_Impl so the option checkboxes stay consistent; it also refreshes the search-term
+    // validation and Find/Replace button enablement. Only reachable after construction, where
+    // m_pSearchItem (dereferenced by that path) is set; the seeding call never flips the toggle.
+    if (bModeToggleChanged && m_pSearchItem)
+    {
+        ClickHdl_Impl(m_xRegExpBtn.get());
+        return;
+    }
+
+    // Preserve the existing search-term validation and Find/Replace button enablement.
+    // Guarded because the constructor seeds the controller (which fires this handler) before
+    // the framework has supplied the SvxSearchItem that ModifyHdl_Impl dereferences.
+    if (m_pSearchItem)
+        ModifyHdl_Impl(*m_xSearchLB);
+}
+
 IMPL_LINK_NOARG(SvxSearchDialog, TemplateHdl_Impl, weld::Toggleable&, void)
 {
     if (m_pImpl->bSaveToModule)
@@ -1520,6 +1601,7 @@ IMPL_LINK_NOARG(SvxSearchDialog, TemplateHdl_Impl, weld::Toggleable&, void)
             m_xSearchTmplLB->show();
             m_xReplaceTmplLB->show();
             m_xSearchLB->hide();
+            m_xSearchRegexBuilder->hide();
             m_xReplaceLB->hide();
 
             m_xSearchAttrText->set_label(u""_ustr);
@@ -1539,6 +1621,7 @@ IMPL_LINK_NOARG(SvxSearchDialog, TemplateHdl_Impl, weld::Toggleable&, void)
         m_rBindings.LeaveRegistrations();
 
         m_xSearchLB->show();
+        m_xSearchRegexBuilder->show();
         m_xReplaceLB->show();
         m_xSearchTmplLB->hide();
         m_xReplaceTmplLB->hide();

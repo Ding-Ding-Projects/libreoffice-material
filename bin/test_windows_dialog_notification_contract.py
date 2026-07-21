@@ -70,15 +70,25 @@ class WindowsDialogNotificationContractTest(unittest.TestCase):
 
     def test_production_contract_covers_every_dialog_root(self) -> None:
         report = VALIDATOR.validate_contract(REPOSITORY, REGISTRY_PATH)
-        self.assertEqual(597, report.total)
+        # The wave that added the shared Material destructive-confirmation dialog raised the total to
+        # 598 roots. The registry now mirrors the router's KeepModal policy: only acknowledgment-only
+        # message boxes route to the notification form, everything else is native-exclusion.
+        self.assertEqual(598, report.total)
         self.assertEqual(
-            {"GtkDialog": 521, "GtkMessageDialog": 75, "GtkAssistant": 1},
+            {"GtkDialog": 521, "GtkMessageDialog": 76, "GtkAssistant": 1},
             dict(report.classes),
         )
         self.assertEqual(
-            {VALIDATOR.NOTIFICATION_POLICY: 597}, dict(report.policies)
+            {VALIDATOR.NOTIFICATION_POLICY: 9, VALIDATOR.EXCLUSION_POLICY: 589},
+            dict(report.policies),
         )
-        self.assertEqual({"default": 597}, dict(report.profiles))
+        self.assertEqual({"default": 9}, dict(report.profiles))
+        # The exclusion set must dominate: the notification form is the narrow, affirmatively
+        # informational slice, never the default.
+        self.assertGreater(
+            report.policies[VALIDATOR.EXCLUSION_POLICY],
+            report.policies[VALIDATOR.NOTIFICATION_POLICY],
+        )
 
     def test_discovery_selects_only_top_level_dialog_classes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -235,6 +245,100 @@ class WindowsDialogNotificationContractTest(unittest.TestCase):
             VALIDATOR.ValidationError, "registry rows must be sorted"
         ):
             VALIDATOR.read_registry(self.write_registry(rows))
+
+
+class RoutingClassifierTest(unittest.TestCase):
+    """The classifier mirrors sfx2::NotificationRouter::Classify: input / destructive / credential /
+    security stay modal; only acknowledgment-only message boxes route to the notification form."""
+
+    def classify(self, widget_class: str, inner: str, *, ui_path="m/uiconfig/ui/x.ui", oid="X"):
+        xml = f'<interface><object class="{widget_class}" id="{oid}">{inner}</object></interface>'
+        return VALIDATOR.classify_ui_text(ui_path, oid, widget_class, xml)
+
+    def test_input_entry_keeps_modal(self) -> None:
+        policy, reason = self.classify(
+            "GtkDialog", '<child><object class="GtkEntry" id="e"/></child>'
+        )
+        self.assertEqual(VALIDATOR.EXCLUSION_POLICY, policy)
+        self.assertIn("collects input", reason)
+
+    def test_treeview_input_keeps_modal(self) -> None:
+        policy, _ = self.classify(
+            "GtkDialog", '<child><object class="GtkTreeView" id="t"/></child>'
+        )
+        self.assertEqual(VALIDATOR.EXCLUSION_POLICY, policy)
+
+    def test_password_entry_is_credential(self) -> None:
+        policy, reason = self.classify(
+            "GtkDialog",
+            '<child><object class="GtkEntry" id="pw">'
+            '<property name="visibility">False</property></object></child>',
+        )
+        self.assertEqual(VALIDATOR.EXCLUSION_POLICY, policy)
+        self.assertIn("credentials", reason)
+
+    def test_destructive_token_keeps_modal(self) -> None:
+        policy, reason = self.classify(
+            "GtkMessageDialog", "", ui_path="m/uiconfig/ui/deletestuff.ui", oid="DeleteDialog"
+        )
+        self.assertEqual(VALIDATOR.EXCLUSION_POLICY, policy)
+        self.assertIn("destructive", reason)
+
+    def test_security_token_keeps_modal(self) -> None:
+        policy, reason = self.classify(
+            "GtkDialog", "", ui_path="m/uiconfig/ui/macrosecurity.ui", oid="SecurityDialog"
+        )
+        self.assertEqual(VALIDATOR.EXCLUSION_POLICY, policy)
+        self.assertIn("security", reason)
+
+    def test_acknowledgment_only_message_routes_to_notification(self) -> None:
+        policy, reason = self.classify(
+            "GtkMessageDialog", '<property name="buttons">ok</property>'
+        )
+        self.assertEqual(VALIDATOR.NOTIFICATION_POLICY, policy)
+        self.assertEqual("", reason)
+
+    def test_close_only_message_routes_to_notification(self) -> None:
+        policy, _ = self.classify(
+            "GtkMessageDialog", '<property name="buttons">close</property>'
+        )
+        self.assertEqual(VALIDATOR.NOTIFICATION_POLICY, policy)
+
+    def test_yes_no_message_stays_modal(self) -> None:
+        policy, reason = self.classify(
+            "GtkMessageDialog", '<property name="buttons">yes-no</property>'
+        )
+        self.assertEqual(VALIDATOR.EXCLUSION_POLICY, policy)
+        self.assertIn("decision", reason)
+
+    def test_runtime_supplied_buttons_stay_modal(self) -> None:
+        # No 'buttons' property and no action-widgets: the button set is built at the C++ call site,
+        # so the dialog cannot be cleared as informational. Fail safe -> keep modal.
+        policy, _ = self.classify("GtkMessageDialog", "")
+        self.assertEqual(VALIDATOR.EXCLUSION_POLICY, policy)
+
+    def test_plain_gtkdialog_shell_stays_modal(self) -> None:
+        policy, reason = self.classify("GtkDialog", "")
+        self.assertEqual(VALIDATOR.EXCLUSION_POLICY, policy)
+        self.assertIn("interactive", reason)
+
+    def test_ok_cancel_message_stays_modal(self) -> None:
+        policy, _ = self.classify(
+            "GtkMessageDialog", '<property name="buttons">ok-cancel</property>'
+        )
+        self.assertEqual(VALIDATOR.EXCLUSION_POLICY, policy)
+
+    def test_ack_action_widgets_route_to_notification(self) -> None:
+        # Explicit ok/help action-widgets are an acknowledgment, help is not a decision.
+        xml = (
+            '<interface><object class="GtkMessageDialog" id="X">'
+            "<action-widgets>"
+            '<action-widget response="-5">ok</action-widget>'
+            '<action-widget response="-11">help</action-widget>'
+            "</action-widgets></object></interface>"
+        )
+        policy, _ = VALIDATOR.classify_ui_text("m/uiconfig/ui/x.ui", "X", "GtkMessageDialog", xml)
+        self.assertEqual(VALIDATOR.NOTIFICATION_POLICY, policy)
 
 
 if __name__ == "__main__":

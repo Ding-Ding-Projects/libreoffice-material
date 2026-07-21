@@ -263,6 +263,29 @@ void LinePropertyPanelBase::SetWidth(tools::Long nWidth)
     mxLineWidthPopup->SetWidthSelect(mnWidthCoreValue, mbWidthValuable, meMapUnit);
 }
 
+void LinePropertyPanelBase::ApplyNoSelectionDisabledPolicy()
+{
+    // Every control stays visible (no layout jump) but becomes insensitive, per
+    // the §11.2 no-selection policy. This mirrors the disabled states already
+    // defined for these controls in the Material definition.xml.
+    mxTBColor->set_visible(true);
+    mxTBColor->set_sensitive(false);
+    mxLineStyleTB->set_visible(true);
+    mxLineStyleTB->set_sensitive(false);
+    mxFTWidth->set_visible(true);
+    mxFTWidth->set_sensitive(false);
+    mxTBWidth->set_visible(true);
+    mxTBWidth->set_sensitive(false);
+    mxFTTransparency->set_visible(true);
+    mxFTTransparency->set_sensitive(false);
+    mxMFTransparent->set_visible(true);
+    mxMFTransparent->set_sensitive(false);
+    mxArrowHeadStyleFT->set_visible(true);
+    mxArrowHeadStyleFT->set_sensitive(false);
+    mxArrowHeadStyleTB->set_visible(true);
+    mxArrowHeadStyleTB->set_sensitive(false);
+}
+
 void LinePropertyPanelBase::ActivateControls()
 {
     mxArrowHeadStyleTB->set_item_sensitive(u".uno:LineEndStyle"_ustr, !mbNoneLineStyle);

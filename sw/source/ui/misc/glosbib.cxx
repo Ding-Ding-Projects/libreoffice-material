@@ -17,6 +17,7 @@
  *   the License at http://www.apache.org/licenses/LICENSE-2.0 .
  */
 
+#include <sfx2/destructiveconfirmation.hxx>
 #include <tools/urlobj.hxx>
 #include <vcl/svapp.hxx>
 #include <vcl/vclenum.hxx>
@@ -158,10 +159,12 @@ void SwGlossaryGroupDlg::Apply()
                             + o3tl::getToken(removedStr, 0, '\t', nIdx)
                             + SwResId(STR_QUERY_DELETE_GROUP2));
 
-        std::unique_ptr<weld::MessageDialog> xQueryBox(Application::CreateMessageDialog(m_pParent,
-                                                       VclMessageType::Question, VclButtonsType::YesNo, sMsg));
-        xQueryBox->set_default_response(RET_NO);
-        if (RET_YES == xQueryBox->run())
+        // Deleting an AutoText category is irreversible: the shared Material
+        // destructive-confirmation helper binds the safe action as the initial focus and Enter
+        // default.
+        sfx2::DestructiveConfirmation aConfirm;
+        aConfirm.sPrimaryText = sMsg;
+        if (sfx2::ConfirmDestructiveAction(m_pParent, aConfirm))
             m_pGlosHdl->DelGroup( sDelGroup );
     }
 

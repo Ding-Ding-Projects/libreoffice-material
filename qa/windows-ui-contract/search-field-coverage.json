@@ -4,8 +4,8 @@
   "platform": "windows",
   "audit_date": "2026-07-20",
   "expected_counts": {
-    "shipping_fields": 26,
-    "planned_fields": 1,
+    "shipping_fields": 27,
+    "planned_fields": 0,
     "excluded_candidates": 16
   },
   "scanner_contract": {
@@ -237,20 +237,17 @@
       "widget_id": "searchbox",
       "query_scope": "certificate issuer names and email addresses",
       "regex_builder": "adjacent-advanced-builder"
-    }
-  ],
-  "planned_fields": [
+    },
     {
       "coverage_id": "start-center.document-search",
       "surface": "Start Center document search",
       "ui_file": "sfx2/uiconfig/ui/startcenter.ui",
       "widget_id": "start_search",
       "query_scope": "recent documents and templates",
-      "regex_builder": "adjacent-advanced-builder",
-      "source_state": "not-yet-present",
-      "planned_layout": "Search field and advanced regex builder are anchored together in the Start Center header."
+      "regex_builder": "adjacent-advanced-builder"
     }
   ],
+  "planned_fields": [],
   "excluded_candidates": [
     {
       "coverage_id": "exclude.regex-builder-pattern-editor",

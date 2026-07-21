@@ -17,6 +17,9 @@
 #include <com/sun/star/util/URL.hpp>
 #include <com/sun/star/beans/PropertyValue.hpp>
 
+#include <set>
+#include <vector>
+
 class INetURLObject;
 struct ImplSVEvent;
 namespace com::sun::star::frame { class XDispatch; }
@@ -84,6 +87,12 @@ public:
     void clearUnavailableFiles();
 
     void setFilter(ApplicationType aFilter);
+
+    /// Titles of every currently loaded recent-document item (already narrowed by file type).
+    std::vector<OUString> getRecentDocumentTitles() const;
+
+    /// Show only the items whose title is contained in rVisibleTitles; bShowAll reveals every item.
+    void setSearchFilter(const std::set<OUString>& rVisibleTitles, bool bShowAll);
 
 protected:
     void UpdateColors(const StyleSettings& rSettings) override;

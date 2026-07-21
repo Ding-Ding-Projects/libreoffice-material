@@ -52,6 +52,17 @@ public:
     WidgetDefinitionReader(OUString aDefinitionFile, OUString aResourcePath,
                            OString aScheme = OString());
     bool read(WidgetDefinition& rWidgetDefinition);
+
+    // Expose the resolved semantic token tables (color palette per scheme, corner
+    // radii and integer metrics) without running a full widget-definition parse.
+    // This reuses the same palette/shape/metric reading path that read() drives
+    // (readColorPalette + the shape/metric token readers); it is additive and does
+    // not mutate reader state, so it is a const query over the definition file.
+    // Returns false if the file is missing, malformed, or any token section fails
+    // to validate.
+    bool readTokenTables(std::map<OString, std::map<OString, Color>>& rColorPalettes,
+                         std::map<OString, sal_Int32>& rRadiusTokens,
+                         std::map<OString, sal_Int32>& rMetricTokens) const;
 };
 
 } // end vcl namespace

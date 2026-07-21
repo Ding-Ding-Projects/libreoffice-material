@@ -23,6 +23,7 @@
 #include <sfx2/fcontnr.hxx>
 #include <sfx2/filedlghelper.hxx>
 #include <sfx2/objsh.hxx>
+#include <sfx2/RegexSearchController.hxx>
 #include <sfx2/sfxresid.hxx>
 #include <sfx2/templatedlglocalview.hxx>
 #include <svtools/viewoptions.hxx>
@@ -33,6 +34,7 @@
 #include <tools/urlobj.hxx>
 #include <unotools/moduleoptions.hxx>
 #include <unotools/pathoptions.hxx>
+#include <unotools/textsearch.hxx>
 #include <vcl/event.hxx>
 #include <vcl/svapp.hxx>
 #include <vcl/weld/Builder.hxx>
@@ -103,6 +105,14 @@ public:
 
     bool operator() (const TemplateItemProperties &rItem)
     {
+        return MatchApplication(rItem) && MatchSubstring(rItem.aName);
+    }
+
+    // Application-extension part of the filter, split out so the regex search
+    // controller can reuse the exact same category logic while performing the
+    // text matching itself.
+    bool MatchApplication(const TemplateItemProperties &rItem)
+    {
         bool bRet = true;
 
         INetURLObject aUrl(rItem.aPath);
@@ -125,7 +135,7 @@ public:
             bRet = aExt == "otg" || aExt == "std";
         }
 
-        return bRet && MatchSubstring(rItem.aName);
+        return bRet;
     }
 
     bool MatchSubstring( OUString const & sItemName )
@@ -172,6 +182,7 @@ SfxTemplateManagerDlg::SfxTemplateManagerDlg(weld::Window *pParent)
     , mxLocalViewWeld(new weld::CustomWeld(*m_xBuilder, u"template_view"_ustr, maLocalView))
     , mxListViewButton(m_xBuilder->weld_toggle_button(u"list_view_btn"_ustr))
     , mxThumbnailViewButton(m_xBuilder->weld_toggle_button(u"thumbnail_view_btn"_ustr))
+    , m_xRegexBuilderButton(m_xBuilder->weld_button(u"search_filter_regex_builder"_ustr))
 {
     // Create popup menus
     mxActionBar->append_item(MNI_ACTION_NEW_FOLDER, SfxResId(STR_CATEGORY_NEW), BMP_ACTION_NEW_CATEGORY);
@@ -216,7 +227,6 @@ SfxTemplateManagerDlg::SfxTemplateManagerDlg(weld::Window *pParent)
     mxListViewButton->connect_toggled(LINK(this, SfxTemplateManagerDlg, ListViewHdl));
     mxThumbnailViewButton->connect_toggled(LINK(this, SfxTemplateManagerDlg, ThumbnailViewHdl));
 
-    mxSearchFilter->connect_changed(LINK(this, SfxTemplateManagerDlg, SearchUpdateHdl));
     mxSearchFilter->connect_focus_in(LINK( this, SfxTemplateManagerDlg, GetFocusHdl ));
     mxSearchFilter->connect_focus_out(LINK( this, SfxTemplateManagerDlg, LoseFocusHdl ));
     mxSearchFilter->connect_key_press(LINK( this, SfxTemplateManagerDlg, KeyInputHdl));
@@ -237,6 +247,19 @@ SfxTemplateManagerDlg::SfxTemplateManagerDlg(weld::Window *pParent)
 
     mxCBApp->connect_changed(LINK(this, SfxTemplateManagerDlg, SelectApplicationHdl));
     mxCBFolder->connect_changed(LINK(this, SfxTemplateManagerDlg, SelectRegionHdl));
+
+    // Bind the search filter to the shared advanced regex builder. The controller owns the
+    // entry's changed callback and forwards it to SearchUpdateHdl, so the live filter keeps
+    // working while the builder button opens the regular-expression popover. The seeded state
+    // reproduces the field's legacy behaviour exactly: a case-insensitive literal substring
+    // match over template titles until the user opts into regex/options through the builder.
+    m_xRegexSearchController = std::make_unique<sfx2::RegexSearchController>(
+        m_xDialog.get(), *mxSearchFilter, *m_xRegexBuilderButton,
+        LINK(this, SfxTemplateManagerDlg, SearchUpdateHdl));
+    sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+    aState.Mode = sfx2::RegexSearchMode::Literal;
+    aState.Flags.CaseInsensitive = true;
+    m_xRegexSearchController->SetState(aState);
 
     maLocalView.Show();
 
@@ -779,6 +802,9 @@ IMPL_LINK(SfxTemplateManagerDlg, DefaultTemplateHdl, ThumbnailViewItem*, pItem, 
 
 IMPL_LINK_NOARG(SfxTemplateManagerDlg, SearchUpdateHdl, weld::TextWidget&, void)
 {
+    // Debounce interactive typing, then run the shared SearchUpdate() filtering (via
+    // ImplUpdateDataHdl) so the live search box and every programmatic re-filter triggered by
+    // an Application/Folder change use the exact same regex-controller match engine.
     m_aUpdateDataTimer.Start();
 }
 
@@ -817,17 +843,55 @@ IMPL_LINK_NOARG(SfxTemplateManagerDlg, FocusRectLocalHdl, weld::Widget&, tools::
 
 void SfxTemplateManagerDlg::SearchUpdate()
 {
+    // Guard the shared restore-on-destroy controller: during teardown m_xRegexSearchController
+    // is destroyed first and re-installs the entry's changed callback, so a late changed/focus
+    // signal (e.g. LoseFocusHdl flushing a pending debounce) must not dereference the freed
+    // controller while mxSearchFilter and the debounce timer are still alive.
+    if (!m_xRegexSearchController)
+        return;
+
+    const sfx2::RegexSearchState& rState = m_xRegexSearchController->GetState();
+    const bool bEmpty = rState.Pattern.isEmpty();
+    const bool bValid = bEmpty || sfx2::RegexSearchService::Validate(rState).IsValid;
+    // TextSearch equates straight and typographic quotes in literal mode. Keep the old exact
+    // case-insensitive substring semantics until the user chooses different matching options.
+    const bool bLegacyCompatibleLiteral
+        = rState.Mode == sfx2::RegexSearchMode::Literal && !rState.Flags.CaseInsensitive;
+    std::unique_ptr<utl::TextSearch> xSearch;
+    if (bValid && !bEmpty && !bLegacyCompatibleLiteral)
+        xSearch = std::make_unique<utl::TextSearch>(m_xRegexSearchController->GetSearchOptions());
+
     const OUString sSelectedRegion = mxCBFolder->get_active_text();
     maLocalView.setCurRegionId(maLocalView.getRegionId(sSelectedRegion));
-    OUString aKeyword = mxSearchFilter->get_text();
     maLocalView.Clear();
-    std::function<bool(const TemplateItemProperties &)> aFunc =
-        [&](const TemplateItemProperties &rItem)->bool
-        {
-            return aKeyword.isEmpty() || SearchView_Keyword(aKeyword, getCurrentApplicationFilter())(rItem);
-        };
 
-    std::vector<TemplateItemProperties> aItems = maLocalView.getFilteredItems(aFunc);
+    // Match the pattern against the template titles. The sibling application-extension filter is
+    // applied per item so the Filter-by-Application combo keeps narrowing the search as before.
+    SearchView_Keyword aApplicationFilter(OUString(), getCurrentApplicationFilter());
+    std::vector<TemplateItemProperties> aAllItems
+        = maLocalView.getFilteredItems([](const TemplateItemProperties&) { return true; });
+    std::vector<OUString> aAllTitles;
+    aAllTitles.reserve(aAllItems.size());
+    for (const TemplateItemProperties& rItem : aAllItems)
+        aAllTitles.push_back(rItem.aName);
+
+    std::set<OUString> aMatchedTitles;
+    for (const OUString& rTitle : aAllTitles)
+    {
+        if (bEmpty
+            || (bLegacyCompatibleLiteral && rTitle.indexOf(rState.Pattern) >= 0)
+            || (xSearch && xSearch->searchForward(rTitle)))
+            aMatchedTitles.insert(rTitle);
+    }
+
+    std::vector<TemplateItemProperties> aItems = maLocalView.getFilteredItems(
+        [&](const TemplateItemProperties& rItem) -> bool
+        {
+            if (bEmpty)
+                return true;
+            return aApplicationFilter.MatchApplication(rItem)
+                   && aMatchedTitles.find(rItem.aName) != aMatchedTitles.end();
+        });
     maLocalView.insertItems(aItems, mxCBFolder->get_active() != 0, true);
     maLocalView.Invalidate();
 }

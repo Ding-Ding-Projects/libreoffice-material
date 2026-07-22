@@ -141,9 +141,16 @@ and statically validated only.
   required native targets compile, before any new feature work. The Windows
   MSI run for the pre-fix tip was in progress at handoff time and will fail
   the same way; watch the run triggered by `b420ce9ae` instead.
-- **Wave-2 Batch B has landed and validated at source level** on
-  `claude/wave2-batch-b` (working tip `851fcd6dd` plus the finishing edits the
-  orchestrator will commit). Nine rows were assessed (WIN-NAV-002, WIN-CON-007,
+- **Wave-2 Batch B is MERGED to `main` (merge commit `c8c8eb7e3`) and all
+  four CI workflows are CONFIRMED GREEN on that tip**: `Validate Linux
+  native sources` (run `29940490742`), `Build Windows MSI` (run
+  `29940490959`, release `windows-msi-82-1-c8c8eb7e33` published),
+  `Windows UI contract` (run `29940490825` — first run of the reconciled
+  25-pair static gate in CI), and `Validate Material UI source` (run
+  `29940490795`). The task branch `claude/wave2-batch-b` was deleted after
+  remote ancestor proof. That CI green covers compilation, the five
+  required native targets, and the static contracts — it is NOT
+  UI/screenshot evidence; the `B V I A L P C` gates below stay untouched. Nine rows were assessed (WIN-NAV-002, WIN-CON-007,
   WIN-WR-004, WIN-FBK-005, WIN-FBK-008, WIN-CA-001, WIN-CA-002, WIN-IM-002,
   WIN-CONCEPT-003) and locked by **five new fail-closed contracts** (calc-chrome
   → WIN-CA-001, calc-formula-bar → WIN-CA-002, component-gallery-coverage →
@@ -288,11 +295,13 @@ and statically validated only.
    legs. Still open: the headless harness matrix (no-nag proof, UI
    screenshots) needs an actual running build host — CI does not produce
    that evidence — before claiming any `B`/`V` gate.
-2. Wave-2 Batch B is done at source level and gate-green pending merge to
-   `main` (nine rows assessed, five new + two extended fail-closed contracts,
-   gallery suite authored, CI wiring reconciled). Next: Wave-2 Batch C rows,
+2. DONE: Wave-2 Batch B is merged to `main` (`c8c8eb7e3`) with all four CI
+   workflows confirmed green and release `windows-msi-82-1-c8c8eb7e33`
+   published. Next: Wave-2 Batch C rows (WIN-SYS flows + WIN-CONCEPT-001),
    each with its own fail-closed checker + JSON registry + mutation suite per
-   the established pattern.
+   the established pattern, shipped as one merged push per wave; then the 15
+   honest-gap search-field contract extensions; then wave-3 source-side
+   slices (their `B V I A L P C` gates remain build-host-bound).
 3. Producer migration: extend the notification-producer registry in bounded,
    registered informational-only tranches (never input/destructive/
    credential/security prompts).

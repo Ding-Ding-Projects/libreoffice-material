@@ -143,7 +143,57 @@ and statically validated only.
   build-host-bound per the audit.
 - **Recurring defect to watch**: agent editors twice flipped whole files to
   CRLF (`menu.cxx`, `svdata.hxx`, `sw/qa/unit/swmodeltestbase.cxx`); a
-  wholesale line-ending flip in a diff is a defect, not a change.
+  wholesale line-ending flip in a diff is a defect, not a change. A third
+  instance hit `solenv/sanitizers/ui/sfx.suppr` while fixing the a11y gate
+  below and was caught and reverted to LF before commit — check `git diff
+  --stat` for suspiciously large line counts on small edits.
+
+## CI iteration continued (2026-07-21/22, `df5239f63`)
+
+- **Windows MSI `sfx.a11yerrors` fatal (was blocking `Build Windows MSI` on
+  every push since `b420ce9ae`)**: `bin/gla11y` flagged 6 new FATAL warnings
+  in the wave-1 notification `.ui` files — `sev_strip`/`sev_icon`
+  (`notificationcard.ui`), `header_icon` (`notificationmanager.ui`, all
+  decorative, no-labelled-by), `overflow_button` (`notificationstack.ui`,
+  `button-no-label` — its text is set at runtime via
+  `NotificationStackController::set_label`), and `list_view`/`history_view`
+  (`notificationmanager.ui`, `no-labelled-by`). Fixed: suppression entries in
+  `solenv/sanitizers/ui/sfx.suppr` for the four decorative/runtime-labelled
+  widgets (matching existing precedent — `documentinfopage.ui` icon,
+  `loadtemplatedialog.ui` drawing area, `extrabutton.ui` button), plus real
+  translatable `tooltip-text` on the two tree views since they carry primary
+  content. Verified locally by running `bin/gla11y` directly against the
+  three files with `-s solenv/sanitizers/ui/sfx.suppr`: 0 new fatals.
+- **`Validate Linux native sources` failing since `62fa5d025`** (when the
+  `sfx2_regexsearch`/`sfx2_notificationstore` CppunitTests were added): those
+  targets pull `Library_svxcore` into the build graph via `services.rdb` for
+  the first time in this workflow. `svx/Library_svxcore.mk` compiles
+  `svx/source/{fmcomp,form}/*` unconditionally and only gates the `dbtools`
+  *link* on `DBCONNECTIVITY` — identical to upstream `LibreOffice/core`, so
+  not a regression to "fix" in that file. With
+  `--disable-database-connectivity` (present in `build-installer.yml` since
+  its first commit), `gridcell.cxx`/`fmgridcl.cxx`/`formcontroller.cxx` etc.
+  reference `dbtools::`/`connectivity::` symbols that never get linked in →
+  `undefined reference` → `Library_svxcore` link failure →
+  `CppunitTest_sfx2_regexsearch` target failure. Fix: removed
+  `--disable-database-connectivity` from `build-installer.yml`.
+  `configure.ac` documents that flag as "Work in progress, use only if you
+  are hacking on it"; `windows-installer.yml` never disables it and links
+  svxcore fine, so this restores the default/supported configuration rather
+  than patching around it in vendor makefiles.
+- **Full build-free gate reran green** after both fixes (all 29 checker/test
+  pairs + `validate-prototype.mjs`).
+- **Pushed as `df5239f63`** on top of `4896547c0`. Hosted-CI verification
+  (`Build Windows MSI` run `29882830485`, `Validate Linux native sources` run
+  `29882830508`) was in flight at time of writing this entry — **do not
+  treat either as green until confirmed**; the next entry in this file (or
+  the run history at
+  `gh run list --repo codingmachineedge/libreoffice-material`) has the actual
+  outcome. If Linux still fails, check first whether enabling
+  `DBCONNECTIVITY` surfaced a *different* missing external tarball/system-dep
+  (firebird/postgres/mysql dev headers) rather than assuming the fix is
+  wrong — `apt-get build-dep libreoffice` should already cover them, but this
+  was not empirically observed before pushing.
 
 ## Resume guidance
 

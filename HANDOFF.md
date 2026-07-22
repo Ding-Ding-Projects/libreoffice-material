@@ -183,17 +183,39 @@ and statically validated only.
   than patching around it in vendor makefiles.
 - **Full build-free gate reran green** after both fixes (all 29 checker/test
   pairs + `validate-prototype.mjs`).
-- **Pushed as `df5239f63`** on top of `4896547c0`. Hosted-CI verification
-  (`Build Windows MSI` run `29882830485`, `Validate Linux native sources` run
-  `29882830508`) was in flight at time of writing this entry — **do not
-  treat either as green until confirmed**; the next entry in this file (or
-  the run history at
-  `gh run list --repo codingmachineedge/libreoffice-material`) has the actual
-  outcome. If Linux still fails, check first whether enabling
-  `DBCONNECTIVITY` surfaced a *different* missing external tarball/system-dep
-  (firebird/postgres/mysql dev headers) rather than assuming the fix is
-  wrong — `apt-get build-dep libreoffice` should already cover them, but this
-  was not empirically observed before pushing.
+- **Pushed as `df5239f63`** on top of `4896547c0`. CONFIRMED: the
+  `DBCONNECTIVITY` fix was correct — run `29882830508` restored external
+  tarballs, configured, and got all the way through `Library_svxcore`
+  linking and most of `CppunitTest_sfx2_regexsearch`/
+  `CppunitTest_sfx2_notificationstore` (1h40m total). No missing
+  system-dep/tarball issue was observed; `apt-get build-dep libreoffice`
+  did cover the newly-enabled DB connectivity stack.
+- **New failure surfaced by getting further: a SIGSEGV**, not a build
+  error. `NotificationViewModelTest::testVisibleCardsNewestFirstAndCap`
+  crashed inside `cppu::_copyConstructAnyFromData`. Full chain from the
+  coredump backtrace: `NotificationViewModel::MakeRow` →
+  `lclRelativeTime` (`NotificationViewModel.cxx`) → `SfxResId` →
+  `SvtSysLocale`/`SvtSysLocaleOptions_Impl` → `utl::ConfigManager::
+  acquireTree`/`addConfigItem`. None of that can run safely without a
+  bootstrapped UNO type-description manager and configuration provider.
+  Root cause: `sfx2/CppunitTest_sfx2_notificationstore.mk` never called
+  `gb_CppunitTest_use_ure` / `_use_vcl` / `_use_rdb(...,services)` /
+  `_use_configuration` — its sibling `CppunitTest_sfx2_regexsearch.mk`
+  already has all four (and passed earlier in the very same run, proving
+  the pattern works in this CI environment). Fix: added the same four
+  macros to `notificationstore.mk`. Pushed as `2cd1c5cf3`.
+- **Hosted-CI verification of `2cd1c5cf3` in flight** (`Build Windows MSI`
+  run `29889642513`, `Validate Linux native sources` run `29889642528`)
+  at time of writing — **do not treat either as green until confirmed**;
+  check `gh run list --repo codingmachineedge/libreoffice-material
+  --branch main --limit 5` for the actual outcome before claiming the CI
+  gate is clean. `Windows UI contract` on this commit already passed
+  (unaffected fast check). Note `windows-msi-<sha>` is the Windows
+  workflow's concurrency group (one run per commit, not per branch), so
+  older in-flight Windows runs for `df5239f63`/`6deee3d41` keep running to
+  completion instead of being cancelled — their eventual (likely stale/
+  failing, since they predate the notificationstore fix) results are not
+  informative and can be ignored once `2cd1c5cf3`'s run is green.
 
 ## Resume guidance
 

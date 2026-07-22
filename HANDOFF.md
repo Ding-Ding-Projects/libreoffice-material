@@ -73,12 +73,16 @@ and statically validated only.
 
 ## Important boundaries
 
-- **No build or runtime evidence exists for any of the above.** The `B V I A
-  L P C` inventory gates are untouched. The next build host (or the hosted
-  `windows-installer.yml` CI on a `main` push) must compile the five required
-  native targets, run the registered CppUnit coverage (notification view
-  model, store service, regex foundation), and produce fresh headless
-  evidence before any runtime claim.
+- **Updated 2026-07-22**: the five required native targets now DO compile
+  and run green on both Linux (`29889642528`) and Windows
+  (`29889642513`), including the notification view model/store-service/
+  regex-foundation CppUnit coverage — see "CI iteration continued" below.
+  That is real build+run evidence for those specific native targets and
+  for the Windows MSI packaging step, but it is **not** the same as
+  headless UI/screenshot evidence for the Material rewrite itself: the
+  `B V I A L P C` inventory gates covering the actual on-screen appearance
+  of wave-1/wave-2 surfaces are still untouched, and no screenshots exist.
+  Do not conflate "CI is green" with "the UI looks/behaves as designed."
 - The previous handoff's retained build root
   `C:\Users\cntow\lo-material-vs2026-577059e27` does not exist on this host.
   The Package-phase resume commands from the 2026-07-20 handoff apply only on
@@ -221,27 +225,32 @@ and statically validated only.
 - **`Validate Linux native sources` run `29889642528` on `2cd1c5cf3`:
   CONFIRMED GREEN** (11m30s, ccache warm) — `Linux focused native C++
   tests` job passed outright, all five required targets including the
-  two sfx2 CppunitTests. **This CI leg is fully fixed at this tip.**
-- **`Build Windows MSI` run `29889642513` on `2cd1c5cf3`: still in flight**
-  at time of writing — check `gh run list --repo
-  codingmachineedge/libreoffice-material --branch main --limit 5` (or
-  `gh run view 29889642513 --repo codingmachineedge/libreoffice-material`)
-  for the actual outcome before claiming the Windows leg is clean; it has
-  historically taken 45m–2h48m. `Windows UI contract` on this commit
-  already passed (unaffected fast check). Note `windows-msi-<sha>` is the
-  Windows workflow's concurrency group (one run per commit, not per
-  branch), so older in-flight/completed Windows runs for
-  `df5239f63`/`6deee3d41`/`3f74ebf18`/`8315a4893` are separate — the
-  `df5239f63` one already finished (see cross-platform confirmation
-  above); the others are docs-only pushes rebuilding the identical source
-  tree and are redundant with `29889642513`, not additional signal.
+  two sfx2 CppunitTests.
+- **`Build Windows MSI` run `29889642513` on `2cd1c5cf3`: CONFIRMED GREEN**
+  (2h54m29s, full MSI build + native regression tests). One pre-existing,
+  non-fatal annotation (`C:\cygwin64\bin\git.exe` exit 128, `.github#16`)
+  appeared but did not affect the run's success and is unrelated to this
+  session's changes (present on prior failing runs too, e.g.
+  `29882830485`) — not investigated further since it did not block a
+  green result; revisit only if it starts failing the build outright.
+- **BOTH REQUIRED CI LEGS ARE GREEN AT `main` TIP `ce7276f8e`** (and every
+  commit from `2cd1c5cf3` onward, since later pushes were docs-only). The
+  five required native targets (`tools_test`, `extensions_test_update`,
+  `vcl_widget_definition_reader_test`, `vcl_file_definition_widget_draw_test`,
+  `vcl_treeview`) plus the two sfx2 CppunitTests
+  (`sfx2_regexsearch`, `sfx2_notificationstore`) are now genuinely
+  build+run verified on both Linux and Windows — this is real runtime
+  evidence, not just source-implemented. The Windows MSI artifact itself
+  (installer packaging) was also produced successfully in this run.
 
 ## Resume guidance
 
-1. Drive the hosted CI (or a local build per `docs/LOCAL_WINDOWS_BUILD.md`)
-   to compile the five required native targets at `main`, fixing compile
-   errors as the first work item; then run the registered CppUnit coverage
-   and the headless harness matrix before claiming any `B`/`V` gate.
+1. DONE as of `2cd1c5cf3`/`ce7276f8e`: the five required native targets
+   compile and their registered CppUnit coverage (notification view
+   model, store service, regex foundation) runs green on both hosted CI
+   legs. Still open: the headless harness matrix (no-nag proof, UI
+   screenshots) needs an actual running build host — CI does not produce
+   that evidence — before claiming any `B`/`V` gate.
 2. Finish wave-2 Batch B from the WIP branch (strip debris, complete, gate,
    merge), then Batch C, each row with its fail-closed contract per the
    established checker + mutation-suite pattern.

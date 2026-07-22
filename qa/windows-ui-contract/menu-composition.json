@@ -237,6 +237,12 @@
         "why": "the transient keyboard-invocation flag is declared on the app-data channel"
       },
       {
+        "id": "ctx-widgetdef-setting",
+        "file": "vcl/inc/widgetdraw/WidgetDefinition.hxx",
+        "pattern": "OString\\s+msContextMenuKeyboardFirstHighlight\\s*;",
+        "why": "the WidgetDefinitionSettings string field that carries the contextMenuKeyboardFirstHighlight setting from the reader into the file-definition theme is declared"
+      },
+      {
         "id": "ctx-reader-map",
         "file": "vcl/source/gdi/WidgetDefinitionReader.cxx",
         "pattern": "\"contextMenuKeyboardFirstHighlight\"\\s*,\\s*&rWidgetDefinition\\.mpSettings->msContextMenuKeyboardFirstHighlight",

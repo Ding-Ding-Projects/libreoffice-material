@@ -301,6 +301,37 @@ class MenuCompositionTest(unittest.TestCase):
         )
         self.assert_fails("ctx-consume-highlight", files=files)
 
+    def test_rejects_missing_context_widgetdef_setting(self) -> None:
+        # Deleting the WidgetDefinitionSettings string field breaks the only carrier that hands the
+        # contextMenuKeyboardFirstHighlight setting from the reader to the live file-definition theme.
+        files = self.mutated(
+            "vcl/inc/widgetdraw/WidgetDefinition.hxx",
+            "    OString msContextMenuKeyboardFirstHighlight;\n",
+            "",
+        )
+        self.assert_fails("ctx-widgetdef-setting", files=files)
+
+    def test_rejects_missing_context_baseline_capture(self) -> None:
+        # Removing the capture leaves the guard with no saved platform value, so the reversible
+        # teardown could never restore the untouched default: the guard must stay reversible.
+        files = self.mutated(
+            "vcl/source/gdi/FileDefinitionWidgetDraw.cxx",
+            "aBaseline.mbContextMenuKeyboardFirstHighlight = "
+            "rNWFData.mbContextMenuKeyboardFirstHighlight;",
+            "",
+        )
+        self.assert_fails("ctx-baseline-capture", files=files)
+
+    def test_rejects_context_keyboard_highlight_not_applied(self) -> None:
+        # Dropping the fold into Run's pre-select argument means the computed keyboard-first-highlight
+        # is captured but never applied to the ImplExecute -> Run path.
+        files = self.mutated(
+            "vcl/source/window/menu.cxx",
+            "Run(pWin, bRealExecute, bPreSelectFirst || bContextKeyboardFirstHighlight,",
+            "Run(pWin, bRealExecute, bPreSelectFirst,",
+        )
+        self.assert_fails("ctx-consume-applied", files=files)
+
     # -- WIN-NAV-002 context-menu section: presence markers guard against silent regression -------
     def test_rejects_missing_edge_flip(self) -> None:
         files = self.mutated(
@@ -317,6 +348,46 @@ class MenuCompositionTest(unittest.TestCase):
             "devRectRTL = devRect;",
         )
         self.assert_fails("ctx-rtl-mirror", files=files)
+
+    def test_rejects_missing_placement_feed(self) -> None:
+        # Dropping the anchor rect starves the FloatingWindow placement channel of the pointer/caret
+        # position the context menu must open at.
+        files = self.mutated(
+            "vcl/source/window/menu.cxx",
+            "pWin->StartPopupMode(rRect, nPopupModeFlags);",
+            "pWin->StartPopupMode(nPopupModeFlags);",
+        )
+        self.assert_fails("ctx-placement-feed", files=files)
+
+    def test_rejects_missing_focus_save(self) -> None:
+        # A top-level context execute must save the invoking control's focus so it can be returned on
+        # dismissal; removing the save breaks the focus-return contract.
+        files = self.mutated(
+            "vcl/source/window/menu.cxx",
+            "xFocusId = Window::SaveFocus();",
+            "",
+        )
+        self.assert_fails("ctx-focus-save", files=files)
+
+    def test_rejects_missing_focus_return(self) -> None:
+        # Removing the EndSaveFocus call means closing the popup never returns focus to the saved
+        # invoking control.
+        files = self.mutated(
+            "vcl/source/window/menufloatingwindow.cxx",
+            "Window::EndSaveFocus(xFocusId);",
+            "",
+        )
+        self.assert_fails("ctx-focus-return", files=files)
+
+    def test_rejects_missing_esc_dismiss(self) -> None:
+        # Dropping StopExecute from the top-level Esc branch means Esc no longer tears the context menu
+        # down and drives the focus-return path.
+        files = self.mutated(
+            "vcl/source/window/menufloatingwindow.cxx",
+            "StopExecute();\n                    KillActivePopup();",
+            "KillActivePopup();",
+        )
+        self.assert_fails("ctx-esc-dismiss", files=files)
 
     def test_rejects_missing_writer_caret_hook(self) -> None:
         files = self.mutated(

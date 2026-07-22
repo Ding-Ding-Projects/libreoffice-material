@@ -19,7 +19,11 @@ call site that emits a bottom-right notification instead of a transient modal me
   (``NotifyConfirmation``) declares only Success/Information, the two outcomes the router maps;
 * every producer is informational-only (it routes as a notification, never a modal prompt), and its
   display source is inside the compiled ``isApprovedSafeDisplaySource`` allowlist -- so a mislabeled
-  entry that would be silently redacted at runtime fails here instead; and
+  entry that would be silently redacted at runtime fails here instead;
+* when a producer declares the optional ``wiring_markers`` list, each anchored pattern -- the arming
+  assignment, the consumption call, and the opt-in guard literal -- must exist as real code, so a
+  partial revert that removes only the wiring (leaving the producer function still defined but dead,
+  unreachable code) fails here instead of passing on the surviving definition; and
 * the shared confirmation seam is real: the router header declares ``NotifyConfirmation``, the router
   source defines it forwarding through ``NotifyInfo`` with both Success and Information, and
   ``Classify`` keeps the informational case non-modal.
@@ -136,6 +140,41 @@ def _require(code: str, marker: str, where: str) -> None:
 # --------------------------------------------------------------------------------------------------
 # Registry
 # --------------------------------------------------------------------------------------------------
+def _validate_wiring_markers_shape(producer: dict) -> None:
+    """Structurally validate a producer's optional ``wiring_markers`` list.
+
+    The field is optional: a producer without it is valid (the Batch-A producers carry none). When
+    present it must be a non-empty array of ``{file, pattern}`` objects (``note`` optional), so a
+    malformed reachability declaration fails closed rather than silently enforcing nothing.
+    """
+
+    markers = producer.get("wiring_markers")
+    if markers is None:
+        return
+    if not isinstance(markers, list) or not markers:
+        raise ValidationError(
+            f"producer {producer['id']} wiring_markers must be a non-empty array when present"
+        )
+    for index, marker in enumerate(markers):
+        if not isinstance(marker, dict):
+            raise ValidationError(
+                f"producer {producer['id']} wiring_marker #{index} must be an object"
+            )
+        for field in ("file", "pattern"):
+            value = marker.get(field)
+            if not isinstance(value, str) or not value.strip():
+                raise ValidationError(
+                    f"producer {producer['id']} wiring_marker #{index} "
+                    f"has empty required field {field!r}"
+                )
+        note = marker.get("note")
+        if note is not None and (not isinstance(note, str) or not note.strip()):
+            raise ValidationError(
+                f"producer {producer['id']} wiring_marker #{index} "
+                "note must be a non-empty string when present"
+            )
+
+
 def load_registry(registry_path: Path) -> dict:
     try:
         data = json.loads(registry_path.read_text(encoding="utf-8"))
@@ -194,6 +233,7 @@ def load_registry(registry_path: Path) -> dict:
                 f"producer {producer['id']} must set informational_only=true "
                 "(producers route as notifications, never modal prompts)"
             )
+        _validate_wiring_markers_shape(producer)
 
     missing = [pid for pid in required if pid not in seen]
     if missing:
@@ -249,9 +289,16 @@ def validate_router(repo_root: Path, data: dict) -> None:
 # --------------------------------------------------------------------------------------------------
 def validate_producers(repo_root: Path, data: dict) -> None:
     approved = set(data["approved_display_sources"])
+    stripped_cache: dict[str, str] = {}
+
+    def stripped(rel: str) -> str:
+        if rel not in stripped_cache:
+            stripped_cache[rel] = _strip_comments(_read(repo_root, rel))
+        return stripped_cache[rel]
+
     for producer in data["producers"]:
         where = f"producer {producer['id']} ({producer['file']})"
-        code = _strip_comments(_read(repo_root, producer["file"]))
+        code = stripped(producer["file"])
 
         # The enclosing function and the qualified router call must both be real code.
         _require(code, producer["function"], where)
@@ -283,6 +330,17 @@ def validate_producers(repo_root: Path, data: dict) -> None:
                     f"{where} is a confirmation producer but declares non-confirmation "
                     f"severit(y/ies) {sorted(extra)}; only {sorted(CONFIRMATION_SEVERITIES)} are mapped"
                 )
+
+        # Reachability wiring. When a producer declares wiring_markers, each anchored pattern must
+        # exist as real (comment-stripped) code. This closes the gap where a partial revert removes
+        # only the arming, consumption, or guard site: the producer function itself still exists (so
+        # the existence checks above keep passing) but is dead, unreachable code -- caught here.
+        for index, marker in enumerate(producer.get("wiring_markers") or []):
+            marker_where = f"{where} wiring_marker #{index}"
+            note = marker.get("note")
+            if note:
+                marker_where += f" [{note}]"
+            _require(stripped(marker["file"]), marker["pattern"], marker_where)
 
 
 def validate(repo_root: Path, registry_path: Path) -> dict:

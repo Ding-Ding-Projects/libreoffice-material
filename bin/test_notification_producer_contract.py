@@ -44,6 +44,11 @@ class NotificationProducerContractTest(unittest.TestCase):
         cls.tracked_files = sorted(
             {router["header"], router["source"], cls.registry["approved_source_registry"]}
             | {producer["file"] for producer in cls.registry["producers"]}
+            | {
+                marker["file"]
+                for producer in cls.registry["producers"]
+                for marker in producer.get("wiring_markers", [])
+            }
         )
         cls.originals = {
             rel: (REPOSITORY / rel).read_text(encoding="utf-8") for rel in cls.tracked_files
@@ -76,6 +81,13 @@ class NotificationProducerContractTest(unittest.TestCase):
         source = self.originals[rel]
         self.assertEqual(source.count(old), 1, f"expected exactly one {old!r} in {rel}")
         return {rel: source.replace(old, new, 1)}
+
+    def mutated_all(self, rel: str, old: str, new: str) -> dict[str, str]:
+        # Some wiring anchors (the consumption call) appear at more than one site; a reachability
+        # marker only fails once every occurrence is gone, so this replaces them all.
+        source = self.originals[rel]
+        self.assertGreaterEqual(source.count(old), 1, f"expected {old!r} in {rel}")
+        return {rel: source.replace(old, new)}
 
     def registry_copy(self) -> dict:
         return copy.deepcopy(self.registry)
@@ -195,6 +207,91 @@ class NotificationProducerContractTest(unittest.TestCase):
             "return NotificationRoute::KeepModal;",
         )
         self.assert_fails("return NotificationRoute::Notification;", files=files)
+
+    # -- reachability wiring markers --------------------------------------------------------------
+    def test_srchdlg_producer_declares_wiring_markers(self) -> None:
+        # Guards the reachability contract itself: the transient confirmation producer must keep its
+        # wiring_markers so the arming/consumption/guard sites stay bound.
+        producer = self.producer("srchdlg-replace-all-outcome")
+        patterns = {marker["pattern"] for marker in producer.get("wiring_markers", [])}
+        self.assertIn("g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());", patterns)
+        self.assertIn("lcl_NotifyMaterialReplaceOutcome(sStr);", patterns)
+        self.assertIn('std::getenv("VCL_FILE_WIDGET_THEME")', patterns)
+
+    def test_rejects_missing_arming_wiring_marker(self) -> None:
+        # Partial revert removing ONLY the Replace-All arming assignment. The producer function still
+        # exists, so every existence check passes; only the wiring marker catches the dead code.
+        files = self.mutated(
+            "svx/source/dialog/srchdlg.cxx",
+            "g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());",
+            "g_bMaterialReplaceAllPending = false;",
+        )
+        self.assert_fails(
+            "g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());", files=files
+        )
+
+    def test_rejects_missing_consumption_wiring_marker(self) -> None:
+        # Remove every SetSearchLabel consumption call. The producer function definition survives
+        # (so the existing function/router-call/source-literal checks still pass), leaving it dead.
+        files = self.mutated_all(
+            "svx/source/dialog/srchdlg.cxx",
+            "lcl_NotifyMaterialReplaceOutcome(sStr);",
+            "(void)sStr;",
+        )
+        self.assert_fails("lcl_NotifyMaterialReplaceOutcome(sStr);", files=files)
+
+    def test_rejects_missing_guard_wiring_marker(self) -> None:
+        files = self.mutated(
+            "svx/source/dialog/srchdlg.cxx",
+            'std::getenv("VCL_FILE_WIDGET_THEME")',
+            'std::getenv("VCL_MATERIAL")',
+        )
+        self.assert_fails('std::getenv("VCL_FILE_WIDGET_THEME")', files=files)
+
+    def test_rejects_commented_out_wiring_marker(self) -> None:
+        # The arming site surviving only inside a comment must not satisfy the reachability marker.
+        files = self.mutated(
+            "svx/source/dialog/srchdlg.cxx",
+            "g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());",
+            "// g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());",
+        )
+        self.assert_fails(
+            "g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());", files=files
+        )
+
+    def test_rejects_tampered_wiring_pattern(self) -> None:
+        # A wiring pattern that no longer matches real source (e.g. anchored to the wrong button)
+        # fails closed rather than silently binding nothing.
+        registry = self.registry_copy()
+        markers = self.producer_in(registry, "srchdlg-replace-all-outcome")["wiring_markers"]
+        markers[0]["pattern"] = "g_bMaterialReplaceAllPending = (&rBtn == m_xNoSuchButton.get());"
+        self.assert_fails(
+            "g_bMaterialReplaceAllPending = (&rBtn == m_xNoSuchButton.get());", registry=registry
+        )
+
+    def test_wiring_markers_absent_still_passes(self) -> None:
+        # The field is optional: dropping it entirely from a producer keeps the contract valid, the
+        # same way the Batch-A viewprn/newhelp producers carry none.
+        registry = self.registry_copy()
+        del self.producer_in(registry, "srchdlg-replace-all-outcome")["wiring_markers"]
+        self.run_validate(registry=registry)
+
+    def test_batch_a_producers_carry_no_wiring_markers(self) -> None:
+        # The two Batch-A producers must keep passing without the optional field.
+        for pid in ("viewprn-printer-busy", "newhelp-no-search-text"):
+            self.assertNotIn("wiring_markers", self.producer(pid))
+
+    def test_rejects_malformed_wiring_marker_missing_pattern(self) -> None:
+        registry = self.registry_copy()
+        markers = self.producer_in(registry, "srchdlg-replace-all-outcome")["wiring_markers"]
+        del markers[0]["pattern"]
+        self.assert_fails("has empty required field 'pattern'", registry=registry)
+
+    def test_rejects_empty_wiring_markers_list(self) -> None:
+        # Present-but-empty is malformed: an empty list would enforce nothing while looking wired.
+        registry = self.registry_copy()
+        self.producer_in(registry, "srchdlg-replace-all-outcome")["wiring_markers"] = []
+        self.assert_fails("must be a non-empty array when present", registry=registry)
 
     # helper ------------------------------------------------------------------------------------
     @staticmethod

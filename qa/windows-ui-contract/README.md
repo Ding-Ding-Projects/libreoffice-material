@@ -960,7 +960,7 @@ This is a data-coverage ledger whose `source_note` disclaims build/pixels/
 dispatch/localization; it carries no `runtime_verified` field, matching the
 sibling component-gallery ledger. 22 mutation tests.
 
-## Material default-on activation (Windows)
+## Material unconditional activation (Windows)
 
 `material-default-activation.json` (contract `material-default-activation`) pins
 the fix for the defect that made the shipped fork look identical to stock
@@ -972,31 +972,38 @@ LibreOffice: the whole Material treatment packaged into every MSI but stayed
 The Material assets themselves ship (`vcl/Package_theme_definitions.mk` installs
 `material/definition.xml`).
 
+Per operator directive — Material Design is the product — the activation is
+**unconditional**: there is no opt-out environment variable and no user override.
+
 `check-material-default-activation.py` cross-validates, fail-closed against real
 comment-stripped source, the `#ifdef _WIN32` block that
 `desktop/source/app/sofficemain.cxx` adds at the very top of `soffice_main()`,
 BEFORE the first pre-existing statement (`sal_detail_initialize(sal::detail::InitializeSoffice`):
-the Windows guard; the `LIBREOFFICE_MATERIAL_THEME` opt-out token with its
-case-insensitive `off`/`0` values (marker `_stricmp`); the respect-existing
-`getenv("VCL_FILE_WIDGET_THEME")` check that never overwrites an operator-set
-theme; and both `_putenv_s` calls with the exact values `"material"` and `"1"`.
-A moved block, a dropped guard, a dropped opt-out, a dropped override-respect, or
-a drifted `_putenv_s` value fails closed. Two `asset_cross_checks` prove the
-activation cannot outlive its assets — `salgdilayout.cxx` must still gate on
+the Windows guard; both `_putenv_s` calls with the exact values `"material"` and
+`"1"`; the registry's `activation.unconditional: true`; and every
+`forbidden_markers` pattern being **ABSENT** from the whole file — the
+`LIBREOFFICE_MATERIAL_THEME` opt-out token, `getenv("VCL_FILE_WIDGET_THEME")`,
+and `getenv("VCL_DRAW_WIDGETS_FROM_FILE")`. A moved block, a dropped guard, a
+drifted `_putenv_s` value, or a **reintroduced opt-out token or `getenv` override
+conditional** fails closed. Two `asset_cross_checks` prove the activation cannot
+outlive its assets — `salgdilayout.cxx` must still gate on
 `VCL_DRAW_WIDGETS_FROM_FILE` and `Package_theme_definitions.mk` must still ship
-`material/definition.xml`.
+`material/definition.xml`. (The stock native widget-draw code that
+`salgdilayout.cxx` gates is deliberately retained, not deleted: the high-contrast
+accessibility precedence and all non-Windows builds still depend on it.)
 
 ```sh
 python bin/check-material-default-activation.py
 python bin/test_material_default_activation.py
 ```
 
-The 19 mutation tests fail closed on a removed/moved block, a dropped guard or
-opt-out, a case-insensitive-marker or override-respect regression, a `_putenv_s`
-value drift, a missing source or gate file, an asset-manifest drift, or any
-registry drift (`runtime_verified: true`, wrong contract slug/schema/status, or a
-promoted carve-out). This is source + wiring evidence only: `runtime_verified`
-stays `false`, the `first_visual_verification` carve-out stays `status:
-specified`, and no native build, theme pixels, or runtime observation of the
-activated theme is claimed — the first release built after this change is the
-first shipped binary with Material active by default.
+The 22 mutation tests fail closed on a removed/moved block, a dropped guard, a
+`_putenv_s` value drift, a missing source or gate file, an asset-manifest drift,
+a **reintroduced opt-out token or `getenv` override conditional** in source, a
+registry that drops `unconditional`/`forbidden_markers`, or any other registry
+drift (`runtime_verified: true`, wrong contract slug/schema/status, or a promoted
+carve-out). This is source + wiring evidence only: `runtime_verified` stays
+`false`, the `first_visual_verification` carve-out stays `status: specified`, and
+no native build, theme pixels, or runtime observation of the activated theme is
+claimed — the first release built after this change is the first shipped binary
+with Material active by default.

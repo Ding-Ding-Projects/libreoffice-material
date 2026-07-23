@@ -5,9 +5,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Fail-closed source contract for default-on Material activation (Windows).
+"""Fail-closed source contract for UNCONDITIONAL Material activation (Windows).
 
-The Material widget treatment ships in every MSI but is dormant: upstream keeps
+The Material widget treatment ships in every MSI but was dormant: upstream keeps
 it behind two environment variables that no product code sets --
 ``vcl/source/gdi/salgdilayout.cxx`` enables ``FileDefinitionWidgetDraw`` only
 when ``VCL_DRAW_WIDGETS_FROM_FILE`` is set, and the theme-name guards select the
@@ -15,20 +15,26 @@ shared theme only when ``VCL_FILE_WIDGET_THEME`` == ``material``. The Material
 assets themselves DO ship (``vcl/Package_theme_definitions.mk`` installs
 ``material/definition.xml``).
 
-This fork defaults both variables ON at the very top of ``soffice_main()``
+This fork FORCES both variables at the very top of ``soffice_main()``
 (``desktop/source/app/sofficemain.cxx``), under ``#ifdef _WIN32``, before any
-consumer in the process reads them. ``qa/windows-ui-contract/material-default-activation.json``
-pins that wiring; this checker cross-validates every anchor against real,
-comment-stripped source and fails closed on drift:
+consumer in the process reads them. Per operator directive the activation is
+unconditional -- Material Design is the product, so there is no opt-out
+environment variable and no user override; the only runtime path that bypasses
+Material is the system forced-colors / high-contrast precedence inside VCL,
+which is an accessibility requirement, not an opt-out.
+``qa/windows-ui-contract/material-default-activation.json`` pins that wiring;
+this checker cross-validates every anchor against real, comment-stripped source
+and fails closed on drift:
 
 * ``activation`` -- inside ``soffice_main()``, and BEFORE the first pre-existing
   statement (``sal_detail_initialize(sal::detail::InitializeSoffice``), the code
-  must (a) be guarded by ``#ifdef _WIN32``; (b) honour the ``LIBREOFFICE_MATERIAL_THEME``
-  opt-out token with its case-insensitive values; (c) respect an already-set
-  theme via ``getenv("VCL_FILE_WIDGET_THEME")``; and (d) carry both ``_putenv_s``
-  calls with the exact values ``"material"`` and ``"1"``. A moved block, a dropped
-  guard, a dropped opt-out, a dropped override-respect, or a drifted ``_putenv_s``
-  value fails closed.
+  must (a) be guarded by ``#ifdef _WIN32``; (b) carry both ``_putenv_s`` calls
+  with the exact values ``"material"`` and ``"1"``; and (c) the registry must
+  declare ``unconditional: true``. Additionally every ``forbidden_markers``
+  pattern (the opt-out token and any ``getenv`` conditional around the two
+  writes) must be ABSENT from the whole file -- reintroducing an opt-out or an
+  override guard fails closed. A moved block, a dropped ``#ifdef``, or a
+  drifted ``_putenv_s`` value also fails closed.
 * ``asset_cross_checks`` -- ``salgdilayout.cxx`` must still gate on
   ``VCL_DRAW_WIDGETS_FROM_FILE`` and ``Package_theme_definitions.mk`` must still
   ship ``material/definition.xml`` -- so activation cannot outlive its assets.
@@ -231,46 +237,30 @@ def _validate_activation(
             "(the default-on block must be Windows-guarded and precede the body)"
         )
 
-    # (b) opt-out token + its case-insensitive values.
-    opt_out_var = block.get("opt_out_var")
-    if not isinstance(opt_out_var, str) or not opt_out_var:
-        errors.append("activation:opt_out_var must be a non-empty string")
-    elif opt_out_var not in pre:
+    # (b) the activation is declared and enforced as UNCONDITIONAL: no opt-out
+    # token and no getenv conditional may exist anywhere in the file.
+    if block.get("unconditional") is not True:
         errors.append(
-            f"activation:{file_path}:opt-out token {opt_out_var!r} missing "
-            "(LIBREOFFICE_MATERIAL_THEME=off must fully disable the default)"
+            "activation:unconditional must be true "
+            "(Material Design is the product; the activation carries no opt-out)"
         )
-    ci_marker = block.get("opt_out_case_insensitive_marker")
-    if isinstance(ci_marker, str) and ci_marker and ci_marker not in pre:
-        errors.append(
-            f"activation:{file_path}:case-insensitive opt-out marker {ci_marker!r} missing "
-            "(the opt-out comparison must be case-insensitive)"
-        )
-    values = block.get("opt_out_values")
-    if not isinstance(values, list) or not values:
-        errors.append("activation:opt_out_values must be a non-empty array")
+    forbidden = block.get("forbidden_markers")
+    if not isinstance(forbidden, list) or not forbidden:
+        errors.append("activation:forbidden_markers must be a non-empty array")
     else:
-        for value in values:
-            if not isinstance(value, str):
-                errors.append("activation:opt_out_values entries must be strings")
+        for marker in forbidden:
+            if not isinstance(marker, dict) or not isinstance(marker.get("pattern"), str):
+                errors.append("activation:forbidden_markers entries need a string pattern")
                 continue
-            if f'"{value}"' not in pre:
+            pattern = marker["pattern"]
+            if pattern in code:
                 errors.append(
-                    f"activation:{file_path}:opt-out value {value!r} not compared "
-                    "(a documented opt-out value was dropped)"
+                    f"activation:{file_path}:forbidden marker {pattern!r} present "
+                    "(an opt-out or override conditional was reintroduced; the "
+                    "activation must stay unconditional)"
                 )
 
-    # (c) an already-set theme is respected.
-    respect = block.get("respect_existing_check")
-    if not isinstance(respect, str) or not respect:
-        errors.append("activation:respect_existing_check must be a non-empty string")
-    elif respect not in pre:
-        errors.append(
-            f"activation:{file_path}:respect-existing check {respect!r} missing "
-            "(a user-set VCL_FILE_WIDGET_THEME must never be overridden)"
-        )
-
-    # (d) both _putenv_s calls with exact values, before the first statement.
+    # (c) both _putenv_s calls with exact values, before the first statement.
     calls = block.get("putenv_calls")
     if not isinstance(calls, list) or not calls:
         errors.append("activation:putenv_calls must be a non-empty array")
@@ -416,11 +406,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Material default-activation contract failed:\n{error}", file=sys.stderr)
         return 1
     print(
-        "Material default-activation contract passed: soffice_main() defaults "
+        "Material default-activation contract passed: soffice_main() unconditionally forces "
         "VCL_FILE_WIDGET_THEME=material and VCL_DRAW_WIDGETS_FROM_FILE=1 under #ifdef _WIN32 "
-        "before the first pre-existing statement, with the LIBREOFFICE_MATERIAL_THEME opt-out "
-        "and user-override-wins semantics, and the salgdilayout gate + material/definition.xml "
-        "assets still present -- source+wiring evidence only, runtime_verified false."
+        "before the first pre-existing statement, with no opt-out or override conditional "
+        "anywhere in the file, and the salgdilayout gate + material/definition.xml assets "
+        "still present -- source+wiring evidence only, runtime_verified false."
     )
     return 0
 

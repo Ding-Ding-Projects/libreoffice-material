@@ -5,11 +5,19 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Mutation regressions for the Material default-activation contract (Windows).
+"""Mutation regressions for the UNCONDITIONAL Material activation contract (Windows).
 
-Each mutation perturbs one guarantee against an in-memory copy of the tree and
-asserts the checker fails closed; a positive control proves the pristine tree
-passes. The real repository is never mutated.
+Per operator directive Material Design is the product: the Windows activation
+carries no opt-out environment variable and no user override. Each mutation
+perturbs one guarantee against an in-memory copy of the tree and asserts the
+checker fails closed; a positive control proves the pristine tree passes. The
+real repository is never mutated.
+
+The fail-closed inversions are the heart of the new semantics: instead of
+proving an opt-out is *present*, they prove that *reintroducing* one -- the
+``LIBREOFFICE_MATERIAL_THEME`` opt-out token, a ``getenv`` override conditional
+around either ``_putenv_s`` write, or a registry that stops declaring the
+activation unconditional -- fails the contract.
 """
 
 from __future__ import annotations
@@ -37,9 +45,21 @@ SOURCE = "desktop/source/app/sofficemain.cxx"
 GATE = "vcl/source/gdi/salgdilayout.cxx"
 MK = "vcl/Package_theme_definitions.mk"
 
-# The whole default-on block: from its Windows guard through the matching #endif.
-BLOCK_RE = re.compile(r"#ifdef _WIN32\n    // Fork default:.*?\n#endif\n", re.DOTALL)
+# The whole unconditional-activation block: from its Windows guard through the
+# matching #endif, terminated on the second (draw-switch) _putenv_s write so the
+# non-greedy span cannot leak into the later UI-test #if defined _WIN32 region.
+BLOCK_RE = re.compile(
+    r"#ifdef _WIN32\n"
+    r"    // This fork ships Material Design.*?"
+    r'_putenv_s\("VCL_DRAW_WIDGETS_FROM_FILE", "1"\);\n'
+    r"#endif\n",
+    re.DOTALL,
+)
 FIRST_STATEMENT = "sal_detail_initialize(sal::detail::InitializeSoffice, nullptr);\n"
+
+# A theme write line to hang the fail-closed source inversions off of.
+THEME_PUTENV = '_putenv_s("VCL_FILE_WIDGET_THEME", "material");'
+DRAW_PUTENV = '_putenv_s("VCL_DRAW_WIDGETS_FROM_FILE", "1");'
 
 
 class MaterialDefaultActivationTest(unittest.TestCase):
@@ -101,37 +121,12 @@ class MaterialDefaultActivationTest(unittest.TestCase):
     def test_win32_guard_removed_fails(self) -> None:
         errors = self.failures(
             contents=self.mutate(
-                SOURCE, "#ifdef _WIN32\n    // Fork default", "#if 1\n    // Fork default"
+                SOURCE,
+                "#ifdef _WIN32\n    // This fork ships Material",
+                "#if 1\n    // This fork ships Material",
             )
         )
         self.assertTrue(any("guard" in e for e in errors), errors)
-
-    def test_opt_out_token_removed_fails(self) -> None:
-        errors = self.failures(
-            contents=self.mutate(
-                SOURCE, "LIBREOFFICE_MATERIAL_THEME", "SOME_OTHER_TOKEN", -1
-            )
-        )
-        self.assertTrue(any("opt-out token" in e for e in errors), errors)
-
-    def test_opt_out_value_drift_fails(self) -> None:
-        errors = self.failures(contents=self.mutate(SOURCE, '"off"', '"disabled"'))
-        self.assertTrue(any("not compared" in e for e in errors), errors)
-
-    def test_case_insensitive_marker_removed_fails(self) -> None:
-        errors = self.failures(contents=self.mutate(SOURCE, "_stricmp", "strcmp", -1))
-        self.assertTrue(any("case-insensitive" in e for e in errors), errors)
-
-    def test_respect_existing_removed_fails(self) -> None:
-        errors = self.failures(
-            contents=self.mutate(
-                SOURCE,
-                'getenv("VCL_FILE_WIDGET_THEME")',
-                'getenv("VCL_SOMETHING_ELSE")',
-                -1,
-            )
-        )
-        self.assertTrue(any("respect-existing" in e for e in errors), errors)
 
     def test_theme_putenv_value_drift_fails(self) -> None:
         # Target the code call, not the "material" mention in the block comment
@@ -164,6 +159,51 @@ class MaterialDefaultActivationTest(unittest.TestCase):
     def test_missing_source_file_fails_closed(self) -> None:
         errors = self.failures(contents=self.without_content(SOURCE))
         self.assertTrue(any("file missing" in e for e in errors), errors)
+
+    # -- fail-closed inversions: a reintroduced opt-out/override must FAIL --
+    def test_reintroduced_opt_out_token_fails(self) -> None:
+        # Wrap the theme write behind the old opt-out env var; the checker forbids
+        # the LIBREOFFICE_MATERIAL_THEME token anywhere in the file.
+        mutated = self.mutate(
+            SOURCE,
+            THEME_PUTENV,
+            'if (getenv("LIBREOFFICE_MATERIAL_THEME") == nullptr)\n        '
+            + THEME_PUTENV,
+        )
+        errors = self.failures(contents=mutated)
+        self.assertTrue(
+            any("forbidden marker" in e and "LIBREOFFICE_MATERIAL_THEME" in e
+                for e in errors),
+            errors,
+        )
+
+    def test_getenv_theme_override_conditional_fails(self) -> None:
+        # A respect-existing override guard around the theme write is forbidden.
+        mutated = self.mutate(
+            SOURCE,
+            THEME_PUTENV,
+            'if (!getenv("VCL_FILE_WIDGET_THEME"))\n        ' + THEME_PUTENV,
+        )
+        errors = self.failures(contents=mutated)
+        self.assertTrue(
+            any("forbidden marker" in e and "VCL_FILE_WIDGET_THEME" in e
+                for e in errors),
+            errors,
+        )
+
+    def test_getenv_draw_override_conditional_fails(self) -> None:
+        # A conditional around the draw-switch write is likewise forbidden.
+        mutated = self.mutate(
+            SOURCE,
+            DRAW_PUTENV,
+            'if (!getenv("VCL_DRAW_WIDGETS_FROM_FILE"))\n        ' + DRAW_PUTENV,
+        )
+        errors = self.failures(contents=mutated)
+        self.assertTrue(
+            any("forbidden marker" in e and "VCL_DRAW_WIDGETS_FROM_FILE" in e
+                for e in errors),
+            errors,
+        )
 
     # -- asset cross-checks ------------------------------------------------
     def test_salgdilayout_gate_drift_fails(self) -> None:
@@ -218,6 +258,30 @@ class MaterialDefaultActivationTest(unittest.TestCase):
         registry["carveout"]["first_visual_verification"]["status"] = "implemented"
         errors = self.failures(registry=registry)
         self.assertTrue(any("carveout" in e for e in errors), errors)
+
+    def test_registry_unconditional_false_fails(self) -> None:
+        registry = self.registry_copy()
+        registry["activation"]["unconditional"] = False
+        errors = self.failures(registry=registry)
+        self.assertTrue(any("unconditional" in e for e in errors), errors)
+
+    def test_registry_unconditional_missing_fails(self) -> None:
+        registry = self.registry_copy()
+        registry["activation"].pop("unconditional", None)
+        errors = self.failures(registry=registry)
+        self.assertTrue(any("unconditional" in e for e in errors), errors)
+
+    def test_registry_forbidden_markers_empty_fails(self) -> None:
+        registry = self.registry_copy()
+        registry["activation"]["forbidden_markers"] = []
+        errors = self.failures(registry=registry)
+        self.assertTrue(any("forbidden_markers" in e for e in errors), errors)
+
+    def test_registry_forbidden_markers_missing_fails(self) -> None:
+        registry = self.registry_copy()
+        registry["activation"].pop("forbidden_markers", None)
+        errors = self.failures(registry=registry)
+        self.assertTrue(any("forbidden_markers" in e for e in errors), errors)
 
 
 if __name__ == "__main__":

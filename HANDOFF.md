@@ -348,7 +348,7 @@ and statically validated only.
   evidence, not just source-implemented. The Windows MSI artifact itself
   (installer packaging) was also produced successfully in this run.
 
-## Default-on Material activation (2026-07-22) — root cause of "no Material UI in newest release"
+## Unconditional Material activation (2026-07-22) — root cause of "no Material UI in newest release"
 
 - **User report diagnosed**: "no Material UI in the newest release." Root cause
   is not a rendering regression — the entire Material treatment was **dormant in
@@ -362,26 +362,44 @@ and statically validated only.
   since — shipped them inactive, so the fork looked identical to stock
   LibreOffice unless an operator exported both variables by hand
   (the old manual opt-in `README.md` documented).
-- **Fix landed**: a `#ifdef _WIN32` block at the very top of `soffice_main()`
-  (`desktop/source/app/sofficemain.cxx`), before the first pre-existing statement
-  (`sal_detail_initialize`) and before any consumer reads the variables, defaults
-  `VCL_FILE_WIDGET_THEME=material` and (when unset) `VCL_DRAW_WIDGETS_FROM_FILE=1`
-  via plain C runtime (`getenv`/`_putenv_s`/`_stricmp`). Fail-closed triad: a full
-  opt-out with `LIBREOFFICE_MATERIAL_THEME=off` (or `=0`, case-insensitive) leaves
-  the environment untouched, and a user-set `VCL_FILE_WIDGET_THEME` is never
-  overwritten (`VCL_DRAW_WIDGETS_FROM_FILE=1` is filled in only when unset and the
-  pre-set theme is non-empty). The Linux CI leg and the CppunitTests never enter
-  `soffice_main`, so they stay stock.
-- **New source contract**: `material-default-activation`
+- **Operator directive recorded (same-day flip to UNCONDITIONAL)**: the fix
+  first landed as default-on **with an opt-out** (`LIBREOFFICE_MATERIAL_THEME=off`
+  plus a respect-existing `getenv` override). The operator then directed that
+  **Material Design IS the product — no opting out** — so the opt-out and the
+  override were removed the **same day** and the contract was flipped to
+  unconditional.
+- **Fix as it now stands**: a `#ifdef _WIN32` block at the very top of
+  `soffice_main()` (`desktop/source/app/sofficemain.cxx`), before the first
+  pre-existing statement (`sal_detail_initialize`) and before any consumer reads
+  the variables, **unconditionally** forces `VCL_FILE_WIDGET_THEME=material` and
+  `VCL_DRAW_WIDGETS_FROM_FILE=1` via plain C runtime (`_putenv_s`) on every
+  Windows launch. There is **no opt-out variable and no override**: both writes
+  always run, so **stock native widget rendering is not a supported mode on
+  Windows**. The **only** runtime path that bypasses Material is the system
+  forced-colors / high-contrast precedence inside VCL, which stays as an
+  **accessibility requirement, not an opt-out**. The Linux CI leg and the
+  CppunitTests never enter `soffice_main`, so they stay stock.
+- **Honest non-goal (stock rendering code stays)**: making activation
+  unconditional does **not** mean deleting the stock/native widget-draw code.
+  That code remains a **non-goal to remove** because the high-contrast /
+  forced-colors accessibility precedence path and all non-Windows builds (Linux,
+  macOS, headless) still depend on it. The flip removes the *user-facing opt-out
+  and override*, not the fallback rendering machinery those other paths require.
+- **Source contract flipped**: `material-default-activation`
   (`qa/windows-ui-contract/material-default-activation.json` +
-  `bin/check-material-default-activation.py` + 19-test
-  `bin/test_material_default_activation.py`) cross-validates every anchor against
-  comment-stripped source — the `#ifdef _WIN32` guard, the opt-out token and its
-  case-insensitive values, the respect-existing `getenv` check, and both
-  `_putenv_s` calls all appearing before the first statement — and proves the
-  `salgdilayout` gate and the `material/definition.xml` asset still ship so the
-  activation cannot outlive its assets. `runtime_verified` is `false` and the
-  `first_visual_verification` carve-out stays `status: specified`.
+  `bin/check-material-default-activation.py` + 22-test
+  `bin/test_material_default_activation.py`) now cross-validates, against
+  comment-stripped source — the `#ifdef _WIN32` guard, both `_putenv_s` calls
+  with exact values before the first statement, `activation.unconditional: true`
+  in the registry, and every `forbidden_markers` pattern (the
+  `LIBREOFFICE_MATERIAL_THEME` opt-out token and either `getenv` override
+  conditional) being **ABSENT** from the whole file. Reintroducing an opt-out or
+  override fails closed. It still proves the `salgdilayout` gate and the
+  `material/definition.xml` asset ship so the activation cannot outlive its
+  assets. `runtime_verified` is `false` and the `first_visual_verification`
+  carve-out stays `status: specified`. The 22 mutation tests include fail-closed
+  inversions: a reintroduced opt-out token, a `getenv` override around either
+  write, and a registry that drops `unconditional`/`forbidden_markers` all fail.
 - **First-active-release boundary (honesty)**: the **first release built after
   this push is the first shipped binary in which Material is active by default**.
   This is source-implemented wiring only — no build ran on this host, the change

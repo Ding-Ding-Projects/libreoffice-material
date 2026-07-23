@@ -248,36 +248,40 @@ native conversions exactly. This token layer adds **no** density profile or new
 DPI-aware, `dp`, fractional-scale, or touch-target policy; those require later
 renderer and runtime work backed by real builds and captures.
 
-On Windows this fork now enables Material **by default**. Upstream reaches the
+On Windows this fork enables Material **unconditionally**. Upstream reaches the
 file-widget renderer only when `VCL_DRAW_WIDGETS_FROM_FILE` is set and selects
 the shared theme only when `VCL_FILE_WIDGET_THEME` equals `material`; because
 nothing in the shipped product set either variable, the packaged Material assets
-shipped **dormant** in every prior MSI. `soffice_main()`
-(`desktop/source/app/sofficemain.cxx`) now defaults both variables on — under
-`#ifdef _WIN32`, before any consumer reads them — so a stock launch renders
-Material with no manual step:
+shipped **dormant** in every prior MSI. Per operator directive — Material Design
+is the product — `soffice_main()` (`desktop/source/app/sofficemain.cxx`) now
+forces both variables on **every** Windows launch, under `#ifdef _WIN32`, before
+any consumer reads them, so a stock launch always renders Material:
 
-- opt out entirely with `LIBREOFFICE_MATERIAL_THEME=off` (or `=0`,
-  case-insensitive), which restores the native theme;
-- a user-set `VCL_FILE_WIDGET_THEME` always wins — the fork never overwrites a
-  theme the operator already chose, and only fills in
-  `VCL_DRAW_WIDGETS_FROM_FILE=1` when it is unset and the pre-set theme is
-  non-empty.
+- there is **no opt-out variable** (the former `LIBREOFFICE_MATERIAL_THEME`
+  escape is removed) and **no user override** — both writes run unconditionally,
+  so stock native widget rendering is not a supported mode on Windows;
+- the only runtime path that bypasses Material is the system
+  forced-colors / high-contrast precedence inside VCL, which stays as an
+  accessibility requirement, not an opt-out.
 
-To force the old manual behaviour for testing, set the variables yourself before
-launching:
+The two environment variables are useful only to **preview Material on an older,
+pre-activation build** (one published before this change) — set them by hand
+before launching that older binary:
 
 ```powershell
 $env:VCL_DRAW_WIDGETS_FROM_FILE = "1"
 $env:VCL_FILE_WIDGET_THEME = "material"
 ```
 
-This default-on switch is **source-implemented wiring only**, locked by the
-`material-default-activation` source contract
-(`bin/check-material-default-activation.py`); `runtime_verified` stays `false`.
-Its presence does not prove that every visible control used the file theme — the
-first release built after this change is the first shipped binary with Material
-active by default, and no pixel evidence exists for it yet. The
+On any build that includes this change they are already set for you and need no
+manual step. This unconditional switch is **source-implemented wiring only**,
+locked by the `material-default-activation` source contract
+(`bin/check-material-default-activation.py`), which fails closed on a moved,
+dropped, or drifted block and on any reintroduced opt-out token or `getenv`
+override conditional; `runtime_verified` stays `false`. Its presence does not
+prove that every visible control used the file theme — the first release built
+after this change is the first shipped binary with Material active by default,
+and no pixel evidence exists for it yet. The
 `vcl_widget_definition_reader_test` and `vcl_file_definition_widget_draw_test`
 targets have passed in the hosted current source runs and the local VS 2026
 build. The exact-source MSI payload supplied the accepted `soffice` run linked

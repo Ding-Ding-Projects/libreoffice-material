@@ -175,7 +175,7 @@ initialization path, and unsupported file-theme parts retain existing fallback
 drawing. Windows is the current delivery scope; equivalent platform-specific
 acceptance work remains in the roadmap as deferred future scope.
 
-## Default-on activation (Windows)
+## Unconditional activation (Windows)
 
 Every earlier milestone above assumed the file-widget renderer was reached
 through a **manual opt-in**: `vcl/source/gdi/salgdilayout.cxx` enables
@@ -187,31 +187,40 @@ the packaged Material assets
 **dormant** in every MSI — the fork looked identical to stock LibreOffice unless
 an operator exported both variables by hand.
 
-This fork now makes Material the **default** on Windows. `soffice_main()`
-(`desktop/source/app/sofficemain.cxx`), under `#ifdef _WIN32` and before any
-consumer in the process reads the variables, defaults `VCL_FILE_WIDGET_THEME` to
-`material` and `VCL_DRAW_WIDGETS_FROM_FILE` to `1`. The activation is
-fail-closed and respectful of operator intent:
+Per operator directive, **Material Design is the product**: on Windows the
+activation is now **unconditional**, with no opt-out variable and no user
+override. `soffice_main()` (`desktop/source/app/sofficemain.cxx`), under
+`#ifdef _WIN32` and before any consumer in the process reads the variables,
+unconditionally forces `VCL_FILE_WIDGET_THEME` to `material` and
+`VCL_DRAW_WIDGETS_FROM_FILE` to `1` on every Windows launch:
 
-- **Opt out entirely** with `LIBREOFFICE_MATERIAL_THEME=off` (or `=0`,
-  case-insensitive): the block does nothing and leaves the environment exactly
-  as the user set it, so the stock native theme is restored.
-- **A user-set `VCL_FILE_WIDGET_THEME` always wins**: a theme the operator
-  already chose is never overwritten, and `VCL_DRAW_WIDGETS_FROM_FILE` is only
-  defaulted to `1` when it is unset and the pre-set theme is non-empty.
+- there is **no opt-out environment variable** (the former
+  `LIBREOFFICE_MATERIAL_THEME` escape is gone) and **no respect-existing
+  override** — both `_putenv_s` calls run every time, so stock native widget
+  rendering is not a supported mode of this product on Windows;
+- the **only** runtime path that bypasses Material is the system forced-colors /
+  high-contrast precedence inside VCL, which is an accessibility requirement,
+  not an opt-out.
 
-The switch is plain C-runtime wiring (`getenv` / `_putenv_s` / `_stricmp`) that
-runs before any framework/UNO/VCL initialization, and it is locked by the
+The switch is plain C-runtime wiring (`_putenv_s`) that runs before any
+framework/UNO/VCL initialization, and it is locked by the
 `material-default-activation` source contract
 (`qa/windows-ui-contract/material-default-activation.json` +
 `bin/check-material-default-activation.py`), which fails closed on a moved,
-dropped, or drifted block and cross-checks that the `salgdilayout` gate and the
+dropped, or drifted block **and on any reintroduced opt-out token or `getenv`
+override conditional**, and cross-checks that the `salgdilayout` gate and the
 `material/definition.xml` asset still ship. This is **source-implemented wiring
 only**: `runtime_verified` stays `false`, no build ran on this host, and whether
 every visible surface actually renders as designed remains unverified until a
 real installed MSI is inspected. The first release built after this change is
 the first shipped binary in which Material is active by default; no pixel or
 screenshot evidence is claimed for it here.
+
+The two environment variables above are only meaningful for **previewing
+Material on an older, pre-activation install** (a build published before this
+change): setting `VCL_DRAW_WIDGETS_FROM_FILE=1` and `VCL_FILE_WIDGET_THEME=material`
+by hand reproduces the theme there. On any build that includes this change they
+are already set for you and need no manual step.
 
 ## Goals
 

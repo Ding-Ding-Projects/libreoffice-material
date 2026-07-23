@@ -523,6 +523,94 @@ and statically validated only.
   bytes. Git Bash `grep $'\r'` gives false positives on this host — use
   `open(f,'rb').read().count(b'\r')`.
 
+## First genuine visual verification of the Material rewrite (2026-07-23)
+
+- **Milestone**: the first honest, cross-suite visual verification of the
+  Material rewrite was achieved this session on the **real shipped
+  `windows-msi-89-1-705cf7ff4b` binary** (the administratively extracted MSI
+  payload; `program/soffice.exe`, unconditional Material) via the **Lowlevel-MCP
+  headless harness**. Prior sessions had only source/CI evidence and
+  393263ad9-local-build Start Center smoke — this is the first pixel evidence for
+  the *shipped* binary and the first covering Writer/Calc/Impress/Draw/Math/Base
+  and shared dialogs.
+- **Driver pin (record for the next session)**: the local driver clone at
+  `C:/Users/Administrator/Documents/GitHub/lowlevel-computer-use-mcp` had to be on
+  the exact commit **`547a102a49169d41da876de217856229ab7c03a1`** (branch
+  **`evidence-driver-547a102a`**, from the **cafepromenade** fork). The harness
+  requires that checkout clean and on that commit; do not switch it. Every image's
+  `method` field in `PROVENANCE.json` cites that driver commit.
+- **What exists now** (capture agent wrote the binaries; this push wires the
+  docs):
+  - `docs/screenshots/genuine/` — 23 PROVENANCE entries: Start Center trio +
+    keyboard-focus + Templates (already committed by `e5d8fed84`), plus **18 new
+    PNGs** (Writer/Calc/Impress/Draw/Math/Base light+dark, and 6 dialogs) and the
+    updated `PROVENANCE.json`.
+  - `docs/evidence/runs/20260723-*` — **4 new schema-v2 harness run dirs** (dark,
+    high-contrast, light-keyboard-focus, light-templates), each with
+    manifest+results+logs+screenshots, `status: passed`.
+  - Every one of the 23 images was **read and visually confirmed** this session to
+    render genuine Material (not blank, not stock, not a mockup); the per-image
+    SHA-256 in `PROVENANCE.json` was re-verified against disk by the capture agent
+    (0 mismatches).
+- **Visual review — what actually looks Material vs still stock** (from reading
+  the real captures, be specific):
+  - **Genuinely Material.** The **Start Center** is the most complete surface:
+    "Home" header + subtitle, rounded search field, pill-shaped selected "Recent
+    Documents" nav item (lavender in light, purple-filled in dark, blue-outlined
+    in forced high contrast), circular filter/menu buttons, Create list, centered
+    welcome illustration. **Pill/rounded dropdowns** are pervasive — Writer/Calc
+    paragraph-style and font pickers are lavender pills (light) / purple-filled
+    (dark), the Calc Name Box is a pill, and the Impress/Draw Properties-deck
+    dropdowns are rounded with "Insert Image..."/"Master View" pill buttons.
+    **Dialog chrome** is strongly Material across all six: purple pill
+    Help/OK/Cancel/Close/Export/Print buttons, rounded inputs, purple
+    checkboxes/radios, a purple-outlined focused field, and a left icon **tab
+    rail** with a purple-highlighted selected tab (Options, PDF Options, Document
+    Properties). **Sidebar icon rails** carry a purple accent glyph per app
+    (search magnifier in Writer, `fx` in Calc, `pi` in Math; purple-circled active
+    tool in Draw). **Purple selection accents** appear on the Impress selected
+    layout tile and slide-1 border, the Draw page thumbnail, and the Calc A1
+    header, and the Print/PDF `+/-` steppers are purple.
+  - **Still stock / not yet Material.** The document, spreadsheet, slide, and
+    formula **canvases** are unchanged (expected — content area). The top **menu
+    bar** (File/Edit/View…) is plain stock text with no Material restyle. The
+    **toolbar icon glyph artwork** is the standard LibreOffice (Colibre) set — it
+    is the button *containers* and *accent glyphs* that are Material, not the icon
+    drawings. **Calc grid headers/gridlines**, the **Writer/Draw rulers**, and the
+    **status bars** (e.g. Calc "Sheet 1 of 1", zoom slider) read essentially stock
+    — the contract's claimed 28px Material status band is not visually distinctive
+    in these captures. The **Impress Layouts thumbnails**, **Draw shape-rail
+    glyphs**, and the **Math Elements operator grid** are stock artwork inside
+    Material dropdowns/selection rings. The **Base Database Wizard** left step-list
+    ("1. Select database") is stock layout with Material accents only. The native
+    **Windows title bar** and window controls are stock.
+- **Gate glyphs NOT changed this push**: `docs/WINDOWS_UI_INVENTORY.md` `B V I A
+  L P C` glyphs were **not** touched. These captures are recorded **visual
+  evidence**, but the formal review/acceptance that would credit the `V` (Visual)
+  gate — and by extension any row's inventory glyph — is deliberately left as
+  follow-up. Do not conflate "genuine screenshots exist" with "the V gate is
+  accepted." The `SCREENSHOTS.md` evidence slots were updated to link the genuine
+  captures with honest qualifiers (Calc's sheet is blank so its populated-sheet
+  checkpoint stays pending; dialog validation states were not exercised).
+- **Honesty caveats**: the six dialog captures were opened in a Writer host via
+  UNO `.uno:` dispatch and **Escape-cancelled** — never confirmed, so nothing was
+  printed, exported, or saved and no database was created (Base's "Create a new
+  database" is disabled because the extracted payload bundles no embedded
+  HSQLDB/Firebird engine). The application and dialog images are **direct-MCP**
+  captures with no per-run manifest; only the four Start Center runs carry
+  schema-v2 manifests. Cleanup after capture was clean (0 `soffice` processes, the
+  off-screen desktop closed, the dedicated MCP server on port 8791 stopped; the
+  unrelated always-on server on port 8765 left untouched).
+- **Docs updated this push**: `README.md` (new `## Screenshots` section),
+  `docs/SCREENSHOTS.md` (new 2026-07-23 gallery section + evidence-slot updates),
+  this file, and `ROADMAP.md` (one milestone line). **Git was read-only for this
+  task** — the 18 new PNGs, the modified `PROVENANCE.json`, the 4 evidence run
+  dirs, and these four doc edits are staged in the working tree for the parent to
+  commit and push; the capture campaign itself modified no tracked source
+  outside `docs/screenshots/genuine/`, `docs/evidence/runs/`, and the four
+  owned docs (a separate Stage-1 rewrite wave was concurrently editing other
+  source in the same working tree and is committed separately).
+
 ## Resume guidance
 
 1. DONE as of `2cd1c5cf3`/`ce7276f8e`: the five required native targets

@@ -149,6 +149,67 @@ for Templates. The former canonical corrected light pair under
 [`20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression`](docs/evidence/runs/20260720-022159-fbba560e27-vs2026-msi-raster-restart-suppression/)
 and the earlier accepted `577059e274` software-raster pair remain historical proof.
 
+## Screenshots
+
+Every image in this section is a **genuine capture from release
+[`windows-msi-89-1-705cf7ff4b`](https://github.com/codingmachineedge/libreoffice-material/releases/tag/windows-msi-89-1-705cf7ff4b)**
+— the shipped, unsigned Windows x64 MSI in which Material activation is
+unconditional. Nothing here is a mockup, a prototype render, or an edited image.
+This is the first genuine visual coverage of the Material rewrite across the
+whole suite.
+
+**Capture method (applies to every image):** each screenshot is an unedited
+per-window `PrintWindow` capture taken on an **off-screen** virtual desktop from
+the administratively **extracted release payload** (`program/soffice.exe`),
+driven by the sibling `lowlevel-computer-use-mcp` harness. The **per-image
+SHA-256**, the run or desktop id, and the visual-verification result are recorded
+in
+[`docs/screenshots/genuine/PROVENANCE.json`](docs/screenshots/genuine/PROVENANCE.json);
+the Start Center trio additionally carries a schema-v2 evidence-run manifest
+under [`docs/evidence/runs/`](docs/evidence/runs/). Any surface that could not be
+captured is listed as **capture pending** rather than substituted with a mock —
+none are pending in this set.
+
+The captures show Material chrome — the redesigned Start Center, rounded pill
+dropdowns and buttons, purple accents, sidebar accent glyphs, and left-rail
+tabbed dialogs — over LibreOffice's unchanged document canvases and plain menu
+text. A specific per-surface Material-vs-stock review is in
+[`HANDOFF.md`](HANDOFF.md).
+
+### Start Center
+
+| Home — light | Home — dark | Home — forced high contrast |
+| --- | --- | --- |
+| <a href="docs/screenshots/genuine/start-center-light.png"><img src="docs/screenshots/genuine/start-center-light.png" alt="Material Start Center, light theme" width="250"></a> | <a href="docs/screenshots/genuine/start-center-dark.png"><img src="docs/screenshots/genuine/start-center-dark.png" alt="Material Start Center, dark theme" width="250"></a> | <a href="docs/screenshots/genuine/start-center-highcontrast.png"><img src="docs/screenshots/genuine/start-center-highcontrast.png" alt="Material Start Center, forced high contrast" width="250"></a> |
+
+A visible keyboard-focus state and a Templates-navigation state, both light, are
+also registered in [`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md).
+
+### Applications
+
+Each row is one application, captured light and dark as shipped.
+
+| Application | Light | Dark |
+| --- | --- | --- |
+| **Writer** — blank document | <a href="docs/screenshots/genuine/writer-light.png"><img src="docs/screenshots/genuine/writer-light.png" alt="Material Writer, light" width="300"></a> | <a href="docs/screenshots/genuine/writer-dark.png"><img src="docs/screenshots/genuine/writer-dark.png" alt="Material Writer, dark" width="300"></a> |
+| **Calc** — blank spreadsheet | <a href="docs/screenshots/genuine/calc-light.png"><img src="docs/screenshots/genuine/calc-light.png" alt="Material Calc, light" width="300"></a> | <a href="docs/screenshots/genuine/calc-dark.png"><img src="docs/screenshots/genuine/calc-dark.png" alt="Material Calc, dark" width="300"></a> |
+| **Impress** — new presentation | <a href="docs/screenshots/genuine/impress-light.png"><img src="docs/screenshots/genuine/impress-light.png" alt="Material Impress, light" width="300"></a> | <a href="docs/screenshots/genuine/impress-dark.png"><img src="docs/screenshots/genuine/impress-dark.png" alt="Material Impress, dark" width="300"></a> |
+| **Draw** — blank drawing | <a href="docs/screenshots/genuine/draw-light.png"><img src="docs/screenshots/genuine/draw-light.png" alt="Material Draw, light" width="300"></a> | <a href="docs/screenshots/genuine/draw-dark.png"><img src="docs/screenshots/genuine/draw-dark.png" alt="Material Draw, dark" width="300"></a> |
+| **Math** — formula editor | <a href="docs/screenshots/genuine/math-light.png"><img src="docs/screenshots/genuine/math-light.png" alt="Material Math, light" width="300"></a> | <a href="docs/screenshots/genuine/math-dark.png"><img src="docs/screenshots/genuine/math-dark.png" alt="Material Math, dark" width="300"></a> |
+| **Base** — Database Wizard | <a href="docs/screenshots/genuine/base-light.png"><img src="docs/screenshots/genuine/base-light.png" alt="Material Base Database Wizard, light" width="300"></a> | <a href="docs/screenshots/genuine/base-dark.png"><img src="docs/screenshots/genuine/base-dark.png" alt="Material Base Database Wizard, dark" width="300"></a> |
+
+### Dialogs
+
+Opened in a Writer host via UNO `.uno:` dispatch and captured, then dismissed
+with Escape — none was confirmed, so nothing was printed, exported, or saved, and
+no database was created.
+
+| | |
+| --- | --- |
+| **Find & Replace** (light)<br><a href="docs/screenshots/genuine/find-replace-light.png"><img src="docs/screenshots/genuine/find-replace-light.png" alt="Material Find and Replace dialog, light" width="330"></a> | **Print** (light)<br><a href="docs/screenshots/genuine/print-light.png"><img src="docs/screenshots/genuine/print-light.png" alt="Material Print dialog, light" width="330"></a> |
+| **Export as PDF — PDF Options** (light)<br><a href="docs/screenshots/genuine/pdf-export-light.png"><img src="docs/screenshots/genuine/pdf-export-light.png" alt="Material PDF Options dialog, light" width="330"></a> | **Tools &gt; Options** (light)<br><a href="docs/screenshots/genuine/options-light.png"><img src="docs/screenshots/genuine/options-light.png" alt="Material Options dialog, light" width="330"></a> |
+| **File &gt; Properties — Document Properties** (light)<br><a href="docs/screenshots/genuine/document-properties-light.png"><img src="docs/screenshots/genuine/document-properties-light.png" alt="Material Document Properties dialog, light" width="330"></a> | **Template Manager** (light)<br><a href="docs/screenshots/genuine/template-manager-light.png"><img src="docs/screenshots/genuine/template-manager-light.png" alt="Material Template Manager, light" width="330"></a> |
+
 ## Material VCL source milestones
 
 The implementation is intentionally opt-in and shared-layer first. The current

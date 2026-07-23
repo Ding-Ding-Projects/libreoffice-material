@@ -15,6 +15,14 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-23 milestone — first genuine cross-suite capture:** the shipped
+`windows-msi-89-1-705cf7ff4b` release binary produced the first honest Material
+screenshots spanning the Start Center (light, dark, forced high contrast), all six
+applications (light and dark), and six shared dialogs, captured off-screen from the
+administratively extracted MSI payload with per-image SHA-256 in
+[`docs/screenshots/genuine/PROVENANCE.json`](docs/screenshots/genuine/PROVENANCE.json).
+This is visual evidence only — it does not by itself mark any phase verified.
+
 The current delivery and verification scope is Windows. Cross-platform
 acceptance gates remain recorded below as deferred future work; they are not
 silently removed or treated as evidence for the current Windows milestone.

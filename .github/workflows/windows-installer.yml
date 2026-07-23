@@ -517,20 +517,48 @@ jobs:
 
       # Safety net: a finished installer must never be lost to a later step
       # failure (run 29953622707 built and validated an MSI for 2h48m, then
-      # failed only at release publish). Runs even when staging or publish
-      # fails: uploads the staged dist-windows/ set (canonical MSI + sha256 +
-      # manifest + admin-extract log) when staging got that far, and falls
-      # back to any raw MSI left in the build workdir when it did not. On
-      # runs that failed before packaging both paths are empty and this is a
-      # quick no-op (if-no-files-found: ignore).
+      # failed only at release publish). Two hard-learned rules from runs
+      # 29976435907/29983654779/29983721165, where the first version of this
+      # step ITSELF failed three successful builds: (1) upload-artifact
+      # requires every path under ONE root, so a gather step first copies
+      # whatever exists (staged dist-windows/ set, else any raw workdir MSI)
+      # into a single workspace folder; (2) both steps carry
+      # continue-on-error so the safety net can never fail the job or skip
+      # the release publish, no matter what.
+      - name: Gather MSI payloads for the failure-proof artifact
+        if: always()
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          try {
+            $gather = Join-Path $env:GITHUB_WORKSPACE 'msi-artifact'
+            New-Item -ItemType Directory -Force -Path $gather | Out-Null
+            $dist = Join-Path $env:GITHUB_WORKSPACE 'dist-windows'
+            if (Test-Path -LiteralPath $dist -PathType Container) {
+              Get-ChildItem -LiteralPath $dist -File |
+                Copy-Item -Destination $gather -Force
+            }
+            if (-not (Get-ChildItem -LiteralPath $gather -File -ErrorAction SilentlyContinue)) {
+              $raw = Join-Path $env:LO_BUILD_DIR 'workdir\installation\LibreOfficeDev\msi\install'
+              if (Test-Path -LiteralPath $raw -PathType Container) {
+                Get-ChildItem -LiteralPath $raw -Recurse -Filter '*.msi' -File |
+                  Copy-Item -Destination $gather -Force
+              }
+            }
+            Get-ChildItem -LiteralPath $gather -File -ErrorAction SilentlyContinue |
+              Format-Table Name, Length
+          } catch {
+            Write-Warning "MSI artifact gathering failed non-fatally: $($_.Exception.Message)"
+          }
+          exit 0
+
       - name: Upload staged MSI as workflow artifact (survives failures)
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
           name: windows-msi-staged-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            dist-windows/
-            C:\lo\build\workdir\installation\LibreOfficeDev\msi\install\**\*.msi
+          path: msi-artifact/
           if-no-files-found: ignore
           retention-days: 7
           compression-level: 0

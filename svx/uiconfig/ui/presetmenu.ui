@@ -9,15 +9,21 @@
       <object class="GtkMenuItem" id="rename">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
-        <property name="label" translatable="yes" context="presetmenu|rename">_Rename</property>
+        <property name="label" translatable="yes" context="presetmenu|rename">Rename</property>
         <property name="use-underline">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparatorMenuItem" id="separator1">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
       </object>
     </child>
     <child>
       <object class="GtkMenuItem" id="delete">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
-        <property name="label" translatable="yes" context="presetmenu|delete">_Delete</property>
+        <property name="label" translatable="yes" context="presetmenu|delete">Delete</property>
         <property name="use-underline">True</property>
       </object>
     </child>

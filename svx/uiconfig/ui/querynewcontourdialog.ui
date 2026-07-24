@@ -19,13 +19,11 @@
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="messagedialog-action_area">
             <property name="can_focus">False</property>
-            <property name="spacing">12</property>
             <child>
               <object class="GtkButton" id="no">
                 <property name="label" translatable="yes" context="stock">_No</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
               </object>

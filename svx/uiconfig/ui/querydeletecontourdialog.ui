@@ -9,7 +9,7 @@
     <property name="modal">True</property>
     <property name="type_hint">dialog</property>
     <property name="skip_taskbar_hint">True</property>
-    <property name="message_type">warning</property>
+    <property name="message_type">question</property>
     <property name="text" translatable="yes" context="querydeletecontourdialog|QueryDeleteContourDialog">Setting a new workspace will
 cause the contour to be deleted.</property>
     <property name="secondary_text" translatable="yes" context="querydeletecontourdialog|QueryDeleteContourDialog">Are you sure you want to continue?</property>
@@ -21,7 +21,6 @@ cause the contour to be deleted.</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="messagedialog-action_area">
             <property name="can_focus">False</property>
-            <property name="spacing">12</property>
             <child>
               <object class="GtkButton" id="no">
                 <property name="label" translatable="yes" context="stock">_No</property>

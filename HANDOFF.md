@@ -745,20 +745,71 @@ and statically validated only.
     operator decision routed through the upstream LibreOffice l10n pipeline, not
     silently dropped.
 
-## Resume guidance
+## Full ground-up rewrite program — state at `317f01660` (2026-07-24)
 
-0. **Stage-1 Start Center rewrite** (this session) is LANDED IN SOURCE (six
-   clusters + integrator, all guard-gated) but NOT committed/pushed and NOT
-   CI-confirmed. Before further Start Center work: close the **one cross-cluster
-   blocker** — cluster C must migrate the start-center `_validate_ui` pins in
-   `bin/check-windows-regex-search-integrations.py` (and re-green
-   `bin/test_windows_regex_search_integrations.py`) to the rewritten search pill;
-   that is the sole red in the integrated tree (147/149 build-free scripts
-   green). Then push and watch all four CI workflows — the Windows leg is the
-   first real compile of the Stage-1 C++ (`backingwindow.cxx`,
-   `startcentercard.cxx`, `appearance.cxx`, `RegexSearchController.cxx`). After
-   green CI, the SC-01…SC-10 headless capture matrix is required before any
-   `B`/`V` credit for the rewritten regions.
+The operator directive escalated to **rewrite EVERY line of UI to Material —
+no surface exempt** (the shipped binary was the Material *widget theme over
+stock structure*, proven by genuine captures). The program of record is a
+1,270-surface (1,956-artifact incl. config layer) burn-down measured by a
+fail-closed ledger; see GitHub Discussions #4 (program) / #5 (Stage 1+Waves)
+/ #2 (genuine screenshots). Standing rules now in `agent-global-memory`:
+every completed task summarized in Discussions; Lowlevel MCP always+headless,
+installed for Claude/Codex/OpenCode; push per task; CI in background (shipping
+priority); a11y/clipping/element-size defects are completion blockers; funny
+level 1–5 EN+Cantonese; bilingual commit messages.
+
+**MERGED + PUSHED this session (all on `main`, gate green at each tip):**
+- `windows-msi-89` release: **unconditional** Material activation (no opt-out;
+  contract fails closed if one returns) — the first Material-active release.
+- **Genuine screenshots** of all six modules + six dialogs + Start Center from
+  the real release binary via the Lowlevel-MCP headless harness (`b60c28258`);
+  the pipeline is proven and repeatable (admin-extract MSI → off-screen desktop
+  → PrintWindow → schema-v2 manifests under `docs/evidence/runs/`, SHA-256 in
+  `docs/screenshots/genuine/PROVENANCE.json`). REQUIRED DRIVER: the sibling
+  `lowlevel-computer-use-mcp` clone must sit on the accepted-evidence commit
+  `547a102a` (from the `cafepromenade` fork) and `uv` must be on PATH
+  (`C:/Users/Administrator/AppData/Roaming/Python/Python39/Scripts`).
+- **Stage 1 — ground-up Start Center** (`2a2f3b421`, `24ab4453c`, +a11y fix
+  `c0693fbf0`): new `startcenter.ui` layout (236px nav column, filled/transparent
+  pills, app chips, single search+filter row with in-pill `.*` toggle + tune
+  builder), real reflowing card grid + first-run invitation (stock welcome logo
+  now REQUIRED-ABSENT), `RegexSearchController::ToggleMode/SetMode`, 10 accent
+  palette schemes (default violet byte-identical), Appearance options page, 8
+  Material glyphs, ellipsize everywhere. Guard-gated; `runtime_verified:false`.
+- **Waves 1–2** (`07a991c39`, `ffd3dcc7a`): Material notebookbar tab-row band
+  (2px `@primary` underline, HC-first), 28px status band, 4 tabbed notebookbars
+  conformant (14 legacy variants honestly `in-progress`); the **burn-down
+  ledger** + config-layer coverage instruments.
+- **Waves 3–24 mega flow** (`37a2ba9df`, 926 files): **966 `.ui` surfaces
+  re-anatomied** to Material family predicates (64 honest partials needing C++,
+  182 skipped-with-reasons), executed as 53 isolated-worktree slices then
+  integrated; one `picturedialog.ui` revert, one 13-file slice-overlap resolved.
+- **Earned coverage** (`317f01660`): ledger now statically evaluates each `.ui`;
+  honest **204/1270 (16.06%)** rewritten-material — after adversarial review
+  caught and reverted a popover/menu over-credit (stock-identical files credited
+  on a decorative marker). Zero credited surface is byte-identical to upstream.
+
+**RESUME HERE (2026-07-24):**
+- Watch the `c0693fbf0` Windows MSI build (first compile of ALL Stage-1 +
+  Wave-1 guarded C++: `backingwindow.cxx`, `startcentercard.cxx`,
+  `recentdocsview.cxx`, `RegexSearchController.cxx`, `appearance.cxx`,
+  `NotebookbarTabControl.cxx`, `status.cxx`). The prior tip `e975c69ba` MSI
+  failed ONLY on the `gla11y` gate (card-grid drawing-area a11y names), fixed at
+  `c0693fbf0` — expect this one to compile; if a genuine C++ error surfaces,
+  iterate the compile before new feature work.
+- After green CI: re-run the Lowlevel-MCP capture harness on the new release
+  **seeded with ≥6 recent documents** and compare the Start Center to
+  `site/prototype.html` `startBody()` + design ch09 (present: 236px column /
+  pills / chips / card grid; absent: every stock landmark). Those captures are
+  the `B`/`V` evidence the ledger's `captured:false` rows still lack.
+- Raise earned coverage: complete the ~106 dialogs missing only content-grid
+  spacing and ~78 missing only primary `can-default` (they are `pending` by the
+  all-markers rule), then the composition families (54 sidebar panels, 70 menus)
+  and native shells. Then Waves 7–8 module chrome (notebookbar-first) and the
+  per-module canvases/panels. Two ledger transparency notes (message/panel
+  surfaces conforming on partly-pre-existing anatomy) are recorded, not blockers.
+
+## Historical resume guidance (pre-rewrite-program)
 
 1. DONE as of `2cd1c5cf3`/`ce7276f8e`: the five required native targets
    compile and their registered CppUnit coverage (notification view
@@ -798,11 +849,20 @@ and statically validated only.
    `B V I A L P C` gates proved on a real Windows build host —
    source-implemented and CI-green are not build/runtime/pixel proof.
 
-## Repository state
+## Repository state (2026-07-24, `317f01660`)
 
-- `main` contains all work described here; the task branch
-  `claude/handoff-ultracode-onlyfans-opus-da0bf6` is merged and deleted after
-  remote ancestor proof.
-- The retained `codex/*` branches from the 2026-07-20 handoff were verified as
-  ancestors of the pushed `origin/main` and deleted (branch cleanup section of
-  this session).
+- `main` at `317f01660` contains all work above and is fully pushed to
+  `origin/main` (the remote reports the repo moved to
+  `Ding-Ding-Projects/libreoffice-material`; pushes redirect and succeed).
+- The 53 mega-flow slice branches (`rewrite/slice-00…52`) were merged via
+  `rewrite/waves3plus-integration`, proven ancestors of the pushed `main`, and
+  deleted; all `lo-wt/` worktrees deregistered (inert leftover directory shells
+  may remain from Windows read-only attrs — safe to delete). Repo is back to a
+  single clean checkout, 0 `rewrite/*` branches.
+- Full build-free gate green at this tip: every Material `bin/check-*.py`
+  (excl. the 6 stock upstream linters) + `check_search_field_coverage.py` +
+  every `bin/test_*.py` + `validate-prototype.mjs`. GOTCHA: run the gate with
+  NO nested worktree under `.claude/worktrees/**` (the tree-walking checkers
+  double-count and false-fail); remove any before running.
+- Older task branches from prior handoffs were verified as ancestors of the
+  pushed `origin/main` and deleted.

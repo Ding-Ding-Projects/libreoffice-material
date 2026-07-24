@@ -651,9 +651,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Push-button composition contract failed:\n{error}", file=sys.stderr)
         return 1
     print(
-        "Push-button composition contract passed: pinned the 13 compiled pushbutton/Entire states "
+        "Push-button composition contract passed: pinned the 14 compiled pushbutton/Entire states "
         "(tonal/action/flat) + the shared 4-line Focus ring + the D-020 default-slot pairing, "
-        "cross-checked the 13+1 gallery cells, held the TEMPORARY outlined negative guard "
+        "cross-checked the 14+1 gallery cells, held the TEMPORARY outlined negative guard "
         "(no extra=\"outlined\" XML, native branch still mbIsAction/m_bFlatButton only), and kept "
         "outlined/default-emphasis targets spec-only; runtime_verified is false."
     )

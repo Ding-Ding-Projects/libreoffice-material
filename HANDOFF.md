@@ -611,7 +611,154 @@ and statically validated only.
   owned docs (a separate Stage-1 rewrite wave was concurrently editing other
   source in the same working tree and is committed separately).
 
+## Stage-1 ground-up Start Center rewrite landed in source (2026-07-23)
+
+- **Scope**: the first wave of the ground-up Material Start Center rewrite,
+  delivered by six single-owner clusters plus this integrator, all behind the
+  existing guards (`IsMaterialStartCenterActive()` /
+  `VCL_FILE_WIDGET_THEME=material`). The stock (guard-off) path is untouched and
+  stays releasable. Source-implemented only: no native build ran, every
+  `runtime_verified` stays `false`, and no build/pixel/screenshot/runtime
+  evidence is claimed — the `B V I A L P C` inventory glyphs were NOT flipped.
+- **What landed (cluster by cluster):**
+  - **sc-layout** — `sfx2/uiconfig/ui/startcenter.ui` rewritten to the frozen
+    §9.1 anatomy: a 236 px navigation column (`all_buttons_box` width-request
+    236) with a filled-primary Open File pill (`open_all`, suggested-action +
+    relief none), a flat Remote Files pill (`open_remote`), Recent/Templates flat
+    toggle pills (`open_recent`/`templates_all`), a `nav_create_hairline`, a
+    repurposed `create_label` `CREATE` heading, six flat create rows with renamed
+    28×28 app-chip images (`chip_writer`…`chip_database` →
+    article/table_chart/co_present/brush/functions/database), a
+    `nav_trailing_hairline`, and the kept Help/Extensions footer at
+    `small_buttons_box` 0/1. The search pill gained `start_search_icon`,
+    `start_search_clear`, and a `start_search_regex_mode` `.*` toggle. Stock
+    landmarks removed (frame1/label1, separator1/2/3, all_recent_label,
+    local_view_label, lbFilter). `backingwindow.cxx` binds the two new controls
+    (`SearchClearHdl`, `SearchModeToggleHdl` → the controller's reset/`ToggleMode`),
+    drops the legacy tonal search-band background, and
+    `solenv/sanitizers/ui/sfx.suppr` is reconciled. `check-startcenter-no-donate`
+    + suite green.
+  - **sc-cards** — a `sfx2::MaterialStartCenterEmptyState` struct
+    (`startcentercard.hxx`) and a repainted empty branch (`startcentercard.cxx`
+    `lcl_paintInvitation`): the recent grid draws a guarded first-run invitation
+    (centred `@on-surface` `STR_SC_INVITE_TITLE` + word-wrapped
+    `@on-surface-variant` `STR_SC_INVITE_BODY`, replacing the legacy Welcome
+    bitmap on the Material path); filtered-empty draws the `STR_SC_NO_*` no-match
+    cell; a genuinely-empty template grid stays blank `@surface`.
+    `recentdocsview.cxx`/`templatedefaultview.cxx` updated to the new
+    `Paint(…MaterialStartCenterEmptyState)` signature. `startcenter-cards`
+    contract + suite green.
+  - **regex** — `RegexSearchController` gained public `ToggleMode()` +
+    `SetMode(RegexSearchMode)` (mutate only `RegexSearchState::Mode`, never touch
+    Flags or the builder popover, re-validate + notify once; no officecfg
+    persistence this stage) plus a caret-back token-insertion refactor.
+    `regex-builder-foundation` + suite green.
+  - **theme-tokens** — 10 accent `<palette scheme>` blocks
+    (blue/teal/green/amber/rose × light+dark) recoloring only the 9
+    primary*/visited-link roles (14 neutral roles byte-identical to default), all
+    per-scheme constrained WCAG pairs ≥ 4.5 (≥ 3.0 disabled) across 12 schemes;
+    `MaterialTokens::computeMaterialScheme(accent,bDark)` composes
+    `<accent>[-dark]` (Violet → unnamed default). `check-material-theme` now
+    reports 12 schemes / 206 states; token-accessor + pushbutton contracts green.
+  - **appearance** — Options › Appearance gains a keyboard-reachable, labelled
+    `materialtheme` frame (accent combo, density radios, reduced-motion
+    checkbox); `Common.xcs` Appearance group gains
+    `MaterialAccent`/`MaterialDensity`/`MaterialReducedMotion`/`MaterialSurfaceStyle`;
+    `appearance.cxx` binds and commits changed values through the EXISTING
+    `executeRestartDialog` (`RESTART_REASON_THEME_CHANGE`) path (no Stage-3 live
+    token re-key). Density and reduced-motion are stored-value-only /
+    honest-inert this stage. NEW `check-material-appearance-options` + suite.
+  - **strings-icons** — 8 bespoke 18px Material Start Center glyphs (article,
+    table_chart, co_present, brush, functions, database, history, grid_view) in
+    both `icon-themes/colibre/sfx2/res/startcenter/` and `…/colibre_svg/…` (no
+    alias), plus 5 `links.txt` reuse aliases (cloud→lc_openremote,
+    folder_open→lc_open, more_vert→sc_configuredialog, search & tune→sc_recsearch);
+    `STR_SC_INVITE_TITLE`/`STR_SC_INVITE_BODY` added to `strings.hrc`.
+    `icon-theme-pipeline` contract + suite green.
+- **Reconciliation (integrator):**
+  - No file was touched by two clusters — every modified/untracked path maps 1:1
+    to a single cluster (or to the integrator docs).
+  - Every cross-cluster reference resolves: all 30 `weld_*` bindings in
+    `backingwindow.cxx` match ids in the rewritten `startcenter.ui`; all 14 `.ui`
+    icon references resolve (8 bespoke SVGs present in both themes + 5 `links.txt`
+    aliases + stock `window-close-symbolic`); `STR_SC_INVITE_TITLE`/`_BODY` and
+    `STR_SC_NO_RECENT_MATCH`/`_TEMPLATE_MATCH` are used by
+    recentdocsview/templatedefaultview and defined in `strings.hrc`; the
+    `MaterialStartCenterEmptyState` struct + `Paint` signature are consistent
+    across header/cxx/callers; `RegexSearchController::ToggleMode()` is used by
+    `backingwindow.cxx` and declared in the header; and the accent chain lines up
+    — `MaterialAccent` enum order [Violet, Blue, Teal, Green, Amber, Rose] ↔
+    definition.xml schemes (unnamed default + blue/teal/green/amber/rose ± dark)
+    ↔ `computeMaterialScheme` ↔ `material-appearance-options.json` `accent_order`.
+- **ONE cross-cluster blocker (cluster C owns; NOT fixed by the integrator per
+  single-owner discipline):** `bin/check-windows-regex-search-integrations.py`
+  and its suite `bin/test_windows_regex_search_integrations.py` fail on
+  `integrations[1]` (start-center) with four errors — `ui-adjacency:builder must
+  follow entry`, `ui-packing:entry must fill position 0`, `ui-packing:builder
+  must fit position 1`, `ui-button:label must be .*`. Root cause: the checker's
+  shared `_validate_ui` (~L402–423) hard-pins the pre-rewrite adjacent search-row
+  layout (entry immediately followed by a `.*`-labelled builder, entry at box
+  position 0, builder at position 1), but the rewritten `startcenter.ui`
+  interposes the leading search icon, the clear button, and a separate
+  `start_search_regex_mode` `.*` toggle (the `.*` label now lives on the mode
+  toggle, and the `tune` builder no longer abuts the entry). Cluster C added
+  `mode_toggle_id: start_search_regex_mode` to `regex-search-integrations.json`
+  but did NOT migrate `_validate_ui` to accept the new pill structure for
+  `integrations[1]`. **This is the sole red in the integrated tree; it is cluster
+  C's triad to close — relax/branch the start-center `_validate_ui` pins to the
+  rewritten pill (assert the `mode_toggle_id` carries `.*` and the builder button
+  remains present/accessible), then re-green the suite's real-tree
+  reconciliation tests.**
+- **CI wiring (integrator-owned):** the NEW `check-material-appearance-options.py`
+  + `test_material_appearance_options.py` pair was registered in
+  `.github/workflows/windows-ui-contract.yml` (alongside the
+  density/reduced-motion appearance steps; +6 lines, YAML valid, LF-only).
+- **Static gate: 149 scripts (147 pass, 2 fail).** Method (verify yourself, not
+  inherited): every Material `bin/check-*.py` except the six stock upstream
+  linters (`check-autocorr`, `check-icon-sizes`, `check-implementer-notes`,
+  `check-missing-export-asserts`, `check-missing-unittests`, `check-sid-slots`) =
+  **73**, plus `bin/check_search_field_coverage.py` = **1**, plus every
+  `bin/test_*.py` = **74**, plus `bin/validate-prototype.mjs` = **1** → **149**.
+  That is the mega-wave tip's **147** plus exactly the two new appearance-options
+  files. `py bin/check-windows-ui-registry-closure.py` passes (assigned 1020,
+  unassigned 250, total 1270). The only failures are the cluster-C
+  regex-search-integrations checker + suite described above; all 147 other
+  scripts are green (`py`/`node` from repo root). All Stage-1 integrator files
+  verified LF-only (0 CR bytes).
+- **Acceptance criteria pending the CI + capture cycle:** none of the rewritten
+  regions is built or captured. The `B`/`V` gates stay untouched; the accepted
+  Start Center captures predate the rewrite. Post-CI, the Windows leg is the
+  first real compile of the Stage-1 C++ (`backingwindow.cxx` new handlers,
+  `startcentercard.cxx` invitation paint, `appearance.cxx` commit path,
+  `RegexSearchController.cxx` ToggleMode/caret-back), followed by the headless
+  capture matrix (SC-01…SC-10) before any `B`/`V` credit.
+- **Parked / deferred (recorded honestly):**
+  - theme-tokens manifest 1c/1d (global combobox + editboxnoborder radius
+    `@corner-container` → `@corner-pill`) deferred — it would break non-owned
+    dialog contracts pinning that radius; needs coordinated cross-contract
+    migration.
+  - Density/reduced-motion applied live (metric/motion plumbing) and accent live
+    re-key without restart are Stage 3; this stage is stored-value + restart only.
+  - Per-run regex background-highlight run attribute is not expressible via
+    `weld::TextView`/`TextWidget` (no per-run background API); deferred.
+  - Cantonese + bilingual l10n for the new Start Center strings remains an open
+    operator decision routed through the upstream LibreOffice l10n pipeline, not
+    silently dropped.
+
 ## Resume guidance
+
+0. **Stage-1 Start Center rewrite** (this session) is LANDED IN SOURCE (six
+   clusters + integrator, all guard-gated) but NOT committed/pushed and NOT
+   CI-confirmed. Before further Start Center work: close the **one cross-cluster
+   blocker** — cluster C must migrate the start-center `_validate_ui` pins in
+   `bin/check-windows-regex-search-integrations.py` (and re-green
+   `bin/test_windows_regex_search_integrations.py`) to the rewritten search pill;
+   that is the sole red in the integrated tree (147/149 build-free scripts
+   green). Then push and watch all four CI workflows — the Windows leg is the
+   first real compile of the Stage-1 C++ (`backingwindow.cxx`,
+   `startcentercard.cxx`, `appearance.cxx`, `RegexSearchController.cxx`). After
+   green CI, the SC-01…SC-10 headless capture matrix is required before any
+   `B`/`V` credit for the rewritten regions.
 
 1. DONE as of `2cd1c5cf3`/`ce7276f8e`: the five required native targets
    compile and their registered CppUnit coverage (notification view

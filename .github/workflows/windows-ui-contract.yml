@@ -283,6 +283,12 @@ jobs:
       - name: Run density mutation regressions
         run: python3 bin/test_windows_density_contract.py
 
+      - name: Validate Material appearance-options contract
+        run: python3 bin/check-material-appearance-options.py
+
+      - name: Run Material appearance-options mutation regressions
+        run: python3 bin/test_material_appearance_options.py
+
       - name: Validate version-history seeded-state ledger
         run: python3 bin/check-version-history-seeded-state.py
 

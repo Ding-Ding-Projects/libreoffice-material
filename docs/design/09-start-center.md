@@ -7,6 +7,18 @@
 > and bounded UNO trees. That proves only the named launch, focus, navigation,
 > and accessibility-tree checkpoints—not the full target layout, component
 > state, token-pixel, responsive, localization, or accelerated-rendering matrix.
+>
+> **Stage-1 ground-up rewrite (source-only):** the native slice has since been
+> restyled to the §9.1 anatomy in `startcenter.ui` + `backingwindow.cxx` behind
+> the Material guard — the 236 px navigation column (Open File pill, Remote
+> Files, Recent/Templates toggle pills, `CREATE` heading, six create rows with
+> app chips, kept Help/Extensions footer, `nav_create_hairline`/
+> `nav_trailing_hairline`) and the Material search pill (search icon, clear
+> button, `.*` regex-mode toggle, `tune` builder toggle), plus the recent-grid
+> first-run invitation card (§9.5). That rewrite is source-only: it has not been
+> built or captured, so the accepted checkpoints above predate it and every
+> status label below now reading *Stage-1 rewrite … source-only* remains
+> pixel/token/capture-pending.
 
 The Start Center is the suite's launch surface: it opens when no document
 window exists and provides recent-document access, template browsing, and
@@ -43,13 +55,13 @@ Top-to-bottom anatomy, with exact prototype metrics:
 
 | Element | Metrics | Tokens | Status |
 | --- | --- | --- | --- |
-| **Open File** pill | 44 px high, `corner-pill` (20), 12 px horizontal padding, 14 px icon gap, 20 px `folder_open` icon, weight-600 14 px label, 6 px bottom margin | `@primary` fill, `@on-primary` text; hover `@primary-action-hover`, pressed `@primary-action-pressed` | pill states implemented in definition.xml (compiled at commit 577059e274; surface state unverified) as `pushbutton`/`Entire` `extra="action"`; layout prototype-only |
-| **Remote Files** item | 40 px high, `corner-pill`, 12 px padding, 20 px `cloud` icon at `@on-surface-variant` | transparent fill, `@on-surface` text; hover `@primary-container` / `@on-primary-container` | prototype-only |
-| Separator | 1 px (`stroke-thin`) rule, 8 px vertical × 6 px horizontal margin | `@outline-variant` | prototype-only |
-| View items (**Recent Documents**, **Templates**) | 40 px high, `corner-pill`, 12 px padding, 20 px icons (`history`, `grid_view`) | selected: `@primary-container` fill, `@on-primary-container` text/icon; idle: transparent, `@on-surface` text, `@on-surface-variant` icon | prototype-only; native equivalents are the `open_recent`/`templates_all` toggle buttons |
-| **Create** heading | weight-700 11 px, letter-spacing 0.08 em, uppercase, padding 6 px 10 px 8 px | `@on-surface-variant` | prototype-only |
-| Create list (six rows) | 40 px rows, `corner-container` (12), 10 px padding, 12 px gap; leading **28 × 28 px app chip** at `corner-small` (8) holding an 18 px icon | chip: `@primary-container` fill, `@on-primary-container` icon; row hover: `@primary-container` / `@on-primary-container` | prototype-only |
-| Footer (**Help**, **Extensions**) | two equal-width 34 px buttons, `corner-pill`, weight-500 12 px | transparent, `@on-surface-variant` text; hover `@primary-container` | Help/Extensions-only action set implemented in native source; exact metrics/style and refreshed runtime capture pending |
+| **Open File** pill | 44 px high, `corner-pill` (20), 12 px horizontal padding, 14 px icon gap, 20 px `folder_open` icon, weight-600 14 px label, 6 px bottom margin | `@primary` fill, `@on-primary` text; hover `@primary-action-hover`, pressed `@primary-action-pressed` | pill states implemented in definition.xml (compiled at commit 577059e274; surface state unverified) as `pushbutton`/`Entire` `extra="action"`; the Stage-1 rewrite lays this pill out natively as `open_all` (suggested-action + relief none) in `startcenter.ui` behind the Material guard — source-only, unbuilt, capture-pending |
+| **Remote Files** item | 40 px high, `corner-pill`, 12 px padding, 20 px `cloud` icon at `@on-surface-variant` | transparent fill, `@on-surface` text; hover `@primary-container` / `@on-primary-container` | Stage-1 rewrite: native `open_remote` restyled as this flat pill behind the guard — source-only, capture-pending |
+| Separator | 1 px (`stroke-thin`) rule, 8 px vertical × 6 px horizontal margin | `@outline-variant` | Stage-1 rewrite: the native slice carries the `nav_create_hairline` and `nav_trailing_hairline` `@outline-variant` rules behind the guard — source-only, capture-pending |
+| View items (**Recent Documents**, **Templates**) | 40 px high, `corner-pill`, 12 px padding, 20 px icons (`history`, `grid_view`) | selected: `@primary-container` fill, `@on-primary-container` text/icon; idle: transparent, `@on-surface` text, `@on-surface-variant` icon | Stage-1 rewrite: the native `open_recent`/`templates_all` toggle buttons are restyled as flat toggle pills with tonal selection behind the guard (toggle semantics unchanged) — source-only, capture-pending |
+| **Create** heading | weight-700 11 px, letter-spacing 0.08 em, uppercase, padding 6 px 10 px 8 px | `@on-surface-variant` | Stage-1 rewrite: repurposes the native `create_label` as this uppercase heading behind the guard — source-only, capture-pending |
+| Create list (six rows) | 40 px rows, `corner-container` (12), 10 px padding, 12 px gap; leading **28 × 28 px app chip** at `corner-small` (8) holding an 18 px icon | chip: `@primary-container` fill, `@on-primary-container` icon; row hover: `@primary-container` / `@on-primary-container` | Stage-1 rewrite: the six native create buttons (`writer_all`…`database_all`) carry renamed 28 × 28 app-chip images (`chip_writer`…`chip_database`) in `startcenter.ui` behind the guard — source-only, capture-pending |
+| Footer (**Help**, **Extensions**) | two equal-width 34 px buttons, `corner-pill`, weight-500 12 px | transparent, `@on-surface-variant` text; hover `@primary-container` | Help/Extensions-only action set implemented in native source; the Stage-1 rewrite keeps this footer at `small_buttons_box` positions 0/1; exact metrics/style and refreshed runtime capture pending |
 
 The six create rows are Writer Document (`article`), Calc Spreadsheet
 (`table_chart`), Impress Presentation (`co_present`), Draw Drawing (`brush`),
@@ -72,7 +84,7 @@ A single 20 px-bottom-margin flex row with 12 px gaps:
 | Element | Metrics | Tokens | Status |
 | --- | --- | --- | --- |
 | Filter combo | 38 px high, `corner-small` (8), padding 0 10 px 0 14 px, 13 px label, 18 px `expand_more` chevron; label **All Documents** (recent view) or **All Templates** (templates view) | `@outline` border at `stroke-thin` on `@surface`, `@on-surface` text | prototype-only as drawn; the native `cbFilter` combo resolves the implemented `combobox`/`Entire` + `ButtonDown` parts in definition.xml (compiled at commit 577059e274; surface state unverified) |
-| Search field | 44 px pill, `corner-pill`, leading 20 px `search` icon, 14 px input text, trailing clear button (28 × 28, `corner-small`), regex mode toggle (`.*`, 28 px high, weight-700 12 px monospace), and builder toggle (30 × 30, `tune` icon) | `@surface-container` fill, `@outline-variant` border; invalid pattern: 2 px `error` border; regex mode text switches to a monospace stack | prototype-only; shared search anatomy is specified in [04-inputs](04-inputs.md) |
+| Search field | 44 px pill, `corner-pill`, leading 20 px `search` icon, 14 px input text, trailing clear button (28 × 28, `corner-small`), regex mode toggle (`.*`, 28 px high, weight-700 12 px monospace), and builder toggle (30 × 30, `tune` icon) | `@surface-container` fill, `@outline-variant` border; invalid pattern: 2 px `error` border; regex mode text switches to a monospace stack | Stage-1 rewrite: this pill is built natively in `startcenter.ui` — `start_search_icon`, the `start_search` entry, the `start_search_clear` clear button, the `start_search_regex_mode` `.*` toggle (wired to `RegexSearchController::ToggleMode()` in `backingwindow.cxx`), and the `start_search_regex_builder` `tune` toggle — behind the Material guard, source-only and capture-pending; shared search anatomy is specified in [04-inputs](04-inputs.md). Contract note: the regex-search-integrations checker+suite still pin the stock adjacent entry/`.*`-builder layout and fail on this pill until that cross-cluster contract migrates |
 | Actions button | 38 × 38 px icon button, `corner-small`, 20 px `more_vert` icon | transparent, `@on-surface-variant`; hover `@primary-container` | prototype-only; native `mbActions` menu button hosts Clear Recent Documents / Clear Unavailable Files |
 
 The regex builder popover opens 6 px below the field: `corner-container`
@@ -171,10 +183,10 @@ The Start Center supplies only the entry point; the dialog owns its own layout.
 
 | State | Treatment | Status |
 | --- | --- | --- |
-| No search matches | Full-width grid cell, 34 px padding, centred 13 px `@on-surface-variant` text: "No recent match this pattern." / "No templates match this pattern." | prototype-only |
+| No search matches | Full-width grid cell, 34 px padding, centred 13 px `@on-surface-variant` text: "No recent match this pattern." / "No templates match this pattern." | source-implemented behind guard: the card renderer draws the filtered-empty cell (`STR_SC_NO_RECENT_MATCH` / `STR_SC_NO_TEMPLATE_MATCH`) via `MaterialStartCenterEmptyState.bFiltered`; capture-pending |
 | Invalid regex | Search border becomes 2 px `error`; builder status line shows the compiler message; the grid keeps the last valid result set rather than emptying | prototype-only |
-| No recent documents (first run) | Grid area shows an invitation to create or open a document; the Create list remains the primary affordance | specified here, not yet implemented |
-| Unavailable file thumbnails | Cards for missing files keep their caption but dim the preview; Clear Unavailable Files removes them | specified here, not yet implemented (menu item exists natively) |
+| No recent documents (first run) | Grid area shows an invitation to create or open a document; the Create list remains the primary affordance | Stage-1 rewrite: the recent grid draws the guarded first-run invitation card (`MaterialStartCenterEmptyState` → centred `@on-surface` `STR_SC_INVITE_TITLE` + word-wrapped `@on-surface-variant` `STR_SC_INVITE_BODY`, replacing the legacy Welcome bitmap on the Material path; the template grid leaves `@surface` blank); source-only, capture-pending |
+| Unavailable file thumbnails | Cards for missing files keep their caption but dim the preview; Clear Unavailable Files removes them | source-implemented behind guard: the `unavailable-preview` role dims missing-file previews via a default-false `ThumbnailViewItem::isUnavailable()` overridden on `RecentDocsViewItem`; capture-pending |
 | Slow thumbnail load | Preview area holds the `@surface-container-low` fill as a placeholder; no spinner for sub-second loads, indeterminate progress only past one second | specified here, not yet implemented |
 
 ## 9.6 Density & adaptive width
@@ -254,7 +266,10 @@ Verification is part of the localization matrix, not inferred.
 ## 9.10 Relationship to the native source slice
 
 The first native milestone restyled the existing Start Center rather than
-replacing it; the prototype's target anatomy maps onto it as follows.
+replacing it; the Stage-1 ground-up rewrite then rebuilt `startcenter.ui` +
+`backingwindow.cxx` to the §9.1 anatomy behind the Material guard (source-only,
+capture-pending — the per-element status is in §9.1). The prototype's target
+anatomy maps onto the native counterparts as follows.
 
 | Target element | Native counterpart | Notes |
 | --- | --- | --- |
@@ -266,7 +281,7 @@ replacing it; the prototype's target anatomy maps onto it as follows.
 | Home header | `welcome_header` with `welcome_title` (bold, 1.75 × scale) and `welcome_subtitle`, added by the Material slice | title colour `GetWindowTextColor()` → `@on-surface`; subtitle uses `labelTextColor` → `@on-surface`, versus prototype `@on-surface-variant` |
 | Filter combo | `cbFilter` (`GtkComboBoxText`) | resolves implemented `combobox` parts in definition.xml (compiled at commit 577059e274); its closed idle state is visible in accepted captures, while the open list and interaction-state matrix remain unverified |
 | Actions menu | `mbActions` menu button + `clearmenu` | native; the Templates view's Manage Templates opens `SfxTemplateManagerDlg`, specified in [08-dialogs.md](08-dialogs.md) §8.8 |
-| Search + regex row | `start_search` + `start_search_regex_builder` in `startcenter.ui` | source-integrated: the search field and its regex-builder toggle are wired through `sfx2::RegexSearchController` in `BackingWindow` (registered as `start-center.document-search` in `regex-search-integrations.json` and `search-field-coverage.json`); the 44 px pill geometry and builder-popover pixels remain prototype-only |
+| Search + regex row | `start_search` + `start_search_clear` + `start_search_regex_mode` + `start_search_regex_builder` in `startcenter.ui` | source-integrated: the `start_search` field, the `start_search_clear` clear button, the `start_search_regex_mode` `.*` toggle (→ `RegexSearchController::ToggleMode()`), and the `start_search_regex_builder` toggle are wired through `sfx2::RegexSearchController` in `BackingWindow` (registered as `start-center.document-search` in `regex-search-integrations.json` and `search-field-coverage.json`); the 44 px pill geometry and builder-popover pixels remain source-only/capture-pending. The regex-search-integrations checker+suite still pin the pre-rewrite adjacent entry/`.*`-builder layout and fail on this pill until that cross-cluster contract migrates |
 | Card grid | `all_recent` (`RecentDocsView` in `scrollrecent`) and `local_view` (`TemplateDefaultView` in `scrolllocal`) | the Material slice reroutes both views' fill/text from `officecfg` Start Center colours to `StyleSettings` (`GetWindowColor`/`GetWindowTextColor` → `@surface`/`@on-surface`; highlights → `@primary-container`/`@on-primary-container`); card anatomy (118 px preview, badge, hover elevation) prototype-only |
 | Right box padding | 24 px margins, 12 px spacing added by the slice | prototype uses 26 × 28 px; near-equivalent, to converge |
 

@@ -661,6 +661,23 @@ prior wave, no build ran and no pixel/screenshot/runtime evidence is claimed: ev
 `runtime_verified` stays `false`, every carve-out stays `status: specified`, and the
 `B V I A L P C` inventory gates stay untouched.
 
+The Stage-1 ground-up Start Center rewrite then landed in source (six single-owner
+clusters plus an integrator, all behind the existing Material guards):
+`startcenter.ui` and `backingwindow.cxx` were rebuilt to the chapter-9
+navigation-column and search-pill anatomy (236 px rail, Open File/Remote Files
+pills, Recent/Templates toggle pills, a CREATE heading with six app-chip create
+rows, and a search pill with an inline clear button and `.*` regex-mode toggle);
+the recent grid gained a guarded first-run invitation card replacing the legacy
+Welcome bitmap on the Material path; `RegexSearchController` gained the inline
+`ToggleMode`/`SetMode` API; ten accent palettes plus an Options › Appearance
+accent/density/reduced-motion control set (committed through the existing
+restart path) were added; and eight bespoke Start Center glyphs shipped in both
+icon themes. It is source-implemented only — no build ran, `runtime_verified`
+stays `false`, and no inventory glyph moved. One cross-cluster contract remains
+red pending its owner's migration (the regex-search-integrations checker still
+pins the pre-rewrite adjacent search-row layout and fails on the new pill); the
+rest of the build-free gate — 147 of 149 scripts — is green.
+
 - start center, window chrome integration, menubar/command surfaces, status bar,
   sidebar shell, notebookbar variants, infobars, snackbars, and notifications;
 - common file, print, export, properties, options, extension, and template flows;

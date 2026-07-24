@@ -7,8 +7,10 @@
     "source, and never promotes a target to an implemented claim.",
     "",
     "Compiled reality (pinned fail-closed against definition.xml, read-only): the pushbutton/Entire",
-    "part carries exactly 13 <state> tuples -- tonal/plain (x5), filled extra=\"action\" (x4), text",
-    "extra=\"flat\" (x4, two of which are intentionally empty) -- and the shared 4-line pushbutton/",
+    "part carries exactly 14 <state> tuples -- tonal/plain (x5), filled extra=\"action\" (x4), text",
+    "extra=\"flat\" (x5, two of which are intentionally empty; the selected flat state gives the",
+    "Start-Center open_recent/templates_all toggles their persistent @primary-container active fill)",
+    "-- and the shared 4-line pushbutton/",
     "Focus ring (@primary, stroke-standard, inset 0.04-0.96) that every variant, including the",
     "future outlined one, reuses. The <style> section deliberately pairs defaultActionButtonTextColor",
     "== actionButtonTextColor (@on-primary) and defaultButtonTextColor == buttonTextColor",
@@ -66,6 +68,9 @@
        "tokens": {"stroke": "@primary-container", "fill": "@primary-container", "stroke-width": "@stroke-none", "radius": "@corner-pill"}},
       {"role": "flat-pressed", "attrs": {"enabled": "true", "pressed": "true", "extra": "flat"}, "element": "rect",
        "tokens": {"stroke": "@primary-hover", "fill": "@primary-hover", "stroke-width": "@stroke-none", "radius": "@corner-pill"}},
+      {"role": "flat-selected", "attrs": {"enabled": "true", "selected": "true", "extra": "flat"}, "element": "rect",
+       "note": "Persistent active look for the open_recent/templates_all GtkToggleButtons: a checked flat toggle maps to ControlState selected + extra=flat and fills @primary-container.",
+       "tokens": {"stroke": "@primary-container", "fill": "@primary-container", "stroke-width": "@stroke-none", "radius": "@corner-pill"}},
       {"role": "flat-disabled", "attrs": {"enabled": "false", "extra": "flat"}, "element": "empty",
        "note": "Text/flat disabled draws no container: the <state> is intentionally empty."}
     ],
@@ -109,7 +114,7 @@
   },
   "gallery_cardinality": {
     "control": "pushbutton",
-    "entire_cells": 13,
+    "entire_cells": 14,
     "focus_cells": 1,
     "note": "Cross-check against component-gallery-coverage.json so a partial/orphaned state addition is caught by a cardinality mismatch."
   },

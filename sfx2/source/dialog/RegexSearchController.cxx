@@ -161,7 +161,24 @@ class RegexBuilderPopover final
     std::unique_ptr<weld::Label> m_xMatchLabel;
     std::unique_ptr<weld::Button> m_xApplyButton;
     std::unique_ptr<weld::Button> m_xCancelButton;
-    std::vector<std::pair<std::unique_ptr<weld::Button>, OUString>> m_aInsertButtons;
+
+    /** A token-insert button, the text it inserts, and how far to walk the caret
+        back from the end of that text so it lands inside a delimiter pair.
+
+        CaretBack counts UTF-16 code units from the end of the inserted text; it
+        is 0 for a self-contained token and, for a bracket/paren/brace token,
+        the number of trailing units so the caret rests just inside the opening
+        delimiter (for example 4 for "(...)" so the caret sits at the start of
+        the group body). It never exceeds the inserted text length, so the
+        computed caret position is always non-negative.
+     */
+    struct InsertToken
+    {
+        std::unique_ptr<weld::Button> Button;
+        OUString Text;
+        sal_Int32 CaretBack;
+    };
+    std::vector<InsertToken> m_aInsertButtons;
     Link<RegexBuilderPopover&, void> m_aApplyHdl;
     Link<weld::Popover&, void> m_aClosedHdl;
     bool m_bCloseNotified = true;
@@ -193,7 +210,7 @@ class RegexBuilderPopover final
         m_xMultiline->set_sensitive(bRegex);
         m_xDotAll->set_sensitive(bRegex);
         for (auto& rInsert : m_aInsertButtons)
-            rInsert.first->set_sensitive(bRegex);
+            rInsert.Button->set_sensitive(bRegex);
     }
 
     void SetPreviewPending()
@@ -216,6 +233,7 @@ class RegexBuilderPopover final
         UpdateControlSensitivity();
 
         const RegexSearchEvaluation aEvaluation = RegexSearchService::EvaluatePreview(m_aState);
+        UpdateTestHighlight(aEvaluation);
         m_xApplyButton->set_sensitive(aEvaluation.IsValid);
         m_xPatternEntry->set_message_type(aEvaluation.IsValid ? weld::EntryMessageType::Normal
                                                               : weld::EntryMessageType::Error);
@@ -277,6 +295,29 @@ class RegexBuilderPopover final
         m_xMatchLabel->set_label(aMatchText);
     }
 
+    /** Mark the current match in the Test sample text.
+
+        weld::TextView exposes only a single selection range, so the live Test
+        highlight marks the first non-empty match. rEvaluation.Matches is already
+        bounded by RegexSearchService::PreviewMaxMatches, so this consumes that
+        bounded set and never re-scans the sample (no unbounded loop). Empty
+        (zero-length) matches are explicitly advanced past rather than selected.
+        While the user is editing the sample itself the caret is left untouched.
+     */
+    void UpdateTestHighlight(const RegexSearchEvaluation& rEvaluation)
+    {
+        if (m_xTestText->has_focus())
+            return;
+        for (const RegexMatch& rMatch : rEvaluation.Matches)
+        {
+            if (rMatch.End <= rMatch.Start)
+                continue;
+            m_xTestText->select_region(rMatch.Start, rMatch.End);
+            return;
+        }
+        m_xTestText->select_region(0, 0);
+    }
+
     void UpdateResponsiveSize()
     {
         int nX = 0;
@@ -329,26 +370,37 @@ public:
         , m_xApplyButton(m_xBuilder->weld_button(u"apply"_ustr))
         , m_xCancelButton(m_xBuilder->weld_button(u"cancel"_ustr))
     {
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_start"_ustr), u"^"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_end"_ustr), u"$"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_any"_ustr), u"."_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_digit"_ustr), u"\\d"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_space"_ustr), u"\\s"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_word"_ustr), u"\\w"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_class"_ustr), u"[...]"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_group"_ustr), u"(...)"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_noncapture"_ustr),
-                                      u"(?:...)"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_lookahead"_ustr),
-                                      u"(?=...)"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_lookbehind"_ustr),
-                                      u"(?<=...)"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_zero_more"_ustr), u"*"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_one_more"_ustr), u"+"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_optional"_ustr), u"?"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_range"_ustr), u"{n,m}"_ustr);
-        m_aInsertButtons.emplace_back(m_xBuilder->weld_button(u"insert_escape"_ustr),
-                                      u"\\Q...\\E"_ustr);
+        // CaretBack lands the caret inside a delimiter pair after insertion; it
+        // is 0 for self-contained tokens and the trailing-unit count for tokens
+        // whose caret should rest just inside the opening delimiter.
+        m_aInsertButtons.push_back({ m_xBuilder->weld_button(u"insert_start"_ustr), u"^"_ustr, 0 });
+        m_aInsertButtons.push_back({ m_xBuilder->weld_button(u"insert_end"_ustr), u"$"_ustr, 0 });
+        m_aInsertButtons.push_back({ m_xBuilder->weld_button(u"insert_any"_ustr), u"."_ustr, 0 });
+        m_aInsertButtons.push_back(
+            { m_xBuilder->weld_button(u"insert_digit"_ustr), u"\\d"_ustr, 0 });
+        m_aInsertButtons.push_back(
+            { m_xBuilder->weld_button(u"insert_space"_ustr), u"\\s"_ustr, 0 });
+        m_aInsertButtons.push_back({ m_xBuilder->weld_button(u"insert_word"_ustr), u"\\w"_ustr, 0 });
+        m_aInsertButtons.push_back(
+            { m_xBuilder->weld_button(u"insert_class"_ustr), u"[...]"_ustr, 4 });
+        m_aInsertButtons.push_back(
+            { m_xBuilder->weld_button(u"insert_group"_ustr), u"(...)"_ustr, 4 });
+        m_aInsertButtons.push_back(
+            { m_xBuilder->weld_button(u"insert_noncapture"_ustr), u"(?:...)"_ustr, 4 });
+        m_aInsertButtons.push_back(
+            { m_xBuilder->weld_button(u"insert_lookahead"_ustr), u"(?=...)"_ustr, 4 });
+        m_aInsertButtons.push_back(
+            { m_xBuilder->weld_button(u"insert_lookbehind"_ustr), u"(?<=...)"_ustr, 4 });
+        m_aInsertButtons.push_back(
+            { m_xBuilder->weld_button(u"insert_zero_more"_ustr), u"*"_ustr, 0 });
+        m_aInsertButtons.push_back(
+            { m_xBuilder->weld_button(u"insert_one_more"_ustr), u"+"_ustr, 0 });
+        m_aInsertButtons.push_back(
+            { m_xBuilder->weld_button(u"insert_optional"_ustr), u"?"_ustr, 0 });
+        m_aInsertButtons.push_back(
+            { m_xBuilder->weld_button(u"insert_range"_ustr), u"{n,m}"_ustr, 4 });
+        m_aInsertButtons.push_back(
+            { m_xBuilder->weld_button(u"insert_escape"_ustr), u"\\Q...\\E"_ustr, 5 });
 
         m_xPatternEntry->set_text(m_aState.Pattern);
         m_xRegexMode->set_active(m_aState.Mode == RegexSearchMode::RegularExpression);
@@ -367,7 +419,7 @@ public:
         m_xMultiline->connect_toggled(LINK(this, RegexBuilderPopover, ModeChangedHdl));
         m_xDotAll->connect_toggled(LINK(this, RegexBuilderPopover, ModeChangedHdl));
         for (auto& rInsert : m_aInsertButtons)
-            rInsert.first->connect_clicked(LINK(this, RegexBuilderPopover, InsertClickedHdl));
+            rInsert.Button->connect_clicked(LINK(this, RegexBuilderPopover, InsertClickedHdl));
         m_xApplyButton->connect_clicked(LINK(this, RegexBuilderPopover, ApplyClickedHdl));
         m_xCancelButton->connect_clicked(LINK(this, RegexBuilderPopover, CancelClickedHdl));
         m_xPopover->connect_closed(LINK(this, RegexBuilderPopover, PopoverClosedHdl));
@@ -429,11 +481,17 @@ IMPL_LINK(RegexBuilderPopover, InsertClickedHdl, weld::Button&, rButton, void)
 {
     const auto aFound
         = std::find_if(m_aInsertButtons.begin(), m_aInsertButtons.end(),
-                       [&rButton](const auto& rInsert) { return rInsert.first.get() == &rButton; });
+                       [&rButton](const auto& rInsert) { return rInsert.Button.get() == &rButton; });
     if (aFound == m_aInsertButtons.end())
         return;
 
-    m_xPatternEntry->replace_selection(aFound->second);
+    m_xPatternEntry->replace_selection(aFound->Text);
+    // replace_selection() leaves the caret at the end of the inserted text; walk
+    // it back so a delimiter token (e.g. "(...)") lands the caret inside the
+    // opening delimiter ready for the group body. CaretBack never exceeds the
+    // inserted length, so the position stays non-negative.
+    const int nCaret = m_xPatternEntry->get_position();
+    m_xPatternEntry->select_region(nCaret - aFound->CaretBack, nCaret - aFound->CaretBack);
     m_xPatternEntry->grab_focus();
     SetPreviewPending();
 }
@@ -763,6 +821,26 @@ void RegexSearchController::SetState(const RegexSearchState& rState)
 void RegexSearchController::SetTestText(const OUString& rTestText)
 {
     m_aState.TestText = rTestText;
+}
+
+void RegexSearchController::ToggleMode()
+{
+    SetMode(m_aState.Mode == RegexSearchMode::RegularExpression
+                ? RegexSearchMode::Literal
+                : RegexSearchMode::RegularExpression);
+}
+
+void RegexSearchController::SetMode(RegexSearchMode eMode)
+{
+    // Mutate only the mode: never open or close the builder popover and never
+    // touch the flags. Re-validate the current pattern under the new mode and
+    // notify the owner filter and any installed change handler exactly once.
+    // Stage 1 keeps this purely in memory (no officecfg persistence yet).
+    if (m_aState.Mode == eMode)
+        return;
+    m_aState.Mode = eMode;
+    UpdateSearchValidity();
+    NotifyStateChanged();
 }
 
 i18nutil::SearchOptions2 RegexSearchController::GetSearchOptions() const

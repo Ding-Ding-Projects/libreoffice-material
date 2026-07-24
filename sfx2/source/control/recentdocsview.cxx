@@ -301,28 +301,34 @@ void RecentDocsView::OnItemDblClicked(ThumbnailViewItem *pItem)
 
 void RecentDocsView::Paint(vcl::RenderContext& rRenderContext, const tools::Rectangle &aRect)
 {
-    // Material Start Center: draw the native Material document-card grid, plus
-    // the filtered-empty message. Inert under the default/native theme, so the
-    // existing ThumbnailView + welcome-screen path below stays untouched.
-    //
-    // Only take the Material path when there ARE recent documents (mItemList
-    // non-empty): either a populated card grid, or -- when a live search hides
-    // every card -- the "no documents match this pattern" filtered-empty message.
-    // When mItemList itself is empty (fresh install, no recent documents at all)
-    // fall through to the Welcome screen below; a first-run user must see the
-    // Welcome logo, not a filter-implying "no match" message when no filter is set.
-    if (sfx2::IsMaterialStartCenterActive() && !mItemList.empty())
+    // Material Start Center: the card grid owns EVERY Material-active render of
+    // this view -- a populated card grid, the first-run "create or open a
+    // document" invitation (empty recent list, no filter), or the "no documents
+    // match this pattern" filtered-empty cell (a live search hid every card). It
+    // never falls through to the legacy Welcome bitmap: that first-run screen is
+    // stock-only, drawn below when the Material guard is off, so the default theme
+    // stays releasable. bFiltered = !mItemList.empty() is the exact signal that
+    // separates a filtered grid (items exist, all hidden) from a genuinely empty
+    // one (no recent documents at all -> the invitation, never the "no match" copy).
+    if (sfx2::IsMaterialStartCenterActive())
     {
         std::vector<ThumbnailViewItem*> aVisibleItems;
         aVisibleItems.reserve(mItemList.size());
         for (const std::unique_ptr<ThumbnailViewItem>& rxItem : mItemList)
             if (rxItem && rxItem->isVisible())
                 aVisibleItems.push_back(rxItem.get());
+        const sfx2::MaterialStartCenterEmptyState aEmptyState{
+            SfxResId(STR_SC_INVITE_TITLE), SfxResId(STR_SC_INVITE_BODY),
+            SfxResId(STR_SC_NO_RECENT_MATCH), !mItemList.empty()};
         if (sfx2::MaterialStartCenterCards::Paint(rRenderContext, *this, aVisibleItems,
-                                                  SfxResId(STR_SC_NO_RECENT_MATCH)))
+                                                  aEmptyState))
             return;
     }
 
+    // Stock (non-Material) path: base ThumbnailView thumbnails, and -- on a first
+    // run with no recent documents -- the legacy Welcome logo + STR_WELCOME_LINE1/2
+    // screen. Preserved unchanged so the default theme keeps working when the
+    // Material guard is off.
     ThumbnailView::Paint(rRenderContext, aRect);
 
     if (!mItemList.empty())

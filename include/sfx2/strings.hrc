@@ -196,6 +196,11 @@
 // Material Start Center empty/filtered document-card grid messages (docs/design/06-containers.md 6.6).
 #define STR_SC_NO_RECENT_MATCH                  NC_("STR_SC_NO_RECENT_MATCH", "No recent documents match this pattern.")
 #define STR_SC_NO_TEMPLATE_MATCH                NC_("STR_SC_NO_TEMPLATE_MATCH", "No templates match this pattern.")
+// Material Start Center first-run invitation (empty recent list, no filter): the card grid draws
+// this instead of the legacy STR_WELCOME_LINE1/2 logo when IsMaterialStartCenterActive(). Those
+// STR_WELCOME_* macros stay defined for the stock (guard-off) path and other consumers.
+#define STR_SC_INVITE_TITLE                     NC_("STR_SC_INVITE_TITLE", "Create or open a document to get started")
+#define STR_SC_INVITE_BODY                      NC_("STR_SC_INVITE_BODY", "Your recent files will appear here. Pick an app on the left or open an existing file.")
 
 // Translators: Target types in Auto-redaction dialog
 #define STR_REDACTION_TARGET_TYPE_TEXT          NC_("STR_REDACTION_TARGET_TYPE_TEXT", "Text")

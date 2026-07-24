@@ -25,10 +25,14 @@ declaration against the real tree:
 * ``views`` -- each Start Center view source must include the renderer header,
   invoke the guarded renderer, pass its localized empty-grid resource, keep the
   non-Material base paint as the fallback, and lay the grid out with the card
-  metrics. Each empty-grid resource must be defined with the expected copy. Any
-  ``pinned_markers`` a view declares must survive in code too, pinning the
-  first-run gate (empty item list stays on the legacy native screen rather than
-  the filter-implying "no match" copy) against silent regression.
+  metrics. Each empty-grid resource must be defined with the expected copy. The
+  migrated first-run pins are enforced against code: the pre-rewrite gate
+  (``pinned_absent_markers``) must be gone, the stock Welcome bitmap must be
+  REQUIRED-ABSENT from the Material guard block (``guard_absent_markers``) yet
+  still present on the stock path (``stock_markers``), and the first-run
+  invitation / no-match wiring must live inside the guard
+  (``guard_present_markers``). Invitation string copy (``invite_resources``,
+  authored by the Strings/Icons owner) is cross-checked only once defined.
 
 The registry establishes source-complete scope; it never claims a native build,
 card pixels or runtime evidence (``runtime_verified: false`` throughout).
@@ -64,6 +68,36 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 def _without_cpp_comments(source: str) -> str:
     return re.sub(r"//[^\n]*|/\*.*?\*/", "", source, flags=re.DOTALL)
+
+
+def _guard_block(code: str, opener: str) -> str | None:
+    """Return the body (including braces) of the *block-form* ``opener`` guard.
+
+    ``opener`` (e.g. ``if (sfx2::IsMaterialStartCenterActive())``) also appears in
+    the constructor in single-statement form, so only the occurrence immediately
+    followed by ``{`` -- the Paint override's Material guard block -- is matched;
+    the block is then brace-balanced to its close. ``code`` must already be
+    comment-stripped. Returns ``None`` when no block-form guard exists.
+    """
+    start = 0
+    while True:
+        idx = code.find(opener, start)
+        if idx < 0:
+            return None
+        cursor = idx + len(opener)
+        while cursor < len(code) and code[cursor].isspace():
+            cursor += 1
+        if cursor < len(code) and code[cursor] == "{":
+            depth = 0
+            for pos in range(cursor, len(code)):
+                if code[pos] == "{":
+                    depth += 1
+                elif code[pos] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        return code[cursor : pos + 1]
+            return None
+        start = idx + len(opener)
 
 
 def load_repository(repo_root: Path = REPOSITORY) -> tuple[dict[str, Any], dict[str, str]]:
@@ -279,17 +313,71 @@ def _validate_views(
                 "the default paint path must be preserved"
             )
 
-        # Pinned first-run fallback: the Material card path is gated on a non-empty
-        # item list, so a genuinely-empty (first-run) grid falls through to the
-        # legacy native screen instead of the filter-implying "no match" copy. Each
-        # pinned marker must survive in code, so a future edit cannot silently drop
-        # the gate and start showing "no documents match this pattern" on a blank
-        # first run (see the view's pinned_fallback rationale).
-        for marker in view.get("pinned_markers", []):
+        # Migrated first-run pins (see the view's migration_note). The pre-rewrite
+        # gate (IsMaterialStartCenterActive() && !mItemList.empty()) is REMOVED and
+        # the Material path now owns the first-run render, so the pins flip from
+        # "assert the gate + Welcome bitmap present" to:
+        #
+        #   * pinned_absent_markers  -- the removed gate must be gone from the file;
+        #   * guard_absent_markers   -- the stock Welcome bitmap is REQUIRED-ABSENT
+        #     from the Material guard block (it survives only on the stock path);
+        #   * guard_present_markers  -- the invitation / no-match wiring must live
+        #     inside the Material guard block;
+        #   * stock_markers          -- the stock Welcome bitmap must still exist in
+        #     the file (outside the guard) so the default theme stays releasable.
+        for marker in view.get("pinned_absent_markers", []):
+            if isinstance(marker, str) and marker in code:
+                errors.append(
+                    f"{context}:removed gate marker still present in code ({marker}); "
+                    "the pre-rewrite empty-list gate must stay removed"
+                )
+
+        for marker in view.get("stock_markers", []):
             if isinstance(marker, str) and marker not in code:
                 errors.append(
-                    f"{context}:pinned first-run fallback marker missing in code ({marker}); "
-                    "the empty-list-stays-native gate must be preserved"
+                    f"{context}:stock fallback marker missing in code ({marker}); "
+                    "the non-Material Welcome path must be preserved"
+                )
+
+        guard_opener = view.get("guard_opener")
+        guard_present = view.get("guard_present_markers", [])
+        guard_absent = view.get("guard_absent_markers", [])
+        if isinstance(guard_opener, str) and (guard_present or guard_absent):
+            block = _guard_block(code, guard_opener)
+            if block is None:
+                errors.append(
+                    f"{context}:Material guard block not found (opener {guard_opener!r}); "
+                    "the guarded card path must be preserved"
+                )
+            else:
+                for marker in guard_present:
+                    if isinstance(marker, str) and marker not in block:
+                        errors.append(
+                            f"{context}:guard marker missing inside Material block ({marker})"
+                        )
+                for marker in guard_absent:
+                    if isinstance(marker, str) and marker in block:
+                        errors.append(
+                            f"{context}:stock-only marker present inside Material block "
+                            f"({marker}); it must be REQUIRED-ABSENT under the guard"
+                        )
+
+        # Invitation strings are authored by the Strings/Icons owner (F) in the same
+        # wave; the frozen interface manifest fixes their macro names. Cross-check
+        # copy fidelity only IF the macro is already defined -- the reference markers
+        # above hard-pin the wiring regardless of F's landing order.
+        for resource in view.get("invite_resources", []):
+            if not isinstance(resource, str) or resource_text is None:
+                continue
+            if not re.search(rf"#define\s+{re.escape(resource)}\b", resource_text):
+                continue
+            if not re.search(
+                rf'#define\s+{re.escape(resource)}\b.*?NC_\("{re.escape(resource)}",\s*"[^"]*"',
+                resource_text,
+                re.DOTALL,
+            ):
+                errors.append(
+                    f"{context}:invitation resource {resource} defined but not a well-formed NC_ string"
                 )
 
         resource = view.get("empty_message_resource")

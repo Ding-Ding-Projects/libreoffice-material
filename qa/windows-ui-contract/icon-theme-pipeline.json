@@ -14,7 +14,7 @@
   "selector_source": "vcl/source/app/IconThemeSelector.cxx",
   "info_source": "vcl/source/app/IconThemeInfo.cxx",
   "icon_themes_dir": "icon-themes",
-  "note": "Composition-pinning ledger for WIN-FND-007. It pins the CURRENT, real Windows icon-theme selection / package-naming / fallback contract and enumerates icon-themes/ to record an honest material_theme_installed:false. No Material icon source or assets exist yet, so there is nothing to guard -- this only fail-closed pins what is real today (the hardcoded Windows colibre fallback, the generic mPreferredIconTheme override that lets any correctly-named installed theme win, the images_<id>[_dark][_svg].zip naming any future material package must satisfy, the literal 20-directory icon-themes/ set with no material* directory, and the four qualitative iconography prose rules) so future drift is caught. Source/text evidence only; runtime_verified:false; no build, icon pixels, RTL-mirroring, or scaling evidence is claimed and no gate is moved.",
+  "note": "Composition-pinning ledger for WIN-FND-007. It pins the CURRENT, real Windows icon-theme selection / package-naming / fallback contract and enumerates icon-themes/ to record an honest material_theme_installed:false. The Material Start Center glyph set (see material_startcenter_glyphs) is the first Material icon SOURCE shipped -- 18px monochrome SVGs authored under colibre/colibre_svg plus links.txt reuse-aliases wiring the sfx2/res/startcenter/* icon-names startcenter.ui references -- so the mega-wave blanket 'no Material icon assets exist yet' claim is INVERTED for exactly that set (now required-present). No Material icon THEME is installed, so material_theme_installed stays false and no material* theme directory exists. Beyond that set this still fail-closed pins what is real today (the hardcoded Windows colibre fallback, the generic mPreferredIconTheme override that lets any correctly-named installed theme win, the images_<id>[_dark][_svg].zip naming any future material package must satisfy, the literal 20-directory icon-themes/ set with no material* directory, and the four qualitative iconography prose rules) so future drift is caught. Source/text evidence only; runtime_verified:false; no build, icon pixels, RTL-mirroring, or scaling evidence is claimed and no gate is moved.",
   "fallback": {
     "light_id": "colibre",
     "dark_id": "colibre_dark",
@@ -106,6 +106,45 @@
         "substring": "Generated art is not accepted as",
         "rule": "no unreviewed generated art (root contract)"
       }
+    ]
+  },
+  "material_startcenter_glyphs": {
+    "note": "WIN-FND-007 inversion (same-commit triad with the Cluster F glyph authoring): the Material Start Center (sfx2/uiconfig/ui/startcenter.ui, drawn only behind IsMaterialStartCenterActive()) is the first surface to consume a bespoke Material glyph set. Every sfx2/res/startcenter/*.png icon-name it references is now REQUIRED-PRESENT and wired one of exactly two ways: (a) authored_svg -- a real 18px monochrome SVG (svg_fill #3a3a38) shipped in BOTH the colibre and colibre_svg trees, with NO links.txt alias, because a links.txt alias is consulted before the real file (ImplImageTree::getRealImageName) and would shadow the authored glyph; or (b) aliased -- NO authored file, a links.txt line reusing an existing colibre cmd icon (the _svg theme's links.txt is auto-derived .png->.svg by postprocess/CustomTarget_images.mk, so one colibre line serves both themes, and colibre_dark inherits via the fallback chain). authored_svg and aliased are disjoint and together close over the icon-names startcenter.ui references. This does NOT install a Material icon THEME: the assets live under existing colibre/colibre_svg, so material_theme_installed stays false and no material* theme directory exists. legacy_refs_absent flips the stock Start Center icon references to REQUIRED-ABSENT in startcenter.ui (migrate-never-delete). Source/text evidence only; runtime_verified:false -- no build, packed zip, rendered pixels, dark-tint, RTL, or scaling evidence is claimed.",
+    "consumer_ui": "sfx2/uiconfig/ui/startcenter.ui",
+    "icon_name_dir": "sfx2/res/startcenter",
+    "png_theme": "colibre",
+    "svg_theme": "colibre_svg",
+    "links_file": "icon-themes/colibre/links.txt",
+    "svg_fill": "#3a3a38",
+    "authored_svg": [
+      "article",
+      "brush",
+      "co_present",
+      "database",
+      "functions",
+      "grid_view",
+      "history",
+      "table_chart"
+    ],
+    "aliased": {
+      "cloud": "cmd/lc_openremote.png",
+      "folder_open": "cmd/lc_open.png",
+      "more_vert": "cmd/sc_configuredialog.png",
+      "search": "cmd/sc_recsearch.png",
+      "tune": "cmd/sc_recsearch.png"
+    },
+    "legacy_refs_absent": [
+      "res/odt_32_8.png",
+      "res/ods_32_8.png",
+      "res/odp_32_8.png",
+      "res/odg_32_8.png",
+      "res/odf_32_8.png",
+      "res/odb_32_8.png",
+      "framework/res/folder_32.png",
+      "framework/res/recent-documents.png",
+      "framework/res/remote-documents.png",
+      "framework/res/templates_32.png",
+      "open-menu-symbolic"
     ]
   },
   "icon_size_linter": {

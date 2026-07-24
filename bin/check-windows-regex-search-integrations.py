@@ -334,6 +334,194 @@ def load_repository(
     return registry, coverage, contents
 
 
+# ---------------------------------------------------------------------------
+# Per-surface .ui layout validation.
+#
+# Most integrations share the stock two-control layout (the search entry fills
+# position 0 of a horizontal GtkBox and the ``.*``-labelled builder button sits
+# immediately after it at position 1).  A surface may instead declare, through an
+# optional ``ui_layout`` registry object, that it ships the rewritten Material
+# search *pill* -- a decorative leading glyph, the expanding entry, a clear
+# button, a ``.*`` GtkToggleButton that owns the regex mode, and the advanced
+# builder button carrying the tune glyph.  When declared, that exact composition
+# is validated instead of the stock invariant; every other integration keeps the
+# stock layout unchanged.  Both paths are fail-closed: a declared child that is
+# out of order, mis-classed, mis-packed, or missing its accessible wiring fails.
+# ---------------------------------------------------------------------------
+
+MATERIAL_SEARCH_PILL = "material-search-pill"
+# The builder button in the Material pill is icon-only; its glyph must resolve to
+# the shared "tune" advanced-search icon rather than a text label.
+PILL_BUILDER_ICON_SUBSTRING = "tune"
+
+
+def _validate_pill_builder(
+    context: str,
+    builder_object: ET.Element,
+    objects: Mapping[str, ET.Element],
+    errors: list[str],
+) -> None:
+    """The Material pill builder is an icon-only accessible button (tune glyph)."""
+    props = _properties(builder_object)
+    image_id = props.get("image")
+    icon_name = ""
+    if image_id:
+        image_object = objects.get(image_id)
+        if image_object is not None:
+            icon_name = _properties(image_object).get("icon-name", "")
+    if PILL_BUILDER_ICON_SUBSTRING not in icon_name:
+        errors.append(
+            f"{context}:ui-pill-builder:builder must carry the tune advanced-search icon"
+        )
+    for name, expected in (
+        ("visible", "True"),
+        ("can-focus", "True"),
+        ("receives-default", "False"),
+    ):
+        if props.get(name) != expected:
+            errors.append(f"{context}:ui-pill-builder:{name} must be {expected}")
+    if not props.get("tooltip-text"):
+        errors.append(f"{context}:ui-accessibility:tooltip missing")
+    elif not _property_is_translated(builder_object, "tooltip-text"):
+        errors.append(f"{context}:ui-accessibility:tooltip must be translated")
+    accessible_object = _accessible_object(builder_object)
+    accessible = _properties(accessible_object) if accessible_object is not None else {}
+    for name in (
+        "AtkObject::accessible-name",
+        "AtkObject::accessible-description",
+    ):
+        if not accessible.get(name):
+            errors.append(f"{context}:ui-accessibility:{name} missing")
+        elif accessible_object is not None and not _property_is_translated(
+            accessible_object, name
+        ):
+            errors.append(f"{context}:ui-accessibility:{name} must be translated")
+
+
+def _validate_material_search_pill(
+    context: str,
+    layout: Mapping[str, Any],
+    widget_kind: str,
+    root: ET.Element,
+    objects: Mapping[str, ET.Element],
+    entry_id: str,
+    button_id: str,
+    errors: list[str],
+) -> None:
+    """Validate the rewritten Material search-pill composition declared by ``ui_layout``.
+
+    The pill is one horizontal ``GtkBox`` (spacing 6) whose direct children are, in
+    the exact declared order and packing positions: a decorative leading glyph, the
+    expanding search entry, a clear button, a ``.*`` GtkToggleButton owning the
+    regex mode, and the advanced-builder button carrying the tune glyph and its
+    accessible name/description/tooltip.
+    """
+    allowed_classes = WIDGET_UI_CLASSES[widget_kind]
+    entry_object = objects.get(entry_id)
+    builder_object = objects.get(button_id)
+    if entry_object is None or entry_object.get("class") not in allowed_classes:
+        errors.append(
+            f"{context}:ui-entry:{' or '.join(allowed_classes)} {entry_id} missing"
+        )
+    if builder_object is None or builder_object.get("class") != "GtkButton":
+        errors.append(f"{context}:ui-button:GtkButton {button_id} missing")
+
+    raw_children = layout.get("children")
+    if not isinstance(raw_children, list) or not raw_children:
+        errors.append(f"{context}:ui-pill:children array required")
+        return
+
+    if entry_object is None:
+        return
+    parents = {child: parent for parent in root.iter() for child in parent}
+    pill = _nearest_parent_object(entry_object, parents)
+    if pill is None:
+        errors.append(f"{context}:ui-pill:search entry has no container")
+        return
+    container_id = layout.get("container_id")
+    if isinstance(container_id, str) and container_id and pill.get("id") != container_id:
+        errors.append(
+            f"{context}:ui-pill:container {pill.get('id')!r} does not match declared {container_id!r}"
+        )
+    pill_properties = _properties(pill)
+    if (
+        pill.get("class") != "GtkBox"
+        or pill_properties.get("orientation") != "horizontal"
+        or pill_properties.get("spacing") != "6"
+    ):
+        errors.append(f"{context}:ui-pill:horizontal GtkBox with spacing 6 required")
+
+    children = _direct_object_children(pill)
+    actual_ids = [child.get("id", "") for child in children]
+    declared_ids = [
+        spec.get("id") for spec in raw_children if isinstance(spec, dict)
+    ]
+    if actual_ids != declared_ids:
+        errors.append(
+            f"{context}:ui-pill:child order {actual_ids} does not match declared {declared_ids}"
+        )
+
+    id_to_child = {child.get("id", ""): child for child in children}
+    roles_seen: set[str] = set()
+    for position, spec in enumerate(raw_children):
+        if not isinstance(spec, dict):
+            errors.append(f"{context}:ui-pill:child[{position}] must be an object")
+            continue
+        child_id = spec.get("id")
+        child_class = spec.get("class")
+        role = spec.get("role")
+        if role:
+            roles_seen.add(role)
+        child = id_to_child.get(child_id) if isinstance(child_id, str) else None
+        if child is None:
+            errors.append(
+                f"{context}:ui-pill:child {child_id!r} is not a direct sibling at position {position}"
+            )
+            continue
+        if isinstance(child_class, str) and child.get("class") != child_class:
+            errors.append(f"{context}:ui-pill:{child_id} must be class {child_class}")
+        packing = _packing_properties(child, parents)
+        if packing.get("position") != str(position):
+            errors.append(f"{context}:ui-pill:{child_id} must be at packing position {position}")
+        properties = _properties(child)
+        if role == "decorative-icon":
+            if child.get("class") != "GtkImage":
+                errors.append(f"{context}:ui-pill:{child_id} decorative icon must be GtkImage")
+            if properties.get("can-focus") != "False":
+                errors.append(
+                    f"{context}:ui-pill:{child_id} decorative icon must not be focusable"
+                )
+            if packing.get("expand") != "False":
+                errors.append(f"{context}:ui-pill:{child_id} decorative icon must not expand")
+        elif role == "entry":
+            if child_id != entry_id:
+                errors.append(f"{context}:ui-pill:entry role must be {entry_id}")
+            if properties.get("hexpand") != "True":
+                errors.append(f"{context}:ui-entry:hexpand must be True")
+            if packing.get("expand") != "True" or packing.get("fill") != "True":
+                errors.append(f"{context}:ui-pill:entry must expand and fill")
+        elif role == "clear":
+            if child.get("class") != "GtkButton":
+                errors.append(f"{context}:ui-pill:{child_id} clear control must be GtkButton")
+        elif role == "mode-toggle":
+            if child.get("class") != "GtkToggleButton":
+                errors.append(
+                    f"{context}:ui-pill:{child_id} regex-mode control must be GtkToggleButton"
+                )
+            if properties.get("label") != ".*":
+                errors.append(f"{context}:ui-pill:{child_id} regex-mode toggle must be labelled '.*'")
+        elif role == "builder":
+            if child_id != button_id:
+                errors.append(f"{context}:ui-pill:builder role must be {button_id}")
+            _validate_pill_builder(context, child, objects, errors)
+        else:
+            errors.append(f"{context}:ui-pill:{child_id} unknown role {role!r}")
+
+    for required_role in ("entry", "mode-toggle", "builder"):
+        if required_role not in roles_seen:
+            errors.append(f"{context}:ui-pill:missing required role {required_role}")
+
+
 def _validate_ui(
     context: str,
     entry: Mapping[str, Any],
@@ -343,7 +531,13 @@ def _validate_ui(
     button_id: str,
     errors: list[str],
 ) -> None:
-    """Validate the .ui: adjacent accessible builder button next to the search control."""
+    """Validate the .ui: adjacent accessible builder button next to the search control.
+
+    A surface may opt into the rewritten Material search-pill layout by declaring a
+    ``ui_layout`` object; that composition is then validated per-surface (see
+    ``_validate_material_search_pill``).  Every other surface keeps the stock
+    entry-fills-position-0 / builder-follows-at-position-1 invariant below.
+    """
     try:
         root = ET.fromstring(ui_text)
     except ET.ParseError as error:
@@ -355,6 +549,20 @@ def _validate_ui(
         for element in root.iter()
         if element.tag.rsplit("}", 1)[-1] == "object" and element.get("id")
     }
+
+    ui_layout = entry.get("ui_layout")
+    if ui_layout is not None:
+        if not isinstance(ui_layout, Mapping):
+            errors.append(f"{context}:ui_layout:object required")
+            return
+        if ui_layout.get("kind") == MATERIAL_SEARCH_PILL:
+            _validate_material_search_pill(
+                context, ui_layout, widget_kind, root, objects, entry_id, button_id, errors
+            )
+            return
+        errors.append(f"{context}:ui_layout:unsupported kind {ui_layout.get('kind')!r}")
+        return
+
     entry_object = objects.get(entry_id)
     button_object = objects.get(button_id)
     allowed_classes = WIDGET_UI_CLASSES[widget_kind]
@@ -982,6 +1190,28 @@ def violations(
             or covered.get("regex_builder") != "adjacent-advanced-builder"
         ):
             errors.append(f"{context}:coverage-link:registry locator or policy mismatch")
+
+        # Stage 1 inline `.*` mode-toggle registration.  A surface that ships the
+        # inline RegexSearchController::ToggleMode() button declares its widget id
+        # here; the field is optional this stage (the 13-surface rollout plus the
+        # persistence_key / invalid_pattern_policy fields land in a later stage).
+        # When declared it must be a non-empty widget id and reconcile with the
+        # coverage field's inline_mode_toggle_id so the two registries can never
+        # silently drift on the toggle id.
+        mode_toggle_id = entry.get("mode_toggle_id")
+        if mode_toggle_id is not None:
+            if not isinstance(mode_toggle_id, str) or not mode_toggle_id.strip():
+                errors.append(
+                    f"{context}:mode_toggle_id:non-empty widget id required when declared"
+                )
+            elif (
+                covered is not None
+                and covered.get("inline_mode_toggle_id") != mode_toggle_id
+            ):
+                errors.append(
+                    f"{context}:mode_toggle_id:coverage inline_mode_toggle_id must match "
+                    f"{mode_toggle_id!r}"
+                )
 
         if values["status"] != "source-integrated":
             errors.append(f"{context}:status:must be source-integrated")

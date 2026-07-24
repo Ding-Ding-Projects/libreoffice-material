@@ -5,7 +5,7 @@
   "definition_file": "vcl/uiconfig/theme_definitions/material/definition.xml",
   "chapter": "docs/design/06-containers.md",
   "chapter_sections": ["6.6", "9.1", "9.5", "9.10"],
-  "notes": "Start Center Recent Documents / Templates card grids drawn natively by the RecentDocsView and TemplateDefaultView ThumbnailView subclasses. Cards are Start Center application drawing over @surface, not a definition.xml control (06-containers 6.6 platform notes); the palette/shape tokens below are the card's token contract with definition.xml and drift fails closed. Source-declared only: no native build, card pixels or runtime interaction is claimed.",
+  "notes": "Start Center Recent Documents / Templates card grids drawn natively by the RecentDocsView and TemplateDefaultView ThumbnailView subclasses. Cards are Start Center application drawing over @surface, not a definition.xml control (06-containers 6.6 platform notes); the palette/shape tokens below are the card's token contract with definition.xml and drift fails closed. The Material card path owns EVERY Material-active render of each view: a populated card grid, the first-run 'create or open a document' invitation (09-start-center 9.5, empty list + no live filter), or the filtered-empty 'no match' cell (a live search hid every card). The legacy Welcome bitmap (STR_WELCOME_LINE1/2 + GetApplicationLogo) is REQUIRED-ABSENT from the Material guard block and survives only on the stock (non-Material) fallback so the default theme stays releasable. Source-declared only: no native build, card pixels or runtime interaction is claimed.",
   "renderer": {
     "source": "sfx2/source/control/startcentercard.cxx",
     "header": "sfx2/inc/startcentercard.hxx",
@@ -33,7 +33,10 @@
       "SC_CARD_TITLE_TEXT": 13,
       "SC_CARD_META_TEXT": 11,
       "SC_CARD_EMPTY_PADDING": 34,
-      "SC_CARD_EMPTY_TEXT": 13
+      "SC_CARD_EMPTY_TEXT": 13,
+      "SC_CARD_INVITE_TITLE_TEXT": 18,
+      "SC_CARD_INVITE_BODY_TEXT": 13,
+      "SC_CARD_INVITE_GAP": 8
     }
   },
   "palette_tokens": [
@@ -89,9 +92,15 @@
       "markers": ["bFocused", "\"corner-focus\""]
     },
     {
+      "role": "first-run-invitation",
+      "chapter": "09-start-center 9.5 (No recent documents (first run): the empty recent grid with no live filter draws a centred @on-surface title + @on-surface-variant body inviting the user to create or open a document, deliberately replacing the legacy Welcome bitmap; the Create list stays the primary affordance)",
+      "markers": ["lcl_paintInvitation", "!rEmptyState.bFiltered", "rEmptyState.aInviteTitle", "rEmptyState.aInviteBody", "SC_CARD_INVITE_TITLE_TEXT", "SC_CARD_INVITE_BODY_TEXT", "SC_CARD_INVITE_GAP"],
+      "notes": "The invitation is view-supplied (RecentDocsView passes STR_SC_INVITE_TITLE/BODY); the template grid supplies no invitation, so a genuinely empty template grid draws nothing rather than the filter-implying 'no match' copy. runtime_verified:false: the centred layout and its contrast against @surface (V/A gates) remain build-bound."
+    },
+    {
       "role": "empty-grid-message",
-      "chapter": "06-containers 6.6 / 09-start-center 9.5 (full-width centred @on-surface-variant message)",
-      "markers": ["rEmptyMessage", "SC_CARD_EMPTY_PADDING", "SC_CARD_EMPTY_TEXT"]
+      "chapter": "06-containers 6.6 / 09-start-center 9.5 (filtered-empty: a live search hid every card -> full-width centred @on-surface-variant 'no match' message)",
+      "markers": ["rEmptyState.bFiltered", "rEmptyState.aFilteredMessage", "SC_CARD_EMPTY_PADDING", "SC_CARD_EMPTY_TEXT"]
     },
     {
       "role": "unavailable-preview",
@@ -115,15 +124,35 @@
         "#include <startcentercard.hxx>",
         "sfx2::IsMaterialStartCenterActive()",
         "sfx2::MaterialStartCenterCards::Paint(",
+        "sfx2::MaterialStartCenterEmptyState",
         "SfxResId(STR_SC_NO_RECENT_MATCH)",
+        "SfxResId(STR_SC_INVITE_TITLE)",
+        "SfxResId(STR_SC_INVITE_BODY)",
         "SC_CARD_PREVIEW_HEIGHT"
       ],
-      "pinned_markers": [
-        "IsMaterialStartCenterActive() && !mItemList.empty()",
-        "STR_WELCOME_LINE1",
-        "STR_WELCOME_LINE2"
+      "guard_opener": "if (sfx2::IsMaterialStartCenterActive())",
+      "guard_present_markers": [
+        "sfx2::MaterialStartCenterCards::Paint(",
+        "SfxResId(STR_SC_INVITE_TITLE)",
+        "SfxResId(STR_SC_INVITE_BODY)",
+        "SfxResId(STR_SC_NO_RECENT_MATCH)",
+        "!mItemList.empty()"
       ],
-      "pinned_fallback": "09-start-center 9.5: the Material card path is gated on a non-empty item list, so a genuinely-empty (first-run) recent list deliberately falls through to the legacy Welcome screen (STR_WELCOME_LINE1/2) rather than the filter-implying STR_SC_NO_RECENT_MATCH 'no match' copy. Pinned so a future edit can't silently show 'no recent documents match this pattern' on a blank first run.",
+      "guard_absent_markers": [
+        "STR_WELCOME_LINE1",
+        "STR_WELCOME_LINE2",
+        "GetApplicationLogo"
+      ],
+      "stock_markers": [
+        "STR_WELCOME_LINE1",
+        "STR_WELCOME_LINE2",
+        "GetApplicationLogo("
+      ],
+      "pinned_absent_markers": [
+        "IsMaterialStartCenterActive() && !mItemList.empty()"
+      ],
+      "invite_resources": ["STR_SC_INVITE_TITLE", "STR_SC_INVITE_BODY"],
+      "migration_note": "09-start-center 9.5: the pre-rewrite gate (IsMaterialStartCenterActive() && !mItemList.empty()) fell a first-run empty recent list through to the legacy Welcome bitmap. That gate is now REMOVED (pinned_absent_markers) and the Material path owns the first-run render via the STR_SC_INVITE_TITLE/BODY invitation inside the guard (guard_present_markers). The Welcome bitmap is REQUIRED-ABSENT from the Material guard block (guard_absent_markers) but preserved on the stock path (stock_markers) so the default theme stays releasable. bFiltered (=!mItemList.empty()) still separates the filtered 'no match' cell from the genuinely-empty invitation, so a blank first run never shows the filter-implying copy.",
       "runtime_verified": false
     },
     {
@@ -138,13 +167,23 @@
         "#include <startcentercard.hxx>",
         "sfx2::IsMaterialStartCenterActive()",
         "sfx2::MaterialStartCenterCards::Paint(",
+        "sfx2::MaterialStartCenterEmptyState",
         "SfxResId(STR_SC_NO_TEMPLATE_MATCH)",
         "SC_CARD_PREVIEW_HEIGHT"
       ],
-      "pinned_markers": [
+      "guard_opener": "if (sfx2::IsMaterialStartCenterActive())",
+      "guard_present_markers": [
+        "sfx2::MaterialStartCenterCards::Paint(",
+        "SfxResId(STR_SC_NO_TEMPLATE_MATCH)",
+        "!mItemList.empty()"
+      ],
+      "guard_absent_markers": [],
+      "stock_markers": [],
+      "pinned_absent_markers": [
         "IsMaterialStartCenterActive() && !mItemList.empty()"
       ],
-      "pinned_fallback": "09-start-center 9.5: same non-empty gate as RecentDocsView -- with no templates at all the Material path is skipped and TemplateLocalView::Paint runs, so a first-run empty template grid never shows the filter-implying STR_SC_NO_TEMPLATE_MATCH 'no match' copy.",
+      "invite_resources": [],
+      "migration_note": "09-start-center 9.5: the same pre-rewrite non-empty gate is REMOVED (pinned_absent_markers). The template grid supplies no first-run invitation (built-in templates always ship, so it is effectively never genuinely empty); when it is (bFiltered false, no invitation), the renderer leaves the @surface background blank rather than the filter-implying STR_SC_NO_TEMPLATE_MATCH copy, preserving the old first-run-stays-quiet guarantee without the base paint.",
       "runtime_verified": false
     }
   ],

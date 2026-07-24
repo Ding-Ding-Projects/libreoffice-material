@@ -164,6 +164,47 @@ class WindowsRegexBuilderFoundationTest(unittest.TestCase):
             any(item.startswith("single-notify-set-state:") for item in VALIDATOR.violations(mutated))
         )
 
+    def test_set_mode_contract_is_structural(self) -> None:
+        self.assertEqual([], VALIDATOR.violations(self.contents))
+
+        # Rewriting the search text inside SetMode breaks the mode-only contract.
+        mutated = dict(self.contents)
+        mutated[VALIDATOR.SOURCE_PATH] = mutated[VALIDATOR.SOURCE_PATH].replace(
+            "m_aState.Mode = eMode;",
+            "m_aState.Mode = eMode;\n    SetSearchText(m_aState.Pattern);",
+            1,
+        )
+        self.assertTrue(
+            any(item.startswith("set-mode-contract:") for item in VALIDATOR.violations(mutated))
+        )
+
+        # Notifying more than once from SetMode also violates the contract.
+        mutated = dict(self.contents)
+        mutated[VALIDATOR.SOURCE_PATH] = mutated[VALIDATOR.SOURCE_PATH].replace(
+            "m_aState.Mode = eMode;\n    UpdateSearchValidity();\n    NotifyStateChanged();",
+            "m_aState.Mode = eMode;\n    UpdateSearchValidity();\n    NotifyStateChanged();\n"
+            "    NotifyStateChanged();",
+            1,
+        )
+        self.assertTrue(
+            any(item.startswith("set-mode-contract:") for item in VALIDATOR.violations(mutated))
+        )
+
+    def test_toggle_mode_contract_is_structural(self) -> None:
+        self.assertEqual([], VALIDATOR.violations(self.contents))
+
+        # A ToggleMode that mutates the mode directly instead of delegating to
+        # SetMode bypasses the single re-validate/notify route.
+        mutated = dict(self.contents)
+        mutated[VALIDATOR.SOURCE_PATH] = mutated[VALIDATOR.SOURCE_PATH].replace(
+            "SetMode(m_aState.Mode == RegexSearchMode::RegularExpression",
+            "m_aState.Mode = (m_aState.Mode == RegexSearchMode::RegularExpression",
+            1,
+        )
+        self.assertTrue(
+            any(item.startswith("toggle-mode-contract:") for item in VALIDATOR.violations(mutated))
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

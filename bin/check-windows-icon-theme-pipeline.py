@@ -51,6 +51,12 @@ REPOSITORY = Path(__file__).resolve().parents[1]
 REGISTRY_PATH = "qa/windows-ui-contract/icon-theme-pipeline.json"
 CONTRACT_NAME = "windows-icon-theme-pipeline"
 
+# Start Center icon-name references (sfx2/res/startcenter/<name>.png) inside startcenter.ui.
+_STARTCENTER_ICON_RE = re.compile(r"sfx2/res/startcenter/([a-z0-9_]+)\.png")
+# Existence sentinel recorded for referenced files that exist but are not UTF-8 text
+# (e.g. the reused colibre cmd PNG an alias points at). Only their presence is inspected.
+_BINARY_PRESENT = "￿<binary-present>"
+
 
 class ValidationError(RuntimeError):
     pass
@@ -74,6 +80,40 @@ def _read_json(path: Path) -> dict[str, Any]:
     return value
 
 
+def _material_glyph_files(registry: Mapping[str, Any]) -> list[str]:
+    """Repo-relative files the material_startcenter_glyphs guard needs loaded.
+
+    Includes the consumer .ui, the shared colibre links.txt, every authored SVG
+    (in both the png_theme and svg_theme trees) and every reuse-alias target so
+    the guard can assert presence purely from ``contents`` (keeping ``violations``
+    a pure function the test suite can drive with mutated content).
+    """
+    cfg = registry.get("material_startcenter_glyphs")
+    if not isinstance(cfg, dict):
+        return []
+    files: list[str] = []
+    for key in ("links_file", "consumer_ui"):
+        value = cfg.get(key)
+        if isinstance(value, str):
+            files.append(value)
+    png_theme = cfg.get("png_theme")
+    svg_theme = cfg.get("svg_theme")
+    icon_dir = cfg.get("icon_name_dir")
+    if isinstance(icon_dir, str):
+        for name in cfg.get("authored_svg", []) or []:
+            if not isinstance(name, str):
+                continue
+            for theme in (png_theme, svg_theme):
+                if isinstance(theme, str):
+                    files.append(f"icon-themes/{theme}/{icon_dir}/{name}.svg")
+    aliased = cfg.get("aliased")
+    if isinstance(aliased, dict) and isinstance(png_theme, str):
+        for target in aliased.values():
+            if isinstance(target, str):
+                files.append(f"icon-themes/{png_theme}/{target}")
+    return files
+
+
 def _referenced_files(registry: Mapping[str, Any]) -> list[str]:
     files: list[str] = []
     for key in ("selector_header", "selector_source", "info_source"):
@@ -90,6 +130,7 @@ def _referenced_files(registry: Mapping[str, Any]) -> list[str]:
         for key in ("path", "ci_workflow"):
             if isinstance(linter.get(key), str):
                 files.append(linter[key])
+    files.extend(_material_glyph_files(registry))
     # De-dup, keep order.
     seen: set[str] = set()
     ordered: list[str] = []
@@ -122,7 +163,11 @@ def load_repository(
     for relative in _referenced_files(registry):
         path = repo_root / relative
         if path.is_file():
-            contents[relative] = path.read_text(encoding="utf-8")
+            try:
+                contents[relative] = path.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, ValueError):
+                # Binary asset (e.g. a reused colibre cmd PNG); record existence only.
+                contents[relative] = _BINARY_PRESENT
     theme_dirs = enumerate_theme_dirs(repo_root, registry)
     return registry, contents, theme_dirs
 
@@ -347,6 +392,146 @@ def _validate_icon_size_linter(registry, contents, errors) -> None:
             )
 
 
+def _parse_link_sources(links_text: str) -> dict[str, str]:
+    """Parse a links.txt body into a {source: target} map (first target wins)."""
+    sources: dict[str, str] = {}
+    for line in links_text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split()
+        if len(parts) >= 2 and parts[0] not in sources:
+            sources[parts[0]] = parts[1]
+    return sources
+
+
+def _validate_material_startcenter_glyphs(registry, contents, errors) -> None:
+    cfg = registry.get("material_startcenter_glyphs")
+    if not isinstance(cfg, dict):
+        errors.append("registry:material_startcenter_glyphs:object required")
+        return
+
+    png_theme = cfg.get("png_theme")
+    svg_theme = cfg.get("svg_theme")
+    icon_dir = cfg.get("icon_name_dir")
+    links_file = cfg.get("links_file")
+    consumer_ui = cfg.get("consumer_ui")
+    if not all(isinstance(v, str) and v for v in (png_theme, svg_theme, icon_dir, links_file, consumer_ui)):
+        errors.append(
+            "material_startcenter_glyphs: png_theme/svg_theme/icon_name_dir/links_file/consumer_ui "
+            "must be non-empty strings"
+        )
+        return
+
+    authored = cfg.get("authored_svg")
+    aliased = cfg.get("aliased")
+    if not isinstance(authored, list) or not authored:
+        errors.append("material_startcenter_glyphs:authored_svg:non-empty array required")
+        return
+    if not isinstance(aliased, dict) or not aliased:
+        errors.append("material_startcenter_glyphs:aliased:non-empty object required")
+        return
+
+    links_text = contents.get(links_file)
+    if links_text is None or links_text == _BINARY_PRESENT:
+        errors.append(f"material_startcenter_glyphs:{links_file} missing")
+        return
+    sources = _parse_link_sources(links_text)
+
+    ui_text = contents.get(consumer_ui)
+    if ui_text is None or ui_text == _BINARY_PRESENT:
+        errors.append(f"material_startcenter_glyphs:{consumer_ui} missing")
+        return
+    referenced = set(_STARTCENTER_ICON_RE.findall(ui_text))
+
+    authored_set = {n for n in authored if isinstance(n, str)}
+    aliased_set = {n for n in aliased.keys() if isinstance(n, str)}
+
+    # authored and aliased must be disjoint -- the two wiring paths are mutually exclusive.
+    overlap = authored_set & aliased_set
+    if overlap:
+        errors.append(
+            "material_startcenter_glyphs: names are both authored and aliased "
+            f"(a links.txt alias shadows the real SVG): {sorted(overlap)}"
+        )
+
+    # Closure: the two paths together must cover exactly what startcenter.ui references.
+    covered = authored_set | aliased_set
+    unwired = sorted(referenced - covered)
+    if unwired:
+        errors.append(
+            f"material_startcenter_glyphs: {consumer_ui} references sfx2/res/startcenter glyphs with "
+            f"neither an authored SVG nor a links.txt alias (broken icon): {unwired}"
+        )
+    dead = sorted(covered - referenced)
+    if dead:
+        errors.append(
+            "material_startcenter_glyphs: contract declares startcenter glyphs "
+            f"{consumer_ui} does not reference (dead assets): {dead}"
+        )
+
+    svg_fill = cfg.get("svg_fill")
+
+    # authored: a real SVG present in BOTH themes, and NO shadowing links.txt alias.
+    for name in sorted(authored_set):
+        for theme in (png_theme, svg_theme):
+            rel = f"icon-themes/{theme}/{icon_dir}/{name}.svg"
+            text = contents.get(rel)
+            if text is None:
+                errors.append(f"material_startcenter_glyphs: authored glyph missing: {rel}")
+            elif isinstance(svg_fill, str) and svg_fill and text != _BINARY_PRESENT and svg_fill not in text:
+                errors.append(
+                    f"material_startcenter_glyphs: {rel} must use the monochrome fill {svg_fill!r}"
+                )
+        src = f"{icon_dir}/{name}.png"
+        if src in sources:
+            errors.append(
+                f"material_startcenter_glyphs: authored glyph {name!r} must NOT be aliased in "
+                f"{links_file} -- the alias would shadow the real SVG ({src} -> {sources[src]})"
+            )
+
+    # aliased: a links.txt line reusing an existing cmd icon, and NO authored SVG file.
+    for name in sorted(aliased_set):
+        target = aliased[name]
+        src = f"{icon_dir}/{name}.png"
+        if src not in sources:
+            errors.append(
+                f"material_startcenter_glyphs: {links_file} is missing the reuse-alias "
+                f"{src} -> {target}"
+            )
+        elif isinstance(target, str) and sources[src] != target:
+            errors.append(
+                f"material_startcenter_glyphs: {links_file} aliases {src} to {sources[src]!r}, "
+                f"expected {target!r}"
+            )
+        if isinstance(target, str):
+            tgt_rel = f"icon-themes/{png_theme}/{target}"
+            if contents.get(tgt_rel) is None:
+                errors.append(
+                    f"material_startcenter_glyphs: reuse-alias target missing: {tgt_rel}"
+                )
+        for theme in (png_theme, svg_theme):
+            rel = f"icon-themes/{theme}/{icon_dir}/{name}.svg"
+            if contents.get(rel) is not None:
+                errors.append(
+                    f"material_startcenter_glyphs: aliased glyph {name!r} must not also ship an "
+                    f"authored file (the alias already resolves it): {rel}"
+                )
+
+    # legacy stock Start Center icon references flipped to REQUIRED-ABSENT (migrate-never-delete).
+    legacy = cfg.get("legacy_refs_absent")
+    if legacy is not None:
+        if not isinstance(legacy, list):
+            errors.append("material_startcenter_glyphs:legacy_refs_absent:array required")
+        else:
+            for ref in legacy:
+                if isinstance(ref, str) and ref and ref in ui_text:
+                    errors.append(
+                        f"material_startcenter_glyphs: legacy stock icon reference {ref!r} must be "
+                        f"absent from {consumer_ui} (flipped to REQUIRED-ABSENT)"
+                    )
+
+
 def _validate_meta(registry, errors) -> None:
     if registry.get("schema_version") != 1:
         errors.append("registry:schema_version:must be 1")
@@ -379,6 +564,7 @@ def violations(
     _validate_package_naming(registry, contents, errors)
     _validate_theme_dirs(registry, list(theme_dirs), errors)
     _validate_iconography_prose(registry, contents, errors)
+    _validate_material_startcenter_glyphs(registry, contents, errors)
     _validate_icon_size_linter(registry, contents, errors)
     return errors
 
@@ -405,11 +591,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Icon-theme pipeline contract failed:\n{error}", file=sys.stderr)
         return 1
     registry, _, theme_dirs = load_repository(repo_root)
+    glyphs = registry.get("material_startcenter_glyphs", {})
+    authored = len(glyphs.get("authored_svg", []) or []) if isinstance(glyphs, dict) else 0
+    aliased = len(glyphs.get("aliased", {}) or {}) if isinstance(glyphs, dict) else 0
     print(
         "Icon-theme pipeline contract passed: colibre/colibre_dark Windows fallback and the generic "
         "mPreferredIconTheme override are pinned, the images_<id>.zip/_svg/_dark naming contract holds, "
         f"{len(theme_dirs)} icon-themes/ directories are enumerated with no material* directory "
-        "(material_theme_installed:false), and the four iconography prose rules are intact."
+        "(material_theme_installed:false), the four iconography prose rules are intact, and the Material "
+        f"Start Center glyph set ({authored} authored SVGs + {aliased} reuse-aliases) is required-present "
+        "and closes over startcenter.ui."
     )
     return 0
 

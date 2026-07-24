@@ -191,6 +191,20 @@ public:
     void SetState(const RegexSearchState& rState);
     void SetTestText(const OUString& rTestText);
 
+    /** Flip the search mode between literal and regular expression.
+
+        ToggleMode() is what an inline mode toggle (e.g. the Start Center
+        start_search_regex_mode button) calls; SetMode() is for programmatic or
+        registry callers. Both mutate only RegexSearchState::Mode -- they never
+        open or close the builder popover and never touch RegexSearchFlags -- and
+        then re-validate the current pattern under the new mode and notify the
+        owner filter and any installed change handler. Stage 1 keeps this purely
+        in memory; officecfg persistence is a later stage. SetMode() is a no-op
+        when the mode is unchanged.
+     */
+    void ToggleMode();
+    void SetMode(RegexSearchMode eMode);
+
     i18nutil::SearchOptions2 GetSearchOptions() const;
     RegexSearchEvaluation Evaluate(sal_Int32 nMatchLimit = 1000) const;
     void ShowBuilder();

@@ -30,6 +30,10 @@ SELECTOR = "vcl/source/app/IconThemeSelector.cxx"
 INFO = "vcl/source/app/IconThemeInfo.cxx"
 FOUNDATIONS = "docs/design/01-foundations.md"
 ROOT_DOC = "MATERIAL_DESIGN.md"
+LINKS = "icon-themes/colibre/links.txt"
+STARTCENTER_UI = "sfx2/uiconfig/ui/startcenter.ui"
+ARTICLE_SVG_COLIBRE = "icon-themes/colibre/sfx2/res/startcenter/article.svg"
+ARTICLE_SVG_SVGTHEME = "icon-themes/colibre_svg/sfx2/res/startcenter/article.svg"
 
 
 class IconThemePipelineTest(unittest.TestCase):
@@ -157,6 +161,94 @@ class IconThemePipelineTest(unittest.TestCase):
         text = self.contents.get(workflow, "") + "\n        run: python3 bin/check-icon-sizes.py\n"
         errors = self.failures(contents=self.with_content(workflow, text))
         self.assertTrue(any("icon_size_linter:ci_enforced" in e for e in errors), errors)
+
+    # -- material startcenter glyphs --------------------------------------
+    def test_missing_authored_svg_fails(self) -> None:
+        contents = dict(self.contents)
+        self.assertIn(ARTICLE_SVG_SVGTHEME, contents)
+        del contents[ARTICLE_SVG_SVGTHEME]
+        errors = self.failures(contents=contents)
+        self.assertTrue(any("authored glyph missing" in e for e in errors), errors)
+
+    def test_authored_svg_wrong_fill_fails(self) -> None:
+        contents = self.with_content(
+            ARTICLE_SVG_COLIBRE,
+            '<svg viewBox="0 0 18 18"><rect fill="#000000" width="18" height="18"/></svg>\n',
+        )
+        errors = self.failures(contents=contents)
+        self.assertTrue(any("monochrome fill" in e for e in errors), errors)
+
+    def test_authored_glyph_aliased_fails(self) -> None:
+        # Aliasing an authored name would shadow the real SVG via getRealImageName.
+        text = self.contents[LINKS] + "\nsfx2/res/startcenter/article.png cmd/lc_open.png\n"
+        errors = self.failures(contents=self.with_content(LINKS, text))
+        self.assertTrue(any("must NOT be aliased" in e and "article" in e for e in errors), errors)
+
+    def test_missing_reuse_alias_fails(self) -> None:
+        text = self.contents[LINKS].replace(
+            "sfx2/res/startcenter/folder_open.png cmd/lc_open.png\n", "", 1
+        )
+        errors = self.failures(contents=self.with_content(LINKS, text))
+        self.assertTrue(any("missing the reuse-alias" in e and "folder_open" in e for e in errors), errors)
+
+    def test_reuse_alias_wrong_target_fails(self) -> None:
+        text = self.contents[LINKS].replace(
+            "sfx2/res/startcenter/folder_open.png cmd/lc_open.png",
+            "sfx2/res/startcenter/folder_open.png cmd/sc_ok.png",
+            1,
+        )
+        errors = self.failures(contents=self.with_content(LINKS, text))
+        self.assertTrue(any("expected 'cmd/lc_open.png'" in e for e in errors), errors)
+
+    def test_missing_alias_target_fails(self) -> None:
+        contents = dict(self.contents)
+        self.assertIn("icon-themes/colibre/cmd/lc_open.png", contents)
+        del contents["icon-themes/colibre/cmd/lc_open.png"]
+        errors = self.failures(contents=contents)
+        self.assertTrue(any("reuse-alias target missing" in e for e in errors), errors)
+
+    def test_aliased_name_with_authored_file_fails(self) -> None:
+        contents = self.with_content(
+            "icon-themes/colibre/sfx2/res/startcenter/folder_open.svg",
+            '<svg viewBox="0 0 18 18"><rect fill="#3a3a38" width="18" height="18"/></svg>\n',
+        )
+        errors = self.failures(contents=contents)
+        self.assertTrue(any("must not also ship an authored file" in e for e in errors), errors)
+
+    def test_ui_unwired_glyph_fails(self) -> None:
+        text = self.contents[STARTCENTER_UI].replace(
+            "sfx2/res/startcenter/search.png", "sfx2/res/startcenter/newglyph.png", 1
+        )
+        errors = self.failures(contents=self.with_content(STARTCENTER_UI, text))
+        self.assertTrue(
+            any("neither an authored SVG nor a links.txt alias" in e for e in errors), errors
+        )
+
+    def test_dead_asset_fails(self) -> None:
+        text = self.contents[STARTCENTER_UI].replace(
+            "sfx2/res/startcenter/history.png", "window-history-symbolic", 1
+        )
+        errors = self.failures(contents=self.with_content(STARTCENTER_UI, text))
+        self.assertTrue(any("dead assets" in e and "history" in e for e in errors), errors)
+
+    def test_legacy_ref_present_fails(self) -> None:
+        text = self.contents[STARTCENTER_UI].replace(
+            "sfx2/res/startcenter/article.png", "res/odt_32_8.png", 1
+        )
+        errors = self.failures(contents=self.with_content(STARTCENTER_UI, text))
+        self.assertTrue(any("legacy stock icon reference" in e for e in errors), errors)
+
+    def test_missing_glyph_section_fails(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        del registry["material_startcenter_glyphs"]
+        errors = self.failures(registry=registry)
+        self.assertTrue(any("material_startcenter_glyphs:object required" in e for e in errors), errors)
+
+    def test_authored_aliased_overlap_fails(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        registry["material_startcenter_glyphs"]["aliased"]["article"] = "cmd/lc_open.png"
+        errors = self.failures(registry=registry)
+        self.assertTrue(any("both authored and aliased" in e for e in errors), errors)
 
     # -- meta --------------------------------------------------------------
     def test_runtime_verified_true_fails(self) -> None:

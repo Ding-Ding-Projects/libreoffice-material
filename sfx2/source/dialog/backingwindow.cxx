@@ -93,6 +93,8 @@ BackingWindow::BackingWindow(vcl::Window* i_pParent)
     , mxActions(m_xBuilder->weld_menu_button(u"mbActions"_ustr))
     , mxStartSearch(m_xBuilder->weld_entry(u"start_search"_ustr))
     , mxStartSearchRegexBuilder(m_xBuilder->weld_button(u"start_search_regex_builder"_ustr))
+    , mxStartSearchClear(m_xBuilder->weld_button(u"start_search_clear"_ustr))
+    , mxStartSearchRegexModeToggle(m_xBuilder->weld_toggle_button(u"start_search_regex_mode"_ustr))
     , mxWriterAllButton(m_xBuilder->weld_button(u"writer_all"_ustr))
     , mxCalcAllButton(m_xBuilder->weld_button(u"calc_all"_ustr))
     , mxImpressAllButton(m_xBuilder->weld_button(u"impress_all"_ustr))
@@ -181,6 +183,8 @@ void BackingWindow::dispose()
     mxDropTarget.clear();
     // Destroy the controller before the entry and button whose callbacks it restores.
     mxStartSearchController.reset();
+    mxStartSearchRegexModeToggle.reset();
+    mxStartSearchClear.reset();
     mxStartSearch.reset();
     mxStartSearchRegexBuilder.reset();
     mxOpenButton.reset();
@@ -276,6 +280,13 @@ void BackingWindow::initControls()
     mxFilter->connect_changed(LINK(this, BackingWindow, FilterHdl));
     mxActions->connect_selected(LINK(this, BackingWindow, MenuSelectHdl));
 
+    // Search-pill affordances owned by the Start Center: the clear button empties the field and the
+    // .* toggle flips the shared search controller between literal and regular-expression matching.
+    // The controller owns the entry and the advanced-builder button; these two controls are wired
+    // here so their state stays in sync with the controller through SearchModifyHdl.
+    mxStartSearchClear->connect_clicked(LINK(this, BackingWindow, SearchClearHdl));
+    mxStartSearchRegexModeToggle->connect_toggled(LINK(this, BackingWindow, SearchModeToggleHdl));
+
     ApplyStyleSettings();
 }
 
@@ -305,7 +316,6 @@ void BackingWindow::ApplyStyleSettings()
     const StyleSettings& rStyleSettings = GetSettings().GetStyleSettings();
     const Color aNavigationBackground(rStyleSettings.GetWorkspaceColor());
     const Color aContentBackground(rStyleSettings.GetWindowColor());
-    const Color aSurfaceContainer(rStyleSettings.GetDialogColor());
     const Color aOnSurface(rStyleSettings.GetWindowTextColor());
     const Color aOnSurfaceVariant(rStyleSettings.GetLabelTextColor());
     const vcl::Font& aButtonFont(rStyleSettings.GetPushButtonFont());
@@ -332,7 +342,9 @@ void BackingWindow::ApplyStyleSettings()
     mxButtonsBox->set_background(aNavigationBackground);
     mxSmallButtonsBox->set_background(aNavigationBackground);
     mxWelcomeHeader->set_background(aContentBackground);
-    mxActionsBox->set_background(aSurfaceContainer);
+    // The search/filter row sits flush on the content surface: drop the legacy tonal "filled band"
+    // so the pill reads as a single Material search field rather than a banded toolbar.
+    mxActionsBox->set_background(aContentBackground);
     mxRightBox->set_background(aContentBackground);
     SetBackground(aContentBackground);
 
@@ -562,6 +574,29 @@ IMPL_LINK_NOARG(BackingWindow, SearchModifyHdl, weld::TextWidget&, void)
             aVisibleTitles.insert(rTitle);
     }
     mxAllRecentThumbnails->setSearchFilter(aVisibleTitles, bEmpty);
+}
+
+IMPL_LINK_NOARG(BackingWindow, SearchClearHdl, weld::Button&, void)
+{
+    // Empty the recent-documents search through the controller: resetting the state clears the entry
+    // text, re-validates the (now empty) pattern, and notifies the owner filter (SearchModifyHdl)
+    // exactly once, so the full recent-document set reappears. Then return focus to the field.
+    if (mxStartSearchController)
+    {
+        sfx2::RegexSearchState aState = mxStartSearchController->GetState();
+        aState.Pattern.clear();
+        mxStartSearchController->SetState(aState);
+    }
+    mxStartSearch->grab_focus();
+}
+
+IMPL_LINK_NOARG(BackingWindow, SearchModeToggleHdl, weld::Toggleable&, void)
+{
+    // The .* toggle flips the shared controller between literal and regular-expression matching. The
+    // controller re-validates the current pattern under the new mode and notifies the owner filter
+    // (SearchModifyHdl) exactly once, so the recent-documents list reflects the new mode immediately.
+    if (mxStartSearchController)
+        mxStartSearchController->ToggleMode();
 }
 
 IMPL_LINK( BackingWindow, ToggleHdl, weld::Toggleable&, rButton, void )

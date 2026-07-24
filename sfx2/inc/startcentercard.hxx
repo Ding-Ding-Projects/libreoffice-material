@@ -58,6 +58,31 @@ inline constexpr tools::Long SC_CARD_META_TEXT = 11;       ///< card meta size
 inline constexpr tools::Long SC_CARD_META_GAP = 2;         ///< gap between title and meta
 inline constexpr tools::Long SC_CARD_EMPTY_PADDING = 34;   ///< empty/filtered-grid message padding
 inline constexpr tools::Long SC_CARD_EMPTY_TEXT = 13;      ///< empty/filtered-grid message size
+inline constexpr tools::Long SC_CARD_INVITE_TITLE_TEXT = 18; ///< first-run invitation title size
+inline constexpr tools::Long SC_CARD_INVITE_BODY_TEXT = 13;  ///< first-run invitation body size
+inline constexpr tools::Long SC_CARD_INVITE_GAP = 8;         ///< gap between invitation title and body
+
+/**
+ * What the card renderer draws when no card is visible.
+ *
+ * The Start Center recent/template grids distinguish two empty conditions,
+ * following docs/design/09-start-center.md 9.5:
+ *   - a genuinely empty grid (first run / nothing to show, @c bFiltered false):
+ *     the recent grid draws the first-run "create or open a document" invitation
+ *     (@c aInviteTitle + @c aInviteBody); a view with no invitation (the template
+ *     grid) leaves the @surface background blank rather than a filter-implying line;
+ *   - a filtered-empty grid (a live search hid every card, @c bFiltered true):
+ *     the centred @c aFilteredMessage "no match" cell.
+ * The invitation deliberately replaces the legacy Welcome bitmap on the Material
+ * path; that bitmap survives only on the stock (non-Material) fallback.
+ */
+struct MaterialStartCenterEmptyState
+{
+    OUString aInviteTitle;    ///< first-run invitation title (empty => view has no invitation)
+    OUString aInviteBody;     ///< first-run invitation body
+    OUString aFilteredMessage; ///< filtered-empty "no match" message
+    bool bFiltered = false;   ///< true: backing list has items but all are filtered out
+};
 
 /// True only when the documented Material file-widget theme is the active
 /// activation (VCL_FILE_WIDGET_THEME=material). Mirrors the guard in
@@ -70,14 +95,18 @@ public:
     /**
      * Paint the full Material card grid for @p rItems into @p rRenderContext.
      *
-     * @return true when the Material theme is active and the grid (or the
-     *         empty/filtered message @p rEmptyMessage) was drawn; false when the
-     *         Material theme is inactive, in which case nothing is drawn and the
+     * When @p rItems is empty the renderer draws the empty state described by
+     * @p rEmptyState (first-run invitation or filtered "no match" cell) instead
+     * of a card grid.
+     *
+     * @return true when the Material theme is active and the grid (or the empty
+     *         state) was drawn; false when the Material theme is inactive or the
+     *         token table is unreadable, in which case nothing is drawn and the
      *         caller must fall back to the default ThumbnailView paint.
      */
     static bool Paint(vcl::RenderContext& rRenderContext, ThumbnailView& rView,
                       const std::vector<ThumbnailViewItem*>& rItems,
-                      const OUString& rEmptyMessage);
+                      const MaterialStartCenterEmptyState& rEmptyState);
 };
 
 } // namespace sfx2

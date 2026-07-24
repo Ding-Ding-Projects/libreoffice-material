@@ -71,6 +71,8 @@ class BackingWindow : public InterimItemWindow
 
     std::unique_ptr<weld::Entry> mxStartSearch;
     std::unique_ptr<weld::Button> mxStartSearchRegexBuilder;
+    std::unique_ptr<weld::Button> mxStartSearchClear;
+    std::unique_ptr<weld::ToggleButton> mxStartSearchRegexModeToggle;
 
     std::unique_ptr<weld::Button> mxWriterAllButton;
     std::unique_ptr<weld::Button> mxCalcAllButton;
@@ -111,6 +113,8 @@ class BackingWindow : public InterimItemWindow
     DECL_LINK(ToggleHdl, weld::Toggleable&, void);
     DECL_LINK(FilterHdl, weld::ComboBox&, void);
     DECL_LINK(SearchModifyHdl, weld::TextWidget&, void);
+    DECL_LINK(SearchClearHdl, weld::Button&, void);
+    DECL_LINK(SearchModeToggleHdl, weld::Toggleable&, void);
     DECL_LINK(ClickHdl, weld::Button&, void);
     DECL_LINK(ClickHelpHdl, weld::Button&, void);
     DECL_LINK(MenuSelectHdl, const OUString&, void);

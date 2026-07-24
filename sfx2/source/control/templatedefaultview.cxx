@@ -92,23 +92,26 @@ bool TemplateDefaultView::MouseButtonDown( const MouseEvent& rMEvt )
 
 void TemplateDefaultView::Paint(vcl::RenderContext& rRenderContext, const tools::Rectangle& rRect)
 {
-    // Material Start Center: draw the native Material template-card grid (scoped
-    // to this Start Center view, not the shared Template Manager). Inert under
-    // the default/native theme, where the base paint below runs unchanged.
-    //
-    // As in RecentDocsView, only take the Material path when mItemList is
-    // non-empty: a populated grid, or the "no templates match this pattern"
-    // message when a live search hides every card. With no templates at all,
-    // fall through to the base paint rather than a filter-implying empty message.
-    if (sfx2::IsMaterialStartCenterActive() && !mItemList.empty())
+    // Material Start Center: the card grid owns every Material-active render of
+    // this template view (scoped to the Start Center, not the shared Template
+    // Manager) -- a populated grid, or the "no templates match this pattern"
+    // filtered-empty cell when a live search hides every card. Built-in templates
+    // always ship, so the grid is effectively never genuinely empty; if it ever is
+    // (bFiltered false, no invitation supplied for templates), the renderer leaves
+    // the @surface background blank rather than the filter-implying "no match"
+    // copy -- preserving the old first-run-stays-quiet guarantee without the base
+    // paint. Inert under the default/native theme, where the base paint runs below.
+    if (sfx2::IsMaterialStartCenterActive())
     {
         std::vector<ThumbnailViewItem*> aVisibleItems;
         aVisibleItems.reserve(mItemList.size());
         for (const std::unique_ptr<ThumbnailViewItem>& rxItem : mItemList)
             if (rxItem && rxItem->isVisible())
                 aVisibleItems.push_back(rxItem.get());
+        const sfx2::MaterialStartCenterEmptyState aEmptyState{
+            OUString(), OUString(), SfxResId(STR_SC_NO_TEMPLATE_MATCH), !mItemList.empty()};
         if (sfx2::MaterialStartCenterCards::Paint(rRenderContext, *this, aVisibleItems,
-                                                  SfxResId(STR_SC_NO_TEMPLATE_MATCH)))
+                                                  aEmptyState))
             return;
     }
 

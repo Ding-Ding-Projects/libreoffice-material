@@ -44,6 +44,18 @@
       "matcher_strategy": "legacy-literal-or-compiled-once-utl-textsearch",
       "default_mode": "literal-case-sensitive-indexof-compatible",
       "match_subject": "rTitle",
+      "mode_toggle_id": "start_search_regex_mode",
+      "ui_layout": {
+        "kind": "material-search-pill",
+        "container_id": "start_search_box",
+        "children": [
+          { "id": "start_search_icon", "class": "GtkImage", "role": "decorative-icon" },
+          { "id": "start_search", "class": "GtkEntry", "role": "entry" },
+          { "id": "start_search_clear", "class": "GtkButton", "role": "clear" },
+          { "id": "start_search_regex_mode", "class": "GtkToggleButton", "role": "mode-toggle" },
+          { "id": "start_search_regex_builder", "class": "GtkButton", "role": "builder" }
+        ]
+      },
       "runtime_verified": false
     },
     {

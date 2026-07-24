@@ -322,7 +322,8 @@
       "widget_id": "start_search",
       "query_scope": "recent documents and templates",
       "regex_builder": "adjacent-advanced-builder",
-      "integration_status": "source-integrated"
+      "integration_status": "source-integrated",
+      "inline_mode_toggle_id": "start_search_regex_mode"
     }
   ],
   "planned_fields": [],

@@ -142,6 +142,26 @@ class StartCenterNoDonateValidatorTest(unittest.TestCase):
             ui=mutated,
         )
 
+    def test_rejects_reintroduced_stock_frame(self) -> None:
+        mutated = self.ui.replace(
+            '<object class="GtkBox" id="box2">',
+            '<object class="GtkBox" id="box2">\n'
+            '  <child><object class="GtkFrame" id="frame1"/></child>',
+            1,
+        )
+        self.assert_validation_fails(
+            "retired stock Start Center landmarks remain", ui=mutated
+        )
+
+    def test_rejects_missing_canonical_control(self) -> None:
+        mutated = self.ui.replace(
+            'id="start_search_regex_mode"', 'id="start_search_regex_mode_x"', 1
+        )
+        self.assert_validation_fails(
+            "canonical Material Start Center widgets are missing: start_search_regex_mode",
+            ui=mutated,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

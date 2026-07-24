@@ -300,6 +300,37 @@ class WindowsRegexSearchIntegrationsTest(unittest.TestCase):
             )
         )
 
+    def test_inline_mode_toggle_registration_is_reconciled(self) -> None:
+        # The Start Center registers the inline `.*` mode toggle; the baseline
+        # reconciles cleanly between the two registries.
+        self.assertEqual([], self.failures())
+
+        # An empty declared toggle id fails closed.
+        registry = copy.deepcopy(self.registry)
+        target = next(
+            item
+            for item in registry["integrations"]
+            if item["coverage_id"] == "start-center.document-search"
+        )
+        self.assertEqual(target.get("mode_toggle_id"), "start_search_regex_mode")
+        target["mode_toggle_id"] = ""
+        self.assertTrue(
+            any(":mode_toggle_id:non-empty" in error for error in self.failures(registry=registry))
+        )
+
+        # The coverage field must reconcile with the registered toggle id.
+        coverage = copy.deepcopy(self.coverage)
+        for item in coverage["shipping_fields"]:
+            if item["coverage_id"] == "start-center.document-search":
+                item["inline_mode_toggle_id"] = "different_toggle"
+                break
+        self.assertTrue(
+            any(
+                ":mode_toggle_id:coverage inline_mode_toggle_id must match" in error
+                for error in self.failures(coverage=coverage)
+            )
+        )
+
 
 # ---------------------------------------------------------------------------
 # Synthetic fixtures for the parameterized branches.  Only the Calc and Start
@@ -1777,6 +1808,225 @@ class CertificateChooserRegisteredTest(unittest.TestCase):
         )
         self.assertTrue(
             any("matcher-member" in e for e in self.failures(contents=contents))
+        )
+
+
+class MaterialSearchPillTest(unittest.TestCase):
+    """Fail-closed coverage for the rewritten Material search-pill ``ui_layout``.
+
+    The Start Center's ``start_search`` field no longer ships the stock
+    entry-fills-position-0 / builder-follows-at-position-1 layout: it declares a
+    ``ui_layout`` object describing the five-child pill (decorative glyph,
+    expanding entry, clear button, ``.*`` mode toggle, tune builder). These
+    mutations flip the real startcenter.ui and the declared layout and assert the
+    per-surface pill validation fails closed, while the stock invariant still
+    governs every other integration.
+    """
+
+    UI_FILE = "sfx2/uiconfig/ui/startcenter.ui"
+
+    def setUp(self) -> None:
+        self.registry, self.coverage, self.contents = VALIDATOR.load_repository(REPOSITORY)
+        self.entry = next(
+            item
+            for item in self.registry["integrations"]
+            if item.get("coverage_id") == "start-center.document-search"
+        )
+
+    def failures(self, *, registry=None, contents=None) -> list[str]:
+        return VALIDATOR.violations(
+            self.registry if registry is None else registry,
+            self.coverage,
+            self.contents if contents is None else contents,
+        )
+
+    # -- Baseline ------------------------------------------------------------
+
+    def test_start_center_declares_the_material_pill_and_is_clean(self) -> None:
+        layout = self.entry.get("ui_layout")
+        self.assertIsInstance(layout, dict)
+        self.assertEqual(layout.get("kind"), "material-search-pill")
+        self.assertEqual(
+            [child["id"] for child in layout["children"]],
+            [
+                "start_search_icon",
+                "start_search",
+                "start_search_clear",
+                "start_search_regex_mode",
+                "start_search_regex_builder",
+            ],
+        )
+        self.assertEqual([], self.failures())
+
+    def test_stock_integration_keeps_the_stock_layout(self) -> None:
+        # The Calc field (integrations[0]) declares no ui_layout and is still
+        # governed by the stock entry/builder invariant.
+        calc = next(
+            item
+            for item in self.registry["integrations"]
+            if item.get("coverage_id") == "calc.go-to-sheet"
+        )
+        self.assertNotIn("ui_layout", calc)
+
+    # -- Content drift against the real startcenter.ui -----------------------
+
+    def test_mode_toggle_must_keep_the_regex_dot_star_label(self) -> None:
+        contents = dict(self.contents)
+        contents[self.UI_FILE] = contents[self.UI_FILE].replace(
+            '<property name="label">.*</property>',
+            '<property name="label">re</property>',
+            1,
+        )
+        self.assertTrue(
+            any("regex-mode toggle must be labelled" in e for e in self.failures(contents=contents))
+        )
+
+    def test_builder_must_carry_the_tune_icon(self) -> None:
+        contents = dict(self.contents)
+        contents[self.UI_FILE] = contents[self.UI_FILE].replace(
+            "sfx2/res/startcenter/tune.png",
+            "sfx2/res/startcenter/settings.png",
+            1,
+        )
+        self.assertTrue(
+            any("tune advanced-search icon" in e for e in self.failures(contents=contents))
+        )
+
+    def test_mode_toggle_must_be_a_toggle_button(self) -> None:
+        contents = dict(self.contents)
+        contents[self.UI_FILE] = contents[self.UI_FILE].replace(
+            '<object class="GtkToggleButton" id="start_search_regex_mode">',
+            '<object class="GtkButton" id="start_search_regex_mode">',
+            1,
+        )
+        self.assertTrue(
+            any(":ui-pill:" in e and "start_search_regex_mode" in e
+                for e in self.failures(contents=contents))
+        )
+
+    def test_builder_accessible_name_is_required(self) -> None:
+        contents = dict(self.contents)
+        contents[self.UI_FILE] = contents[self.UI_FILE].replace(
+            'name="AtkObject::accessible-name" translatable="yes" '
+            'context="startcenter|start_search_regex_builder-atkobject"',
+            'name="AtkObject::removed-name" translatable="yes" '
+            'context="startcenter|start_search_regex_builder-atkobject"',
+            1,
+        )
+        self.assertTrue(
+            any(
+                e.endswith(":ui-accessibility:AtkObject::accessible-name missing")
+                for e in self.failures(contents=contents)
+            )
+        )
+
+    def test_pill_container_must_stay_a_horizontal_spacing_six_box(self) -> None:
+        contents = dict(self.contents)
+        contents[self.UI_FILE] = contents[self.UI_FILE].replace(
+            '<property name="orientation">horizontal</property>',
+            '<property name="orientation">vertical</property>',
+            1,
+        )
+        self.assertTrue(
+            any("horizontal GtkBox with spacing 6" in e for e in self.failures(contents=contents))
+        )
+
+    # -- Declared-layout drift in the registry -------------------------------
+
+    def test_child_order_drift_fails_closed(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        target = next(
+            item
+            for item in registry["integrations"]
+            if item.get("coverage_id") == "start-center.document-search"
+        )
+        children = target["ui_layout"]["children"]
+        children[3], children[4] = children[4], children[3]
+        self.assertTrue(
+            any("child order" in e and "does not match declared" in e
+                for e in self.failures(registry=registry))
+        )
+
+    def test_unsupported_ui_layout_kind_fails_closed(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        target = next(
+            item
+            for item in registry["integrations"]
+            if item.get("coverage_id") == "start-center.document-search"
+        )
+        target["ui_layout"]["kind"] = "not-a-real-layout"
+        self.assertTrue(
+            any(":ui_layout:unsupported kind" in e for e in self.failures(registry=registry))
+        )
+
+    def test_ui_layout_must_be_an_object(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        target = next(
+            item
+            for item in registry["integrations"]
+            if item.get("coverage_id") == "start-center.document-search"
+        )
+        target["ui_layout"] = "material-search-pill"
+        self.assertTrue(
+            any(":ui_layout:object required" in e for e in self.failures(registry=registry))
+        )
+
+    def test_declared_child_class_mismatch_fails_closed(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        target = next(
+            item
+            for item in registry["integrations"]
+            if item.get("coverage_id") == "start-center.document-search"
+        )
+        for child in target["ui_layout"]["children"]:
+            if child["id"] == "start_search_regex_mode":
+                child["class"] = "GtkButton"
+                break
+        self.assertTrue(
+            any("must be class GtkButton" in e for e in self.failures(registry=registry))
+        )
+
+    def test_missing_mode_toggle_role_fails_closed(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        target = next(
+            item
+            for item in registry["integrations"]
+            if item.get("coverage_id") == "start-center.document-search"
+        )
+        target["ui_layout"]["children"] = [
+            child
+            for child in target["ui_layout"]["children"]
+            if child["id"] != "start_search_regex_mode"
+        ]
+        self.assertTrue(
+            any("missing required role mode-toggle" in e for e in self.failures(registry=registry))
+        )
+
+    def test_declared_container_id_must_match(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        target = next(
+            item
+            for item in registry["integrations"]
+            if item.get("coverage_id") == "start-center.document-search"
+        )
+        target["ui_layout"]["container_id"] = "not_the_pill_box"
+        self.assertTrue(
+            any("does not match declared" in e for e in self.failures(registry=registry))
+        )
+
+    def test_declared_child_must_be_a_real_sibling(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        target = next(
+            item
+            for item in registry["integrations"]
+            if item.get("coverage_id") == "start-center.document-search"
+        )
+        for child in target["ui_layout"]["children"]:
+            if child["id"] == "start_search_icon":
+                child["id"] = "start_search_ghost"
+                break
+        self.assertTrue(
+            any("is not a direct sibling" in e for e in self.failures(registry=registry))
         )
 
 

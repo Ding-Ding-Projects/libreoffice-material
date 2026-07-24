@@ -2255,6 +2255,11 @@ sfx2/res/plus.png res/plus.png
 sfx2/res/search.png cmd/sc_recsearch.png
 sfx2/res/select.png cmd/sc_ok.png
 sfx2/res/sortascending.png cmd/lc_sortascending.png
+sfx2/res/startcenter/cloud.png cmd/lc_openremote.png
+sfx2/res/startcenter/folder_open.png cmd/lc_open.png
+sfx2/res/startcenter/more_vert.png cmd/sc_configuredialog.png
+sfx2/res/startcenter/search.png cmd/sc_recsearch.png
+sfx2/res/startcenter/tune.png cmd/sc_recsearch.png
 sfx2/res/styfam1.png cmd/sc_charfontname.png
 sfx2/res/styfam2.png cmd/sc_controlcodes.png
 sfx2/res/styfam3.png cmd/sc_linestyle.png

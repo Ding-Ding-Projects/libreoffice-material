@@ -194,11 +194,54 @@ void lcl_paintCard(vcl::RenderContext& rDev, const tools::Rectangle& rArea,
         rDev.DrawRect(aRing, nFocusRadius, nFocusRadius);
     }
 }
+
+// First-run invitation (docs/design/09-start-center.md 9.5 "No recent documents
+// (first run)"): a centred @on-surface title + @on-surface-variant body inviting
+// the user to create or open a document. This deliberately replaces the legacy
+// Welcome bitmap on the Material path -- the Create list on the left stays the
+// primary affordance, so this is text guidance, not a logo. The whole title+body
+// block is vertically centred in the grid area.
+void lcl_paintInvitation(vcl::RenderContext& rDev, const Size& rOutputSize,
+                         const OUString& rTitle, const OUString& rBody,
+                         const vcl::MaterialTokens& rTokens)
+{
+    const Color aTitleColor = lcl_color(rTokens, "on-surface", COL_BLACK);
+    const Color aBodyColor = lcl_color(rTokens, "on-surface-variant", COL_GRAY);
+
+    const tools::Long nSide = SC_CARD_EMPTY_PADDING;
+    const tools::Long nTextWidth = rOutputSize.Width() - 2 * nSide;
+    if (nTextWidth <= 0)
+        return;
+
+    // Measure the (word-wrapped) body first so the title+body block can be
+    // vertically centred as a unit.
+    lcl_setFont(rDev, SC_CARD_INVITE_TITLE_TEXT, WEIGHT_MEDIUM, aTitleColor);
+    const tools::Long nTitleH = rDev.GetTextHeight();
+    lcl_setFont(rDev, SC_CARD_INVITE_BODY_TEXT, WEIGHT_NORMAL, aBodyColor);
+    const tools::Rectangle aBodyMeasure = rDev.GetTextRect(
+        tools::Rectangle(0, 0, nTextWidth, rOutputSize.Height()), rBody,
+        DrawTextFlags::MultiLine | DrawTextFlags::WordBreak | DrawTextFlags::Center);
+    const tools::Long nBodyH = aBodyMeasure.GetHeight();
+
+    const tools::Long nBlockH = nTitleH + SC_CARD_INVITE_GAP + nBodyH;
+    tools::Long nTop = (rOutputSize.Height() - nBlockH) / 2;
+    if (nTop < nSide)
+        nTop = nSide;
+
+    lcl_setFont(rDev, SC_CARD_INVITE_TITLE_TEXT, WEIGHT_MEDIUM, aTitleColor);
+    rDev.DrawText(tools::Rectangle(nSide, nTop, nSide + nTextWidth, nTop + nTitleH), rTitle,
+                  DrawTextFlags::Center | DrawTextFlags::EndEllipsis);
+
+    const tools::Long nBodyTop = nTop + nTitleH + SC_CARD_INVITE_GAP;
+    lcl_setFont(rDev, SC_CARD_INVITE_BODY_TEXT, WEIGHT_NORMAL, aBodyColor);
+    rDev.DrawText(tools::Rectangle(nSide, nBodyTop, nSide + nTextWidth, nBodyTop + nBodyH), rBody,
+                  DrawTextFlags::Center | DrawTextFlags::MultiLine | DrawTextFlags::WordBreak);
+}
 } // namespace
 
 bool MaterialStartCenterCards::Paint(vcl::RenderContext& rRenderContext, ThumbnailView& rView,
                                      const std::vector<ThumbnailViewItem*>& rItems,
-                                     const OUString& rEmptyMessage)
+                                     const MaterialStartCenterEmptyState& rEmptyState)
 {
     if (!IsMaterialStartCenterActive())
         return false;
@@ -230,15 +273,30 @@ bool MaterialStartCenterCards::Paint(vcl::RenderContext& rRenderContext, Thumbna
     rRenderContext.SetFillColor(aSurface);
     rRenderContext.DrawRect(tools::Rectangle(Point(), aOutputSize));
 
-    // Empty / filtered grid: one full-width centred @on-surface-variant message.
+    // Empty grid: two distinct states per 09-start-center 9.5.
     if (rItems.empty())
     {
+        if (!rEmptyState.bFiltered)
+        {
+            // Genuinely empty (first run / nothing to show, no live filter). The
+            // recent grid draws the first-run "create or open a document"
+            // invitation; a view with no invitation (the template grid) leaves the
+            // @surface background blank rather than a filter-implying "no match"
+            // line, preserving the old first-run-stays-quiet guarantee.
+            if (!rEmptyState.aInviteTitle.isEmpty())
+                lcl_paintInvitation(rRenderContext, aOutputSize, rEmptyState.aInviteTitle,
+                                    rEmptyState.aInviteBody, aTokens);
+            return true;
+        }
+
+        // Filtered-empty: a live search hid every card -> one full-width centred
+        // @on-surface-variant "no match" message.
         lcl_setFont(rRenderContext, SC_CARD_EMPTY_TEXT, WEIGHT_NORMAL,
                     lcl_color(aTokens, "on-surface-variant", COL_GRAY));
         const tools::Rectangle aMessageArea(
             SC_CARD_EMPTY_PADDING, SC_CARD_EMPTY_PADDING, aOutputSize.Width() - SC_CARD_EMPTY_PADDING,
             aOutputSize.Height() - SC_CARD_EMPTY_PADDING);
-        rRenderContext.DrawText(aMessageArea, rEmptyMessage,
+        rRenderContext.DrawText(aMessageArea, rEmptyState.aFilteredMessage,
                                 DrawTextFlags::Center | DrawTextFlags::MultiLine
                                     | DrawTextFlags::WordBreak);
         return true;

@@ -28,6 +28,7 @@ public:
     virtual void KeyInput( const KeyEvent& rKEvt ) override;
     virtual void Command( const CommandEvent& rCEvt ) override;
     virtual bool EventNotify( NotifyEvent& rNEvt ) override;
+    virtual void Paint( vcl::RenderContext& rRenderContext, const tools::Rectangle& rRect ) override;
     virtual void StateChanged(StateChangedType nStateChange) override;
     virtual Size calculateRequisition() const override;
 

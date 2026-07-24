@@ -339,6 +339,65 @@ REQUIRED = (
         "sfx2/qa/cppunit/regexsearch.cxx",
         "testPathologicalLivePreviewStopsAtBudget",
     ),
+    # -- Stage 1 inline mode toggle + caret-aware insertion + Test highlight ----
+    # The inline `.*` mode toggle flips the search mode without opening the
+    # builder popover; SetMode() is the programmatic entry point ToggleMode()
+    # delegates to. Both stay purely in memory this stage (persistence is later).
+    Rule(
+        "mode-toggle-method",
+        "include/sfx2/RegexSearchController.hxx",
+        "void ToggleMode();",
+    ),
+    Rule(
+        "mode-set-method",
+        "include/sfx2/RegexSearchController.hxx",
+        "void SetMode(RegexSearchMode eMode);",
+    ),
+    Rule(
+        "mode-toggle-impl",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "void RegexSearchController::ToggleMode()",
+    ),
+    Rule(
+        "mode-set-impl",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "void RegexSearchController::SetMode(RegexSearchMode eMode)",
+    ),
+    Rule(
+        "mode-set-noop-guard",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "if (m_aState.Mode == eMode)",
+    ),
+    # Token insertion carries a caret-back column so a delimiter token lands the
+    # caret inside the opening delimiter after replace_selection().
+    Rule(
+        "insert-token-caret-back-column",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "sal_Int32 CaretBack;",
+    ),
+    Rule(
+        "insert-caret-back-select-region",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "select_region(nCaret - aFound->CaretBack, nCaret - aFound->CaretBack)",
+    ),
+    # The Test tab marks the current match by consuming the already
+    # PreviewMaxMatches-bounded EvaluatePreview result, advancing past empty
+    # matches; it never re-scans the sample with an unbounded loop.
+    Rule(
+        "test-highlight-bounded-consume",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "for (const RegexMatch& rMatch : rEvaluation.Matches)",
+    ),
+    Rule(
+        "test-highlight-empty-advance",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "if (rMatch.End <= rMatch.Start)",
+    ),
+    Rule(
+        "test-highlight-select-region",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "m_xTestText->select_region(rMatch.Start, rMatch.End)",
+    ),
 )
 
 FORBIDDEN = (
@@ -389,6 +448,13 @@ FORBIDDEN = (
         "no-combobox-entry-reinterpretation",
         "sfx2/source/dialog/RegexSearchController.cxx",
         "reinterpret_cast<weld::Entry",
+    ),
+    # The Test highlight must consume the bounded EvaluatePreview match set, never
+    # spin its own unbounded scan over the sample text.
+    Rule(
+        "no-unbounded-highlight-loop",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "while (true)",
     ),
 )
 
@@ -542,6 +608,40 @@ def violations(contents: Mapping[str, str]) -> list[str]:
             failures.append(
                 f"single-notify-{route_id}:{SOURCE_PATH}:user route must notify exactly once"
             )
+
+    # SetMode() mutates only RegexSearchState::Mode, re-validates, and notifies
+    # exactly once; it must not rewrite the search text, touch the flags, or open
+    # or close the builder popover. ToggleMode() flips the mode through SetMode().
+    set_mode_body = function_body(
+        source_text, "void RegexSearchController::SetMode(RegexSearchMode eMode)"
+    )
+    if (
+        set_mode_body is None
+        or "m_aState.Mode = eMode;" not in set_mode_body
+        or set_mode_body.count("UpdateSearchValidity();") != 1
+        or set_mode_body.count("NotifyStateChanged();") != 1
+        or "SetSearchText" in set_mode_body
+        or "Flags" in set_mode_body
+        or "m_bBuilderPopoverOpen" in set_mode_body
+        or "ShowBuilder" in set_mode_body
+    ):
+        failures.append(
+            f"set-mode-contract:{SOURCE_PATH}:SetMode must mutate only Mode and notify once "
+            "without touching the search text, flags, or the builder popover"
+        )
+
+    toggle_mode_body = function_body(
+        source_text, "void RegexSearchController::ToggleMode()"
+    )
+    if (
+        toggle_mode_body is None
+        or "SetMode(" not in toggle_mode_body
+        or "RegexSearchMode::Literal" not in toggle_mode_body
+        or "RegexSearchMode::RegularExpression" not in toggle_mode_body
+    ):
+        failures.append(
+            f"toggle-mode-contract:{SOURCE_PATH}:ToggleMode must flip the mode through SetMode"
+        )
 
     ui_text = contents.get(UI_PATH)
     if ui_text is not None:

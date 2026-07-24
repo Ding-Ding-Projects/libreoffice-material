@@ -200,43 +200,91 @@ class StartCenterCardContractTest(unittest.TestCase):
             any("token drift" in e and "disabled-container" in e for e in errors), errors
         )
 
-    # -- pinned first-run fallback (design 9.5) ----------------------------
-    def test_recent_first_run_gate_removed_fails(self) -> None:
-        # Drop the non-empty guard so a blank first-run recent list would take the
-        # Material path and show the filter-implying "no match" copy instead of the
-        # Welcome screen; the pinned marker must trip.
+    # -- migrated first-run pins (design 9.5) ------------------------------
+    def test_recent_gate_reintroduced_fails(self) -> None:
+        # The pre-rewrite gate is REMOVED; the Material path now owns the first-run
+        # render via the invitation. Re-adding the gate to the Paint guard must trip
+        # the pinned-absent marker so the regression can't slip back.
         source = self.contents[RECENT].replace(
-            "IsMaterialStartCenterActive() && !mItemList.empty()",
-            "IsMaterialStartCenterActive()",
+            "IsMaterialStartCenterActive())\n    {",
+            "IsMaterialStartCenterActive() && !mItemList.empty())\n    {",
             1,
         )
+        self.assertNotEqual(source, self.contents[RECENT], "mutation did not apply")
         errors = self.failures(contents=self.with_content(RECENT, source))
         self.assertTrue(
-            any("view[recentdocs.card-grid]:pinned first-run fallback marker missing" in e
+            any("view[recentdocs.card-grid]:removed gate marker still present" in e
                 for e in errors),
             errors,
         )
 
-    def test_recent_welcome_line_removed_fails(self) -> None:
-        # Remove the Welcome-screen string the first-run fallback draws; the pin
-        # must catch the fallback being hollowed out.
+    def test_recent_welcome_removed_from_stock_fails(self) -> None:
+        # The Welcome bitmap survives only on the stock path; deleting it there
+        # would leave the default theme without a first-run screen. The stock pin
+        # must trip.
         source = self.contents[RECENT].replace("STR_WELCOME_LINE1", "STR_WELCOME_RENAMED")
         errors = self.failures(contents=self.with_content(RECENT, source))
         self.assertTrue(
-            any("pinned first-run fallback marker missing" in e and "STR_WELCOME_LINE1" in e
+            any("stock fallback marker missing" in e and "STR_WELCOME_LINE1" in e
                 for e in errors),
             errors,
         )
 
-    def test_template_first_run_gate_removed_fails(self) -> None:
-        source = self.contents[TEMPLATE].replace(
-            "IsMaterialStartCenterActive() && !mItemList.empty()",
-            "IsMaterialStartCenterActive()",
+    def test_recent_welcome_inside_guard_fails(self) -> None:
+        # The Welcome bitmap is REQUIRED-ABSENT from the Material guard block. Leak a
+        # Welcome marker into the guard and the guard-absent pin must trip.
+        source = self.contents[RECENT].replace(
+            "aVisibleItems.reserve(mItemList.size());",
+            "aVisibleItems.reserve(mItemList.size()); (void)STR_WELCOME_LINE1;",
             1,
         )
+        self.assertNotEqual(source, self.contents[RECENT], "mutation did not apply")
+        errors = self.failures(contents=self.with_content(RECENT, source))
+        self.assertTrue(
+            any("stock-only marker present inside Material block" in e and "STR_WELCOME_LINE1" in e
+                for e in errors),
+            errors,
+        )
+
+    def test_recent_invitation_reference_removed_fails(self) -> None:
+        # Drop the first-run invitation title from the guarded empty state; both the
+        # whole-file marker and the guard-present pin must trip.
+        source = self.contents[RECENT].replace("SfxResId(STR_SC_INVITE_TITLE)", "OUString()", 1)
+        errors = self.failures(contents=self.with_content(RECENT, source))
+        self.assertTrue(
+            any("STR_SC_INVITE_TITLE" in e for e in errors), errors
+        )
+
+    def test_renderer_invitation_helper_removed_fails(self) -> None:
+        # Comment-strip-proof: rename the invitation painter; the first-run-invitation
+        # anatomy marker must vanish.
+        source = self.contents[RENDERER].replace("lcl_paintInvitation", "lcl_disabled")
+        errors = self.failures(contents=self.with_content(RENDERER, source))
+        self.assertTrue(
+            any("anatomy:first-run-invitation:marker missing" in e and "lcl_paintInvitation" in e
+                for e in errors),
+            errors,
+        )
+
+    def test_invite_geometry_drift_fails(self) -> None:
+        header = self.contents[HEADER].replace(
+            "SC_CARD_INVITE_TITLE_TEXT = 18", "SC_CARD_INVITE_TITLE_TEXT = 16", 1
+        )
+        errors = self.failures(contents=self.with_content(HEADER, header))
+        self.assertTrue(
+            any("geometry constant SC_CARD_INVITE_TITLE_TEXT" in e for e in errors), errors
+        )
+
+    def test_template_gate_reintroduced_fails(self) -> None:
+        source = self.contents[TEMPLATE].replace(
+            "IsMaterialStartCenterActive())\n    {",
+            "IsMaterialStartCenterActive() && !mItemList.empty())\n    {",
+            1,
+        )
+        self.assertNotEqual(source, self.contents[TEMPLATE], "mutation did not apply")
         errors = self.failures(contents=self.with_content(TEMPLATE, source))
         self.assertTrue(
-            any("view[templatedefault.card-grid]:pinned first-run fallback marker missing" in e
+            any("view[templatedefault.card-grid]:removed gate marker still present" in e
                 for e in errors),
             errors,
         )

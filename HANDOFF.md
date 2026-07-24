@@ -1,5 +1,18 @@
 # Windows-only handoff — 2026-07-21
 
+> **2026-07-24 evidence update:** the entire `docs/screenshots/genuine/`
+> gallery (22 images) was re-captured from the shipped
+> `windows-msi-95-1-317f016605` release payload — four Start Center harness
+> runs (new `20260724-*` evidence-run candidates, schema-v2 validated) plus
+> direct-MCP captures of all six applications (light+dark) and six shared
+> dialogs. Registered runtime regressions against the canonical
+> `Libre Office.zip` design (operator directive: the zip is the 100% target,
+> no stock chrome): Start Center nav pills render unlabeled with an empty
+> CREATE section and Help-only footer, Templates background navigation no
+> longer lands (gallery Templates image removed), Find & Replace action
+> buttons and Base wizard nav pills are unlabeled. Fix tasks were spawned.
+> See `docs/SCREENSHOTS.md` and `docs/screenshots/genuine/PROVENANCE.json`.
+
 This handoff supersedes the 2026-07-20 handoff. It was produced on a different
 host (`Administrator` Windows 11 machine) than the previous `cntow` build host;
 no local build root exists here, so every change below is source-implemented

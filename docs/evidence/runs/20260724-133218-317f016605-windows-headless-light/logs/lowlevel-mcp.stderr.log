@@ -1,0 +1,73 @@
+INFO:     Started server process [6512]
+INFO:     Waiting for application startup.
+StreamableHTTP session manager started
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:61384 (Press CTRL+C to quit)
+Created new transport with session ID: 7672a423f2734cdfa7f1b63bfb2d314e
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: 7672a423f2734cdfa7f1b63bfb2d314e
+Created new transport with session ID: 481363554a1e420b836036ef0f4a584f
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: 481363554a1e420b836036ef0f4a584f
+Created new transport with session ID: 33f9ba0e55954da099c290e3348f0d15
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: 33f9ba0e55954da099c290e3348f0d15
+Created new transport with session ID: 2d0ed371998a4eb4928c6f83c36eab95
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: 2d0ed371998a4eb4928c6f83c36eab95
+Created new transport with session ID: 2114a10c245a4915b2aa6165e0241aaf
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: 2114a10c245a4915b2aa6165e0241aaf
+Created new transport with session ID: b1052ff1914e460ea6f8af4df77905b5
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: b1052ff1914e460ea6f8af4df77905b5
+Created new transport with session ID: a32eb81128c24c9e87af19f5a0862332
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: a32eb81128c24c9e87af19f5a0862332
+Created new transport with session ID: 43e0e05b94384875a4a7475b3a6ed728
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: 43e0e05b94384875a4a7475b3a6ed728
+Created new transport with session ID: b395ac239b9241389a9cb7f26b173715
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: b395ac239b9241389a9cb7f26b173715
+Created new transport with session ID: fdc9439ddccf444294e11380c4536a48
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: fdc9439ddccf444294e11380c4536a48
+Created new transport with session ID: 88081bd780d14cecbad8c416b6c066d6
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: 88081bd780d14cecbad8c416b6c066d6
+Created new transport with session ID: 5b58f8918b494f1f80bd44faa571903e
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: 5b58f8918b494f1f80bd44faa571903e
+Created new transport with session ID: 31a310b7d80744e0bda0629d992d2d74
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: 31a310b7d80744e0bda0629d992d2d74
+Created new transport with session ID: 8266b25c423847a3b093e6a20d22872c
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: 8266b25c423847a3b093e6a20d22872c
+Created new transport with session ID: 338183ea500449af8ef49da97ac6fedb
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: 338183ea500449af8ef49da97ac6fedb
+Created new transport with session ID: 428daf21a5c54da699440f91aa059139
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: 428daf21a5c54da699440f91aa059139
+Created new transport with session ID: cbb5c8611104453098bac7a3bf758472
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+Terminating session: cbb5c8611104453098bac7a3bf758472

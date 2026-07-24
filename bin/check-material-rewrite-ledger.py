@@ -21,8 +21,10 @@ the two files are structurally impossible to diverge undetected. Each surface is
 classified into one of nine families (dialog, message-dialog, options-page,
 panel-fragment, menu, popover, sidebar-panel, wizard-assistant, native-shell)
 whose acceptance predicate ("is this surface rewritten to Material?") is either
-static (parsed from the ``.ui`` XML) or a cross-reference to the composition
-contract that owns the surface.
+static (parsed from the ``.ui`` XML: dialog/message/surface-body/popover) or a
+cross-reference to the composition contract that owns the surface (menu,
+sidebar-panel, native-shell -- families the theme renders, so their ``.ui``
+carries no static Material fingerprint and static --evaluate never credits them).
 
 Field ownership split (the invariant that lets ``--regenerate`` re-sync
 structure without touching campaign progress):
@@ -32,11 +34,20 @@ structure without touching campaign progress):
 * ``rewrite_status`` / ``rewrite_evidence`` -- the ONLY campaign-mutable state a
   wave edits; preserved verbatim across regeneration.
 
-``--regenerate`` rewrites the row set (structure only, statuses preserved); the
-default mode validates and prints the headline coverage number. Validation runs
-seven fail-closed checks: C1 closure parity + digest, C2 attribution parity,
-C3 no status regression (baseline = the committed file), C4 anatomy-marker
-persistence, C5 evidence completeness, C6 classifier parity, C7 coverage parity.
+``--regenerate`` rewrites the row set (structure only, statuses preserved).
+``--evaluate`` goes further: it STATICALLY PARSES every static-family surface's
+``.ui`` via ElementTree and recomputes its status, crediting
+``rewritten-material`` only where the surface satisfies its FULL family predicate
+(the dialog/message/surface-body/popover markers), and leaving it ``pending``
+otherwise -- conservative, no partial credit. Composition families (menu,
+sidebar-panel, native-shell) keep their contract-cross-reference status
+untouched. The credit is earned and reproducible: re-running ``--evaluate`` from
+a clean checkout re-derives the same markers and the same pass/fail from the
+tree. The default mode validates and prints the headline coverage number.
+Validation runs seven fail-closed checks: C1 closure parity + digest, C2
+attribution parity, C3 no status regression (baseline = the committed file), C4
+anatomy-marker persistence, C5 evidence completeness, C6 classifier parity, C7
+coverage parity.
 
 This is source-level evidence only: ``runtime_verified`` is false everywhere and
 no native build, dialog pixel, or runtime interaction is claimed.
@@ -80,6 +91,13 @@ REWRITTEN = "rewritten-material"
 STATUS_VALUES = (PENDING, IN_PROGRESS, REWRITTEN)
 STATUS_ORDINAL = {PENDING: 0, IN_PROGRESS: 1, REWRITTEN: 2}
 
+# Capture batch stamped on a surface credited PURELY by static .ui evaluation
+# (``--evaluate``). No runtime pixel capture is claimed for these -- honesty bar
+# consistent with the source_note ("no dialog pixel ... is claimed"). The
+# ``captured`` flag is therefore false and ``scene`` is null; the batch name is
+# the sole non-empty capture field, which is what the C5 evidence shape needs.
+STATIC_EVAL_BATCH = "static-anatomy-evaluation"
+
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
 # --- GTK response codes (mirrors bin/check-material-dialog-anatomy.py) ------
@@ -122,6 +140,7 @@ ALL_FAMILIES = (
 
 RC_DIALOG_ANATOMY = "dialog-anatomy"
 RC_SURFACE_BODY = "surface-body"
+RC_POPOVER_ANATOMY = "popover-anatomy"
 RC_MENU_COMPOSITION = "menu-composition"
 RC_PANEL_COMPOSITION = "panel-composition"
 RC_SHELL_COMPOSITION = "shell-composition"
@@ -176,16 +195,34 @@ FAMILY_DEFS: Mapping[str, dict[str, Any]] = {
         ],
     },
     FAMILY_MENU: {
+        # Menus carry no static Material fingerprint the rewrite introduces: the
+        # theme owns their rendering (radius, elevation, item padding), and the
+        # only .ui edits the rewrite makes are structural (separators / item
+        # order). A byte-identical-to-stock menu must NOT be auto-credited on
+        # pre-existing .uno: action-names, so the family is a COMPOSITION-style
+        # family routed to the menu-composition contract exactly like
+        # sidebar-panel -- static --evaluate never credits it (0 via static
+        # parse); a genuine credit rides the contract cross-reference.
         "rewrite_class": RC_MENU_COMPOSITION,
-        "evidence_kind": STATIC_UI,
+        "evidence_kind": COMPOSITION_CODE,
         "design_ref": "docs/design/05-navigation.md",
-        "required_markers": ["material-menu-hooks", "no-legacy-use-stock"],
+        "required_markers": ["composition-contract-marker"],
     },
     FAMILY_POPOVER: {
-        "rewrite_class": RC_MENU_COMPOSITION,
+        # A popover is rewritten-material ONLY when it statically shows real
+        # Material container anatomy (the content container declares spacing AND
+        # margins) AND has dropped the legacy chrome (no border-width override
+        # anywhere -- that override is exactly the stock padding the rewrite
+        # removes so the theme owns the radius). A decorative icon-name earns
+        # nothing on its own.
+        "rewrite_class": RC_POPOVER_ANATOMY,
         "evidence_kind": STATIC_UI,
         "design_ref": "docs/design/05-navigation.md",
-        "required_markers": ["material-menu-hooks", "no-legacy-use-stock"],
+        "required_markers": [
+            "material-container-spacing",
+            "material-container-margins",
+            "no-legacy-border-width",
+        ],
     },
     FAMILY_SIDEBAR: {
         "rewrite_class": RC_PANEL_COMPOSITION,
@@ -557,25 +594,75 @@ def derive_surface_body_markers(root: ET.Element) -> dict[str, Any]:
     }
 
 
-def derive_menu_markers(root: ET.Element) -> dict[str, Any]:
-    legacy_use_stock = False
-    material_hooks = False
-    item_count = 0
+def _find_popover_object(root: ET.Element) -> ET.Element | None:
+    """Return the popover toplevel (or the first nested GtkPopover)."""
+
+    for obj in _toplevel_objects(root):
+        if obj.get("class") == "GtkPopover":
+            return obj
     for obj in root.iter():
-        if _tag(obj.tag) != "object":
+        if _tag(obj.tag) == "object" and obj.get("class") == "GtkPopover":
+            return obj
+    return None
+
+
+def _first_child_object(obj: ET.Element) -> ET.Element | None:
+    """Return the first ``<child><object>`` under ``obj`` (its content container)."""
+
+    for child in obj:
+        if _tag(child.tag) != "child":
             continue
-        cls = obj.get("class")
-        if cls in ("GtkMenuItem", "GtkImageMenuItem", "GtkModelButton"):
-            item_count += 1
-        props = _direct_properties(obj)
-        if _to_bool(props.get("use-stock", "")):
-            legacy_use_stock = True
-        if "action-name" in props or "icon-name" in props:
-            material_hooks = True
+        for grandchild in child:
+            if _tag(grandchild.tag) == "object":
+                return grandchild
+    return None
+
+
+def _has_legacy_border_anywhere(root: ET.Element) -> bool:
+    """True if any object declares a positive ``border-width`` override.
+
+    ``border-width`` is the stock GTK chrome the Material rewrite removes so the
+    theme owns the popover radius/padding; its presence anywhere in the file is
+    proof the surface still carries legacy chrome and is not yet Material.
+    """
+
+    for node in root.iter():
+        if _tag(node.tag) == "property" and node.get("name") == "border-width":
+            raw = (node.text or "").strip()
+            try:
+                if int(raw) > 0:
+                    return True
+            except ValueError:
+                # a non-integer border-width override is still legacy chrome
+                return True
+    return False
+
+
+def derive_popover_markers(root: ET.Element) -> dict[str, Any]:
+    """Derive the Material container-anatomy snapshot for a popover ``.ui``.
+
+    The rewrite gives a popover's content container explicit Material spacing and
+    margins and drops the legacy ``border-width`` override. A decorative
+    ``icon-name`` on a child is deliberately NOT a marker here -- it exists on
+    stock popovers untouched by the rewrite, so it can never earn credit alone.
+    """
+
+    popover = _find_popover_object(root)
+    container = _first_child_object(popover) if popover is not None else None
+    cprops = _direct_properties(container) if container is not None else {}
+    has_spacing = any(
+        key in cprops for key in ("spacing", "row-spacing", "column-spacing")
+    )
+    has_margin = any(
+        key in cprops
+        for key in ("margin-start", "margin-end", "margin-top", "margin-bottom", "margin")
+    )
     return {
-        "item_count": item_count,
-        "legacy_use_stock": legacy_use_stock,
-        "material_menu_hooks": material_hooks,
+        "popover_present": popover is not None,
+        "container_class": container.get("class") if container is not None else None,
+        "container_has_spacing": has_spacing,
+        "container_has_margin": has_margin,
+        "has_legacy_border": _has_legacy_border_anywhere(root),
     }
 
 
@@ -584,8 +671,10 @@ def derive_static_markers(family: str, root: ET.Element) -> dict[str, Any]:
         return derive_dialog_markers(root)
     if family in (FAMILY_OPTIONS, FAMILY_PANEL):
         return derive_surface_body_markers(root)
-    if family in (FAMILY_MENU, FAMILY_POPOVER):
-        return derive_menu_markers(root)
+    if family == FAMILY_POPOVER:
+        return derive_popover_markers(root)
+    # FAMILY_MENU is a composition-cross-referenced family (evidence_kind
+    # COMPOSITION_CODE) and is never statically derived here.
     raise ValidationError(f"family {family!r} has no static marker derivation")
 
 
@@ -691,11 +780,26 @@ def predicate_surface_body(markers: Mapping[str, Any]) -> tuple[bool, str]:
     return True, ""
 
 
-def predicate_menu(markers: Mapping[str, Any]) -> tuple[bool, str]:
-    if markers.get("legacy_use_stock"):
-        return False, "legacy use-stock present"
-    if not markers.get("material_menu_hooks"):
-        return False, "no Material menu hooks (action-name/icon-name)"
+def predicate_popover(markers: Mapping[str, Any]) -> tuple[bool, str]:
+    """Accept a popover only with Material container anatomy AND no legacy chrome.
+
+    Both prongs are required: a stock popover that keeps its ``border-width``
+    padding fails the second prong, and a popover whose content container has no
+    explicit spacing/margins fails the first. Neither a decorative ``icon-name``
+    nor a pre-existing ``.uno:`` action can substitute for either -- that was the
+    over-crediting hole (reusing ``predicate_menu``) this predicate closes.
+    """
+
+    if not markers.get("popover_present"):
+        return False, "no GtkPopover toplevel"
+    if markers.get("has_legacy_border"):
+        return False, "legacy border-width override present (stock chrome the rewrite removes)"
+    if markers.get("container_class") is None:
+        return False, "popover has no content container"
+    if not markers.get("container_has_spacing"):
+        return False, "content container declares no Material spacing"
+    if not markers.get("container_has_margin"):
+        return False, "content container declares no Material margins"
     return True, ""
 
 
@@ -708,8 +812,9 @@ def static_predicate(family: str, markers: Mapping[str, Any]) -> tuple[bool, str
         return predicate_wizard(markers)
     if family in (FAMILY_OPTIONS, FAMILY_PANEL):
         return predicate_surface_body(markers)
-    if family in (FAMILY_MENU, FAMILY_POPOVER):
-        return predicate_menu(markers)
+    if family == FAMILY_POPOVER:
+        return predicate_popover(markers)
+    # FAMILY_MENU rides the menu-composition contract, not a static predicate.
     return False, f"family {family!r} has no static predicate"
 
 
@@ -734,19 +839,128 @@ def _classify_surface(repo_root: Path, surface: str, cache: dict[str, ET.Element
     return classify(surface, root)
 
 
+def _head_commit(repo_root: Path) -> str | None:
+    """Return the 40-hex HEAD commit, or None when it cannot be resolved."""
+
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except OSError:
+        return None
+    if completed.returncode != 0:
+        return None
+    out = completed.stdout.decode("utf-8", errors="replace").strip()
+    return out if COMMIT_RE.match(out) else None
+
+
+def _static_capture() -> dict[str, Any]:
+    return {"scene": None, "sample_batch": STATIC_EVAL_BATCH, "captured": False}
+
+
+def build_static_evidence(
+    family: str, head_commit: str | None, markers: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Assemble the evidence block for a surface newly credited by --evaluate.
+
+    The ``contract`` field points at the family's design-spec section (the
+    anatomy the surface was statically evaluated against), the ``capture`` block
+    honestly records that no runtime pixel was taken, and ``anatomy_markers`` is
+    the freshly derived snapshot -- which C4 later re-derives and requires to
+    still match byte-for-byte.
+    """
+
+    if not (isinstance(head_commit, str) and COMMIT_RE.match(head_commit)):
+        raise ValidationError(
+            "--evaluate needs a 40-hex HEAD commit to stamp a new rewritten flip; "
+            "none could be resolved (run inside a Git checkout)"
+        )
+    return {
+        "commit": head_commit,
+        "contract": FAMILY_DEFS[family]["design_ref"],
+        "capture": _static_capture(),
+        "anatomy_markers": json.loads(json.dumps(markers)),
+    }
+
+
+def evaluate_surface_status(
+    repo_root: Path,
+    surface: str,
+    family: str,
+    cache: dict[str, ET.Element],
+    prior_status: str,
+    prior_evidence: Mapping[str, Any],
+    head_commit: str | None,
+) -> tuple[str, dict[str, Any]]:
+    """Recompute a surface's status from the LIVE .ui tree (``--evaluate``).
+
+    * Composition families (sidebar-panel, native-shell) keep the existing
+      contract-cross-reference path: their status/evidence is campaign-owned and
+      is never recomputed statically -- returned verbatim.
+    * Static families are credited ``rewritten-material`` iff ALL of the family
+      predicate's markers pass; otherwise the surface stays ``pending``. There is
+      no partial credit: a some-but-not-all surface is ``pending``.
+    * Fail-closed no-regression: a status already at or above the evaluated one
+      is never dropped. A surface that was ``rewritten-material`` but no longer
+      satisfies its predicate keeps that status here so the honest place to fail
+      is C4 anatomy persistence, not a silent downgrade.
+    * A still-passing surface that was already ``rewritten-material`` keeps its
+      richer prior evidence (e.g. a real pixel capture) verbatim rather than
+      being overwritten with the static-evaluation stub.
+    """
+
+    prior_evidence = json.loads(json.dumps(prior_evidence))
+    if evidence_kind_for(family) == COMPOSITION_CODE:
+        return prior_status, prior_evidence
+
+    root = cache.get(surface)
+    if root is None:
+        root = _parse_root(repo_root, surface)
+        cache[surface] = root
+    try:
+        markers = derive_static_markers(family, root)
+        passed, _why = static_predicate(family, markers)
+    except ValidationError:
+        passed = False
+        markers = None
+
+    if passed:
+        assert markers is not None
+        if prior_status == REWRITTEN and prior_evidence.get("commit"):
+            return REWRITTEN, prior_evidence
+        return REWRITTEN, build_static_evidence(family, head_commit, markers)
+
+    if STATUS_ORDINAL.get(prior_status, 0) > STATUS_ORDINAL[PENDING]:
+        return prior_status, prior_evidence
+    return PENDING, _null_evidence()
+
+
 def build_ledger(
     repo_root: Path,
     existing: Mapping[str, Any] | None,
     *,
     allow_status_loss: bool = False,
     rename_map: Mapping[str, str] | None = None,
+    evaluate: bool = False,
 ) -> dict[str, Any]:
-    """Enumerate fresh from the closure and (re)build the ledger deterministically."""
+    """Enumerate fresh from the closure and (re)build the ledger deterministically.
+
+    ``evaluate=False`` (plain --regenerate) re-syncs structure only and preserves
+    each surface's campaign ``rewrite_status``/``rewrite_evidence`` verbatim.
+    ``evaluate=True`` (--evaluate) additionally RECOMPUTES the status of every
+    static family from the live .ui tree via ``evaluate_surface_status`` --
+    crediting ``rewritten-material`` only where the full family predicate passes.
+    Composition families are never statically recomputed either way.
+    """
 
     repo_root = repo_root.resolve()
     registry, digest, attribution = fresh_closure(repo_root)
     rename_map = dict(rename_map or {})
     rename_target_of = {new: old for old, new in rename_map.items()}
+    head_commit = _head_commit(repo_root) if evaluate else None
 
     prior_rows: dict[str, Mapping[str, Any]] = {}
     if existing is not None:
@@ -782,15 +996,27 @@ def build_ledger(
         prior = prior_rows.get(surface)
         if prior is None and surface in rename_target_of:
             prior = prior_rows.get(rename_target_of[surface])
-        status = PENDING
-        evidence = _null_evidence()
+        prior_status = PENDING
+        prior_evidence: dict[str, Any] = _null_evidence()
         if prior is not None:
-            prior_status = prior.get("rewrite_status")
-            if prior_status in STATUS_VALUES:
-                status = prior_status
-            prior_evidence = prior.get("rewrite_evidence")
-            if isinstance(prior_evidence, Mapping):
-                evidence = json.loads(json.dumps(prior_evidence))
+            candidate = prior.get("rewrite_status")
+            if candidate in STATUS_VALUES:
+                prior_status = candidate
+            candidate_evidence = prior.get("rewrite_evidence")
+            if isinstance(candidate_evidence, Mapping):
+                prior_evidence = json.loads(json.dumps(candidate_evidence))
+        if evaluate:
+            status, evidence = evaluate_surface_status(
+                repo_root,
+                surface,
+                family,
+                cache,
+                prior_status,
+                prior_evidence,
+                head_commit,
+            )
+        else:
+            status, evidence = prior_status, prior_evidence
         surfaces.append(
             {
                 "surface": surface,
@@ -1330,6 +1556,15 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         help="rewrite the ledger row set (structure only; statuses preserved)",
     )
     parser.add_argument(
+        "--evaluate",
+        action="store_true",
+        help=(
+            "recompute static-family statuses from the live .ui tree and write "
+            "the ledger (credits rewritten-material only where the full family "
+            "predicate passes; composition families keep their contract path)"
+        ),
+    )
+    parser.add_argument(
         "--rename-map",
         action="append",
         default=[],
@@ -1365,13 +1600,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         else repo_root / "qa/windows-ui-contract/material-rewrite-ledger.json"
     )
     try:
-        if args.regenerate:
+        if args.regenerate or args.evaluate:
             existing = read_ledger(ledger_path) if ledger_path.is_file() else None
             ledger = build_ledger(
                 repo_root,
                 existing,
                 allow_status_loss=args.allow_status_loss,
                 rename_map=_parse_rename_map(args.rename_map),
+                evaluate=args.evaluate,
             )
             write_ledger(ledger_path, ledger)
         ledger = validate(repo_root, ledger_path)

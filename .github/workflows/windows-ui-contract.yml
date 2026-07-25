@@ -289,6 +289,12 @@ jobs:
       - name: Run Material appearance-options mutation regressions
         run: python3 bin/test_material_appearance_options.py
 
+      - name: Validate Material UI-scale contract
+        run: python3 bin/check-material-ui-scale.py
+
+      - name: Run Material UI-scale mutation regressions
+        run: python3 bin/test_material_ui_scale.py
+
       - name: Validate version-history seeded-state ledger
         run: python3 bin/check-version-history-seeded-state.py
 

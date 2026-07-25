@@ -2585,7 +2585,7 @@
       "rewrite_class": "surface-body",
       "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": "5053a127d612715cd50cd2413c72d51a3674d086",
+        "commit": "508740c16e7e94b71d1b515305d85fa951579a21",
         "contract": "docs/design/06-panels.md#6.7",
         "capture": {
           "scene": null,
@@ -2595,7 +2595,7 @@
         "anatomy_markers": {
           "content_grid_material": true,
           "ellipsize_count": 1,
-          "mnemonic_content_labels": 1,
+          "mnemonic_content_labels": 2,
           "has_own_action_widgets": false
         }
       }

@@ -129,9 +129,11 @@ SvxAppearanceTabPage::SvxAppearanceTabPage(weld::Container* pPage,
     , m_xDensityComfortable(m_xBuilder->weld_radio_button(u"densitycomfortable"_ustr))
     , m_xDensityCompact(m_xBuilder->weld_radio_button(u"densitycompact"_ustr))
     , m_xMaterialReducedMotion(m_xBuilder->weld_check_button(u"materialreducedmotion"_ustr))
+    , m_xMaterialUiScale(m_xBuilder->weld_spin_button(u"uiscalespin"_ustr))
     , nInitialMaterialAccent(0)
     , nInitialMaterialDensity(0)
     , bInitialMaterialReducedMotion(false)
+    , nInitialMaterialUiScale(100)
 {
     InitThemes();
     InitCustomization();
@@ -195,7 +197,8 @@ OUString SvxAppearanceTabPage::GetAllStrings()
     OUStringBuffer sAllStrings;
     OUString labels[] = { u"libreofficethemeslb"_ustr, u"optionslb"_ustr, u"appearancelb"_ustr,
                           u"itemslb"_ustr,            u"colorlb"_ustr,    u"materialthemelb"_ustr,
-                          u"materialaccentlabel"_ustr, u"materialdensitylabel"_ustr };
+                          u"materialaccentlabel"_ustr, u"materialdensitylabel"_ustr,
+                          u"materialuiscalelabel"_ustr };
 
     for (const auto& label : labels)
     {
@@ -642,6 +645,13 @@ void SvxAppearanceTabPage::ResetMaterial()
     m_xMaterialReducedMotion->set_sensitive(
         !officecfg::Office::Common::Appearance::MaterialReducedMotion::isReadOnly());
     m_xMaterialReducedMotion->save_state();
+
+    const sal_Int16 nUiScale = officecfg::Office::Common::Appearance::MaterialUiScale::get();
+    nInitialMaterialUiScale = nUiScale;
+    m_xMaterialUiScale->set_value(nUiScale);
+    m_xMaterialUiScale->set_sensitive(
+        !officecfg::Office::Common::Appearance::MaterialUiScale::isReadOnly());
+    m_xMaterialUiScale->save_value();
 }
 
 void SvxAppearanceTabPage::CommitMaterialAppearance()
@@ -675,6 +685,15 @@ void SvxAppearanceTabPage::CommitMaterialAppearance()
     {
         officecfg::Office::Common::Appearance::MaterialReducedMotion::set(bReduced, xChanges);
         bInitialMaterialReducedMotion = bReduced;
+        bChanged = true;
+    }
+
+    const sal_Int16 nUiScale = static_cast<sal_Int16>(m_xMaterialUiScale->get_value());
+    if (nUiScale != nInitialMaterialUiScale
+        && !officecfg::Office::Common::Appearance::MaterialUiScale::isReadOnly())
+    {
+        officecfg::Office::Common::Appearance::MaterialUiScale::set(nUiScale, xChanges);
+        nInitialMaterialUiScale = nUiScale;
         bChanged = true;
     }
 

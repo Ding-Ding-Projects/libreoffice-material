@@ -5101,6 +5101,29 @@
         </constraints>
         <value>0</value>
       </prop>
+      <prop oor:name="MaterialUiScale" oor:type="xs:short" oor:nillable="false">
+        <info>
+          <desc>Selects the overall Material UI scale as a percentage (100 =
+          native size). Restores the whole-UI scaling control upstream removed
+          (tdf#101646). Stored only in this stage: the scale factor is not yet
+          consumed by any metric, so the value is honest-inert until the UI-scale
+          metric mapping is wired.</desc>
+          <label>Material UI scale</label>
+        </info>
+        <constraints>
+          <minInclusive oor:value="50">
+            <info>
+              <desc>Smallest accepted UI scale (percent).</desc>
+            </info>
+          </minInclusive>
+          <maxInclusive oor:value="400">
+            <info>
+              <desc>Largest accepted UI scale (percent).</desc>
+            </info>
+          </maxInclusive>
+        </constraints>
+        <value>100</value>
+      </prop>
     </group>
     <group oor:name="DocumentTabs">
       <info>

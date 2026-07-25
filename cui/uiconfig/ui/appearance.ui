@@ -12,6 +12,13 @@
     <property name="can-focus">False</property>
     <property name="icon-name">cmd/sc_additionsdialog.png</property>
   </object>
+  <object class="GtkAdjustment" id="uiscaleadjustment">
+    <property name="lower">50</property>
+    <property name="upper">400</property>
+    <property name="value">100</property>
+    <property name="step-increment">25</property>
+    <property name="page-increment">25</property>
+  </object>
   <!-- n-columns=1 n-rows=4 -->
   <object class="GtkGrid" id="AppearanceTabPage">
     <property name="visible">True</property>
@@ -634,7 +641,7 @@
         <property name="label-xalign">0</property>
         <property name="shadow-type">none</property>
         <child>
-          <!-- n-columns=2 n-rows=3 -->
+          <!-- n-columns=2 n-rows=4 -->
           <object class="GtkGrid">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
@@ -770,6 +777,46 @@
                 <property name="left-attach">0</property>
                 <property name="top-attach">2</property>
                 <property name="width">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="materialuiscalelabel">
+                <property name="mnemonic-widget">uiscalespin</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">start</property>
+                <property name="label" translatable="yes" context="appearance|materialuiscalelabel">UI _scale:</property>
+                <property name="use-underline">True</property>
+                <property name="xalign">0</property>
+                <accessibility>
+                  <relation type="label-for" target="uiscalespin"/>
+                </accessibility>
+              </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSpinButton" id="uiscalespin">
+                <property name="width-request">100</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="halign">start</property>
+                <property name="adjustment">uiscaleadjustment</property>
+                <property name="numeric">True</property>
+                <accessibility>
+                  <relation type="labelled-by" target="materialuiscalelabel"/>
+                </accessibility>
+                <child internal-child="accessible">
+                  <object class="AtkObject" id="uiscalespin-atkobject">
+                    <property name="AtkObject::accessible-description" translatable="yes" context="appearance|extended_tip|uiscalespin">Set the overall Material UI scale as a percentage. Stored only in this stage; applied once the UI-scale metric is wired.</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="left-attach">1</property>
+                <property name="top-attach">3</property>
               </packing>
             </child>
           </object>

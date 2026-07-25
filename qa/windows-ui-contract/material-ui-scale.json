@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "contract": "material-ui-scale",
+  "platform": "windows",
+  "status": "source-declared",
+  "runtime_verified": false,
+  "stored_only": true,
+  "apply_stage": "restart",
+  "schema_source": "officecfg/registry/schema/org/openoffice/Office/Common.xcs",
+  "schema_group": "Appearance",
+  "ui_source": "cui/uiconfig/ui/appearance.ui",
+  "controller_source": "cui/source/options/appearance.cxx",
+  "controller_header": "cui/source/options/appearance.hxx",
+  "frame_id": "materialtheme",
+  "notes": "Restores the whole-UI scaling control upstream removed (tdf#101646, 38 CC / 8 duplicates) as a persisted percentage on Tools > Options > Appearance, mirroring the proven MaterialDensity control. This is a STORED-VALUE-ONLY control in this stage: the officecfg MaterialUiScale value is persisted and round-tripped through the cui page, but no metric consumes the scale factor yet, so it is honest-inert exactly like MaterialDensity. Apply is the EXISTING restart path (see the shared material-appearance-options contract); there is no live rescale. Source evidence only: runtime_verified is false and stored_only is true; the mutation suite proves that promoting either flag fails closed.",
+  "header_markers": [
+    "m_xMaterialUiScale",
+    "nInitialMaterialUiScale"
+  ],
+  "property": {
+    "name": "MaterialUiScale",
+    "type": "xs:short",
+    "default": "100",
+    "min_inclusive": "50",
+    "max_inclusive": "400",
+    "officecfg_accessor": "officecfg::Office::Common::Appearance::MaterialUiScale"
+  },
+  "ui": {
+    "adjustment_id": "uiscaleadjustment",
+    "adjustment_lower": "50",
+    "adjustment_upper": "400",
+    "spin_id": "uiscalespin",
+    "spin_class": "GtkSpinButton",
+    "label_id": "materialuiscalelabel",
+    "mnemonic_underline": "UI _scale:"
+  },
+  "controller": {
+    "note": "The cui page must both READ the stored value (accessor ::get() feeding the spin's set_value in ResetMaterial) and WRITE it back (accessor ::set() from CommitMaterialAppearance). A read-only or write-only binding is a broken round-trip and must fail closed.",
+    "weld_binding": "weld_spin_button(u\"uiscalespin\"",
+    "read_markers": [
+      "officecfg::Office::Common::Appearance::MaterialUiScale::get()",
+      "m_xMaterialUiScale->set_value("
+    ],
+    "write_markers": [
+      "officecfg::Office::Common::Appearance::MaterialUiScale::set(",
+      "m_xMaterialUiScale->get_value()"
+    ]
+  }
+}

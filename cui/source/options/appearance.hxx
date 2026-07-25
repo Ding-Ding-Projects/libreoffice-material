@@ -13,6 +13,7 @@
 #include <vcl/weld/CheckButton.hxx>
 #include <vcl/weld/ComboBox.hxx>
 #include <vcl/weld/RadioButton.hxx>
+#include <vcl/weld/SpinButton.hxx>
 #include <sfx2/tabdlg.hxx>
 #include <svx/colorbox.hxx>
 #include <svtools/colorcfg.hxx>
@@ -57,6 +58,7 @@ private:
     std::unique_ptr<weld::RadioButton> m_xDensityComfortable;
     std::unique_ptr<weld::RadioButton> m_xDensityCompact;
     std::unique_ptr<weld::CheckButton> m_xMaterialReducedMotion;
+    std::unique_ptr<weld::SpinButton> m_xMaterialUiScale;
 
     sal_Int32 nInitialToolbarIconSizeSel;
     sal_Int32 nInitialSidebarIconSizeSel;
@@ -66,6 +68,7 @@ private:
     sal_Int32 nInitialMaterialAccent;
     sal_Int32 nInitialMaterialDensity;
     bool bInitialMaterialReducedMotion;
+    sal_Int32 nInitialMaterialUiScale;
 
     DECL_LINK(ColorEntryChgHdl, weld::ComboBox&, void);
     DECL_LINK(ColorValueChgHdl, ColorListBox&, void);

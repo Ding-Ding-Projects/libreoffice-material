@@ -159,6 +159,8 @@ LibreOffice.VC.VC.opendb
 # the written design specification, and the genuine-capture screenshot gallery.
 /docs/*
 !/docs/*.md
+!/docs/build/
+!/docs/build/**
 !/docs/evidence/
 !/docs/evidence/**
 !/docs/design/

@@ -1,0 +1,227 @@
+# Publish the touchless "build and run from source" installer.
+#
+# This workflow is deliberately independent of the ~3h Windows MSI build in
+# windows-installer.yml. It only packages and publishes bin/Install-LibreOfficeMaterial-FromSource.ps1,
+# so a downloadable artifact exists within a couple of minutes of every push to
+# main instead of three hours later. It never waits on, reads from, or gates on
+# the MSI job.
+
+name: Publish source installer
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Why are you republishing the source installer?"
+        required: false
+        default: "manual source installer publish"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: source-installer-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  source-installer:
+    name: Package and publish the source installer
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Validate the installer script
+        shell: bash
+        run: |
+          set -euo pipefail
+          script='bin/Install-LibreOfficeMaterial-FromSource.ps1'
+          test -f "$script"
+          # The whole point of this installer is that it never asks a question.
+          if grep -nE '(^|[^A-Za-z-])Read-Host' "$script"; then
+            echo 'The installer must not contain Read-Host; it has to stay touchless.' >&2
+            exit 1
+          fi
+          for marker in \
+            '--host=x86_64-pc-cygwin' \
+            '--with-visual-studio=2022' \
+            'perl-Font-TTF' \
+            'Microsoft.VisualStudio.Component.VC.ATL' \
+            "'run', '--auto'"; do
+            grep -qF "$marker" "$script" || { echo "Missing expected marker: $marker" >&2; exit 1; }
+          done
+          echo "Installer script validated: $(wc -c < "$script") bytes"
+
+      - name: Verify the PowerShell script parses
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $path = 'bin/Install-LibreOfficeMaterial-FromSource.ps1'
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path $path).Path, [ref]$null, [ref]$errors)
+          if ($errors -and $errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Host $_.Extent.StartLineNumber ':' $_.Message }
+            throw "The installer script has $($errors.Count) parse error(s)."
+          }
+          Write-Host 'The installer script parses cleanly.'
+
+      - name: Stage the source-installer package
+        id: stage
+        shell: bash
+        run: |
+          set -euo pipefail
+          short="$(echo '${{ github.sha }}' | cut -c1-10)"
+          tag="source-installer-${{ github.run_number }}-${{ github.run_attempt }}-${short}"
+          package="LibreOfficeMaterial-SourceInstaller-${tag}.zip"
+          staging='source-installer-artifact'
+
+          rm -rf "$staging" package
+          mkdir -p package "$staging"
+          cp bin/Install-LibreOfficeMaterial-FromSource.ps1 package/
+
+          cat > package/README.txt <<EOF
+          LibreOffice Material - build and run from source
+          ================================================
+
+          Commit : ${{ github.sha }}
+          Tag    : ${tag}
+          Built  : $(date -u +'%Y-%m-%dT%H:%M:%SZ')
+
+          HOW TO RUN
+          ----------
+          1. Extract this zip.
+          2. Right-click Install-LibreOfficeMaterial-FromSource.ps1 and choose
+             "Run with PowerShell", or from any PowerShell window run:
+
+                 powershell -ExecutionPolicy Bypass -File .\\Install-LibreOfficeMaterial-FromSource.ps1
+
+          The script asks nothing. It switches itself to PowerShell 7, elevates
+          itself to Administrator, installs Git, the Visual Studio 2022 Build
+          Tools with the C++ desktop workload and the Windows 10/11 SDK, Cygwin
+          with the LibreOffice package set, Python, nasm, perl and 7-Zip, clones
+          this repository, configures and builds it, then launches the result.
+
+          WHAT IT NEEDS
+          -------------
+          * Windows 10/11 x64, Administrator rights.
+          * At least 60 GiB free on the build drive (default C:\\lo).
+          * A fast connection. The build itself takes roughly three hours.
+
+          WHAT IT CHANGES ON YOUR MACHINE
+          -------------------------------
+          It installs compilers and system software machine-wide and writes to
+          C:\\lo (or -BuildRoot). Read the script before running it. Everything
+          it does is logged under <BuildRoot>\\installer-logs.
+
+          USEFUL SWITCHES
+          ---------------
+            -Ref <branch|tag|sha>   what to build (default: main)
+            -BuildRoot <path>       where to build   (default: C:\\lo)
+            -SkipLaunch             build but do not start the office
+            -AutoFix \$false         do not let the opencode agent repair failures
+            -MaxFixAttempts <n>     repair attempts per stage (default: 3)
+            -JobCount <n>           parallel build jobs
+
+          VERIFICATION STATUS
+          -------------------
+          This installer has NOT been executed end to end. It is defensive and
+          log-heavy by design; the transcript in <BuildRoot>\\installer-logs is
+          the only evidence of what actually happened. Do not treat a published
+          release as proof that a build succeeds.
+          EOF
+
+          ( cd package && sha256sum Install-LibreOfficeMaterial-FromSource.ps1 README.txt > SHA256SUMS.txt )
+          ( cd package && zip -r -9 "../${staging}/${package}" . )
+          ( cd "$staging" && sha256sum "${package}" > "${package}.sha256" )
+
+          {
+            echo "tag=${tag}"
+            echo "package=${package}"
+            echo "staging=${staging}"
+            echo "package_path=${staging}/${package}"
+          } >> "$GITHUB_OUTPUT"
+
+          ls -l "$staging"
+
+      - name: Upload the source installer as a workflow artifact (survives failures)
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: source-installer-${{ github.run_id }}-${{ github.run_attempt }}
+          path: source-installer-artifact/
+          if-no-files-found: ignore
+          retention-days: 30
+          compression-level: 0
+
+      - name: Publish the source installer release
+        if: >-
+          github.ref == 'refs/heads/main' &&
+          (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.stage.outputs.tag }}
+          PACKAGE_PATH: ${{ steps.stage.outputs.package_path }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          test -f "$PACKAGE_PATH"
+
+          # A tag is never reused or overwritten. The run number and attempt are
+          # unique per run, so a collision means something is badly wrong.
+          if gh release view "$TAG" --repo "$REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; refusing to overwrite it." >&2
+            exit 1
+          fi
+
+          notes="$(cat <<EOF
+          Touchless **build and run from source** installer for LibreOffice Material.
+
+          | | |
+          |---|---|
+          | Commit | \`${{ github.sha }}\` |
+          | Workflow run | [#${{ github.run_number }}](https://github.com/${REPOSITORY}/actions/runs/${{ github.run_id }}) |
+
+          Download the zip, extract it, and run \`Install-LibreOfficeMaterial-FromSource.ps1\`.
+          It answers every prompt for you: it elevates itself, installs Git, the
+          Visual Studio 2022 Build Tools with the C++ desktop workload and the
+          Windows 10/11 SDK, Cygwin with the LibreOffice package set, Python,
+          nasm and perl, then clones, configures, builds and launches this fork.
+          Build failures are retried with the \`opencode\` agent.
+
+          **Requirements:** Windows 10/11 x64, Administrator, ~60 GiB free disk,
+          and about three hours for the native build.
+
+          **Verification status:** this installer has not been executed end to
+          end. Everything it does is logged under \`<BuildRoot>\installer-logs\`;
+          read the transcript rather than assuming success.
+
+          This release is published on every push to \`main\` and does **not**
+          wait for the multi-hour MSI build, which ships separately under the
+          \`windows-msi-*\` tags.
+          EOF
+          )"
+
+          gh release create "$TAG" \
+            --repo "$REPOSITORY" \
+            --target "${{ github.sha }}" \
+            --title "Source installer ${TAG}" \
+            --notes "$notes" \
+            "$PACKAGE_PATH" \
+            "${PACKAGE_PATH}.sha256"
+
+          published_draft="$(gh release view "$TAG" --repo "$REPOSITORY" --json isDraft --jq .isDraft)"
+          if [ "$published_draft" != "false" ]; then
+            echo "Release $TAG was published as a draft; that is not acceptable." >&2
+            exit 1
+          fi
+          echo "Published https://github.com/${REPOSITORY}/releases/tag/${TAG}"

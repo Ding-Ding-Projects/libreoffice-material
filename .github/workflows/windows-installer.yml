@@ -29,6 +29,7 @@ on:
       - '.github/workflows/build-installer.yml'
       - '.github/workflows/material-source.yml'
       - '.github/workflows/prototype-check.yml'
+      - '.github/workflows/source-installer.yml'
   workflow_dispatch:
     inputs:
       jobs:

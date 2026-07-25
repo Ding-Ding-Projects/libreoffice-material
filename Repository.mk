@@ -349,12 +349,6 @@ $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,ogltrans, \
 	OGLTrans \
 ))
 
-ifeq ($(OS),EMSCRIPTEN)
-$(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,ooo, \
-	lo-bootstrap \
-))
-endif
-
 ifneq ($(ENABLE_WASM_STRIP_CANVAS),TRUE)
 $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,ooo, \
 	canvastools \
@@ -603,7 +597,6 @@ $(eval $(call gb_Helper_register_libraries,PLAINLIBS_NONE, \
 	wpftqahelper \
 	precompiled_system \
 	$(if $(ENABLE_CLI),$(if $(filter MSC,$(COM)),cli_cppuhelper)) \
-	$(if $(filter $(OS),ANDROID),lo-bootstrap) \
 	$(if $(filter $(OS),MACOSX),OOoSpotlightImporter) \
 ))
 

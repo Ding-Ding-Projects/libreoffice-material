@@ -35,12 +35,6 @@ $(eval $(call gb_Library_use_libraries,jvmfwk,\
     salhelper \
 ))
 
-ifeq ($(OS),ANDROID)
-$(eval $(call gb_Library_use_libraries,jvmfwk,\
-    lo-bootstrap \
-))
-endif
-
 ifeq ($(OS),WNT)
 $(eval $(call gb_Library_use_system_win32_libs,jvmfwk,\
 	advapi32 \

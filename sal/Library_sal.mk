@@ -36,12 +36,6 @@ $(eval $(call gb_Library_add_defs,sal,\
     $(call gb_CondLibSalTextenc,-DCOND_LIB_SAL_TEXTENC) \
 ))
 
-$(eval $(call gb_Library_use_libraries,sal,\
-	$(if $(filter ANDROID EMSCRIPTEN,$(OS)), \
-		lo-bootstrap \
-	) \
-))
-
 $(eval $(call gb_Library_use_externals,sal,\
     dragonbox \
     fast_float \

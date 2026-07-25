@@ -20,6 +20,9 @@ jobs:
       - name: Validate native dialog policy registry
         run: python3 bin/check-windows-dialog-notification-contract.py
 
+      - name: Reproduce the build's gla11y accessibility FATAL gate
+        run: python3 bin/check-ui-a11y-fatals.py
+
       - name: Run registry regressions
         run: python3 bin/test_windows_dialog_notification_contract.py
 

@@ -1,5 +1,72 @@
 # Windows-only handoff — 2026-07-21
 
+## 2026-07-25 session handoff — Windows-only strip, source installer, tabs, UI-scale
+
+**Tip at handoff:** `79b783fce` on `main`, pushed. Working tree clean. Every
+item below is its own verified, changelogged, board-tracked commit.
+
+### What landed this session (each pushed, build-free gate green at its tip)
+- **Material rewrite 16.06% → 73.46% (933/1270)** (`6107acb23`). Four families
+  complete: options-page 40/40, menu 70/70, popover 47/47; message-dialog 75/76,
+  sidebar-panel 52/54. The remaining 337 are **structurally** unable to satisfy
+  their predicate (no GtkGrid — content built in C++; no static label; a
+  Close/Cancel/Help primary; no footer; or native-shell with no `.ui`). They
+  stay pending — crediting them would mean weakening a predicate.
+- **GUI-lag fix** (`5053a127d`, **MSI green**, release `windows-msi-99`):
+  `MaterialTokens::fromThemeDefinition()` re-parsed the 72 KB `definition.xml`
+  on every paint from nine uncached call sites; now memoised per scheme. Issue
+  #12 — released and compile-verified, kept OPEN pending runtime lag measurement.
+- **Removed inherited `lockdown.yml`** (`1aa3936ce`) that auto-closed every
+  issue/PR on open (upstream read-only-mirror config; actively harmful here).
+- **Windows-only strip, stages 0–3** (`59f2928fb`→`769117ddc`), each Linux-CI-
+  green: build-graph leaves, iOS/Android, macOS/Quartz/Aqua, Qt/KF/GTK plugs.
+  **Stages 4 (non-Windows module bodies) and 5 (`vcl/unx` + headless + the Linux
+  CI leg itself) are NOT done — held until one MSI confirms the a11y fix, because
+  stage 5 removes the fast Linux check.** Full staged plan in the recon output;
+  `sal`, `vcl/headless` (Windows CppUnit links `vclplug_win`, not svp — the
+  earlier "headless is the test harness" premise was wrong), and the Windows
+  forced-colors widget-draw fallback stay.
+- **a11y build fix** (`b3e63d6af`) — THE reason every MSI build was failing.
+  The rewrite wave introduced gla11y FATALs (one-sided `label-for`, a mnemonic
+  to a non-focusable `GtkBox`, and a duplicate `mnemonic-widget`/`mnemonic_widget`
+  on one label). Fixed; two dbaccess surfaces returned to pending under the
+  ledger's `regression_waiver` (which also had a preservation bug, now fixed).
+  **Run gla11y with REPO-RELATIVE paths** or suppressions silently don't match.
+- **MSI artifact hardening** (`bbb5848c6`): a build that dies before final
+  packaging now zips the `instsetoo_native` partial payload; MSI retention 7→30d.
+- **Touchless source installer** (`d2defcc53`/`a10e1a5e9`):
+  `bin/Install-LibreOfficeMaterial-FromSource.ps1` self-elevates, installs all
+  deps, compiles, installs and launches with no prompts; `opencode run --auto`
+  self-heals build failures. `source-installer.yml` publishes a non-draft release
+  on every push in ~2 min, independent of the 3h MSI. Live, CI-green on every push.
+- **Tabbed UI stages 1–2** (`a0cefa50a`, `508740c16`): a fail-closed
+  frame-topness seam registry (84 sites, incl. the 4 crash-on-null
+  `static_cast<WorkWindow*>`), and the document-tab style schema + clamp-on-read
+  normalizer (officecfg, off by default). **Stage 3 (the Material tab strip +
+  per-tab appearance editor) is next and renders UI — held for the MSI baseline.**
+- **UI-scale control** (`79b783fce`, refs tdf#101646, 38 CC): persisted 50–400%
+  scale in the appearance surface, modelled on `MaterialDensity`. Stored-value-
+  only this stage (desc + contract say so); gla11y-clean on cui.
+
+### Open / blocked at handoff
+- **The a11y-fix MSI (`b3e63d6af`) had not resolved** — several MSI builds were
+  queued behind it on the shared Windows runners. It is the first end-to-end
+  compile of this session's work. **Windows-only Stage 4/5 and tab Stage 3 are
+  both deliberately held behind it.** When it goes green, both unblock; if red,
+  diagnose first (the a11y FATALs are the precedent).
+- **CRLF root cause FOUND:** this host has `core.autocrlf=true` in the SYSTEM
+  gitconfig but `false` in `.git/config`, so worktree files can be CRLF while the
+  index is LF (invisible until a file is rewritten). Edit build/XML files in
+  BINARY mode matching `\r?\n`; verify CR counts via bash `git cat-file -p`, NOT
+  PowerShell (it strips CRs and gives false "flip detected" readings).
+- **Do not chase a higher ledger number by stamping composition contracts** for
+  the remaining pending surfaces without verifying each genuinely rides its
+  channel: the two pending "sidebar-panel" surfaces (`fielddescpanel.ui`,
+  `themeselectorpanel.ui`) are misclassified by the filename heuristic — one is a
+  table-designer child window, the other a toolbox popup; neither is an sfx2
+  sidebar deck. `native:window-title-bars` renders stock per the screenshots.
+- **Static gate is now 81 checkers + 81 mutation suites + prototype validator.**
+
 ## 2026-07-24 completion wave — Material rewrite burn-down 16.06% → 73.62%
 
 Source-implemented rewrite wave over the registered `.ui` surface set plus the

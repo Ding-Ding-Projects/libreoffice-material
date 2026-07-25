@@ -23,6 +23,18 @@ administratively extracted MSI payload with per-image SHA-256 in
 [`docs/screenshots/genuine/PROVENANCE.json`](docs/screenshots/genuine/PROVENANCE.json).
 This is visual evidence only — it does not by itself mark any phase verified.
 
+**2026-07-25 milestones:** the Windows-only OS strip landed stages 0–3
+(iOS/Android, macOS/Quartz/Aqua, Qt/KF/GTK plugin backends removed, each
+Linux-CI-green; stages 4–5 held for an MSI baseline); a touchless
+build-from-source installer (`bin/Install-LibreOfficeMaterial-FromSource.ps1`)
+plus a fast `source-installer.yml` release channel that publishes on every push
+independent of the 3h MSI; tabbed-UI stages 1–2 (frame-topness seam registry +
+document-tab style schema/normalizer, tabs off by default); and a persisted
+50–400% UI-scale control (refs tdf#101646, stored-value-only). The a11y build
+fix that was blocking every MSI build also landed; the rewrite headline is
+**73.46% (933/1270)** after two surfaces returned to pending under a regression
+waiver. All source-implemented / build-free-verified; no runtime claim.
+
 **2026-07-24 milestone — Material rewrite burn-down 16.06% → 73.62%:** a
 source-implemented rewrite wave moved 731 registered surfaces from `pending` to
 `rewritten-material` in

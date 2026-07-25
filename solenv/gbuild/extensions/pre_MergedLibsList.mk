@@ -151,9 +151,6 @@ gb_MERGE_LIBRARY_LIST += \
 	$(if $(filter WNT,$(OS)), \
 		fps \
 	) \
-	$(if $(filter MACOSX,$(OS)),\
-		fps_aqua \
-	) \
 	graphicfilter \
 	hwp \
 	log \

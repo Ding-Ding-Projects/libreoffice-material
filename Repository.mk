@@ -85,8 +85,6 @@ $(eval $(call gb_Helper_register_executables,NONE, \
 	listglyphs \
 	$(if $(and $(ENABLE_GTK3), $(filter LINUX %BSD SOLARIS,$(OS))), gtktiledviewer) \
 	$(if $(and $(ENABLE_GTKTILEDVIEWER), $(filter WNT,$(OS))), gtktiledviewer) \
-	$(if $(filter MACOSX,$(OS)),QuickLookPreview) \
-	$(if $(filter MACOSX,$(OS)),QuickLookThumbnail) \
 ))
 
 $(eval $(call gb_Helper_register_executables_for_install,SDK,sdk, \
@@ -513,12 +511,6 @@ $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,ooo, \
 		smplmail \
 		wininetbe1 \
 	) \
-	$(if $(filter $(OS),MACOSX), \
-		$(if $(ENABLE_MACOSX_SANDBOX),, \
-			AppleRemote \
-		) \
-		fps_aqua \
-	) \
 ))
 
 $(eval $(call gb_Helper_register_plugins_for_install,OOOLIBS,ooo, \
@@ -528,7 +520,6 @@ $(eval $(call gb_Helper_register_plugins_for_install,OOOLIBS,ooo, \
     sdui \
     $(if $(ENABLE_GEN),vclplug_gen) \
     $(if $(ENABLE_WIN),vclplug_win) \
-    $(if $(filter $(OS),MACOSX),vclplug_osx) \
 ))
 
 $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,postgresqlsdbc, \
@@ -597,7 +588,6 @@ $(eval $(call gb_Helper_register_libraries,PLAINLIBS_NONE, \
 	wpftqahelper \
 	precompiled_system \
 	$(if $(ENABLE_CLI),$(if $(filter MSC,$(COM)),cli_cppuhelper)) \
-	$(if $(filter $(OS),MACOSX),OOoSpotlightImporter) \
 ))
 
 $(eval $(call gb_Helper_register_libraries_for_install,PLAINLIBS_URE,ure, \
@@ -932,14 +922,6 @@ endif
 $(eval $(call gb_Helper_register_packages_for_install,ooo,\
 	$(if $(SYSTEM_LIBEXTTEXTCAT),,libexttextcat_fingerprint) \
 	officecfg_misc \
-	$(if $(filter $(OS),MACOSX), \
-		extensions_mdibundle \
-		extensions_OOoSpotlightImporter \
-		extensions_quicklookpreviewappex \
-		extensions_QuickLookPreview \
-		extensions_quicklookthumbnailappex \
-		extensions_QuickLookThumbnail \
-	) \
 	extras_autocorr \
 	extras_autotext \
 	extras_autotextuser \
@@ -979,7 +961,6 @@ $(eval $(call gb_Helper_register_packages_for_install,ooo,\
 		$(if $(filter-out WNT,$(OS)),$(if $(ENABLE_MACOSX_SANDBOX),,shell_senddoc))) \
 	$(call gb_Helper_optional,DESKTOP,$(if $(filter-out EMSCRIPTEN MACOSX WNT,$(OS)),svx_gengal)) \
 	$(if $(USING_X11),vcl_fontunxppds) \
-	$(if $(filter $(OS),MACOSX),vcl_osxres) \
 	xmloff_dtd \
 	xmlscript_dtd \
     $(call gb_Helper_optional,XMLHELP,xmlhelp_helpxsl) \

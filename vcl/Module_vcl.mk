@@ -125,12 +125,6 @@ $(eval $(call gb_Module_add_targets,vcl,\
 ))
 endif
 
-ifeq ($(OS),MACOSX)
-$(eval $(call gb_Module_add_targets,vcl,\
-    Library_vclplug_osx \
-))
-endif
-
 ifeq ($(OS),WNT)
 $(eval $(call gb_Module_add_targets,vcl,\
     WinResTarget_vcl \
@@ -272,12 +266,6 @@ endif
 
 # Is any configuration missing?
 ifeq ($(OS),WNT)
-$(eval $(call gb_Module_add_check_targets,vcl,\
-    CppunitTest_vcl_timer \
-))
-endif
-
-ifeq ($(OS),MACOSX)
 $(eval $(call gb_Module_add_check_targets,vcl,\
     CppunitTest_vcl_timer \
 ))

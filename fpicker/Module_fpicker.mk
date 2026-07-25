@@ -19,12 +19,6 @@ $(eval $(call gb_Module_add_l10n_targets,fpicker,\
 	AllLangMoTarget_fps \
 ))
 
-ifeq ($(OS),MACOSX)
-$(eval $(call gb_Module_add_targets,fpicker,\
-	Library_fps_aqua \
-))
-endif
-
 ifeq ($(OS),WNT)
 $(eval $(call gb_Module_add_targets,fpicker,\
 	Library_fps \

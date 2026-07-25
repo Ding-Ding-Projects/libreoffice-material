@@ -537,18 +537,6 @@ $(eval $(call gb_Library_add_exception_objects,sd,\
 	sd/source/ui/remotecontrol/Transmitter \
 ))
 
-ifeq ($(OS),MACOSX)
-$(eval $(call gb_Library_add_objcxxobjects,sd,\
-	sd/source/ui/remotecontrol/DiscoveryService \
-	sd/source/ui/remotecontrol/OSXNetworkService \
-))
-
-$(eval $(call gb_Library_use_system_darwin_frameworks,sd,\
-	Foundation \
-))
-
-else # OS!=MACSOX
-
 ifeq ($(ENABLE_AVAHI),TRUE)
 $(eval $(call gb_Library_add_exception_objects,sd,\
 	sd/source/ui/remotecontrol/AvahiNetworkService \
@@ -569,36 +557,16 @@ $(eval $(call gb_Library_use_external,sd,mDNSResponder))
 
 endif # OS=WNT
 
-endif # OS!=MACOSX
-
 $(eval $(call gb_Library_add_defs,sd,\
 	-DENABLE_SDREMOTE \
 ))
 
 ifeq ($(ENABLE_SDREMOTE_BLUETOOTH),TRUE)
 
-ifneq ($(OS),MACOSX)
-
 $(eval $(call gb_Library_add_exception_objects,sd,\
 	sd/source/ui/remotecontrol/BluetoothServer \
 ))
 
-else # OS!=MACOSX
-
-$(eval $(call gb_Library_add_objcxxobjects,sd,\
-	sd/source/ui/remotecontrol/BluetoothServer \
-	sd/source/ui/remotecontrol/OSXBluetooth \
-))
-
-$(eval $(call gb_Library_add_libs,sd,\
-	-lobjc \
-))
-
-$(eval $(call gb_Library_use_system_darwin_frameworks,sd,\
-	IOBluetooth \
-))
-
-endif # OS!=MACOSX
 
 $(eval $(call gb_Library_add_defs,sd,\
 	-DENABLE_SDREMOTE_BLUETOOTH \

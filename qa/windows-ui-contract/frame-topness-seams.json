@@ -1,0 +1,504 @@
+{
+  "schema_version": 1,
+  "contract": "frame-topness-seams",
+  "platform": "windows",
+  "status": "static-inventory",
+  "runtime_verified": false,
+  "stage": "tabbed-ui-stage-1-analysis-only",
+  "source_note": "Static, build-free inventory of the code seams that assume a document frame is a top-level WorkWindow/SystemWindow (the historical tdf#37134 failure mode). This registry claims NO runtime tabs capability: it is an add-only guardrail so that a later document-tabs change which violates a topness assumption fails bin/check-frame-topness-seams.py instead of shipping a latent crash. Each entry is classified host-owned / tab-owned / audited-safe (there are no 'unaudited' entries; an 'unaudited' entry fails the checker closed). Snippets and counts are pinned to the current tree and re-derived by the checker with the recorded git-grep patterns; any drift (a new call site absent here, or a removed one) fails closed.",
+  "classification_vocabulary": {
+    "host-owned": "Seam belongs to the shared top-level host window; under tabs it must follow the host/active tab, never a fixed top document frame.",
+    "tab-owned": "Seam currently assumes the document frame is top but conceptually belongs to a per-tab view frame; must be re-pointed when tabs land.",
+    "audited-safe": "Reviewed: resolves the enclosing SystemWindow generically or is the seam's own definition/diagnostic; no single-top-document assumption.",
+    "unaudited": "Not yet reviewed. Illegal in a passing registry -- the checker fails closed on any 'unaudited' entry."
+  },
+  "grand_total_call_sites": 84,
+  "families": [
+    {
+      "api": "GetSystemWindow",
+      "pattern": "GetSystemWindow\\(\\)",
+      "paths": [
+        "*.cxx",
+        "*.hxx"
+      ],
+      "total": 49,
+      "entries": [
+        {
+          "file": "basctl/source/basicide/ObjectCatalog.cxx",
+          "snippet": "GetParent()->GetSystemWindow()->GetTaskPaneList()->AddWindow(this);",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "Registers/unregisters a floating child with the host SystemWindow's TaskPaneList (F6 focus ring); must target the host window that actually owns the tabs."
+        },
+        {
+          "file": "basctl/source/basicide/ObjectCatalog.cxx",
+          "snippet": "GetParent()->GetSystemWindow()->GetTaskPaneList()->RemoveWindow(this);",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "Registers/unregisters a floating child with the host SystemWindow's TaskPaneList (F6 focus ring); must target the host window that actually owns the tabs."
+        },
+        {
+          "file": "basctl/source/basicide/baside2b.cxx",
+          "snippet": "GetSystemWindow()->GetTaskPaneList()->AddWindow( this );",
+          "count": 2,
+          "classification": "host-owned",
+          "note": "Registers/unregisters a floating child with the host SystemWindow's TaskPaneList (F6 focus ring); must target the host window that actually owns the tabs."
+        },
+        {
+          "file": "basctl/source/basicide/baside2b.cxx",
+          "snippet": "GetSystemWindow()->GetTaskPaneList()->RemoveWindow( this );",
+          "count": 2,
+          "classification": "host-owned",
+          "note": "Registers/unregisters a floating child with the host SystemWindow's TaskPaneList (F6 focus ring); must target the host window that actually owns the tabs."
+        },
+        {
+          "file": "basctl/source/basicide/objectbrowser.cxx",
+          "snippet": "GetParent()->GetSystemWindow()->GetTaskPaneList()->AddWindow(this);",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "Registers/unregisters a floating child with the host SystemWindow's TaskPaneList (F6 focus ring); must target the host window that actually owns the tabs."
+        },
+        {
+          "file": "basctl/source/basicide/objectbrowser.cxx",
+          "snippet": "if (GetParent() && GetParent()->GetSystemWindow())",
+          "count": 2,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "basctl/source/basicide/objectbrowser.cxx",
+          "snippet": "if (auto* pTaskPaneList = GetParent()->GetSystemWindow()->GetTaskPaneList())",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "Registers/unregisters a floating child with the host SystemWindow's TaskPaneList (F6 focus ring); must target the host window that actually owns the tabs."
+        },
+        {
+          "file": "dbaccess/source/ui/app/AppControllerGen.cxx",
+          "snippet": "if (SystemWindow* pSystemWindow = getContainer()->GetSystemWindow())",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "dbaccess/source/ui/misc/UITools.cxx",
+          "snippet": "SystemWindow* pSystemWindow = _pWindow ? _pWindow->GetSystemWindow() : nullptr;",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "extensions/source/bibliography/bibbeam.cxx",
+          "snippet": "SystemWindow*       pSysWin = pParent->GetSystemWindow();",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "include/sfx2/frame.hxx",
+          "snippet": "SystemWindow*       GetSystemWindow() const;",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "API definition/declaration of the seam itself, not a call site that assumes a document frame is top."
+        },
+        {
+          "file": "include/vcl/window.hxx",
+          "snippet": "SystemWindow*                       GetSystemWindow() const;",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "API definition/declaration of the seam itself, not a call site that assumes a document frame is top."
+        },
+        {
+          "file": "reportdesign/source/ui/misc/UITools.cxx",
+          "snippet": "SystemWindow* pSystemWindow = _pWindow ? _pWindow->GetSystemWindow() : nullptr;",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "sc/source/ui/docshell/docsh.cxx",
+          "snippet": "if (auto pSysWin = pFrame1->GetWindow().GetSystemWindow())",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "sc/source/ui/vba/vbawindow.cxx",
+          "snippet": "WorkWindow* pWork = static_cast<WorkWindow*>( rViewFrame.GetFrame().GetSystemWindow() );",
+          "count": 2,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "sc/source/ui/view/olinewin.cxx",
+          "snippet": "if( SystemWindow* pSysWin = GetSystemWindow() )",
+          "count": 2,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "sd/source/ui/docshell/docshel4.cxx",
+          "snippet": "if (vcl::Window* pSysWin = pFrame1->GetWindow().GetSystemWindow())",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "sd/source/ui/framework/factories/FullScreenPane.cxx",
+          "snippet": "SystemWindow* pSystemWindow = pViewShellWindow->GetSystemWindow();",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "sfx2/source/appl/workwin.cxx",
+          "snippet": "m_pWorkWin->GetSystemWindow()->GetTaskPaneList()->AddWindow(pChildWin->GetWindow());",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "Registers/unregisters a floating child with the host SystemWindow's TaskPaneList (F6 focus ring); must target the host window that actually owns the tabs."
+        },
+        {
+          "file": "sfx2/source/appl/workwin.cxx",
+          "snippet": "m_pWorkWin->GetSystemWindow()->GetTaskPaneList()->RemoveWindow(pChild->GetWindow());",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "Registers/unregisters a floating child with the host SystemWindow's TaskPaneList (F6 focus ring); must target the host window that actually owns the tabs."
+        },
+        {
+          "file": "sfx2/source/appl/workwin.cxx",
+          "snippet": "m_pWorkWin->GetSystemWindow()->GetTaskPaneList()->RemoveWindow(pChildWin->GetWindow());",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "Registers/unregisters a floating child with the host SystemWindow's TaskPaneList (F6 focus ring); must target the host window that actually owns the tabs."
+        },
+        {
+          "file": "sfx2/source/dialog/backingwindow.cxx",
+          "snippet": "if (SystemWindow* pSystemWindow = GetSystemWindow())",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "sfx2/source/notebookbar/SfxNotebookBar.cxx",
+          "snippet": "CloseMethod(rFrame.GetSystemWindow());",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "SfxNotebookBar hangs the notebook bar on the frame's SystemWindow (host chrome)."
+        },
+        {
+          "file": "sfx2/source/notebookbar/SfxNotebookBar.cxx",
+          "snippet": "if (pViewFrm && pViewFrm->GetWindow().GetSystemWindow())",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "SfxNotebookBar hangs the notebook bar on the frame's SystemWindow (host chrome)."
+        },
+        {
+          "file": "sfx2/source/notebookbar/SfxNotebookBar.cxx",
+          "snippet": "pSysWindow = pViewFrm->GetWindow().GetSystemWindow();",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "SfxNotebookBar hangs the notebook bar on the frame's SystemWindow (host chrome)."
+        },
+        {
+          "file": "sfx2/source/notebookbar/SfxNotebookBar.cxx",
+          "snippet": "return StateMethod(rFrame.GetSystemWindow(), rFrame.GetFrameInterface(), rUIFile,",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "SfxNotebookBar hangs the notebook bar on the frame's SystemWindow (host chrome)."
+        },
+        {
+          "file": "sfx2/source/view/frame2.cxx",
+          "snippet": "SystemWindow* SfxFrame::GetSystemWindow() const",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "API definition/declaration of the seam itself, not a call site that assumes a document frame is top."
+        },
+        {
+          "file": "sw/source/ui/vba/vbawindow.cxx",
+          "snippet": "WorkWindow* pWork = static_cast<WorkWindow*>( rViewFrame.GetFrame().GetSystemWindow() );",
+          "count": 2,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "sw/source/uibase/app/docsh.cxx",
+          "snippet": "if (auto pSysWin = pFrame1->GetWindow().GetSystemWindow())",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "sw/source/uibase/uiview/viewport.cxx",
+          "snippet": "AbsoluteScreenPixelPoint aTopLeftAbs(GetEditWin().GetSystemWindow()->OutputToAbsoluteScreenPixel(Point(x, y)));",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "vbahelper/source/vbahelper/vbahelper.cxx",
+          "snippet": "nPointerStyle = pWindow->GetSystemWindow()->GetPointer();",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "vbahelper/source/vbahelper/vbahelper.cxx",
+          "snippet": "pWindow->GetSystemWindow()->EnableChildPointerOverwrite( bOverWrite );",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "vbahelper/source/vbahelper/vbahelper.cxx",
+          "snippet": "pWindow->GetSystemWindow()->SetPointer( nPointer );",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "vcl/source/app/salvtables.cxx",
+          "snippet": "SystemWindow* SalInstanceWidget::getSystemWindow() { return m_xWidget->GetSystemWindow(); }",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "API definition/declaration of the seam itself, not a call site that assumes a document frame is top."
+        },
+        {
+          "file": "vcl/source/window/bubblewindow.cxx",
+          "snippet": "SystemWindow *pSysWin = pWindow->GetSystemWindow();",
+          "count": 2,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "vcl/source/window/bubblewindow.cxx",
+          "snippet": "pActiveSysWin = pActiveWin->GetSystemWindow();",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "vcl/source/window/bubblewindow.cxx",
+          "snippet": "pActiveSysWin = pTopWin->GetSystemWindow();",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "vcl/source/window/debugevent.cxx",
+          "snippet": "SystemWindow *pSysWin = pFocus->GetSystemWindow();",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "vcl/source/window/dockingarea.cxx",
+          "snippet": "SystemWindow *pSysWin = pThis->GetSystemWindow();",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "vcl/source/window/split.cxx",
+          "snippet": "SystemWindow *pSysWin = GetSystemWindow();",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Resolves the enclosing SystemWindow generically (pointer, geometry, backing or outline handling) without assuming a single top-level document frame; behaves correctly whichever window hosts the view."
+        },
+        {
+          "file": "vcl/source/window/split.cxx",
+          "snippet": "TaskPaneList *pTList = GetSystemWindow()->GetTaskPaneList();",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "Registers/unregisters a floating child with the host SystemWindow's TaskPaneList (F6 focus ring); must target the host window that actually owns the tabs."
+        },
+        {
+          "file": "vcl/source/window/stacking.cxx",
+          "snippet": "SystemWindow* Window::GetSystemWindow() const",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "API definition/declaration of the seam itself, not a call site that assumes a document frame is top."
+        }
+      ]
+    },
+    {
+      "api": "getTopSystemWindow",
+      "pattern": "getTopSystemWindow",
+      "paths": [
+        "framework/source/layoutmanager/"
+      ],
+      "total": 12,
+      "entries": [
+        {
+          "file": "framework/source/layoutmanager/helpers.cxx",
+          "snippet": "SystemWindow* getTopSystemWindow( const uno::Reference< awt::XWindow >& xWindow )",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "API definition/declaration of the seam itself, not a call site that assumes a document frame is top."
+        },
+        {
+          "file": "framework/source/layoutmanager/helpers.hxx",
+          "snippet": "SystemWindow* getTopSystemWindow( const css::uno::Reference< css::awt::XWindow >& xWindow );",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "API definition/declaration of the seam itself, not a call site that assumes a document frame is top."
+        },
+        {
+          "file": "framework/source/layoutmanager/layoutmanager.cxx",
+          "snippet": "SystemWindow* pSysWindow = getTopSystemWindow( m_xContainerWindow );",
+          "count": 6,
+          "classification": "host-owned",
+          "note": "Layout manager resolves the single top SystemWindow of its container; under document tabs the menu/notebook/toolbar layout must stay bound to the host window, not a per-tab view frame."
+        },
+        {
+          "file": "framework/source/layoutmanager/layoutmanager.cxx",
+          "snippet": "SystemWindow* pSysWindow = getTopSystemWindow( xContainerWindow );",
+          "count": 4,
+          "classification": "host-owned",
+          "note": "Layout manager resolves the single top SystemWindow of its container; under document tabs the menu/notebook/toolbar layout must stay bound to the host window, not a per-tab view frame."
+        }
+      ]
+    },
+    {
+      "api": "SetMenuBar",
+      "pattern": "\\bSetMenuBar\\(",
+      "paths": [
+        "vcl/source/window/syswin.cxx",
+        "framework/source/layoutmanager/"
+      ],
+      "total": 12,
+      "entries": [
+        {
+          "file": "framework/source/layoutmanager/layoutmanager.cxx",
+          "snippet": "pSysWindow->SetMenuBar( nullptr );",
+          "count": 3,
+          "classification": "host-owned",
+          "note": "Menu/notebook bar is attached to the container SystemWindow; it is host chrome shared across all tabs and must follow the active tab rather than a fixed top document frame."
+        },
+        {
+          "file": "framework/source/layoutmanager/layoutmanager.cxx",
+          "snippet": "pSysWindow->SetMenuBar(nullptr);",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "Menu/notebook bar is attached to the container SystemWindow; it is host chrome shared across all tabs and must follow the active tab rather than a fixed top document frame."
+        },
+        {
+          "file": "framework/source/layoutmanager/layoutmanager.cxx",
+          "snippet": "pSysWindow->SetMenuBar(pMenuBar);",
+          "count": 4,
+          "classification": "host-owned",
+          "note": "Menu/notebook bar is attached to the container SystemWindow; it is host chrome shared across all tabs and must follow the active tab rather than a fixed top document frame."
+        },
+        {
+          "file": "framework/source/layoutmanager/layoutmanager.cxx",
+          "snippet": "pSysWindow->SetMenuBar(pSetMenuBar);",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "Menu/notebook bar is attached to the container SystemWindow; it is host chrome shared across all tabs and must follow the active tab rather than a fixed top document frame."
+        },
+        {
+          "file": "framework/source/layoutmanager/layoutmanager.cxx",
+          "snippet": "pSysWindow->SetMenuBar(static_cast<MenuBar *>(m_xMenuBar->GetMenuBarManager()->GetMenuBar()));",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "Menu/notebook bar is attached to the container SystemWindow; it is host chrome shared across all tabs and must follow the active tab rather than a fixed top document frame."
+        },
+        {
+          "file": "vcl/source/window/syswin.cxx",
+          "snippet": "SAL_WARN_IF( pMenuBar->m_pWindow, \"vcl\", \"SystemWindow::SetMenuBar() - MenuBars can only set in one SystemWindow at time\" );",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "Diagnostic log string; the SetMenuBar token appears only inside a warning message."
+        },
+        {
+          "file": "vcl/source/window/syswin.cxx",
+          "snippet": "void SystemWindow::SetMenuBar(MenuBar* pMenuBar)",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "API definition/declaration of the seam itself, not a call site that assumes a document frame is top."
+        }
+      ]
+    },
+    {
+      "api": "SetNotebookBar",
+      "pattern": "\\bSetNotebookBar\\(",
+      "paths": [
+        "vcl/source/window/syswin.cxx",
+        "framework/source/layoutmanager/"
+      ],
+      "total": 2,
+      "entries": [
+        {
+          "file": "vcl/source/window/syswin.cxx",
+          "snippet": "->SetNotebookBar(rUIXMLDescription, rFrame, std::move(pNotebookBarAddonsItem));",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "Menu/notebook bar is attached to the container SystemWindow; it is host chrome shared across all tabs and must follow the active tab rather than a fixed top document frame."
+        },
+        {
+          "file": "vcl/source/window/syswin.cxx",
+          "snippet": "void SystemWindow::SetNotebookBar(const OUString& rUIXMLDescription,",
+          "count": 1,
+          "classification": "audited-safe",
+          "note": "API definition/declaration of the seam itself, not a call site that assumes a document frame is top."
+        }
+      ]
+    },
+    {
+      "api": "createTask",
+      "pattern": "\\.createTask\\(",
+      "paths": [
+        "framework/source/"
+      ],
+      "total": 5,
+      "entries": [
+        {
+          "file": "framework/source/loadenv/loadenv.cxx",
+          "snippet": "m_xTargetFrame = aCreator.createTask(SPECIALTARGET_BLANK, m_lMediaDescriptor);",
+          "count": 1,
+          "classification": "host-owned",
+          "note": "TaskCreator::createTask mints a new top-level task frame (WorkWindow); document tabs must route additional documents into an existing host instead of always creating a new top window here."
+        },
+        {
+          "file": "framework/source/services/desktop.cxx",
+          "snippet": "xTarget = aCreator.createTask(sTargetFrameName, {});",
+          "count": 2,
+          "classification": "host-owned",
+          "note": "TaskCreator::createTask mints a new top-level task frame (WorkWindow); document tabs must route additional documents into an existing host instead of always creating a new top window here."
+        },
+        {
+          "file": "framework/source/services/frame.cxx",
+          "snippet": "xTarget = aCreator.createTask(sTargetFrameName, {});",
+          "count": 2,
+          "classification": "host-owned",
+          "note": "TaskCreator::createTask mints a new top-level task frame (WorkWindow); document tabs must route additional documents into an existing host instead of always creating a new top window here."
+        }
+      ]
+    },
+    {
+      "api": "static_cast_WorkWindow",
+      "pattern": "static_cast<WorkWindow\\*>",
+      "paths": [
+        "sw/source/ui/vba/vbawindow.cxx",
+        "sc/source/ui/vba/vbawindow.cxx"
+      ],
+      "total": 4,
+      "entries": [
+        {
+          "file": "sc/source/ui/vba/vbawindow.cxx",
+          "snippet": "WorkWindow* pWork = static_cast<WorkWindow*>( rViewFrame.GetFrame().GetSystemWindow() );",
+          "count": 2,
+          "classification": "tab-owned",
+          "note": "VBA Window.WindowState reads/writes the WorkWindow via SfxFrame::GetSystemWindow(); GetSystemWindow() can return null and the static_cast<WorkWindow*> is unchecked -> crash-on-null when a view frame is not hosted in a top-level WorkWindow (the exact tdf#37134 failure mode under document tabs).",
+          "crash_on_null_risk": true
+        },
+        {
+          "file": "sw/source/ui/vba/vbawindow.cxx",
+          "snippet": "WorkWindow* pWork = static_cast<WorkWindow*>( rViewFrame.GetFrame().GetSystemWindow() );",
+          "count": 2,
+          "classification": "tab-owned",
+          "note": "VBA Window.WindowState reads/writes the WorkWindow via SfxFrame::GetSystemWindow(); GetSystemWindow() can return null and the static_cast<WorkWindow*> is unchecked -> crash-on-null when a view frame is not hosted in a top-level WorkWindow (the exact tdf#37134 failure mode under document tabs).",
+          "crash_on_null_risk": true
+        }
+      ]
+    }
+  ]
+}

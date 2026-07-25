@@ -363,6 +363,12 @@ jobs:
       - name: Run title bar composition mutation regressions
         run: python3 bin/test_windows_titlebar_composition.py
 
+      - name: Validate frame topness seams contract
+        run: python3 bin/check-frame-topness-seams.py
+
+      - name: Run frame topness seams mutation regressions
+        run: python3 bin/test_frame_topness_seams.py
+
       - name: Validate command overflow contract
         run: python3 bin/check-windows-command-overflow.py
 

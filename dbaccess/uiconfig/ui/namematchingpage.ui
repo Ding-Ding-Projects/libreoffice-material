@@ -98,13 +98,14 @@
       </packing>
     </child>
     <child>
-      <object class="GtkBox" id="box1">
+      <object class="GtkGrid" id="box1">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="hexpand">True</property>
         <property name="vexpand">True</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">6</property>
+        <property name="row-spacing">6</property>
+        <property name="margin-start">12</property>
+        <property name="margin-top">6</property>
         <child>
           <object class="GtkLabel" id="leftlabel">
             <property name="visible">True</property>
@@ -117,9 +118,8 @@
             <property name="ellipsize">end</property>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
+            <property name="left-attach">0</property>
+            <property name="top-attach">0</property>
           </packing>
         </child>
         <child>
@@ -167,9 +167,8 @@
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="left-attach">0</property>
+            <property name="top-attach">1</property>
           </packing>
         </child>
       </object>

@@ -164,6 +164,7 @@
         </child>
         <child type="label">
           <object class="GtkLabel" id="label1">
+            <property name="ellipsize">end</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="gradientpage|label1">Gradient</property>
@@ -254,6 +255,10 @@
             <child>
               <!-- n-columns=2 n-rows=2 -->
               <object class="GtkGrid" id="grid6">
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="valign">start</property>

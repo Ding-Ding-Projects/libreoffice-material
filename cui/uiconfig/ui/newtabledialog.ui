@@ -18,7 +18,6 @@
   </object>
   <object class="GtkDialog" id="NewTableDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="newtabledialog|NewTableDialog">Insert Table</property>
     <property name="modal">True</property>
     <property name="default-width">0</property>
@@ -92,7 +91,10 @@
           <object class="GtkGrid" id="grid1">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="border-width">6</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
             <property name="row-spacing">12</property>
             <property name="column-spacing">12</property>
             <child>
@@ -101,6 +103,7 @@
                 <property name="can-focus">False</property>
                 <property name="hexpand">True</property>
                 <property name="label" translatable="yes" context="newtabledialog|columns_label">_Number of columns:</property>
+                <property name="ellipsize">end</property>
                 <property name="use-underline">True</property>
                 <property name="mnemonic-widget">columns</property>
                 <property name="xalign">0</property>

@@ -106,6 +106,91 @@ _COLOR_SLOT = re.compile(r"^Color_[A-Za-z0-9]+$")
 _INT_SLOT = re.compile(r"^Int_[A-Za-z0-9]+$")
 _GETTER_NAME = re.compile(r"^Get[A-Za-z0-9]+$")
 _TOKEN_NAME = re.compile(r"^[a-z][a-z0-9-]*$")
+_CONTRACT_TOKEN = re.compile(r"^[a-z][a-z0-9-]*$")
+_UI_PATH = re.compile(r"^[A-Za-z0-9_./-]+\.ui$")
+_HOST_PATH = re.compile(r"^[A-Za-z0-9_./-]+\.(?:cxx|hxx)$")
+
+# Panel bodies carry no per-file Material fingerprint: they are credited through
+# the framework channel (PanelLayout / PanelTitleBar paint from the deck_surface
+# slots), so the registry enumerates exactly which .ui surfaces that channel
+# governs and this checker proves each one is really hosted by it.
+PANEL_CHANNEL_KEYS = (
+    "panel_layout_source",
+    "panel_layout_marker",
+    "panel_title_source",
+    "panel_title_marker",
+    "panel_body_slot",
+    "panel_title_slot",
+    "host_kinds",
+    "governed_surfaces",
+)
+
+
+def _validate_panel_channel(data: dict, surface_slots: list) -> None:
+    channel = data["panel_channel"]
+    if not isinstance(channel, dict):
+        raise ValidationError("registry panel_channel must be an object")
+    missing = [key for key in PANEL_CHANNEL_KEYS if key not in channel]
+    if missing:
+        raise ValidationError("registry panel_channel is missing keys: " + ", ".join(missing))
+    for key in (
+        "panel_layout_source",
+        "panel_layout_marker",
+        "panel_title_source",
+        "panel_title_marker",
+    ):
+        if not isinstance(channel[key], str) or not channel[key]:
+            raise ValidationError(f"registry panel_channel.{key} must be a non-empty string")
+
+    # The two slots the channel paints from must be deck_surface fill slots, so a
+    # panel body can never be credited from a slot the deck contract does not own.
+    for key in ("panel_body_slot", "panel_title_slot"):
+        slot = channel[key]
+        if not isinstance(slot, str) or _COLOR_SLOT.fullmatch(slot) is None:
+            raise ValidationError(f"registry panel_channel.{key} is malformed: {slot!r}")
+        if slot not in surface_slots:
+            raise ValidationError(
+                f"registry panel_channel.{key} {slot} is not one of the deck_surface fill slots"
+            )
+        if slot not in channel["panel_layout_marker"] and slot not in channel["panel_title_marker"]:
+            raise ValidationError(
+                f"registry panel_channel.{key} {slot} is not referenced by its channel marker"
+            )
+
+    host_kinds = channel["host_kinds"]
+    if not isinstance(host_kinds, list) or not host_kinds or not all(
+        isinstance(kind, str) and kind for kind in host_kinds
+    ):
+        raise ValidationError("registry panel_channel.host_kinds must be a non-empty string array")
+
+    governed = channel["governed_surfaces"]
+    if not isinstance(governed, list) or not governed:
+        raise ValidationError("registry panel_channel.governed_surfaces must be a non-empty array")
+    seen: set[str] = set()
+    for index, entry in enumerate(governed):
+        if not isinstance(entry, dict):
+            raise ValidationError(f"governed surface #{index} must be an object")
+        ui = entry.get("ui")
+        host = entry.get("host")
+        resource = entry.get("ui_resource")
+        kind = entry.get("host_kind")
+        if not isinstance(ui, str) or _UI_PATH.fullmatch(ui) is None:
+            raise ValidationError(f"governed surface #{index} has a malformed ui path: {ui!r}")
+        if ui in seen:
+            raise ValidationError(f"duplicate governed surface: {ui}")
+        seen.add(ui)
+        if not isinstance(host, str) or _HOST_PATH.fullmatch(host) is None:
+            raise ValidationError(f"governed surface {ui} has a malformed host: {host!r}")
+        if not isinstance(resource, str) or not resource.endswith(".ui"):
+            raise ValidationError(
+                f"governed surface {ui} has a malformed ui_resource: {resource!r}"
+            )
+        if resource.rsplit("/", 1)[-1] != ui.rsplit("/", 1)[-1]:
+            raise ValidationError(
+                f"governed surface {ui} ui_resource {resource} names a different .ui file"
+            )
+        if kind not in host_kinds:
+            raise ValidationError(f"governed surface {ui} has an unknown host_kind: {kind!r}")
 
 
 def load_registry(registry_path: Path) -> dict:
@@ -118,6 +203,8 @@ def load_registry(registry_path: Path) -> dict:
         raise ValidationError("registry root must be a JSON object")
 
     required_top = (
+        "contract",
+        "panel_channel",
         "guard_env",
         "guard_helper",
         "theme_header",
@@ -231,6 +318,14 @@ def load_registry(registry_path: Path) -> dict:
                     f"state {state['name']}.{key} references token @{token} that no deck "
                     "colour slot provides"
                 )
+
+    # contract token: the cross-reference marker the material-rewrite ledger
+    # stores in anatomy_markers.contract_marker for every governed panel row.
+    contract_token = data["contract"]
+    if not isinstance(contract_token, str) or _CONTRACT_TOKEN.fullmatch(contract_token) is None:
+        raise ValidationError(f"registry contract token is malformed: {contract_token!r}")
+
+    _validate_panel_channel(data, surface_slots)
 
     for key in ("deck_title_markers", "collapse_markers"):
         markers = data[key]
@@ -447,6 +542,56 @@ def validate_controller_source(repo_root: Path, data: dict) -> None:
         )
 
 
+# --------------------------------------------------------------------------------------------------
+# Panel channel: the framework paint path plus every .ui surface it governs.
+# --------------------------------------------------------------------------------------------------
+def validate_panel_channel_sources(repo_root: Path, data: dict) -> None:
+    channel = data["panel_channel"]
+
+    layout = strip_cpp_non_code(_read(repo_root / channel["panel_layout_source"]))
+    if channel["panel_layout_marker"] not in layout:
+        raise ValidationError(
+            f"{channel['panel_layout_source']} must paint the panel body from the deck surface: "
+            f"missing {channel['panel_layout_marker']!r}"
+        )
+    title = strip_cpp_non_code(_read(repo_root / channel["panel_title_source"]))
+    if channel["panel_title_marker"] not in title:
+        raise ValidationError(
+            f"{channel['panel_title_source']} must paint the panel title bar from the deck "
+            f"surface: missing {channel['panel_title_marker']!r}"
+        )
+
+    for entry in channel["governed_surfaces"]:
+        ui_path = repo_root / entry["ui"]
+        if not ui_path.is_file():
+            raise ValidationError(f"governed surface {entry['ui']} does not exist")
+        host_path = repo_root / entry["host"]
+        if not host_path.is_file():
+            raise ValidationError(
+                f"governed surface {entry['ui']} names a missing host {entry['host']}"
+            )
+        host_source = strip_cpp_non_code(_read(host_path))
+        if f'"{entry["ui_resource"]}"' not in host_source:
+            raise ValidationError(
+                f"{entry['host']} must load the governed surface {entry['ui']} "
+                f"(missing the \"{entry['ui_resource']}\" resource literal)"
+            )
+        if entry["host_kind"] == "panel-layout":
+            if "PanelLayout" not in host_source:
+                raise ValidationError(
+                    f"{entry['host']} must host {entry['ui']} as a sfx2 sidebar PanelLayout so "
+                    "the deck channel paints it"
+                )
+        elif entry["host_kind"] == "framework-container":
+            if "PanelTitleBar" not in host_source:
+                raise ValidationError(
+                    f"{entry['host']} must build the framework panel container with a "
+                    "PanelTitleBar so the deck channel paints it"
+                )
+        else:  # pragma: no cover - load_registry already constrains host_kind
+            raise ValidationError(f"unhandled host_kind for {entry['ui']}")
+
+
 def validate(repo_root: Path, registry_path: Path) -> dict:
     data = load_registry(registry_path)
     validate_theme_header(repo_root, data)
@@ -454,6 +599,7 @@ def validate(repo_root: Path, registry_path: Path) -> dict:
     validate_deck_source(repo_root, data)
     validate_deck_title_source(repo_root, data)
     validate_controller_source(repo_root, data)
+    validate_panel_channel_sources(repo_root, data)
     return data
 
 
@@ -482,7 +628,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"guarded inset, declares {len(data['colors'])} title/heading colours and "
         f"{len(data['metrics'])} deck metrics, Deck applies the 12px scrollbar and DeckTitleBar the "
         "title role behind the VCL_DRAW_WIDGETS_FROM_FILE guard, and SidebarController keeps "
-        "click-active-to-collapse plus the below-medium overlay degrade."
+        "click-active-to-collapse plus the below-medium overlay degrade; the panel channel "
+        f"(PanelLayout/PanelTitleBar on the deck surface) governs "
+        f"{len(data['panel_channel']['governed_surfaces'])} enumerated panel .ui surfaces."
     )
     return 0
 

@@ -20,8 +20,8 @@
     <property name="margin-end">6</property>
     <property name="margin-top">6</property>
     <property name="margin-bottom">6</property>
-    <property name="row_spacing">6</property>
-    <property name="column_spacing">12</property>
+    <property name="row-spacing">6</property>
+    <property name="column-spacing">12</property>
     <child>
       <object class="GtkScrolledWindow">
         <property name="visible">True</property>
@@ -66,7 +66,7 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="use_underline">True</property>
-        <property name="mnemonic_widget">stack</property>
+        <property name="mnemonic-widget">stack</property>
         <property name="ellipsize">end</property>
         <property name="xalign">0</property>
       </object>

@@ -37,7 +37,7 @@
         <property name="margin-bottom">4</property>
         <property name="hexpand">True</property>
         <property name="vexpand">True</property>
-        <property name="row_spacing">6</property>
+        <property name="row-spacing">6</property>
         <child>
           <object class="GtkRadioButton" id="left">
             <property name="label" translatable="yes" context="fontworkalignmentcontrol|RID_SVXSTR_ALIGN_LEFT">Align _Left</property>

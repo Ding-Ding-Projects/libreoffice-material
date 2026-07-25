@@ -85,7 +85,7 @@
             <property name="can_focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <property name="column_spacing">6</property>
+            <property name="column-spacing">6</property>
             <child>
               <object class="GtkSeparator" id="separator">
                 <property name="visible">True</property>
@@ -104,7 +104,9 @@
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
                 <property name="vexpand">True</property>
-                <property name="row_spacing">6</property>
+                <property name="row-spacing">6</property>
+                <property name="margin-start">12</property>
+                <property name="margin-top">6</property>
                 <child>
                   <object class="GtkLabel" id="description">
                     <property name="visible">True</property>
@@ -112,7 +114,7 @@
                     <property name="label" translatable="yes" context="taskwindow|STR_DESCRIPTION">Description</property>
                     <property name="ellipsize">end</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">helptext</property>
+                    <property name="mnemonic-widget">helptext</property>
                     <property name="xalign">0</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>

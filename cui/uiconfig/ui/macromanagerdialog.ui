@@ -22,7 +22,6 @@
   </object>
   <object class="GtkDialog" id="MacroManagerDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="macromanagerdialog|MacroManagerDialog">Macro Manager</property>
     <property name="modal">True</property>
     <property name="default-width">0</property>
@@ -40,6 +39,8 @@
             <property name="spacing">12</property>
             <child>
               <object class="GtkButton" id="close">
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="label" translatable="yes" context="stock">Close</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -336,6 +337,7 @@
                     </child>
                     <child type="label">
                       <object class="GtkLabel" id="scriptcontainerlistboxlabel">
+                        <property name="ellipsize">end</property>
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="margin-bottom">6</property>

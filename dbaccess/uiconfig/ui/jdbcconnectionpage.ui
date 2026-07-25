@@ -55,6 +55,8 @@
         <property name="hexpand">True</property>
         <property name="row-spacing">6</property>
         <property name="column-spacing">12</property>
+        <property name="margin-start">12</property>
+        <property name="margin-top">6</property>
         <child>
           <object class="GtkLabel" id="browseurllabel">
             <property name="visible">True</property>

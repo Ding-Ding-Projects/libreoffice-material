@@ -37,7 +37,7 @@
             </child>
             <child>
               <object class="GtkButton" id="yes">
-                <property name="label" translatable="yes" context="stock">_Yes</property>
+                <property name="label" translatable="yes" context="querydeleteobjectdialog|yes">_Delete</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>

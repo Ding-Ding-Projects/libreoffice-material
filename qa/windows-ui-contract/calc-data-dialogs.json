@@ -19,20 +19,16 @@
       "ui_load_path_literal": "modules/scalc/ui/sortdialog.ui",
       "action_widgets": [
         {
-          "response": "101",
-          "id": "reset"
-        },
-        {
-          "response": "-5",
-          "id": "ok"
+          "response": "-11",
+          "id": "help"
         },
         {
           "response": "-6",
           "id": "cancel"
         },
         {
-          "response": "-11",
-          "id": "help"
+          "response": "-5",
+          "id": "ok"
         }
       ],
       "footer_default_response": "-5",
@@ -50,12 +46,12 @@
           "id": "help"
         },
         {
-          "response": "-5",
-          "id": "ok"
-        },
-        {
           "response": "-6",
           "id": "cancel"
+        },
+        {
+          "response": "-5",
+          "id": "ok"
         }
       ],
       "footer_default_response": "-5",
@@ -69,20 +65,16 @@
       "ui_load_path_literal": "modules/scalc/ui/standardfilterdialog.ui",
       "action_widgets": [
         {
-          "response": "100",
-          "id": "clear"
-        },
-        {
-          "response": "-5",
-          "id": "ok"
+          "response": "-11",
+          "id": "help"
         },
         {
           "response": "-6",
           "id": "cancel"
         },
         {
-          "response": "-11",
-          "id": "help"
+          "response": "-5",
+          "id": "ok"
         }
       ],
       "footer_default_response": "-5",
@@ -96,16 +88,16 @@
       "ui_load_path_literal": "modules/scalc/ui/advancedfilterdialog.ui",
       "action_widgets": [
         {
-          "response": "-5",
-          "id": "ok"
+          "response": "-11",
+          "id": "help"
         },
         {
           "response": "-6",
           "id": "cancel"
         },
         {
-          "response": "-11",
-          "id": "help"
+          "response": "-5",
+          "id": "ok"
         }
       ],
       "footer_default_response": "-5",
@@ -119,16 +111,16 @@
       "ui_load_path_literal": "modules/scalc/ui/pivotfilterdialog.ui",
       "action_widgets": [
         {
-          "response": "-5",
-          "id": "ok"
+          "response": "-11",
+          "id": "help"
         },
         {
           "response": "-6",
           "id": "cancel"
         },
         {
-          "response": "-11",
-          "id": "help"
+          "response": "-5",
+          "id": "ok"
         }
       ],
       "footer_default_response": "-5",
@@ -143,16 +135,16 @@
       "ui_load_path_literal": "modules/scalc/ui/conditionalformatdialog.ui",
       "action_widgets": [
         {
-          "response": "-5",
-          "id": "ok"
+          "response": "-11",
+          "id": "help"
         },
         {
           "response": "-6",
           "id": "cancel"
         },
         {
-          "response": "-11",
-          "id": "help"
+          "response": "-5",
+          "id": "ok"
         }
       ],
       "footer_default_response": "-5",

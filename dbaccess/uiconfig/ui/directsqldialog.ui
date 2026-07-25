@@ -35,6 +35,7 @@
             </child>
             <child>
               <object class="GtkButton" id="close">
+                <property name="has-default">True</property>
                 <property name="label" translatable="yes" context="stock">_Close</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>

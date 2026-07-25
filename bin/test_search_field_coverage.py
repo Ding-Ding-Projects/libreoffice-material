@@ -17,6 +17,7 @@ VALIDATOR_PATH = REPO_ROOT / "bin" / "check_search_field_coverage.py"
 REGISTRY_PATH = REPO_ROOT / "qa" / "windows-ui-contract" / "search-field-coverage.json"
 EXPECTED_SHIPPING_CONTROLS = {
     ("basctl/uiconfig/basicide/ui/objectbrowser.ui", "FilterBox"),
+    ("extensions/uiconfig/sbibliography/ui/editbox.ui", "entry"),
     ("cui/uiconfig/ui/aboutconfigdialog.ui", "searchEntry"),
     ("cui/uiconfig/ui/accelconfigpage.ui", "searchEntry"),
     ("cui/uiconfig/ui/additionsdialog.ui", "entrySearch"),
@@ -169,10 +170,10 @@ class SearchFieldCoverageTests(unittest.TestCase):
         # Start Center now ships (the start_search control exists in the tree and
         # is a source-integrated regex-search field), so it moved from the planned
         # group into the audited shipping set.
-        self.assertEqual(27, stats.shipping_fields)
+        self.assertEqual(28, stats.shipping_fields)
         self.assertEqual(0, stats.planned_fields)
         self.assertEqual(16, stats.excluded_candidates)
-        self.assertEqual(39, stats.discovered_candidates)
+        self.assertEqual(41, stats.discovered_candidates)
 
     def test_duplicate_control_coverage_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -311,10 +312,10 @@ class SearchFieldCoverageTests(unittest.TestCase):
         self.assertSetEqual(EXPECTED_SHIPPING_CONTROLS, actual_shipping)
         self.assertSetEqual(set(), actual_planned)
 
-    def test_repository_integration_split_is_thirteen_and_fourteen(self) -> None:
+    def test_repository_integration_split_is_thirteen_and_fifteen(self) -> None:
         _, stats = validator.validate_registry(REPO_ROOT, REGISTRY_PATH)
         self.assertEqual(13, stats.source_integrated_fields)
-        self.assertEqual(14, stats.gap_fields)
+        self.assertEqual(15, stats.gap_fields)
 
 
 class IntegrationLedgerTests(unittest.TestCase):

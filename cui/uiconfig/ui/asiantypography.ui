@@ -8,13 +8,15 @@
     <property name="label-xalign">0</property>
     <property name="shadow-type">none</property>
     <child>
-      <object class="GtkBox" id="box1">
+      <object class="GtkGrid" id="box1">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
         <property name="margin-top">6</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">6</property>
+        <property name="margin-bottom">12</property>
+        <property name="row-spacing">12</property>
+        <property name="column-spacing">12</property>
         <child>
           <object class="GtkCheckButton" id="checkForbidList">
             <property name="label" translatable="yes" context="asiantypography|checkForbidList">Apply list of forbidden characters to the beginning and end of lines</property>
@@ -26,9 +28,8 @@
             <property name="draw-indicator">True</property>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
+            <property name="left-attach">0</property>
+            <property name="top-attach">0</property>
           </packing>
         </child>
         <child>
@@ -42,9 +43,8 @@
             <property name="draw-indicator">True</property>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="left-attach">0</property>
+            <property name="top-attach">1</property>
           </packing>
         </child>
         <child>
@@ -58,15 +58,16 @@
             <property name="draw-indicator">True</property>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="left-attach">0</property>
+            <property name="top-attach">2</property>
           </packing>
         </child>
       </object>
     </child>
     <child type="label">
       <object class="GtkLabel" id="labelLineChange">
+        <property name="mnemonic-widget">checkForbidList</property>
+        <property name="ellipsize">end</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="label" translatable="yes" context="asiantypography|labelLineChange">Line Change</property>

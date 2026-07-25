@@ -87,6 +87,7 @@
     <property name="height-request">600</property>
     <property name="can-focus">False</property>
     <property name="title" translatable="yes" context="matrixeditor|MatrixEditorDialog">Matrix Editor</property>
+    <property name="modal">True</property>
     <property name="type-hint">dialog</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog-vbox3">
@@ -124,8 +125,6 @@
                 <property name="label" translatable="yes" context="stock">_Cancel</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
-                <property name="can-default">True</property>
-                <property name="has-default">True</property>
                 <property name="receives-default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -177,6 +176,7 @@
                         <property name="can-focus">False</property>
                         <property name="halign">start</property>
                         <property name="label" translatable="yes" context="matrixeditor|Name">Name:</property>
+                        <property name="mnemonic-widget">matrixname</property>
                         <property name="ellipsize">end</property>
                         <accessibility>
                           <relation type="label-for" target="matrixname"/>
@@ -608,8 +608,8 @@
       </object>
     </child>
     <action-widgets>
+      <action-widget response="-6">button_cancel</action-widget>
       <action-widget response="-5">button_ok</action-widget>
-      <action-widget response="-5">button_cancel</action-widget>
     </action-widgets>
     <child internal-child="accessible">
       <object class="AtkObject" id="MatrixEditor-atkobject">

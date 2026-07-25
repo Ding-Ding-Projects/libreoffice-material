@@ -18,9 +18,9 @@
   </object>
   <object class="GtkDialog" id="MultiPathDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="multipathdialog|MultiPathDialog">Select Paths</property>
     <property name="resizable">False</property>
+    <property name="modal">True</property>
     <property name="type-hint">normal</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog-vbox1">
@@ -239,6 +239,8 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes" context="multipathdialog|label1">Mark the Default Path for New Files</property>
+                <property name="ellipsize">end</property>
+                <property name="mnemonic-widget">paths</property>
                 <attributes>
                   <attribute name="weight" value="bold"/>
                 </attributes>

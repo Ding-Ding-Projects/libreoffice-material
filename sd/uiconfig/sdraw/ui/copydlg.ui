@@ -61,8 +61,8 @@
                 <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="has_default">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
                 <child internal-child="accessible">
@@ -138,7 +138,7 @@
                     <property name="can_focus">False</property>
                     <property name="label" translatable="yes" context="copydlg|label4">Number of _copies:</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">copies</property>
+                    <property name="mnemonic-widget">copies</property>
                     <property name="ellipsize">end</property>
                   </object>
                   <packing>
@@ -208,8 +208,8 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="hexpand">True</property>
-                    <property name="row_spacing">3</property>
-                    <property name="column_spacing">6</property>
+                    <property name="row-spacing">3</property>
+                    <property name="column-spacing">6</property>
                     <property name="margin-start">12</property>
                     <property name="margin-top">6</property>
                     <child>
@@ -218,7 +218,7 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes" context="copydlg|label5">_X axis:</property>
                         <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">x</property>
+                        <property name="mnemonic-widget">x</property>
                         <property name="xalign">0</property>
                       </object>
                       <packing>
@@ -232,7 +232,7 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes" context="copydlg|label6">_Y axis:</property>
                         <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">y</property>
+                        <property name="mnemonic-widget">y</property>
                         <property name="xalign">0</property>
                       </object>
                       <packing>
@@ -246,7 +246,7 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes" context="copydlg|label7">_Angle:</property>
                         <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">angle</property>
+                        <property name="mnemonic-widget">angle</property>
                         <property name="xalign">0</property>
                       </object>
                       <packing>
@@ -344,8 +344,8 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="hexpand">True</property>
-                    <property name="row_spacing">3</property>
-                    <property name="column_spacing">6</property>
+                    <property name="row-spacing">3</property>
+                    <property name="column-spacing">6</property>
                     <property name="margin-start">12</property>
                     <property name="margin-top">6</property>
                     <child>
@@ -354,7 +354,7 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes" context="copydlg|label8">_Width:</property>
                         <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">width</property>
+                        <property name="mnemonic-widget">width</property>
                         <property name="xalign">0</property>
                       </object>
                       <packing>
@@ -368,7 +368,7 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes" context="copydlg|label9">_Height:</property>
                         <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">height</property>
+                        <property name="mnemonic-widget">height</property>
                         <property name="xalign">0</property>
                       </object>
                       <packing>
@@ -446,8 +446,8 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="hexpand">True</property>
-                    <property name="row_spacing">3</property>
-                    <property name="column_spacing">6</property>
+                    <property name="row-spacing">3</property>
+                    <property name="column-spacing">6</property>
                     <property name="margin-start">12</property>
                     <property name="margin-top">6</property>
                     <child>
@@ -456,7 +456,7 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes" context="copydlg|label10">_Start:</property>
                         <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">start</property>
+                        <property name="mnemonic-widget">start</property>
                         <property name="xalign">0</property>
                       </object>
                       <packing>
@@ -470,7 +470,7 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes" context="copydlg|endlabel">_End:</property>
                         <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">end</property>
+                        <property name="mnemonic-widget">end</property>
                         <property name="xalign">0</property>
                       </object>
                       <packing>
@@ -554,7 +554,6 @@
     </child>
     <action-widgets>
       <action-widget response="-11">help</action-widget>
-      <action-widget response="101">default</action-widget>
       <action-widget response="-6">cancel</action-widget>
       <action-widget response="-5">ok</action-widget>
     </action-widgets>

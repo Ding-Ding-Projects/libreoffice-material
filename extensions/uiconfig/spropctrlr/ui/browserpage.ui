@@ -85,6 +85,9 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="browserpage|help">Help</property>
+            <property name="use-underline">True</property>
+            <property name="mnemonic-widget">helptext</property>
+            <property name="ellipsize">end</property>
             <attributes>
               <attribute name="weight" value="bold"/>
             </attributes>

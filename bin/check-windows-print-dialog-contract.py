@@ -13,7 +13,7 @@ Material look is delivered entirely by shared vcl parts already in definition.xm
 is *pinning composition*, never re-drawing controls. This checker parses the real tree fail-closed
 (check-pdf-export-dialog-contract.py pattern):
 
-* ``footer`` -- the action-widgets help(-11)/ok(-5)/cancel(-6) order with the primary Print button
+* ``footer`` -- the Material action-widgets help(-11)/cancel(-6)/ok(-5) order with the primary Print button
   (``_Print``, has-default). A reorder or a lost default fails closed.
 * ``structure`` -- the tabcontrol GtkNotebook, previewbox GtkCheckButton, the Range radio trio in
   order inside GtkFrame frPrintRange, the Printer field (printersbox + setup) inside frPrinterName,

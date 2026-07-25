@@ -107,7 +107,7 @@ class RecoverySafeModeContractTest(unittest.TestCase):
     # -- action-widget composition ----------------------------------------
     def test_recover_action_widget_removed_fails(self) -> None:
         contents = self.mutate(
-            RECOVER, '<action-widget response="101">next</action-widget>', ""
+            RECOVER, '<action-widget response="-5">next</action-widget>', ""
         )
         errors = self.failures(contents=contents)
         self.assertTrue(any("action-widget drift" in e for e in errors), errors)

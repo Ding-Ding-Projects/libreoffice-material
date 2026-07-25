@@ -189,10 +189,12 @@
           </object>
         </child>
         <child type="label">
-          <object class="GtkLabel">
+          <object class="GtkLabel" id="lbOptions">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes" context="UITabPage|leftframe">Options</property>
+            <property name="label" translatable="yes" context="UITabPage|leftframe">_Options</property>
+            <property name="use-underline">True</property>
+            <property name="mnemonic-widget">rbButton1</property>
             <property name="ellipsize">end</property>
             <attributes>
               <attribute name="weight" value="bold"/>
@@ -216,14 +218,15 @@
         <property name="label-xalign">0</property>
         <property name="shadow-type">none</property>
         <child>
-          <object class="GtkBox">
+          <object class="GtkGrid" id="previewgrid">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
             <property name="margin-top">6</property>
-            <property name="orientation">vertical</property>
-            <property name="spacing">12</property>
-            <property name="baseline-position">top</property>
+            <property name="margin-bottom">6</property>
+            <property name="row-spacing">12</property>
+            <property name="column-spacing">12</property>
             <child>
               <object class="GtkImage" id="imImage">
                 <property name="height-request">125</property>
@@ -235,9 +238,8 @@
                 <property name="icon-name">missing-image</property>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
               </packing>
             </child>
             <child>
@@ -275,9 +277,8 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">1</property>
               </packing>
             </child>
             <child internal-child="accessible">

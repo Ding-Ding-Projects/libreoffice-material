@@ -2426,6 +2426,8 @@
                         <property name="column-spacing">3</property>
                         <child>
                           <object class="GtkLabel" id="lbFileNew">
+                            <property name="ellipsize">end</property>
+                            <property name="mnemonic-widget">gdFileNew</property>
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
                             <property name="valign">end</property>

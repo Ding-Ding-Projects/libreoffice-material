@@ -308,7 +308,7 @@
               <object class="GtkGrid" id="grid6">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="row_spacing">6</property>
+                <property name="row-spacing">6</property>
                 <property name="margin-start">12</property>
                 <property name="margin-top">6</property>
                 <child>
@@ -362,7 +362,7 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes" context="dockinganimation|alignmentft">Alignment</property>
                         <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">alignment</property>
+                        <property name="mnemonic-widget">alignment</property>
                         <property name="ellipsize">end</property>
                       </object>
                       <packing>

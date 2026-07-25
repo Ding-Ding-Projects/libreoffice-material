@@ -11,7 +11,6 @@
   </object>
   <object class="GtkDialog" id="GotoPageDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="gotopagedialog|GotoPageDialog">Go to Page</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>

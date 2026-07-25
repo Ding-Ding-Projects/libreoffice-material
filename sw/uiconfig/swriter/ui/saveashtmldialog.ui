@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.40.0 -->
+<!-- Material dialog anatomy (docs/design/08-dialogs.md 8.1): footer Help | spacer | secondary | primary; -->
+<!-- the response codes are exactly the ones the implicit GtkMessageDialog buttons carried, so call sites are unchanged. -->
 <interface domain="sw">
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkMessageDialog" id="SaveAsHTMLDialog">
@@ -10,7 +12,6 @@
     <property name="type-hint">dialog</property>
     <property name="skip-taskbar-hint">True</property>
     <property name="message-type">question</property>
-    <property name="buttons">yes-no</property>
     <property name="text" translatable="yes" context="saveashtmldialog|SaveAsHTMLDialog">Would you like to save the document as HTML?</property>
     <property name="secondary-text" translatable="yes" context="saveashtmldialog|SaveAsHTMLDialog">The source code can only be displayed if the document is saved in HTML format.</property>
     <child internal-child="vbox">
@@ -22,6 +23,37 @@
           <object class="GtkButtonBox" id="messagedialog-action_area">
             <property name="can-focus">False</property>
             <property name="spacing">12</property>
+            <property name="layout-style">end</property>
+            <child>
+              <object class="GtkButton" id="no">
+                <property name="label" translatable="yes" context="stock">_No</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="yes">
+                <property name="label" translatable="yes" context="stock">_Yes</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -32,5 +64,9 @@
         </child>
       </object>
     </child>
+    <action-widgets>
+      <action-widget response="-9">no</action-widget>
+      <action-widget response="-8">yes</action-widget>
+    </action-widgets>
   </object>
 </interface>

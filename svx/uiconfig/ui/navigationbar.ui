@@ -32,21 +32,29 @@
     <property name="icon-name">document-new</property>
     <property name="icon_size">1</property>
   </object>
-  <object class="GtkBox" id="NavigationBar">
+  <object class="GtkGrid" id="NavigationBar">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
     <property name="hexpand">True</property>
     <property name="vexpand">True</property>
+    <property name="margin-start">6</property>
+    <property name="margin-end">6</property>
+    <property name="margin-top">3</property>
+    <property name="margin-bottom">3</property>
+    <property name="row-spacing">6</property>
+    <property name="column-spacing">6</property>
     <child>
       <object class="GtkLabel" id="recordtext">
         <property name="visible">True</property>
         <property name="sensitive">False</property>
         <property name="can-focus">False</property>
+        <property name="vexpand">True</property>
+        <property name="mnemonic-widget">entry-noframe</property>
+        <property name="ellipsize">end</property>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">0</property>
+        <property name="left-attach">0</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
@@ -54,11 +62,11 @@
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
+        <property name="vexpand">True</property>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">1</property>
+        <property name="left-attach">1</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
@@ -74,9 +82,8 @@
         <property name="truncate-multiline">True</property>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">2</property>
+        <property name="left-attach">2</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
@@ -84,11 +91,11 @@
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
+        <property name="vexpand">True</property>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">3</property>
+        <property name="left-attach">3</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
@@ -98,11 +105,11 @@
         <property name="can-focus">False</property>
         <property name="margin-start">3</property>
         <property name="margin-end">3</property>
+        <property name="vexpand">True</property>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">4</property>
+        <property name="left-attach">4</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
@@ -111,11 +118,12 @@
         <property name="sensitive">False</property>
         <property name="can-focus">False</property>
         <property name="xalign">0</property>
+        <property name="vexpand">True</property>
+        <property name="ellipsize">end</property>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">5</property>
+        <property name="left-attach">5</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
@@ -128,14 +136,14 @@
         <property name="tooltip-text" translatable="yes" context="navigationbar|first">First</property>
         <property name="image">image1</property>
         <property name="always-show-image">True</property>
+        <property name="vexpand">True</property>
         <style>
           <class name="small-button"/>
         </style>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">6</property>
+        <property name="left-attach">6</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
@@ -149,14 +157,14 @@
         <property name="tooltip-text" translatable="yes" context="navigationbar|prev">Previous</property>
         <property name="image">image2</property>
         <property name="always-show-image">True</property>
+        <property name="vexpand">True</property>
         <style>
           <class name="small-button"/>
         </style>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">7</property>
+        <property name="left-attach">7</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
@@ -170,14 +178,14 @@
         <property name="tooltip-text" translatable="yes" context="navigationbar|next">Next</property>
         <property name="image">image3</property>
         <property name="always-show-image">True</property>
+        <property name="vexpand">True</property>
         <style>
           <class name="small-button"/>
         </style>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">8</property>
+        <property name="left-attach">8</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
@@ -190,14 +198,14 @@
         <property name="tooltip-text" translatable="yes" context="navigationbar|last">Last</property>
         <property name="image">image4</property>
         <property name="always-show-image">True</property>
+        <property name="vexpand">True</property>
         <style>
           <class name="small-button"/>
         </style>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">9</property>
+        <property name="left-attach">9</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
@@ -210,14 +218,14 @@
         <property name="tooltip-text" translatable="yes" context="navigationbar|new">New</property>
         <property name="image">image5</property>
         <property name="always-show-image">True</property>
+        <property name="vexpand">True</property>
         <style>
           <class name="small-button"/>
         </style>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">10</property>
+        <property name="left-attach">10</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
   </object>

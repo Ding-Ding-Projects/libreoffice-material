@@ -130,6 +130,7 @@
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="optfltrpage|label1">Microsoft Word</property>
             <property name="ellipsize">end</property>
+            <property name="mnemonic-widget">wo_basic</property>
             <attributes>
               <attribute name="weight" value="bold"/>
             </attributes>

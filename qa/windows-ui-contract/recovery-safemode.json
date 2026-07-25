@@ -45,7 +45,7 @@
       "widget_class": "GtkDialog",
       "action_widgets": [
         { "response": "-6", "id": "cancel" },
-        { "response": "101", "id": "next" }
+        { "response": "-5", "id": "next" }
       ],
       "required_widgets": [
         { "id": "next", "class": "GtkButton" },
@@ -57,7 +57,7 @@
       "safe_default": {
         "default_action": "next",
         "forbidden_default_actions": ["cancel"],
-        "reason": "Recover Selected (response 101) must stay the Enter default; Discard All (response -6) must never become the default."
+        "reason": "Recover Selected (response -5, the Material primary; RecoveryDialog::NextButtonHdl already answers DLG_RET_OK at runtime) must stay the Enter default; Discard All (response -6) must never become the default."
       }
     },
     {
@@ -79,8 +79,8 @@
       "dialog_id": "DocRecoveryBrokenDialog",
       "widget_class": "GtkDialog",
       "action_widgets": [
-        { "response": "-5", "id": "ok" },
-        { "response": "-6", "id": "cancel" }
+        { "response": "-6", "id": "cancel" },
+        { "response": "-5", "id": "ok" }
       ],
       "required_widgets": [
         { "id": "ok", "class": "GtkButton", "properties": { "has-default": "True" } },

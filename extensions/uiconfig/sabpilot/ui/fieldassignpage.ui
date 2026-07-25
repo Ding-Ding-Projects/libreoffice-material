@@ -10,8 +10,8 @@
     <property name="margin-end">12</property>
     <property name="margin-top">12</property>
     <property name="margin-bottom">12</property>
-    <property name="row_spacing">12</property>
-    <property name="column_spacing">12</property>
+    <property name="row-spacing">12</property>
+    <property name="column-spacing">12</property>
     <child>
       <object class="GtkLabel" id="label2">
         <property name="visible">True</property>
@@ -22,6 +22,9 @@ For instance, you could have stored the email addresses in a field named "email"
 
 Click the button below to open another dialog where you can enter the settings for your data source.</property>
         <property name="wrap">True</property>
+        <property name="ellipsize">end</property>
+        <property name="use_underline">True</property>
+        <property name="mnemonic-widget">assign</property>
         <property name="width_chars">70</property>
         <property name="max_width_chars">70</property>
         <property name="xalign">0</property>

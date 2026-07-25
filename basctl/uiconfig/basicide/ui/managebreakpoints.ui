@@ -72,7 +72,8 @@
                 <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -135,7 +136,7 @@
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
                 <property name="vexpand">True</property>
-                <property name="row_spacing">6</property>
+                <property name="row-spacing">6</property>
                 <property name="margin-start">12</property>
                 <property name="margin-top">6</property>
                 <child>
@@ -257,7 +258,7 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes" context="managebreakpoints|label2">Pass count:</property>
                         <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">pass</property>
+                        <property name="mnemonic-widget">pass</property>
                         <property name="ellipsize">end</property>
                       </object>
                       <packing>
@@ -294,8 +295,6 @@
     </child>
     <action-widgets>
       <action-widget response="-11">help</action-widget>
-      <action-widget response="101">new</action-widget>
-      <action-widget response="102">delete</action-widget>
       <action-widget response="-6">cancel</action-widget>
       <action-widget response="-5">ok</action-widget>
     </action-widgets>

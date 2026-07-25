@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface domain="sfx">
   <requires lib="gtk+" version="3.24"/>
-  <object class="GtkBox" id="PropertyCategoryRow">
+  <object class="GtkGrid" id="PropertyCategoryRow">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
-    <property name="orientation">vertical</property>
-    <property name="spacing">0</property>
+    <property name="row-spacing">6</property>
+    <property name="column-spacing">12</property>
+    <property name="margin-start">6</property>
     <property name="margin-bottom">2</property>
     <child>
       <object class="GtkLabel" id="label">
@@ -14,6 +15,8 @@
         <property name="halign">start</property>
         <property name="xalign">0</property>
         <property name="label">Category:</property>
+        <property name="ellipsize">end</property>
+        <property name="mnemonic-widget">chipsbox</property>
         <child internal-child="accessible">
           <object class="AtkObject" id="label-atkobject">
             <property name="AtkObject::accessible-name" translatable="yes" context="propertycategoryrow|label">Property category name</property>
@@ -21,8 +24,8 @@
         </child>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">False</property>
+        <property name="left-attach">0</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
@@ -34,8 +37,8 @@
         <property name="margin-start">12</property>
       </object>
       <packing>
-        <property name="expand">True</property>
-        <property name="fill">True</property>
+        <property name="left-attach">0</property>
+        <property name="top-attach">1</property>
       </packing>
     </child>
   </object>

@@ -1,4 +1,5 @@
 {
+  "contract": "material-sidebar-panel-composition",
   "surface": "sidebar deck & side panes (WIN-CON-007)",
   "design_refs": [
     "docs/design/06-containers.md#6.7 Panels & side panes",
@@ -38,22 +39,66 @@
     ]
   },
   "colors": [
-    { "slot": "Color_DeckTitleText", "token": "on-surface", "getter": "GetWindowTextColor", "role": "deck/panel title text (title role)" },
-    { "slot": "Color_PanelSectionHeadingText", "token": "on-surface-variant", "getter": "GetGroupTextColor", "role": "11px uppercase section heading text (pinned; panel-heading paint row)" }
+    {
+      "slot": "Color_DeckTitleText",
+      "token": "on-surface",
+      "getter": "GetWindowTextColor",
+      "role": "deck/panel title text (title role)"
+    },
+    {
+      "slot": "Color_PanelSectionHeadingText",
+      "token": "on-surface-variant",
+      "getter": "GetGroupTextColor",
+      "role": "11px uppercase section heading text (pinned; panel-heading paint row)"
+    }
   ],
   "metrics": [
-    { "slot": "Int_DeckScrollbarThickness", "value": 12, "role": "12px Material deck scrollbar gutter" },
-    { "slot": "Int_DeckTitleScalePercent", "value": 120, "role": "title type role scale (120%)" },
-    { "slot": "Int_PanelSectionHeadingHeight", "value": 11, "role": "section heading font height" },
-    { "slot": "Int_DeckOverlayMinWidth", "value": 600, "role": "below-medium window-class overlay threshold" }
+    {
+      "slot": "Int_DeckScrollbarThickness",
+      "value": 12,
+      "role": "12px Material deck scrollbar gutter"
+    },
+    {
+      "slot": "Int_DeckTitleScalePercent",
+      "value": 120,
+      "role": "title type role scale (120%)"
+    },
+    {
+      "slot": "Int_PanelSectionHeadingHeight",
+      "value": 11,
+      "role": "section heading font height"
+    },
+    {
+      "slot": "Int_DeckOverlayMinWidth",
+      "value": 600,
+      "role": "below-medium window-class overlay threshold"
+    }
   ],
   "states": [
-    { "name": "deck", "fill": "surface" },
-    { "name": "deck-title", "text": "on-surface" },
-    { "name": "section-heading", "text": "on-surface-variant" },
-    { "name": "scrolled", "note": "12px Material scrollbar (design 06 s6.5)" },
-    { "name": "collapsed", "note": "rail only (48px) via OpenThenToggleDeck -> RequestCloseDeck" },
-    { "name": "overlay-below-medium", "note": "canvas < 600px degrades safely (no force-widen)" }
+    {
+      "name": "deck",
+      "fill": "surface"
+    },
+    {
+      "name": "deck-title",
+      "text": "on-surface"
+    },
+    {
+      "name": "section-heading",
+      "text": "on-surface-variant"
+    },
+    {
+      "name": "scrolled",
+      "note": "12px Material scrollbar (design 06 s6.5)"
+    },
+    {
+      "name": "collapsed",
+      "note": "rail only (48px) via OpenThenToggleDeck -> RequestCloseDeck"
+    },
+    {
+      "name": "overlay-below-medium",
+      "note": "canvas < 600px degrades safely (no force-widen)"
+    }
   ],
   "deck_fill_marker": "m_xContainer->set_background(Theme::GetColor(Theme::Color_DeckBackground))",
   "deck_scrollbar_marker": "set_scroll_thickness(Theme::GetInteger(Theme::Int_DeckScrollbarThickness))",
@@ -70,5 +115,332 @@
   ],
   "overlay_function": "ShouldDeckOverlayCanvas",
   "overlay_threshold_marker": "Theme::GetInteger(Theme::Int_DeckOverlayMinWidth)",
-  "overlay_consume_marker": "ShouldDeckOverlayCanvas("
+  "overlay_consume_marker": "ShouldDeckOverlayCanvas(",
+  "panel_channel": {
+    "note": "Every deck-hosted panel body reaches Material through the SAME framework channel this contract pins: sfx2::sidebar::PanelLayout paints the panel body with Theme::Color_PanelBackground and sfx2::sidebar::PanelTitleBar with Theme::Color_PanelTitleBarBackground -- the two deck_surface slots re-sourced to @surface behind the IsMaterialDeck guard -- while the deck inset (Int_Deck*Padding) and the 12px scrollbar come from Deck. A panel .ui therefore carries NO per-file Material fingerprint of its own; its credit is this cross-reference. Surfaces whose .ui is NOT hosted by the deck (a toolbox dropdown or a Base child window reusing a panel .ui) are deliberately absent from governed_surfaces.",
+    "panel_layout_source": "sfx2/source/sidebar/PanelLayout.cxx",
+    "panel_layout_marker": "m_xContainer->set_background(Theme::GetColor(Theme::Color_PanelBackground))",
+    "panel_title_source": "sfx2/source/sidebar/PanelTitleBar.cxx",
+    "panel_title_marker": "TitleBar(rBuilder, Theme::Color_PanelTitleBarBackground)",
+    "panel_body_slot": "Color_PanelBackground",
+    "panel_title_slot": "Color_PanelTitleBarBackground",
+    "host_kinds": [
+      "panel-layout",
+      "framework-container"
+    ],
+    "governed_surfaces": [
+      {
+        "ui": "chart2/uiconfig/ui/sidebaraxis.ui",
+        "host": "chart2/source/controller/sidebar/ChartAxisPanel.cxx",
+        "ui_resource": "modules/schart/ui/sidebaraxis.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "chart2/uiconfig/ui/sidebarcolors.ui",
+        "host": "chart2/source/controller/sidebar/ChartColorsPanel.cxx",
+        "ui_resource": "modules/schart/ui/sidebarcolors.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "chart2/uiconfig/ui/sidebarelements.ui",
+        "host": "chart2/source/controller/sidebar/ChartElementsPanel.cxx",
+        "ui_resource": "modules/schart/ui/sidebarelements.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "chart2/uiconfig/ui/sidebarerrorbar.ui",
+        "host": "chart2/source/controller/sidebar/ChartErrorBarPanel.cxx",
+        "ui_resource": "modules/schart/ui/sidebarerrorbar.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "chart2/uiconfig/ui/sidebarseries.ui",
+        "host": "chart2/source/controller/sidebar/ChartSeriesPanel.cxx",
+        "ui_resource": "modules/schart/ui/sidebarseries.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "chart2/uiconfig/ui/sidebartype.ui",
+        "host": "chart2/source/controller/sidebar/ChartTypePanel.cxx",
+        "ui_resource": "modules/schart/ui/sidebartype.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sc/uiconfig/scalc/ui/functionpanel.ui",
+        "host": "sc/source/ui/formdlg/dwfunctr.cxx",
+        "ui_resource": "modules/scalc/ui/functionpanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sc/uiconfig/scalc/ui/navigatorpanel.ui",
+        "host": "sc/source/ui/navipi/navipi.cxx",
+        "ui_resource": "modules/scalc/ui/navigatorpanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sc/uiconfig/scalc/ui/sidebaralignment.ui",
+        "host": "sc/source/ui/sidebar/AlignmentPropertyPanel.cxx",
+        "ui_resource": "modules/scalc/ui/sidebaralignment.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sc/uiconfig/scalc/ui/sidebarcellappearance.ui",
+        "host": "sc/source/ui/sidebar/CellAppearancePropertyPanel.cxx",
+        "ui_resource": "modules/scalc/ui/sidebarcellappearance.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sc/uiconfig/scalc/ui/sidebardatabase.ui",
+        "host": "sc/source/ui/sidebar/DatabasePropertyPanel.cxx",
+        "ui_resource": "modules/scalc/ui/sidebardatabase.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sc/uiconfig/scalc/ui/sidebarnumberformat.ui",
+        "host": "sc/source/ui/sidebar/NumberFormatPropertyPanel.cxx",
+        "ui_resource": "modules/scalc/ui/sidebarnumberformat.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sd/uiconfig/simpress/ui/customanimationspanel.ui",
+        "host": "sd/source/ui/animations/CustomAnimationPane.cxx",
+        "ui_resource": "modules/simpress/ui/customanimationspanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sd/uiconfig/simpress/ui/layoutpanel.ui",
+        "host": "sd/source/ui/sidebar/LayoutMenu.cxx",
+        "ui_resource": "modules/simpress/ui/layoutpanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sd/uiconfig/simpress/ui/masterpagepanel.ui",
+        "host": "sd/source/ui/sidebar/CurrentMasterPagesSelector.cxx",
+        "ui_resource": "modules/simpress/ui/masterpagepanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sd/uiconfig/simpress/ui/navigatorpanel.ui",
+        "host": "sd/source/ui/dlg/navigatr.cxx",
+        "ui_resource": "modules/simpress/ui/navigatorpanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sd/uiconfig/simpress/ui/sidebarslidebackground.ui",
+        "host": "sd/source/ui/sidebar/SlideBackground.cxx",
+        "ui_resource": "modules/simpress/ui/sidebarslidebackground.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sd/uiconfig/simpress/ui/slidetransitionspanel.ui",
+        "host": "sd/source/ui/animations/SlideTransitionPane.cxx",
+        "ui_resource": "modules/simpress/ui/slidetransitionspanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sd/uiconfig/simpress/ui/tabledesignpanel.ui",
+        "host": "sd/source/ui/inc/TableDesignPane.hxx",
+        "ui_resource": "modules/simpress/ui/tabledesignpanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sfx2/uiconfig/ui/panel.ui",
+        "host": "sfx2/source/sidebar/Panel.cxx",
+        "ui_resource": "sfx/ui/panel.ui",
+        "host_kind": "framework-container"
+      },
+      {
+        "ui": "starmath/uiconfig/smath/ui/sidebarelements_math.ui",
+        "host": "starmath/source/SmElementsPanel.cxx",
+        "ui_resource": "modules/smath/ui/sidebarelements_math.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "starmath/uiconfig/smath/ui/sidebarproperties_math.ui",
+        "host": "starmath/source/SmPropertiesPanel.cxx",
+        "ui_resource": "modules/smath/ui/sidebarproperties_math.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/defaultshapespanel.ui",
+        "host": "svx/source/sidebar/shapes/DefaultShapesPanel.cxx",
+        "ui_resource": "svx/ui/defaultshapespanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/inspectortextpanel.ui",
+        "host": "svx/source/sidebar/inspector/InspectorTextPanel.cxx",
+        "ui_resource": "svx/ui/inspectortextpanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebararea.ui",
+        "host": "svx/source/sidebar/area/AreaPropertyPanelBase.cxx",
+        "ui_resource": "svx/ui/sidebararea.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebareffect.ui",
+        "host": "svx/source/sidebar/effect/EffectPropertyPanel.cxx",
+        "ui_resource": "svx/ui/sidebareffect.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebarempty.ui",
+        "host": "svx/source/sidebar/EmptyPanel.cxx",
+        "ui_resource": "svx/ui/sidebarempty.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebarfontwork.ui",
+        "host": "svx/source/sidebar/fontwork/FontworkPropertyPanel.cxx",
+        "ui_resource": "svx/ui/sidebarfontwork.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebargallery.ui",
+        "host": "svx/source/gallery2/GalleryControl.cxx",
+        "ui_resource": "svx/ui/sidebargallery.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebargraphic.ui",
+        "host": "svx/source/sidebar/graphic/GraphicPropertyPanel.cxx",
+        "ui_resource": "svx/ui/sidebargraphic.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebarline.ui",
+        "host": "svx/source/sidebar/line/LinePropertyPanelBase.cxx",
+        "ui_resource": "svx/ui/sidebarline.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebarlists.ui",
+        "host": "svx/source/sidebar/lists/ListsPropertyPanel.cxx",
+        "ui_resource": "svx/ui/sidebarlists.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebarparagraph.ui",
+        "host": "svx/source/sidebar/paragraph/ParaPropertyPanel.cxx",
+        "ui_resource": "svx/ui/sidebarparagraph.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebarpossize.ui",
+        "host": "svx/source/sidebar/possize/PosSizePropertyPanel.cxx",
+        "ui_resource": "svx/ui/sidebarpossize.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebarshadow.ui",
+        "host": "svx/source/sidebar/shadow/ShadowPropertyPanel.cxx",
+        "ui_resource": "svx/ui/sidebarshadow.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebarstylespanel.ui",
+        "host": "svx/source/sidebar/styles/StylesPropertyPanel.cxx",
+        "ui_resource": "svx/ui/sidebarstylespanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebartextcolumnspanel.ui",
+        "host": "svx/source/sidebar/textcolumns/TextColumnsPropertyPanel.cxx",
+        "ui_resource": "svx/ui/sidebartextcolumnspanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebartexteffect.ui",
+        "host": "svx/source/sidebar/effect/TextEffectPropertyPanel.cxx",
+        "ui_resource": "svx/ui/sidebartexteffect.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "svx/uiconfig/ui/sidebartextpanel.ui",
+        "host": "svx/source/sidebar/text/TextPropertyPanel.cxx",
+        "ui_resource": "svx/ui/sidebartextpanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sw/uiconfig/swriter/ui/a11ycheckissuespanel.ui",
+        "host": "sw/source/uibase/sidebar/A11yCheckIssuesPanel.cxx",
+        "ui_resource": "modules/swriter/ui/a11ycheckissuespanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sw/uiconfig/swriter/ui/commentspanel.ui",
+        "host": "sw/source/uibase/sidebar/CommentsPanel.cxx",
+        "ui_resource": "modules/swriter/ui/commentspanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sw/uiconfig/swriter/ui/managechangessidebar.ui",
+        "host": "sw/source/uibase/misc/redlndlg.cxx",
+        "ui_resource": "modules/swriter/ui/managechangessidebar.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sw/uiconfig/swriter/ui/navigatorpanel.ui",
+        "host": "sw/source/uibase/utlui/navipi.cxx",
+        "ui_resource": "modules/swriter/ui/navigatorpanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sw/uiconfig/swriter/ui/pagefooterpanel.ui",
+        "host": "sw/source/uibase/sidebar/PageFooterPanel.cxx",
+        "ui_resource": "modules/swriter/ui/pagefooterpanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sw/uiconfig/swriter/ui/pageformatpanel.ui",
+        "host": "sw/source/uibase/sidebar/PageFormatPanel.cxx",
+        "ui_resource": "modules/swriter/ui/pageformatpanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sw/uiconfig/swriter/ui/pageheaderpanel.ui",
+        "host": "sw/source/uibase/sidebar/PageHeaderPanel.cxx",
+        "ui_resource": "modules/swriter/ui/pageheaderpanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sw/uiconfig/swriter/ui/pagestylespanel.ui",
+        "host": "sw/source/uibase/sidebar/PageStylesPanel.cxx",
+        "ui_resource": "modules/swriter/ui/pagestylespanel.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sw/uiconfig/swriter/ui/sidebarquickfind.ui",
+        "host": "sw/source/uibase/sidebar/QuickFindPanel.cxx",
+        "ui_resource": "modules/swriter/ui/sidebarquickfind.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sw/uiconfig/swriter/ui/sidebarstylepresets.ui",
+        "host": "sw/source/uibase/sidebar/StylePresetsPanel.cxx",
+        "ui_resource": "modules/swriter/ui/sidebarstylepresets.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sw/uiconfig/swriter/ui/sidebartableedit.ui",
+        "host": "sw/source/uibase/sidebar/TableEditPanel.cxx",
+        "ui_resource": "modules/swriter/ui/sidebartableedit.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sw/uiconfig/swriter/ui/sidebartheme.ui",
+        "host": "sw/source/uibase/sidebar/ThemePanel.cxx",
+        "ui_resource": "modules/swriter/ui/sidebartheme.ui",
+        "host_kind": "panel-layout"
+      },
+      {
+        "ui": "sw/uiconfig/swriter/ui/sidebarwrap.ui",
+        "host": "sw/source/uibase/sidebar/WrapPropertyPanel.cxx",
+        "ui_resource": "modules/swriter/ui/sidebarwrap.ui",
+        "host_kind": "panel-layout"
+      }
+    ]
+  }
 }

@@ -21,9 +21,9 @@
   ],
   "footer": {
     "action_widgets": [
-      { "id": "ok", "response": "-5" },
+      { "id": "help", "response": "-11" },
       { "id": "cancel", "response": "-6" },
-      { "id": "help", "response": "-11" }
+      { "id": "ok", "response": "-5" }
     ],
     "primary": {
       "id": "ok",

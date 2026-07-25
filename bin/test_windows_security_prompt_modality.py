@@ -134,8 +134,8 @@ class SecurityPromptModalityTest(unittest.TestCase):
     # -- Layer 3: modal footer ---------------------------------------------
     def test_footer_response_corrupted_fails(self) -> None:
         ui = self.contents[DIGSIG_UI].replace(
-            '<action-widget response="-7">close</action-widget>',
             '<action-widget response="-5">close</action-widget>',
+            '<action-widget response="-7">close</action-widget>',
             1,
         )
         self.assert_changed(DIGSIG_UI, ui)

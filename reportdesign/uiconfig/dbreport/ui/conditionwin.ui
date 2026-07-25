@@ -41,7 +41,11 @@
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="hexpand">True</property>
-        <property name="row-spacing">6</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
+        <property name="row-spacing">12</property>
         <property name="column-spacing">12</property>
         <child>
           <object class="GtkBox" id="box1">
@@ -130,7 +134,9 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="valign">center</property>
-                <property name="label" translatable="yes" context="conditionwin|andLabel">and</property>
+                <property name="label" translatable="yes" context="conditionwin|andLabel">_and</property>
+                <property name="use-underline">True</property>
+                <property name="mnemonic-widget">rhsEntry</property>
               </object>
               <packing>
                 <property name="expand">False</property>

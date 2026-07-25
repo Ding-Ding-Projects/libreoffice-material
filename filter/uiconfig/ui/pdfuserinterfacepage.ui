@@ -124,6 +124,8 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes" context="pdfuserinterfacepage|label1">Window Options</property>
+            <property name="mnemonic-widget">resize</property>
+            <property name="ellipsize">end</property>
                 <attributes>
                   <attribute name="weight" value="bold"/>
                 </attributes>

@@ -54,11 +54,14 @@
         <property name="hexpand">True</property>
         <property name="row-spacing">6</property>
         <property name="column-spacing">12</property>
+        <property name="margin-start">12</property>
+        <property name="margin-top">6</property>
         <child>
           <object class="GtkLabel" id="browseurllabel">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="dbwizconnectionpage|browseurllabel">Path to the dBASE files:</property>
+            <property name="ellipsize">end</property>
             <property name="use-underline">True</property>
             <property name="wrap">True</property>
             <property name="mnemonic-widget">browseurl</property>

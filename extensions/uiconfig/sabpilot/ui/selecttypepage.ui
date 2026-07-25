@@ -186,6 +186,9 @@ This wizard helps you create the data source.</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="selecttypepage|label1">Select the type of your external address book:</property>
+            <property name="use-underline">True</property>
+            <property name="mnemonic-widget">evolution</property>
+            <property name="ellipsize">end</property>
             <child internal-child="accessible">
               <object class="AtkObject" id="label1-atkobject">
                 <property name="AtkObject::accessible-role">static</property>

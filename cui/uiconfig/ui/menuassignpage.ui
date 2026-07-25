@@ -257,6 +257,7 @@
         <property name="column-spacing">4</property>
         <child>
           <object class="GtkLabel" id="searchlabel">
+            <property name="ellipsize">end</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="halign">start</property>

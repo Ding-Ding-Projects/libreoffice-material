@@ -158,6 +158,7 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="ellipsize">end</property>
+                    <property name="mnemonic-widget">ref</property>
                     <property name="label" translatable="yes" context="importlibdialog|label1">Options</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>

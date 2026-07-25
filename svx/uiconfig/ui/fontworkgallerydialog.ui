@@ -14,7 +14,6 @@
   </object>
   <object class="GtkDialog" id="FontworkGalleryDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="fontworkgallerydialog|FontworkGalleryDialog">Fontwork Gallery</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
@@ -92,6 +91,11 @@
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
             <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
             <child>
               <object class="GtkLabel" id="label1">
                 <property name="visible">True</property>
@@ -100,6 +104,7 @@
                 <property name="use-underline">True</property>
                 <property name="ellipsize">end</property>
                 <property name="xalign">0</property>
+                <property name="mnemonic-widget">ctlFavoriteswin</property>
               </object>
               <packing>
                 <property name="left-attach">0</property>

@@ -114,6 +114,10 @@
           <!-- n-columns=2 n-rows=4 -->
           <object class="GtkGrid" id="grid1">
             <property name="visible">True</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
             <property name="can-focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
@@ -174,6 +178,7 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes" context="loadtemplatedialog|label1">Categories</property>
+                <property name="mnemonic-widget">categories</property>
                     <property name="ellipsize">end</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>
@@ -241,6 +246,8 @@
                     <property name="can-focus">False</property>
                     <property name="tooltip-text" translatable="yes" context="loadtemplatedialog|label2|tooltip_text">Templates in the selected category</property>
                     <property name="label" translatable="yes" context="loadtemplatedialog|label2">Templates</property>
+                <property name="mnemonic-widget">templates</property>
+                <property name="ellipsize">end</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>
                     </attributes>
@@ -438,7 +445,6 @@
     </child>
     <action-widgets>
       <action-widget response="-11">help</action-widget>
-      <action-widget response="100">fromfile</action-widget>
       <action-widget response="-6">cancel</action-widget>
       <action-widget response="-5">ok</action-widget>
     </action-widgets>

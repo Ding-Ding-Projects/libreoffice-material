@@ -44,8 +44,8 @@
   "footer": {
     "action_widgets": [
       {"id": "help", "response": "-11"},
-      {"id": "ok", "response": "-5"},
-      {"id": "cancel", "response": "-6"}
+      {"id": "cancel", "response": "-6"},
+      {"id": "ok", "response": "-5"}
     ],
     "primary": {"id": "ok", "label": "_Print", "has_default": true}
   },

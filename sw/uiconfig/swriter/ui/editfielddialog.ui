@@ -100,6 +100,11 @@
         <child>
           <!-- n-columns=3 n-rows=1 -->
           <object class="GtkGrid" id="EditFieldGrid">
+            <property name="row-spacing">6</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="column-spacing">6</property>

@@ -44,6 +44,7 @@ class MenuCompositionTest(unittest.TestCase):
         files = {cls.registry["definition_xml"], VALIDATOR.SVDATA_HEADER}
         files.update(marker["file"] for marker in cls.registry["code_markers"])
         files.update(marker["file"] for marker in cls.registry["context_menu"]["code_markers"])
+        files.update(cls.registry["governed_surfaces"]["entries"])
         cls.tracked_files = sorted(files)
         cls.originals = {
             rel: (REPOSITORY / rel).read_text(encoding="utf-8") for rel in cls.tracked_files
@@ -427,6 +428,74 @@ class MenuCompositionTest(unittest.TestCase):
         registry = self.registry_copy()
         registry["code_markers"][1]["id"] = registry["code_markers"][0]["id"]
         self.assert_fails("duplicate code_marker id", registry=registry)
+
+    # -- governed-surface registry ----------------------------------------------------------------
+    def test_rejects_missing_governed_surfaces_key(self) -> None:
+        registry = self.registry_copy()
+        del registry["governed_surfaces"]
+        self.assert_fails("missing required key 'governed_surfaces'", registry=registry)
+
+    def test_rejects_missing_contract_marker(self) -> None:
+        registry = self.registry_copy()
+        registry["contract"] = ""
+        self.assert_fails("registry contract must be a non-empty string", registry=registry)
+
+    def test_rejects_empty_governed_entries(self) -> None:
+        registry = self.registry_copy()
+        registry["governed_surfaces"]["entries"] = []
+        self.assert_fails(
+            "governed_surfaces.entries must be a non-empty array of strings", registry=registry
+        )
+
+    def test_rejects_duplicate_governed_entry(self) -> None:
+        registry = self.registry_copy()
+        entries = registry["governed_surfaces"]["entries"]
+        entries[1] = entries[0]
+        self.assert_fails("contains a duplicate surface", registry=registry)
+
+    def test_rejects_unsorted_governed_entries(self) -> None:
+        registry = self.registry_copy()
+        registry["governed_surfaces"]["entries"].reverse()
+        self.assert_fails("governed_surfaces.entries must be sorted", registry=registry)
+
+    def test_rejects_missing_governed_surface_file(self) -> None:
+        registry = self.registry_copy()
+        registry["governed_surfaces"]["entries"] = sorted(
+            registry["governed_surfaces"]["entries"] + ["sw/uiconfig/swriter/ui/nosuchmenu.ui"]
+        )
+        self.assert_fails(
+            "governed surface sw/uiconfig/swriter/ui/nosuchmenu.ui does not exist",
+            registry=registry,
+        )
+
+    def test_rejects_governed_surface_without_top_level_menu(self) -> None:
+        # A file whose root object stopped being a GtkMenu is no longer built into a vcl PopupMenu,
+        # so it no longer inherits the Material menu composition at all.
+        rel = "svx/uiconfig/ui/zoommenu.ui"
+        files = self.mutated(rel, '<object class="GtkMenu" id="menu">', '<object class="GtkBox" id="menu">')
+        self.assert_fails(
+            f"governed surface {rel} declares no top-level "
+            '<object class="GtkMenu">',
+            files=files,
+        )
+
+    def test_rejects_governed_surface_with_non_menu_widget(self) -> None:
+        rel = "svx/uiconfig/ui/zoommenu.ui"
+        files = self.mutated(
+            rel, '<object class="GtkMenuItem" id="page">', '<object class="GtkButton" id="page">'
+        )
+        self.assert_fails(
+            f"governed surface {rel} carries non-menu widget class 'GtkButton'", files=files
+        )
+
+    def test_rejects_governed_entries_out_of_sync_with_ledger(self) -> None:
+        # The scratch tree carries no ledger copy, so drive the mismatch against the real repo root.
+        registry = self.registry_copy()
+        registry["governed_surfaces"]["entries"] = registry["governed_surfaces"]["entries"][:-1]
+        with self.assertRaisesRegex(
+            VALIDATOR.ValidationError, "does not enumerate the ledger 'menu' family"
+        ):
+            VALIDATOR.validate_governed_surfaces(REPOSITORY, registry)
 
     def test_rejects_duplicate_context_marker_id(self) -> None:
         registry = self.registry_copy()

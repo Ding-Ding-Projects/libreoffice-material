@@ -92,6 +92,8 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="optdlg|label1">Pages</property>
+            <property name="mnemonic-widget">forceBreaksCB</property>
+            <property name="ellipsize">end</property>
             <attributes>
               <attribute name="weight" value="bold"/>
             </attributes>

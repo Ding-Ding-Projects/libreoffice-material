@@ -117,9 +117,9 @@ class WindowsRegexBuilderFoundationTest(unittest.TestCase):
 
         mutated = dict(self.contents)
         mutated[VALIDATOR.UI_PATH] = mutated[VALIDATOR.UI_PATH].replace(
-            '<property name="border-width">12</property>',
+            '<property name="margin-start">12</property>',
             '<property name="width-request">820</property>\n'
-            '        <property name="border-width">12</property>',
+            '        <property name="margin-start">12</property>',
             1,
         )
         self.assertTrue(

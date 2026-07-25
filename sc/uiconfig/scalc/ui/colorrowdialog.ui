@@ -4,7 +4,6 @@
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="ColOrRowDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="colorrowdialog|ColOrRowDialog">Copy List</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
@@ -82,13 +81,15 @@
             <property name="label-xalign">0</property>
             <property name="shadow-type">none</property>
             <child>
-              <object class="GtkBox" id="box2">
+              <object class="GtkGrid" id="box2">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
                 <property name="margin-top">6</property>
-                <property name="orientation">vertical</property>
-                <property name="spacing">6</property>
+                <property name="margin-bottom">6</property>
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <child>
                   <object class="GtkRadioButton" id="columns">
                     <property name="label" translatable="yes" context="colorrowdialog|columns">_Columns</property>
@@ -105,9 +106,8 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">0</property>
                   </packing>
                 </child>
                 <child>
@@ -126,9 +126,8 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">1</property>
                   </packing>
                 </child>
               </object>
@@ -139,6 +138,7 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes" context="colorrowdialog|label">List From</property>
+                <property name="mnemonic-widget">columns</property>
                 <attributes>
                   <attribute name="weight" value="bold"/>
                 </attributes>
@@ -154,9 +154,9 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-5">ok</action-widget>
-      <action-widget response="-6">cancel</action-widget>
       <action-widget response="-11">help</action-widget>
+      <action-widget response="-6">cancel</action-widget>
+      <action-widget response="-5">ok</action-widget>
     </action-widgets>
     <child internal-child="accessible">
       <object class="AtkObject" id="ColOrRowDialog-atkobject">

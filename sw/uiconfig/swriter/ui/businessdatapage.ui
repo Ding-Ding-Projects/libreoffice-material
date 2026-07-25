@@ -66,6 +66,7 @@
         </child>
         <child>
           <object class="GtkLabel" id="eastnameft">
+            <property name="ellipsize">end</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="businessdatapage|eastnameft">Organization 2nd line:</property>

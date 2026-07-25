@@ -20,7 +20,7 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkBox" id="TableSelectionPage">
+  <object class="GtkGrid" id="TableSelectionPage">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="hexpand">True</property>
@@ -29,8 +29,8 @@
     <property name="margin-end">12</property>
     <property name="margin-top">12</property>
     <property name="margin-bottom">12</property>
-    <property name="orientation">vertical</property>
-    <property name="spacing">12</property>
+    <property name="row-spacing">12</property>
+    <property name="column-spacing">12</property>
     <child>
       <object class="GtkFrame" id="frame1">
         <property name="visible">True</property>
@@ -94,7 +94,7 @@ Please note that the settings made on this page will take effect immediately upo
                     <property name="halign">start</property>
                     <property name="label" translatable="yes" context="tableselectionpage|datasourcelabel">_Data source:</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">datasource</property>
+                    <property name="mnemonic-widget">datasource</property>
                     <property name="ellipsize">end</property>
                   </object>
                   <packing>
@@ -180,7 +180,7 @@ Please note that the settings made on this page will take effect immediately upo
                     <property name="halign">start</property>
                     <property name="label" translatable="yes" context="tableselectionpage|tablelabel">_Table / Query:</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">table</property>
+                    <property name="mnemonic-widget">table</property>
                     <property name="ellipsize">end</property>
                   </object>
                   <packing>
@@ -257,9 +257,8 @@ Please note that the settings made on this page will take effect immediately upo
         </child>
       </object>
       <packing>
-        <property name="expand">True</property>
-        <property name="fill">True</property>
-        <property name="position">0</property>
+        <property name="left-attach">0</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
   </object>

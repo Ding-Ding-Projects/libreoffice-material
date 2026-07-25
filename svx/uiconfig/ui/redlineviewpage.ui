@@ -38,23 +38,29 @@
       <column type="GdkRGBA"/>
     </columns>
   </object>
-  <object class="GtkBox" id="RedlineViewPage">
+  <object class="GtkGrid" id="RedlineViewPage">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
     <property name="hexpand">True</property>
     <property name="vexpand">True</property>
-    <property name="border-width">6</property>
-    <property name="orientation">vertical</property>
-    <property name="spacing">12</property>
+    <property name="margin-start">12</property>
+    <property name="margin-end">12</property>
+    <property name="margin-top">12</property>
+    <property name="margin-bottom">12</property>
+    <property name="row-spacing">12</property>
+    <property name="column-spacing">12</property>
     <child>
       <object class="GtkBox">
         <property name="can-focus">False</property>
         <property name="spacing">12</property>
+        <property name="hexpand">True</property>
         <child>
           <object class="GtkLabel" id="sortbylabel">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="redlineviewpage|sortbylabel">Sort by:</property>
+            <property name="mnemonic-widget">sortbycombobox</property>
+            <property name="ellipsize">end</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -88,9 +94,8 @@
         </child>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">0</property>
+        <property name="left-attach">0</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
@@ -184,9 +189,8 @@
         </child>
       </object>
       <packing>
-        <property name="expand">True</property>
-        <property name="fill">True</property>
-        <property name="position">1</property>
+        <property name="left-attach">0</property>
+        <property name="top-attach">1</property>
       </packing>
     </child>
     <child>
@@ -290,9 +294,8 @@
         </child>
       </object>
       <packing>
-        <property name="expand">True</property>
-        <property name="fill">True</property>
-        <property name="position">2</property>
+        <property name="left-attach">0</property>
+        <property name="top-attach">2</property>
       </packing>
     </child>
     <child>
@@ -302,6 +305,7 @@
         <property name="spacing">3</property>
         <property name="homogeneous">True</property>
         <property name="layout-style">start</property>
+        <property name="hexpand">True</property>
         <child>
           <object class="GtkButton" id="accept">
             <property name="label" translatable="yes" context="acceptrejectchangesdialog|accept">_Accept</property>
@@ -399,9 +403,8 @@
         </child>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">3</property>
+        <property name="left-attach">0</property>
+        <property name="top-attach">3</property>
       </packing>
     </child>
     <child internal-child="accessible">

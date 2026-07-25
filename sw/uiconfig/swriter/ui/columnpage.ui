@@ -804,6 +804,7 @@
                         <property name="column-spacing">12</property>
                         <child>
                           <object class="GtkLabel" id="textdirectionft">
+                            <property name="ellipsize">end</property>
                             <property name="can-focus">False</property>
                             <property name="no-show-all">True</property>
                             <property name="label" translatable="yes" context="columnpage|textdirectionft">Text _direction:</property>

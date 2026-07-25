@@ -11,7 +11,6 @@
   </object>
   <object class="GtkDialog" id="SplitCellsDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="splitcellsdialog|SplitCellsDialog">Split Cells</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
@@ -106,6 +105,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="label" translatable="yes" context="splitcellsdialog|label3">_Split cell into:</property>
+                        <property name="ellipsize">end</property>
                         <property name="use-underline">True</property>
                         <property name="mnemonic-widget">countnf</property>
                       </object>

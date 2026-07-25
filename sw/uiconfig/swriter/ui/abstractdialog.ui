@@ -34,12 +34,10 @@
             <property name="layout_style">end</property>
             <property name="spacing">12</property>
             <child>
-              <object class="GtkButton" id="ok">
-                <property name="label" translatable="yes" context="stock">_OK</property>
+              <object class="GtkButton" id="help">
+                <property name="label" translatable="yes" context="stock">_Help</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="has_default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -47,6 +45,7 @@
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">0</property>
+                <property name="secondary">True</property>
               </packing>
             </child>
             <child>
@@ -64,10 +63,15 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="help">
-                <property name="label" translatable="yes" context="stock">_Help</property>
+              <object class="GtkButton" id="ok">
+                <property name="receives-default">True</property>
+                <property name="has-default">True</property>
+                <property name="can-default">True</property>
+                <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="can_default">True</property>
+                <property name="has_default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -75,7 +79,6 @@
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">2</property>
-                <property name="secondary">True</property>
               </packing>
             </child>
           </object>
@@ -97,6 +100,10 @@
             <child>
               <!-- n-columns=1 n-rows=1 -->
               <object class="GtkGrid" id="grid1">
+                <property name="margin-bottom">6</property>
+                <property name="margin-end">12</property>
+                <property name="column-spacing">12</property>
+                <property name="row-spacing">6</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
@@ -112,7 +119,7 @@
                     <property name="hexpand">True</property>
                     <property name="label" translatable="yes" context="abstractdialog|label2">Included outline levels</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">outlines</property>
+                    <property name="mnemonic-widget">outlines</property>
                     <property name="ellipsize">end</property>
                     <property name="xalign">0</property>
                   </object>
@@ -128,7 +135,7 @@
                     <property name="hexpand">True</property>
                     <property name="label" translatable="yes" context="abstractdialog|label3">Paragraphs per level</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">paras</property>
+                    <property name="mnemonic-widget">paras</property>
                     <property name="ellipsize">end</property>
                     <property name="xalign">0</property>
                   </object>

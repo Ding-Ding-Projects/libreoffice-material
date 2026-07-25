@@ -19,6 +19,8 @@
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="row-spacing">6</property>
+        <property name="margin-start">12</property>
+        <property name="margin-top">6</property>
         <child>
           <object class="GtkCheckButton" id="usesql92">
             <property name="label" translatable="yes" context="specialsettingspage|usesql92">Use SQL92 naming constraints</property>

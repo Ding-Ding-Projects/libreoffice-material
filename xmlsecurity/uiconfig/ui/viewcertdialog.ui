@@ -4,7 +4,6 @@
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="ViewCertDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="viewcertdialog|ViewCertDialog">View Certificate</property>
     <property name="resizable">True</property>
     <property name="modal">True</property>
@@ -22,6 +21,21 @@
             <property name="spacing">12</property>
             <property name="layout-style">end</property>
             <child>
+              <object class="GtkButton" id="help">
+                <property name="label" translatable="yes" context="stock">_Help</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-underline">True</property>
+              </object>
+              <packing>
+                <property name="secondary">True</property>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkButton" id="ok">
                 <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
@@ -34,22 +48,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="help">
-                <property name="label" translatable="yes" context="stock">_Help</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
-                <property name="use-underline">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
-                <property name="secondary">True</property>
+                <property name="position">1</property>
               </packing>
             </child>
           </object>
@@ -71,6 +70,12 @@
             <child>
               <!-- n-columns=1 n-rows=1 -->
               <object class="GtkGrid">
+                <property name="row-spacing">12</property>
+                <property name="column-spacing">12</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <child>
@@ -82,7 +87,9 @@
               <object class="GtkLabel" id="general">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes" context="viewcertdialog|general">General</property>
+                <property name="label" translatable="yes" context="viewcertdialog|general">_General</property>
+                <property name="use-underline">True</property>
+                <property name="mnemonic-widget">tabcontrol</property>
                 <property name="ellipsize">end</property>
               </object>
               <packing>
@@ -149,8 +156,8 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-5">ok</action-widget>
       <action-widget response="-11">help</action-widget>
+      <action-widget response="-5">ok</action-widget>
     </action-widgets>
   </object>
 </interface>

@@ -20,57 +20,89 @@
     <property name="hexpand">True</property>
     <property name="vexpand">True</property>
     <child>
-      <object class="GtkScrolledWindow">
+      <object class="GtkGrid">
         <property name="visible">True</property>
-        <property name="can-focus">True</property>
+        <property name="can-focus">False</property>
         <property name="hexpand">True</property>
-        <property name="vexpand">True</property>
-        <property name="shadow-type">in</property>
+        <property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+        <property name="margin-top">6</property>
+        <property name="margin-bottom">6</property>
+        <property name="row-spacing">6</property>
+        <property name="column-spacing">6</property>
         <child>
-          <object class="GtkTreeView" id="treeview">
-            <property name="width-request">-1</property>
+          <object class="GtkLabel" id="label">
+            <property name="can-focus">False</property>
+            <property name="no-show-all">True</property>
+            <property name="valign">center</property>
+            <property name="use-underline">True</property>
+            <property name="mnemonic-widget">treeview</property>
+            <property name="ellipsize">end</property>
+            <property name="xalign">0</property>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
-            <property name="has-tooltip">True</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <property name="model">liststore1</property>
-            <property name="headers-visible">False</property>
-            <property name="reorderable">True</property>
-            <property name="search-column">1</property>
-            <property name="enable-tree-lines">True</property>
-            <child internal-child="selection">
-              <object class="GtkTreeSelection"/>
-            </child>
+            <property name="shadow-type">in</property>
             <child>
-              <object class="GtkTreeViewColumn" id="treeviewcolumn0">
-                <property name="visible">False</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkTreeViewColumn" id="treeviewcolumn1">
-                <property name="spacing">6</property>
-                <child>
-                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf"/>
-                  <attributes>
-                    <attribute name="pixbuf">0</attribute>
-                  </attributes>
+              <object class="GtkTreeView" id="treeview">
+                <property name="width-request">-1</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
+                <property name="model">liststore1</property>
+                <property name="headers-visible">False</property>
+                <property name="reorderable">True</property>
+                <property name="search-column">1</property>
+                <property name="enable-tree-lines">True</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection"/>
                 </child>
                 <child>
-                  <object class="GtkCellRendererText" id="cellrenderertext">
-                    <property name="editable">True</property>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumn0">
+                    <property name="visible">False</property>
                   </object>
-                  <attributes>
-                    <attribute name="text">1</attribute>
-                  </attributes>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf"/>
+                      <attributes>
+                        <attribute name="pixbuf">0</attribute>
+                      </attributes>
+                    </child>
+                    <child>
+                      <object class="GtkCellRendererText" id="cellrenderertext">
+                        <property name="editable">True</property>
+                      </object>
+                      <attributes>
+                        <attribute name="text">1</attribute>
+                      </attributes>
+                    </child>
+                  </object>
                 </child>
               </object>
             </child>
           </object>
+          <packing>
+            <property name="left-attach">1</property>
+            <property name="top-attach">0</property>
+          </packing>
         </child>
       </object>
       <packing>
-        <property name="expand">False</property>
+        <property name="expand">True</property>
         <property name="fill">True</property>
         <property name="position">0</property>
       </packing>

@@ -9,6 +9,10 @@
   </object>
   <!-- n-columns=4 n-rows=1 -->
   <object class="GtkGrid" id="biblioentry">
+    <property name="margin-start">12</property>
+    <property name="margin-end">12</property>
+    <property name="margin-top">12</property>
+    <property name="margin-bottom">12</property>
     <property name="can-focus">False</property>
     <property name="no-show-all">True</property>
     <property name="valign">start</property>
@@ -139,6 +143,8 @@
     </child>
     <child>
       <object class="GtkLabel" id="label">
+        <property name="ellipsize">end</property>
+        <property name="mnemonic-widget">combobox</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="xalign">0</property>

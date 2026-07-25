@@ -39,7 +39,7 @@
             <property name="can_focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <property name="column_spacing">12</property>
+            <property name="column-spacing">12</property>
             <property name="margin-start">12</property>
             <property name="margin-top">6</property>
             <child>
@@ -74,7 +74,7 @@
                                 <property name="can_focus">False</property>
                                 <property name="label" translatable="yes" context="mmlayoutpage|label6">_From top</property>
                                 <property name="use_underline">True</property>
-                                <property name="mnemonic_widget">top</property>
+                                <property name="mnemonic-widget">top</property>
                                 <property name="ellipsize">end</property>
                                 <property name="xalign">0</property>
                               </object>
@@ -174,7 +174,7 @@
                                         <property name="margin-start">12</property>
                                         <property name="label" translatable="yes" context="mmlayoutpage|leftft">From _left</property>
                                         <property name="use_underline">True</property>
-                                        <property name="mnemonic_widget">left</property>
+                                        <property name="mnemonic-widget">left</property>
                                         <property name="ellipsize">end</property>
                                         <property name="xalign">0</property>
                                       </object>
@@ -242,7 +242,7 @@
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes" context="mmlayoutpage|label4">Move</property>
                             <property name="use_underline">True</property>
-                            <property name="mnemonic_widget">up</property>
+                            <property name="mnemonic-widget">up</property>
                             <property name="ellipsize">end</property>
                             <property name="xalign">0</property>
                           </object>
@@ -257,7 +257,7 @@
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes" context="mmlayoutpage|label5">Move</property>
                             <property name="use_underline">True</property>
-                            <property name="mnemonic_widget">down</property>
+                            <property name="mnemonic-widget">down</property>
                             <property name="ellipsize">end</property>
                             <property name="xalign">0</property>
                           </object>
@@ -348,7 +348,7 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes" context="mmlayoutpage|label7">_Zoom</property>
                         <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">zoom</property>
+                        <property name="mnemonic-widget">zoom</property>
                         <property name="ellipsize">end</property>
                         <property name="xalign">0</property>
                       </object>

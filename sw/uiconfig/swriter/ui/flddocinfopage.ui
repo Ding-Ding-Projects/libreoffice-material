@@ -148,6 +148,7 @@
         </child>
         <child type="label">
           <object class="GtkLabel" id="label1">
+            <property name="mnemonic-widget">type-list</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="flddocinfopage|label1">_Type</property>
@@ -215,6 +216,7 @@
         </child>
         <child type="label">
           <object class="GtkLabel" id="label2">
+            <property name="mnemonic-widget">select</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="flddocinfopage|label2">_Select</property>
@@ -240,13 +242,15 @@
         <property name="label-xalign">0</property>
         <property name="shadow-type">none</property>
         <child>
-          <object class="GtkBox" id="box1">
+          <object class="GtkGrid" id="box1">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
             <property name="margin-top">6</property>
+            <property name="margin-bottom">12</property>
             <property name="hexpand">True</property>
-            <property name="orientation">vertical</property>
-            <property name="spacing">6</property>
+            <property name="row-spacing">6</property>
             <child>
               <object class="GtkScrolledWindow">
                 <property name="visible">True</property>
@@ -287,9 +291,8 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
               </packing>
             </child>
             <child>
@@ -307,15 +310,16 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">1</property>
               </packing>
             </child>
           </object>
         </child>
         <child type="label">
           <object class="GtkLabel" id="label3">
+            <property name="mnemonic-widget">format</property>
+            <property name="ellipsize">end</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="flddocinfopage|label3">_Format</property>

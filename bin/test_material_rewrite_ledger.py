@@ -689,9 +689,28 @@ class LedgerMutationTest(unittest.TestCase):
         self.assertEqual(status, CK.PENDING)
         self.assertEqual(evidence, CK._null_evidence())
 
-    def test_production_credits_no_menu(self) -> None:
-        # the byte-identical spellmenu over-credit is gone: zero menus credited.
-        self.assertEqual(self.ledger["coverage"]["by_family"]["menu"][CK.REWRITTEN], 0)
+    def test_production_menu_credit_is_composition_cross_referenced(self) -> None:
+        # the byte-identical spellmenu over-credit is gone: a menu is never
+        # credited by a static .ui parse. Any credited menu must carry
+        # composition-code evidence that names an owning contract which exists
+        # and still contains the marker token it was credited against.
+        for row in self.ledger["surfaces"]:
+            if row["family"] != "menu" or row["rewrite_status"] != CK.REWRITTEN:
+                continue
+            evidence = row["rewrite_evidence"]
+            markers = evidence.get("anatomy_markers") or {}
+            self.assertEqual(
+                markers.get("evidence_kind"), CK.COMPOSITION_CODE, row["surface"]
+            )
+            token = markers.get("contract_marker")
+            self.assertTrue(token, row["surface"])
+            contract_rel = evidence.get("contract")
+            self.assertTrue(contract_rel, row["surface"])
+            contract_path = REPOSITORY / contract_rel
+            self.assertTrue(contract_path.is_file(), row["surface"])
+            self.assertIn(
+                token, contract_path.read_text(encoding="utf-8"), row["surface"]
+            )
 
 
 if __name__ == "__main__":

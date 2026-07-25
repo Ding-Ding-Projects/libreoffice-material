@@ -447,6 +447,17 @@ focus save/return around a top-level context execute, Esc dismissal, and the
 Writer-canvas (`edtwin.cxx`) / Calc-sheet-tab (`tabcont.cxx`) invocation hooks.
 The menu-composition suite is now 39 mutation tests.
 
+This contract is also the sole evidence path for `menu`-family credit in
+`material-rewrite-ledger.json`. `menu` is a composition-code family: no static
+`.ui` anatomy can earn it. Each credited row is stamped by
+`bin/check-material-rewrite-ledger.py --evaluate` with
+`rewrite_class: menu-composition`, `contract: qa/windows-ui-contract/menu-composition.json`,
+`anatomy_markers.contract_marker: material-menu-composition`, and
+`evidence_kind: composition-code`; the production checker's
+`_validate_composition_marker` re-verifies that the named contract file exists
+and still carries that marker token, so deleting or renaming this contract
+fails the ledger closed rather than silently keeping 70 credited surfaces.
+
 ### Sidebar rail (WIN-NAV-005)
 
 `sidebar-rail.json` records that the rail is sidebar-framework chrome, not a
@@ -1106,6 +1117,8 @@ python bin/check-windows-notebookbar-composition.py
 python bin/test_windows_notebookbar_composition.py
 python bin/check-windows-titlebar-composition.py
 python bin/test_windows_titlebar_composition.py
+python bin/check-notification-overlay-contract.py
+python bin/test_notification_overlay_contract.py
 python bin/check-windows-command-overflow.py
 python bin/test_windows_command_overflow.py
 python bin/check-writer-chrome-contract.py
@@ -1342,6 +1355,27 @@ in `FileDefinitionWidgetDraw.cxx`, **plus a fail-closed absence guard**: no
 `consumption.status` must stay `not-wired`, the mirror of the statusbar contract's
 "specified" pattern for a fact that is currently false. 16 mutation tests;
 `runtime_verified: false`.
+
+### Notification overlay shell (WIN-SHL-003)
+
+`notification-overlay-composition.json` (contract
+`material-notification-overlay-composition`) pins the project-authored Material
+composition behind the `native:notification-overlay-window` rewrite-ledger row:
+`NotificationOverlayWindow` stays a frame-child `InterimItemWindow` (an absence
+guard fails closed if a `FloatingWindow`/`WorkWindow` vehicle is reintroduced,
+because either would auto-dismiss on focus loss or become an OS top level), keeps
+the bottom-right anchoring arithmetic and the raise-without-focus `SetZOrder`
+call; the `NotificationPreferences` Material anchoring defaults (420 width, 16/16
+insets, 3 visible cards) stay put; `NotificationStackController` loads
+`sfx/ui/notificationstack.ui`, forwards those preferences into
+`RepositionBottomRight` and keeps the Tab-escapes-to-document focus behaviour; and
+the stack `.ui` stays a non-dialog `GtkBox` top level with the Material 9px rhythm
+and every welded widget id. `governed_surfaces` enumerates the ledger rows whose
+Material rendering rides this channel, and the checker re-validates that any such
+row credited `rewritten-material` cross-references this contract by name. The card
+anatomy inside the overlay is credited separately by the
+`sfx2/uiconfig/ui/notificationcard.ui` row and is not re-counted here. 26 mutation
+tests; `runtime_verified: false`.
 
 ### Command overflow (WIN-SHL-002)
 

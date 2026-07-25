@@ -12,7 +12,6 @@
   </object>
   <object class="GtkDialog" id="TSAURLDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="tsaurldialog|TSAURLDialog">Time Stamping Authority URLs</property>
     <property name="modal">True</property>
     <property name="default-width">0</property>
@@ -130,6 +129,7 @@
                 <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkLabel" id="label2">
+                    <property name="ellipsize">end</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="margin-bottom">6</property>
@@ -189,6 +189,12 @@
                 <child>
                   <!-- n-columns=3 n-rows=1 -->
                   <object class="GtkGrid" id="grid2">
+                    <property name="row-spacing">12</property>
+                    <property name="column-spacing">12</property>
+                    <property name="margin-start">12</property>
+                    <property name="margin-end">12</property>
+                    <property name="margin-top">12</property>
+                    <property name="margin-bottom">12</property>
                     <property name="can-focus">False</property>
                     <property name="no-show-all">True</property>
                     <child>

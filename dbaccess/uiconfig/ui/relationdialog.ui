@@ -4,7 +4,6 @@
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="RelationDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="relationdialog|RelationDialog">Relations</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
@@ -128,6 +127,7 @@
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes" context="relationdialog|label1">Tables Involved</property>
                     <property name="ellipsize">end</property>
+                    <property name="mnemonic-widget">table1</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>
                     </attributes>

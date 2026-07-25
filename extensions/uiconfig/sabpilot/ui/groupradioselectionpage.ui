@@ -154,8 +154,8 @@
             <property name="can_focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <property name="row_spacing">6</property>
-            <property name="column_spacing">12</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <property name="margin-start">12</property>
             <property name="margin-top">6</property>
             <child>
@@ -205,7 +205,7 @@
                 <property name="halign">start</property>
                 <property name="label" translatable="yes" context="groupradioselectionpage|label3">_Option fields</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">radiobuttons</property>
+                <property name="mnemonic-widget">radiobuttons</property>
                 <property name="ellipsize">end</property>
                 <property name="xalign">0</property>
                 <property name="yalign">0</property>
@@ -276,7 +276,7 @@
                 <property name="label" translatable="yes" context="groupradioselectionpage|label1">Which _names do you want to give the option fields?</property>
                 <property name="use_underline">True</property>
                 <property name="wrap">True</property>
-                <property name="mnemonic_widget">radiolabels</property>
+                <property name="mnemonic-widget">radiolabels</property>
                 <property name="width_chars">35</property>
                 <property name="max_width_chars">35</property>
                 <property name="xalign">0</property>

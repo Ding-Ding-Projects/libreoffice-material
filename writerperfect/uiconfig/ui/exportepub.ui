@@ -5,7 +5,6 @@
   <object class="GtkDialog" id="EpubDialog">
     <property name="can-focus">False</property>
     <property name="hexpand">True</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="exportepub|EpubDialog">EPUB Export</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>

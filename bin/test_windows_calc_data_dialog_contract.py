@@ -69,7 +69,7 @@ class CalcDataDialogContractTest(unittest.TestCase):
 
     def test_action_widget_removed_fails(self) -> None:
         source = self.contents[SORT_UI].replace(
-            '<action-widget response="101">reset</action-widget>', "", 1
+            '<action-widget response="-6">cancel</action-widget>', "", 1
         )
         self.assert_changed(SORT_UI, source)
         errors = self.failures(contents=self.with_content(SORT_UI, source))

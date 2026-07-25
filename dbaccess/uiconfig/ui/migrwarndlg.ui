@@ -75,8 +75,8 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-5">yes</action-widget>
       <action-widget response="-6">no</action-widget>
+      <action-widget response="-5">yes</action-widget>
     </action-widgets>
   </object>
 </interface>

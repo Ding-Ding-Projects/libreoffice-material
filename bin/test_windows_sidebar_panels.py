@@ -42,8 +42,18 @@ class SidebarPanelsTest(unittest.TestCase):
             cls.registry["deck_title_source"],
             cls.registry["controller_source"],
         ]
+        channel = cls.registry["panel_channel"]
+        # The panel channel adds the framework paint path plus one host per
+        # governed .ui surface; they are copied into the sandbox too so a channel
+        # mutation can be exercised the same fail-closed way.
+        cls.channel_files = [channel["panel_layout_source"], channel["panel_title_source"]]
+        for entry in channel["governed_surfaces"]:
+            if entry["host"] not in cls.channel_files:
+                cls.channel_files.append(entry["host"])
+        cls.governed_ui = [entry["ui"] for entry in channel["governed_surfaces"]]
         cls.originals = {
-            rel: (REPOSITORY / rel).read_text(encoding="utf-8") for rel in cls.tracked_files
+            rel: (REPOSITORY / rel).read_text(encoding="utf-8")
+            for rel in cls.tracked_files + cls.channel_files
         }
 
     # -- scaffolding ------------------------------------------------------------------------------
@@ -57,10 +67,15 @@ class SidebarPanelsTest(unittest.TestCase):
         registry_data = registry if registry is not None else self.registry
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            for rel in self.tracked_files:
+            for rel in self.tracked_files + self.channel_files:
                 target = root / rel
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(files.get(rel, self.originals[rel]), encoding="utf-8")
+            for rel in self.governed_ui:
+                target = root / rel
+                target.parent.mkdir(parents=True, exist_ok=True)
+                if not target.exists():
+                    target.write_text(files.get(rel, "<interface/>\n"), encoding="utf-8")
             registry_path = root / "registry.json"
             registry_path.write_text(json.dumps(registry_data), encoding="utf-8")
             VALIDATOR.validate(root, registry_path)
@@ -272,6 +287,96 @@ class SidebarPanelsTest(unittest.TestCase):
         registry = self.registry_copy()
         registry["states"][0]["fill"] = "tertiary-container"
         self.assert_fails("no deck colour slot provides", registry=registry)
+
+
+    # -- panel channel ----------------------------------------------------------------------------
+    def test_sandbox_contract_passes(self) -> None:
+        self.run_validate()
+
+    def test_rejects_missing_panel_channel(self) -> None:
+        registry = self.registry_copy()
+        del registry["panel_channel"]
+        self.assert_fails("registry is missing keys: panel_channel", registry=registry)
+
+    def test_rejects_missing_contract_token(self) -> None:
+        registry = self.registry_copy()
+        registry["contract"] = ""
+        self.assert_fails("registry contract token is malformed", registry=registry)
+
+    def test_rejects_panel_body_paint_removal(self) -> None:
+        registry = self.registry_copy()
+        rel = registry["panel_channel"]["panel_layout_source"]
+        marker = registry["panel_channel"]["panel_layout_marker"]
+        source = self.originals[rel].replace(marker, "// " + marker)
+        self.assert_fails(
+            "must paint the panel body from the deck surface", files={rel: source}
+        )
+
+    def test_rejects_panel_title_paint_removal(self) -> None:
+        registry = self.registry_copy()
+        rel = registry["panel_channel"]["panel_title_source"]
+        marker = registry["panel_channel"]["panel_title_marker"]
+        source = self.originals[rel].replace(marker, "TitleBar(rBuilder, Theme::Color_Highlight)")
+        self.assert_fails(
+            "must paint the panel title bar from the deck surface", files={rel: source}
+        )
+
+    def test_rejects_channel_slot_outside_deck_surface(self) -> None:
+        registry = self.registry_copy()
+        registry["panel_channel"]["panel_body_slot"] = "Color_Highlight"
+        self.assert_fails(
+            "is not one of the deck_surface fill slots", registry=registry
+        )
+
+    def test_rejects_governed_surface_whose_host_stops_loading_it(self) -> None:
+        registry = self.registry_copy()
+        entry = registry["panel_channel"]["governed_surfaces"][0]
+        source = self.originals[entry["host"]].replace(
+            f'"{entry["ui_resource"]}"', '"modules/swriter/ui/notapanel.ui"'
+        )
+        self.assert_fails(
+            f"must load the governed surface {entry['ui']}", files={entry["host"]: source}
+        )
+
+    def test_rejects_governed_surface_no_longer_deck_hosted(self) -> None:
+        registry = self.registry_copy()
+        entry = next(
+            item
+            for item in registry["panel_channel"]["governed_surfaces"]
+            if item["host_kind"] == "panel-layout"
+        )
+        source = self.originals[entry["host"]].replace("PanelLayout", "InterimItemWindow")
+        self.assert_fails(
+            f"must host {entry['ui']} as a sfx2 sidebar PanelLayout", files={entry["host"]: source}
+        )
+
+    def test_rejects_governed_surface_resource_basename_mismatch(self) -> None:
+        registry = self.registry_copy()
+        registry["panel_channel"]["governed_surfaces"][0]["ui_resource"] = "svx/ui/other.ui"
+        self.assert_fails("names a different .ui file", registry=registry)
+
+    def test_rejects_duplicate_governed_surface(self) -> None:
+        registry = self.registry_copy()
+        governed = registry["panel_channel"]["governed_surfaces"]
+        governed[1] = copy.deepcopy(governed[0])
+        self.assert_fails("duplicate governed surface", registry=registry)
+
+    def test_rejects_unknown_host_kind(self) -> None:
+        registry = self.registry_copy()
+        registry["panel_channel"]["governed_surfaces"][0]["host_kind"] = "toolbox-dropdown"
+        self.assert_fails("has an unknown host_kind", registry=registry)
+
+    def test_rejects_missing_governed_ui_file(self) -> None:
+        registry = self.registry_copy()
+        registry["panel_channel"]["governed_surfaces"].append(
+            {
+                "ui": "svx/uiconfig/ui/doesnotexist.ui",
+                "host": registry["panel_channel"]["governed_surfaces"][0]["host"],
+                "ui_resource": "svx/ui/doesnotexist.ui",
+                "host_kind": "panel-layout",
+            }
+        )
+        self.assert_fails("does not exist", registry=registry)
 
 
 if __name__ == "__main__":

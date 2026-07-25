@@ -5,6 +5,7 @@
   <object class="GtkDialog" id="ControlFontDialog">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes" context="controlfontdialog|ControlFontDialog">Character</property>
+    <property name="modal">True</property>
     <property name="type_hint">dialog</property>
     <child>
       <placeholder/>
@@ -38,8 +39,8 @@
                 <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="has_default">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -99,6 +100,12 @@
               <object class="GtkGrid">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="row-spacing">12</property>
+                <property name="column-spacing">12</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
                 <child>
                   <placeholder/>
                 </child>
@@ -132,7 +139,10 @@
               <object class="GtkLabel" id="font">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes" context="controlfontdialog|font">Font</property>
+                <property name="label" translatable="yes" context="controlfontdialog|font">_Font</property>
+                <property name="use-underline">True</property>
+                <property name="mnemonic-widget">tabcontrol</property>
+                <property name="ellipsize">end</property>
               </object>
               <packing>
                 <property name="tab_fill">False</property>
@@ -197,7 +207,6 @@
     </child>
     <action-widgets>
       <action-widget response="-11">help</action-widget>
-      <action-widget response="101">reset</action-widget>
       <action-widget response="-6">cancel</action-widget>
       <action-widget response="-5">ok</action-widget>
     </action-widgets>

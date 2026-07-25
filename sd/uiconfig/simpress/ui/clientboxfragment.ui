@@ -6,8 +6,10 @@
   <object class="GtkGrid" id="ClientboxFragment">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="row_spacing">6</property>
-    <property name="column_spacing">6</property>
+    <property name="margin-start">12</property>
+    <property name="margin-top">6</property>
+    <property name="row-spacing">6</property>
+    <property name="column-spacing">12</property>
     <child>
       <object class="GtkButton" id="button">
         <property name="label" translatable="yes" context="clientboxfragment|STR_DEAUTHORISE_CLIENT">Remove Client Authorization</property>
@@ -43,7 +45,7 @@
         <property name="can_focus">False</property>
         <property name="label" translatable="yes" context="clientboxfragment|STR_ENTER_PIN">Enter PIN:</property>
         <property name="use_underline">True</property>
-        <property name="mnemonic_widget">pin</property>
+        <property name="mnemonic-widget">pin</property>
         <property name="ellipsize">end</property>
         <property name="xalign">0</property>
       </object>

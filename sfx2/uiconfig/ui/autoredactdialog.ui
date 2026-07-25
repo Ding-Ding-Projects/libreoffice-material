@@ -208,6 +208,7 @@
                 <property name="label" translatable="yes" context="menuassignpage|contentslabel">_Redaction Targets</property>
                 <property name="use-underline">True</property>
                 <property name="ellipsize">end</property>
+                <property name="mnemonic-widget">targets</property>
                 <accessibility>
                   <relation type="label-for" target="targets"/>
                 </accessibility>

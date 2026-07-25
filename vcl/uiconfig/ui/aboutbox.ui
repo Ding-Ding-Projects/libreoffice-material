@@ -31,6 +31,8 @@
         <property name="spacing">12</property>
         <child>
           <object class="GtkLabel" id="logoreplacement">
+            <property name="ellipsize">end</property>
+            <property name="mnemonic-widget">version</property>
             <property name="can-focus">False</property>
             <property name="no-show-all">True</property>
             <property name="justify">center</property>
@@ -47,6 +49,12 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="hexpand">True</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <child>
               <object class="GtkTextView" id="version">
                 <property name="visible">True</property>
@@ -104,6 +112,12 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="hexpand">True</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <child>
               <object class="GtkLabel" id="copyright">
                 <property name="visible">True</property>

@@ -10,7 +10,7 @@
     <property name="margin-end">6</property>
     <property name="margin-top">6</property>
     <property name="margin-bottom">6</property>
-    <property name="row_spacing">6</property>
+    <property name="row-spacing">6</property>
     <child>
       <object class="GtkFrame" id="frame1">
         <property name="visible">True</property>
@@ -26,7 +26,7 @@
             <property name="can_focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <property name="row_spacing">6</property>
+            <property name="row-spacing">6</property>
             <property name="margin-start">12</property>
             <property name="margin-top">6</property>
             <child>
@@ -123,7 +123,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
-                <property name="column_spacing">12</property>
+                <property name="column-spacing">12</property>
                 <property name="margin-start">12</property>
                 <child>
                   <object class="GtkLabel" id="keynamelabel">
@@ -132,7 +132,7 @@
                     <property name="label" translatable="yes" context="copytablepage|keynamelabel">Name:</property>
                     <property name="ellipsize">end</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">keyname</property>
+                    <property name="mnemonic-widget">keyname</property>
                     <property name="xalign">1</property>
                   </object>
                   <packing>
@@ -201,7 +201,7 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="hexpand">True</property>
-        <property name="column_spacing">12</property>
+        <property name="column-spacing">12</property>
         <child>
           <object class="GtkLabel" id="label2">
             <property name="visible">True</property>
@@ -209,7 +209,7 @@
             <property name="label" translatable="yes" context="copytablepage|label2">Ta_ble name:</property>
             <property name="ellipsize">end</property>
             <property name="use_underline">True</property>
-            <property name="mnemonic_widget">name</property>
+            <property name="mnemonic-widget">name</property>
             <property name="xalign">1</property>
           </object>
           <packing>

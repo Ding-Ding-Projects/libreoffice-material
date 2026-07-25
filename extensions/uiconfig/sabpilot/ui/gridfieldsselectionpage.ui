@@ -176,8 +176,8 @@
             <property name="can_focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <property name="row_spacing">6</property>
-            <property name="column_spacing">12</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <property name="margin-start">12</property>
             <property name="margin-top">6</property>
             <child>
@@ -227,7 +227,7 @@
                 <property name="halign">start</property>
                 <property name="label" translatable="yes" context="gridfieldsselectionpage|label3">Selected fields</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">selectedfields</property>
+                <property name="mnemonic-widget">selectedfields</property>
                 <property name="ellipsize">end</property>
               </object>
               <packing>
@@ -374,7 +374,7 @@
                 <property name="halign">start</property>
                 <property name="label" translatable="yes" context="gridfieldsselectionpage|label1">Existing fields</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">existingfields</property>
+                <property name="mnemonic-widget">existingfields</property>
                 <property name="ellipsize">end</property>
               </object>
               <packing>

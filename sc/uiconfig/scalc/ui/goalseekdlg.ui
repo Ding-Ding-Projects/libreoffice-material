@@ -4,6 +4,7 @@
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="GoalSeekDialog">
     <property name="can_focus">False</property>
+    <property name="modal">True</property>
     <property name="title" translatable="yes" context="goalseekdlg|GoalSeekDialog">Goal Seek</property>
     <property name="default_width">-1</property>
     <property name="default_height">-1</property>
@@ -42,8 +43,8 @@
                 <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="has_default">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
                 <child internal-child="accessible">
@@ -94,8 +95,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
-                <property name="row_spacing">6</property>
-                <property name="column_spacing">12</property>
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <property name="margin-start">12</property>
                 <property name="margin-top">6</property>
                 <child>
@@ -104,7 +105,7 @@
                     <property name="can_focus">False</property>
                     <property name="label" translatable="yes" context="goalseekdlg|formulatext">_Formula cell:</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">formulaedit</property>
+                    <property name="mnemonic-widget">formulaedit</property>
                   </object>
                   <packing>
                     <property name="left_attach">0</property>
@@ -117,7 +118,7 @@
                     <property name="can_focus">False</property>
                     <property name="label" translatable="yes" context="goalseekdlg|label3">Target _value:</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">target</property>
+                    <property name="mnemonic-widget">target</property>
                   </object>
                   <packing>
                     <property name="left_attach">0</property>
@@ -130,7 +131,7 @@
                     <property name="can_focus">False</property>
                     <property name="label" translatable="yes" context="goalseekdlg|vartext">Variable _cell:</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">varedit</property>
+                    <property name="mnemonic-widget">varedit</property>
                   </object>
                   <packing>
                     <property name="left_attach">0</property>

@@ -52,13 +52,15 @@ Please contact your system administrator if you are unsure about the following s
                 <property name="label_xalign">0</property>
                 <property name="shadow_type">none</property>
                 <child>
-                  <object class="GtkBox" id="box2">
+                  <object class="GtkGrid" id="box2">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="orientation">vertical</property>
-                    <property name="spacing">6</property>
                     <property name="margin-start">12</property>
+                    <property name="margin-end">12</property>
                     <property name="margin-top">6</property>
+                    <property name="margin-bottom">6</property>
+                    <property name="row-spacing">6</property>
+                    <property name="column-spacing">12</property>
                     <child>
                       <object class="GtkRadioButton" id="odbc">
                         <property name="label" translatable="yes" context="dbwizmysqlintropage|odbc">Connect using ODBC (Open Database Connectivity)</property>
@@ -70,9 +72,8 @@ Please contact your system administrator if you are unsure about the following s
                         <property name="group">jdbc</property>
                       </object>
                       <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">0</property>
                       </packing>
                     </child>
                     <child>
@@ -86,9 +87,8 @@ Please contact your system administrator if you are unsure about the following s
                         <property name="draw_indicator">True</property>
                       </object>
                       <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">1</property>
                       </packing>
                     </child>
                     <child>
@@ -101,9 +101,8 @@ Please contact your system administrator if you are unsure about the following s
                         <property name="group">jdbc</property>
                       </object>
                       <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">2</property>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">2</property>
                       </packing>
                     </child>
                   </object>
@@ -113,6 +112,8 @@ Please contact your system administrator if you are unsure about the following s
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="label" translatable="yes" context="dbwizmysqlintropage|label1">How do you want to connect to your MySQL database?</property>
+                    <property name="mnemonic-widget">odbc</property>
+                    <property name="ellipsize">end</property>
                   </object>
                 </child>
               </object>

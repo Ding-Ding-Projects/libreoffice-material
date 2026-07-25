@@ -45,6 +45,9 @@ Macros may contain viruses. Disabling macros for a document is always safe. If y
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
                 <property name="use-underline">True</property>
+                <style>
+                  <class name="destructive-action"/>
+                </style>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -200,8 +203,9 @@ Macros may contain viruses. Disabling macros for a document is always safe. If y
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-6">cancel</action-widget>
       <action-widget response="-11">help</action-widget>
+      <action-widget response="-6">cancel</action-widget>
+      <action-widget response="-5">ok</action-widget>
     </action-widgets>
   </object>
 </interface>

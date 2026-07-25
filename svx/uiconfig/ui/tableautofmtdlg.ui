@@ -276,7 +276,9 @@
                   <object class="GtkLabel" id="label1">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label" translatable="yes" context="autoformattable|label1">Format</property>
+                    <property name="label" translatable="yes" context="autoformattable|label1">_Format</property>
+                    <property name="use-underline">True</property>
+                    <property name="mnemonic-widget">formatlb</property>
                     <property name="ellipsize">end</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>

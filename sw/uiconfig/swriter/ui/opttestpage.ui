@@ -175,6 +175,8 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="no">Settings Only for Testpurposes</property>
+            <property name="ellipsize">end</property>
+            <property name="mnemonic-widget">unused</property>
             <attributes>
               <attribute name="weight" value="bold"/>
             </attributes>

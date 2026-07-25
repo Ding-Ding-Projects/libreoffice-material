@@ -44,6 +44,12 @@
                 <property name="can-focus">False</property>
                 <property name="hexpand">True</property>
                 <property name="vexpand">True</property>
+                <property name="margin-start">6</property>
+                <property name="margin-end">6</property>
+                <property name="margin-top">6</property>
+                <property name="margin-bottom">6</property>
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <child>
                   <placeholder/>
                 </child>
@@ -54,6 +60,8 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes" context="helpcontrol|contents">Contents</property>
+                <property name="ellipsize">end</property>
+                <property name="mnemonic-widget">tabcontrol</property>
               </object>
               <packing>
                 <property name="tab-fill">False</property>

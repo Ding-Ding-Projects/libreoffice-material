@@ -40,7 +40,7 @@
             <property name="can_focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <property name="row_spacing">12</property>
+            <property name="row-spacing">12</property>
             <property name="margin-start">12</property>
             <property name="margin-top">6</property>
             <child>
@@ -549,6 +549,7 @@
         </child>
         <child type="label">
           <object class="GtkLabel" id="label1">
+            <property name="mnemonic-widget">addresslist</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="label" translatable="yes" context="mmaddressblockpage|label1">Insert Address Block</property>

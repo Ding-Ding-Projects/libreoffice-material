@@ -187,6 +187,8 @@
                   <object class="GtkLabel" id="label1">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
+                    <property name="ellipsize">end</property>
+                    <property name="mnemonic-widget">types</property>
                     <property name="label" translatable="yes" context="insertoleobject|label1">Object Type</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>

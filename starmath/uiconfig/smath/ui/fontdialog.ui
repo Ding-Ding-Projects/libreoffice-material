@@ -169,6 +169,8 @@
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes" context="fontdialog|formulaL">Font</property>
                     <property name="use-underline">True</property>
+                    <property name="mnemonic-widget">font</property>
+                    <property name="ellipsize">end</property>
                     <property name="xalign">0</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>

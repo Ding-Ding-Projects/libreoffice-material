@@ -24,8 +24,8 @@
                 <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="has_default">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -81,8 +81,8 @@
             <property name="margin-end">6</property>
             <property name="margin-top">6</property>
             <property name="margin-bottom">6</property>
-            <property name="row_spacing">12</property>
-            <property name="column_spacing">12</property>
+            <property name="row-spacing">12</property>
+            <property name="column-spacing">12</property>
             <child>
               <object class="GtkFrame" id="frame1">
                 <property name="visible">True</property>
@@ -453,7 +453,7 @@
                     <property name="can_focus">False</property>
                     <property name="label" translatable="yes" context="filldlg|startL">_Start value:</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">startValue</property>
+                    <property name="mnemonic-widget">startValue</property>
                     <property name="ellipsize">end</property>
                     <property name="xalign">0</property>
                   </object>
@@ -468,7 +468,7 @@
                     <property name="can_focus">False</property>
                     <property name="label" translatable="yes" context="filldlg|endL">End _value:</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">endValue</property>
+                    <property name="mnemonic-widget">endValue</property>
                     <property name="ellipsize">end</property>
                     <property name="xalign">0</property>
                   </object>
@@ -483,7 +483,7 @@
                     <property name="can_focus">False</property>
                     <property name="label" translatable="yes" context="filldlg|incrementL">In_crement:</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">increment</property>
+                    <property name="mnemonic-widget">increment</property>
                     <property name="ellipsize">end</property>
                     <property name="xalign">0</property>
                   </object>

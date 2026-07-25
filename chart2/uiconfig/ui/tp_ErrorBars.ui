@@ -231,8 +231,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="halign">start</property>
-                <property name="row_spacing">6</property>
-                <property name="column_spacing">12</property>
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <property name="margin-start">12</property>
                 <property name="margin-top">6</property>
                 <child>
@@ -388,7 +388,7 @@
                     <property name="label" translatable="yes" context="tp_ErrorBars|FT_POSITIVE">P_ositive (+)</property>
                     <property name="ellipsize">end</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">MF_POSITIVE</property>
+                    <property name="mnemonic-widget">MF_POSITIVE</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>

@@ -92,6 +92,7 @@
                 <property name="label" translatable="yes" context="addtargetdialog|label_name">Name:</property>
                 <property name="use-underline">True</property>
                 <property name="ellipsize">end</property>
+                <property name="mnemonic-widget">name</property>
                 <accessibility>
                   <relation type="label-for" target="name"/>
                 </accessibility>

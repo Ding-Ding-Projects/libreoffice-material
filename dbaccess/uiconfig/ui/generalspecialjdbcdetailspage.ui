@@ -31,8 +31,8 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="hexpand">True</property>
-            <property name="row_spacing">6</property>
-            <property name="column_spacing">12</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <property name="margin-start">12</property>
             <property name="margin-top">6</property>
             <child>
@@ -42,7 +42,7 @@
                 <property name="label" translatable="yes" context="generalspecialjdbcdetailspage|label2">_Host name:</property>
                 <property name="ellipsize">end</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">hostNameEntry</property>
+                <property name="mnemonic-widget">hostNameEntry</property>
                 <property name="xalign">1</property>
               </object>
               <packing>
@@ -57,7 +57,7 @@
                 <property name="label" translatable="yes" context="generalspecialjdbcdetailspage|label3">_Port number:</property>
                 <property name="ellipsize">end</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">portNumberSpinbutton</property>
+                <property name="mnemonic-widget">portNumberSpinbutton</property>
                 <property name="xalign">1</property>
               </object>
               <packing>
@@ -86,7 +86,7 @@
                 <property name="ellipsize">end</property>
                 <property name="xalign">1</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">socketEntry</property>
+                <property name="mnemonic-widget">socketEntry</property>
               </object>
               <packing>
                 <property name="left_attach">0</property>
@@ -100,7 +100,7 @@
                 <property name="label" translatable="yes" context="generalspecialjdbcdetailspage|driverClassLabel">MySQL JDBC d_river class:</property>
                 <property name="ellipsize">end</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">jdbcDriverClassEntry</property>
+                <property name="mnemonic-widget">jdbcDriverClassEntry</property>
                 <property name="xalign">1</property>
               </object>
               <packing>
@@ -210,7 +210,7 @@
                 <property name="label" translatable="yes" context="generalspecialjdbcdetailspage|charsetlabel">_Character set:</property>
                 <property name="ellipsize">end</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">charset</property>
+                <property name="mnemonic-widget">charset</property>
               </object>
               <packing>
                 <property name="expand">False</property>

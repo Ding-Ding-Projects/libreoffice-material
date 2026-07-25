@@ -19,7 +19,6 @@
   </object>
   <object class="GtkDialog" id="ThesaurusDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="thesaurus|ThesaurusDialog">Thesaurus</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
@@ -95,6 +94,10 @@
           <object class="GtkGrid" id="grid1">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
             <property name="row-spacing">6</property>
             <property name="column-spacing">12</property>
             <child>
@@ -102,6 +105,7 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes" context="thesaurus|label1">Current word:</property>
+                <property name="ellipsize">end</property>
                 <property name="use-underline">True</property>
                 <property name="mnemonic-widget">wordcb</property>
                 <property name="xalign">0</property>

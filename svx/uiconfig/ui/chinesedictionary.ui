@@ -28,7 +28,6 @@
   </object>
   <object class="GtkDialog" id="ChineseDictionaryDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="chinesedictionary|ChineseDictionaryDialog">Edit Dictionary</property>
     <property name="modal">True</property>
     <property name="default-width">0</property>
@@ -104,7 +103,12 @@
             <property name="can-focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
             <property name="row-spacing">12</property>
+            <property name="column-spacing">12</property>
             <child>
               <!-- n-columns=1 n-rows=3 -->
               <object class="GtkGrid" id="grid2">

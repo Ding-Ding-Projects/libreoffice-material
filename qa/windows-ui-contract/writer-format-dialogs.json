@@ -587,14 +587,9 @@
           },
           "footer": [
             {
-              "response": "101",
-              "widget": "reset",
-              "secondary": false
-            },
-            {
-              "response": "-5",
-              "widget": "ok",
-              "secondary": false
+              "response": "-11",
+              "widget": "help",
+              "secondary": true
             },
             {
               "response": "-6",
@@ -602,9 +597,9 @@
               "secondary": false
             },
             {
-              "response": "-11",
-              "widget": "help",
-              "secondary": true
+              "response": "-5",
+              "widget": "ok",
+              "secondary": false
             }
           ],
           "applies_when": "FrameDialog"

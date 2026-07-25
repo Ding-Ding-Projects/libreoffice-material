@@ -82,6 +82,7 @@
                     <property name="can-focus">False</property>
                     <property name="halign">start</property>
                     <property name="label" translatable="yes" context="optadvancedpage|label2">_Java runtime environments (JRE) already installed:</property>
+                    <property name="ellipsize">end</property>
                     <property name="use-underline">True</property>
                     <property name="mnemonic-widget">javas</property>
                   </object>

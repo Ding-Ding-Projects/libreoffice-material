@@ -136,8 +136,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
-                <property name="row_spacing">6</property>
-                <property name="column_spacing">12</property>
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <property name="margin-start">12</property>
                 <property name="margin-top">6</property>
                 <child>
@@ -148,7 +148,7 @@
                     <property name="label" translatable="yes" context="typeselectpage|autolabel">Lines (ma_x.):</property>
                     <property name="ellipsize">end</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">auto</property>
+                    <property name="mnemonic-widget">auto</property>
                     <property name="xalign">0</property>
                   </object>
                   <packing>

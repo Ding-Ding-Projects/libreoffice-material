@@ -56,7 +56,7 @@
                 <property name="label" translatable="yes" context="tp_RangeChooser|FT_RANGE">_Data range:</property>
                 <property name="ellipsize">end</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">ED_RANGE</property>
+                <property name="mnemonic-widget">ED_RANGE</property>
                 <property name="xalign">0</property>
               </object>
               <packing>

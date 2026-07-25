@@ -156,12 +156,16 @@
     "source_file": "uui/source/secmacrowarnings.cxx",
     "footer": [
       {
+        "response": "-11",
+        "widget": "help"
+      },
+      {
         "response": "-6",
         "widget": "cancel"
       },
       {
-        "response": "-11",
-        "widget": "help"
+        "response": "-5",
+        "widget": "ok"
       }
     ],
     "safe_button": {

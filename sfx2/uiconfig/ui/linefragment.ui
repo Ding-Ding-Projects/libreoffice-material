@@ -21,6 +21,10 @@
     <property name="hexpand">True</property>
     <property name="vexpand">True</property>
     <property name="column-spacing">4</property>
+    <property name="margin-start">6</property>
+    <property name="margin-end">6</property>
+    <property name="margin-top">3</property>
+    <property name="margin-bottom">3</property>
     <child>
       <object class="GtkComboBoxText" id="namebox">
         <property name="visible">True</property>

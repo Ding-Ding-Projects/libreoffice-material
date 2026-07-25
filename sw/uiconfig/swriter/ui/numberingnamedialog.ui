@@ -168,6 +168,8 @@
             </child>
             <child type="label">
               <object class="GtkLabel" id="label1">
+                <property name="mnemonic-widget">form</property>
+                <property name="use-underline">True</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes" context="numberingnamedialog|label1">Format</property>

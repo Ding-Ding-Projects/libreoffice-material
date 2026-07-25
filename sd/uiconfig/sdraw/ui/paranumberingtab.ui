@@ -79,6 +79,7 @@
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="label" translatable="yes" context="paranumberingtab|label1">Paragraph Numbering</property>
+        <property name="mnemonic-widget">checkbuttonCB_NEW_START</property>
         <property name="ellipsize">end</property>
         <attributes>
           <attribute name="weight" value="bold"/>

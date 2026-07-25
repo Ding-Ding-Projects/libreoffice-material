@@ -191,8 +191,8 @@ class TemplateManagerContractTest(unittest.TestCase):
     def test_action_widget_reorder_fails(self) -> None:
         source = self.contents[TEMPLATEDLG].replace(
             '      <action-widget response="-11">help</action-widget>\n'
-            '      <action-widget response="-5">ok</action-widget>\n',
-            '      <action-widget response="-5">ok</action-widget>\n'
+            '      <action-widget response="-7">close</action-widget>\n',
+            '      <action-widget response="-7">close</action-widget>\n'
             '      <action-widget response="-11">help</action-widget>\n',
             1,
         )

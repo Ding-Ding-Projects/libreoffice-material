@@ -52,8 +52,8 @@
                 <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="has_default">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -151,7 +151,7 @@
                     <property name="halign">start</property>
                     <property name="label" translatable="yes" context="parametersdialog|label2">_Value:</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">paramEntry</property>
+                    <property name="mnemonic-widget">paramEntry</property>
                     <property name="ellipsize">end</property>
                   </object>
                   <packing>
@@ -161,11 +161,14 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkBox" id="box2">
+                  <object class="GtkGrid" id="box2">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="hexpand">True</property>
-                    <property name="spacing">12</property>
+                    <property name="margin-start">12</property>
+                    <property name="margin-top">6</property>
+                    <property name="row-spacing">6</property>
+                    <property name="column-spacing">12</property>
                     <child>
                       <object class="GtkEntry" id="paramEntry">
                         <property name="visible">True</property>
@@ -175,9 +178,8 @@
                         <property name="activates_default">True</property>
                       </object>
                       <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">0</property>
                       </packing>
                     </child>
                     <child>
@@ -190,9 +192,8 @@
                         <property name="use_underline">True</property>
                       </object>
                       <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">0</property>
                       </packing>
                     </child>
                   </object>

@@ -108,6 +108,8 @@ def load_registry(registry_path: Path) -> dict:
         "nwf_fields",
         "code_markers",
         "context_menu",
+        "contract",
+        "governed_surfaces",
     ):
         if key not in data:
             raise ValidationError(f"registry is missing required key {key!r}")
@@ -130,6 +132,9 @@ def load_registry(registry_path: Path) -> dict:
         if marker["id"] in seen:
             raise ValidationError(f"duplicate code_marker id: {marker['id']}")
         seen.add(marker["id"])
+
+    if not isinstance(data["contract"], str) or not data["contract"].strip():
+        raise ValidationError("registry contract must be a non-empty string")
     return data
 
 
@@ -373,12 +378,107 @@ def validate_context_menu(repo_root: Path, data: dict) -> None:
     validate_code_markers(repo_root, section["code_markers"])
 
 
+def validate_governed_surfaces(repo_root: Path, data: dict) -> None:
+    """Validate the ledger cross-reference registry of .ui menu surfaces this contract owns.
+
+    A menu ``.ui`` carries no Material fingerprint of its own: ``VclBuilder`` turns its top-level
+    ``GtkMenu`` into a vcl ``PopupMenu`` (``VclBuilder::insertMenuObject`` /
+    ``SalInstanceBuilder::weld_menu``), and every pixel of band/row geometry, radius, elevation,
+    hover and indicator anatomy then comes from the ``settings -> NWF -> Menu::ImplCalcSize``
+    channel and the ``menupopup`` parts/states pinned above. That is exactly why the ledger routes
+    the ``menu`` family here by cross-reference instead of crediting static .ui markup.
+
+    Each listed entry must therefore still be a *pure* menu definition: it must exist, parse, have a
+    top-level ``GtkMenu`` object, and contain no widget class outside ``allowed_classes``. A file
+    that grew a non-menu widget no longer rides this channel and fails closed here rather than
+    keeping a stale ledger credit."""
+
+    section = data["governed_surfaces"]
+    if not isinstance(section, dict):
+        raise ValidationError("registry governed_surfaces must be an object")
+    for key in ("ledger_family", "ledger", "root_class"):
+        value = section.get(key)
+        if not isinstance(value, str) or not value.strip():
+            raise ValidationError(f"governed_surfaces.{key} must be a non-empty string")
+    allowed = section.get("allowed_classes")
+    if not isinstance(allowed, list) or not allowed or not all(
+        isinstance(item, str) and item.strip() for item in allowed
+    ):
+        raise ValidationError(
+            "governed_surfaces.allowed_classes must be a non-empty array of strings"
+        )
+    if section["root_class"] not in allowed:
+        raise ValidationError(
+            f"governed_surfaces.root_class {section['root_class']!r} must be an allowed class"
+        )
+    entries = section.get("entries")
+    if not isinstance(entries, list) or not entries or not all(
+        isinstance(item, str) and item.strip() for item in entries
+    ):
+        raise ValidationError("governed_surfaces.entries must be a non-empty array of strings")
+    if len(set(entries)) != len(entries):
+        raise ValidationError("governed_surfaces.entries contains a duplicate surface")
+    if entries != sorted(entries):
+        raise ValidationError("governed_surfaces.entries must be sorted")
+
+    ledger_path = repo_root / section["ledger"]
+    ledger_family = section["ledger_family"]
+    if ledger_path.is_file():
+        try:
+            ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            raise ValidationError(f"cannot parse ledger {section['ledger']}: {error}") from error
+        family_rows = sorted(
+            row.get("surface")
+            for row in ledger.get("surfaces", [])
+            if isinstance(row, dict) and row.get("family") == ledger_family
+        )
+        if family_rows and family_rows != sorted(entries):
+            missing = sorted(set(family_rows) - set(entries))
+            extra = sorted(set(entries) - set(family_rows))
+            raise ValidationError(
+                "governed_surfaces.entries does not enumerate the ledger "
+                f"{ledger_family!r} family (missing: {missing}; unknown: {extra})"
+            )
+
+    for rel in entries:
+        path = repo_root / rel
+        if not path.is_file():
+            raise ValidationError(f"governed surface {rel} does not exist")
+        try:
+            root = ET.parse(path).getroot()
+        except (ET.ParseError, OSError) as error:
+            raise ValidationError(f"cannot parse governed surface {rel}: {error}") from error
+        if _tag(root.tag) != "interface":
+            raise ValidationError(
+                f"governed surface {rel} root element must be <interface>, "
+                f"got <{_tag(root.tag)}>"
+            )
+        top_classes = [
+            child.get("class") for child in root if _tag(child.tag) == "object"
+        ]
+        if section["root_class"] not in top_classes:
+            raise ValidationError(
+                f"governed surface {rel} declares no top-level "
+                f"<object class=\"{section['root_class']}\"> so it does not ride the "
+                "PopupMenu composition channel"
+            )
+        for element in root.iter("object"):
+            klass = element.get("class")
+            if klass not in allowed:
+                raise ValidationError(
+                    f"governed surface {rel} carries non-menu widget class {klass!r}; it no "
+                    "longer rides the menu composition channel"
+                )
+
+
 def validate(repo_root: Path, registry_path: Path) -> dict:
     data = load_registry(registry_path)
     validate_definition(repo_root, data)
     validate_nwf_fields(repo_root, data["nwf_fields"])
     validate_code_markers(repo_root, data["code_markers"])
     validate_context_menu(repo_root, data)
+    validate_governed_surfaces(repo_root, data)
     return data
 
 
@@ -409,7 +509,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"state, {len(data['code_markers'])} real code markers carry them through the "
         "settings -> NWF -> ImplCalcSize layout channel, and "
         f"{len(data['context_menu']['code_markers'])} context-menu markers pin the design-05 "
-        "§2 keyboard-first-highlight / edge-flip / RTL / focus-return delta."
+        "§2 keyboard-first-highlight / edge-flip / RTL / focus-return delta, and "
+        f"{len(data['governed_surfaces']['entries'])} governed .ui menu surfaces are pure "
+        "GtkMenu definitions riding that channel."
     )
     return 0
 

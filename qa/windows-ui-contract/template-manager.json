@@ -156,8 +156,8 @@
       "ui_file": "sfx2/uiconfig/ui/templatedlg.ui",
       "action_widgets": [
         { "id": "help", "response": -11 },
-        { "id": "ok", "response": -5 },
-        { "id": "close", "response": -7 }
+        { "id": "close", "response": -7 },
+        { "id": "ok", "response": -5 }
       ],
       "primary": "ok",
       "primary_label": {
@@ -180,8 +180,8 @@
       "ui_file": "sfx2/uiconfig/ui/saveastemplatedlg.ui",
       "action_widgets": [
         { "id": "help", "response": -11 },
-        { "id": "ok", "response": -5 },
-        { "id": "cancel", "response": -6 }
+        { "id": "cancel", "response": -6 },
+        { "id": "ok", "response": -5 }
       ],
       "primary": "ok",
       "primary_label": {
@@ -199,8 +199,8 @@
       "ui_file": "sfx2/uiconfig/ui/templatecategorydlg.ui",
       "action_widgets": [
         { "id": "help", "response": -11 },
-        { "id": "ok", "response": -5 },
-        { "id": "cancel", "response": -6 }
+        { "id": "cancel", "response": -6 },
+        { "id": "ok", "response": -5 }
       ],
       "primary": "ok",
       "required_widgets": [

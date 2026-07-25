@@ -54,6 +54,7 @@
                 <property name="hexpand">True</property>
                 <property name="xalign">0</property>
                 <property name="ellipsize">end</property>
+                <property name="mnemonic-widget">details_button</property>
                 <attributes>
                   <attribute name="weight" value="bold"/>
                 </attributes>

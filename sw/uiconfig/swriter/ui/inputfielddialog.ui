@@ -24,7 +24,7 @@
               <object class="GtkGrid" id="grid2">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="column_spacing">6</property>
+                <property name="column-spacing">6</property>
                 <property name="column_homogeneous">True</property>
                 <child>
                   <object class="GtkButton" id="prev">
@@ -70,8 +70,8 @@
                 <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="has_default">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -129,8 +129,8 @@
             <property name="margin-end">6</property>
             <property name="margin-top">6</property>
             <property name="margin-bottom">6</property>
-            <property name="row_spacing">6</property>
-            <property name="column_spacing">6</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">6</property>
             <child>
               <object class="GtkLabel" id="inputfieldname">
                 <property name="visible">True</property>
@@ -138,7 +138,7 @@
                 <property name="halign">start</property>
                 <property name="label" translatable="yes" context="inputfielddialog|inputfieldname">Reference:</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">name</property>
+                <property name="mnemonic-widget">name</property>
                 <property name="ellipsize">end</property>
               </object>
               <packing>

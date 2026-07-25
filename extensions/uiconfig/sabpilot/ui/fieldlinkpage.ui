@@ -2,7 +2,7 @@
 <!-- Generated with glade 3.22.1 -->
 <interface domain="pcr">
   <requires lib="gtk+" version="3.24"/>
-  <object class="GtkBox" id="FieldLinkPage">
+  <object class="GtkGrid" id="FieldLinkPage">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="hexpand">True</property>
@@ -11,8 +11,8 @@
     <property name="margin-end">12</property>
     <property name="margin-top">12</property>
     <property name="margin-bottom">12</property>
-    <property name="orientation">vertical</property>
-    <property name="spacing">12</property>
+    <property name="row-spacing">12</property>
+    <property name="column-spacing">12</property>
     <child>
       <object class="GtkLabel" id="desc">
         <property name="visible">True</property>
@@ -30,9 +30,8 @@
         </child>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">0</property>
+        <property name="left-attach">0</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
@@ -57,7 +56,7 @@
                 <property name="halign">start</property>
                 <property name="label" translatable="yes" context="fieldlinkpage|label2">Field from the _Value Table</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">valuefield</property>
+                <property name="mnemonic-widget">valuefield</property>
                 <property name="ellipsize">end</property>
               </object>
               <packing>
@@ -108,7 +107,7 @@
                 <property name="halign">start</property>
                 <property name="label" translatable="yes" context="fieldlinkpage|label3">Field from the _List Table</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">listtable</property>
+                <property name="mnemonic-widget">listtable</property>
                 <property name="ellipsize">end</property>
               </object>
               <packing>
@@ -146,9 +145,8 @@
         </child>
       </object>
       <packing>
-        <property name="expand">True</property>
-        <property name="fill">True</property>
-        <property name="position">1</property>
+        <property name="left-attach">0</property>
+        <property name="top-attach">1</property>
       </packing>
     </child>
   </object>

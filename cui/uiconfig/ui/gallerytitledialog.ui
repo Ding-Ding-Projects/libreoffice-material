@@ -4,7 +4,7 @@
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="GalleryTitleDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
+    <property name="border-width">0</property>
     <property name="title" translatable="yes" context="gallerytitledialog|GalleryTitleDialog">Enter Title</property>
     <property name="modal">True</property>
     <property name="default-width">0</property>
@@ -74,24 +74,29 @@
           </packing>
         </child>
         <child>
-          <object class="GtkBox" id="box1">
+          <object class="GtkGrid" id="box1">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="valign">start</property>
             <property name="hexpand">True</property>
-            <property name="spacing">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+            <property name="row-spacing">12</property>
+            <property name="column-spacing">12</property>
             <child>
               <object class="GtkLabel" id="label2">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
+                <property name="ellipsize">end</property>
                 <property name="label" translatable="yes" context="gallerytitledialog|label2">Title:</property>
                 <property name="use-underline">True</property>
                 <property name="mnemonic-widget">entry</property>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
               </packing>
             </child>
             <child>
@@ -104,9 +109,8 @@
                 <property name="truncate-multiline">True</property>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="left-attach">1</property>
+                <property name="top-attach">0</property>
               </packing>
             </child>
           </object>

@@ -32,7 +32,7 @@
             <property name="label" translatable="yes" context="mysqlnativesettings|dbnamelabel">_Database name:</property>
             <property name="ellipsize">end</property>
             <property name="use_underline">True</property>
-            <property name="mnemonic_widget">dbname</property>
+            <property name="mnemonic-widget">dbname</property>
             <property name="xalign">0</property>
           </object>
           <packing>
@@ -68,7 +68,7 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="hexpand">True</property>
-        <property name="row_spacing">6</property>
+        <property name="row-spacing">6</property>
         <child>
           <object class="GtkRadioButton" id="hostport">
             <property name="label" translatable="yes" context="mysqlnativesettings|hostport">Se_rver/port</property>
@@ -90,8 +90,8 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="hexpand">True</property>
-            <property name="row_spacing">6</property>
-            <property name="column_spacing">12</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <property name="margin-start">12</property>
             <child>
               <object class="GtkLabel" id="serverlabel">
@@ -100,7 +100,7 @@
                 <property name="label" translatable="yes" context="mysqlnativesettings|serverlabel">_Server:</property>
                 <property name="ellipsize">end</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">server</property>
+                <property name="mnemonic-widget">server</property>
                 <property name="xalign">1</property>
               </object>
               <packing>
@@ -115,7 +115,7 @@
                 <property name="label" translatable="yes" context="mysqlnativesettings|portlabel">_Port:</property>
                 <property name="ellipsize">end</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">port</property>
+                <property name="mnemonic-widget">port</property>
                 <property name="xalign">1</property>
               </object>
               <packing>
@@ -184,8 +184,8 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="hexpand">True</property>
-        <property name="row_spacing">6</property>
-        <property name="column_spacing">12</property>
+        <property name="row-spacing">6</property>
+        <property name="column-spacing">12</property>
         <child>
           <object class="GtkRadioButton" id="socketlabel">
             <property name="label" translatable="yes" context="mysqlnativesettings|socketlabel">So_cket:</property>
@@ -227,8 +227,8 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="hexpand">True</property>
-        <property name="row_spacing">6</property>
-        <property name="column_spacing">12</property>
+        <property name="row-spacing">6</property>
+        <property name="column-spacing">12</property>
         <child>
           <object class="GtkRadioButton" id="namedpipelabel">
             <property name="label" translatable="yes" context="mysqlnativesettings|namedpipelabel">Named p_ipe:</property>

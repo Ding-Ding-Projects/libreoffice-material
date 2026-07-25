@@ -30,6 +30,7 @@
         <property name="spacing">12</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="dialog-action_area1">
+            <property name="spacing">12</property>
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
             <child>
@@ -37,8 +38,8 @@
                 <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="has_default">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -88,21 +89,23 @@
         <child>
           <!-- n-columns=1 n-rows=1 -->
           <object class="GtkGrid" id="grid1">
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="margin-start">6</property>
             <property name="margin-end">6</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <property name="row_spacing">6</property>
-            <property name="column_spacing">12</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <child>
               <object class="GtkLabel" id="label1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes" context="previewzoomdialog|label1">_Rows</property>
-                <property name="use_underline">True</property>
-                <property name="mnemonic_widget">rows</property>
+                <property name="use-underline">True</property>
+                <property name="mnemonic-widget">rows</property>
                 <property name="ellipsize">end</property>
                 <property name="xalign">0</property>
               </object>
@@ -116,8 +119,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes" context="previewzoomdialog|label2">_Columns</property>
-                <property name="use_underline">True</property>
-                <property name="mnemonic_widget">cols</property>
+                <property name="use-underline">True</property>
+                <property name="mnemonic-widget">cols</property>
                 <property name="ellipsize">end</property>
                 <property name="xalign">0</property>
               </object>

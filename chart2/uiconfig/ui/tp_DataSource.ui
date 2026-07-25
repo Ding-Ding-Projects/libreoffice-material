@@ -52,7 +52,7 @@
     <property name="margin-end">6</property>
     <property name="margin-top">6</property>
     <property name="margin-bottom">6</property>
-    <property name="column_spacing">6</property>
+    <property name="column-spacing">6</property>
     <child>
       <!-- n-columns=1 n-rows=1 -->
       <object class="GtkGrid" id="box1">
@@ -76,7 +76,7 @@
                 <property name="label" translatable="yes" context="tp_DataSource|FT_SERIES">Data _series:</property>
                 <property name="ellipsize">end</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">LB_SERIES</property>
+                <property name="mnemonic-widget">LB_SERIES</property>
                 <property name="xalign">0</property>
               </object>
               <packing>

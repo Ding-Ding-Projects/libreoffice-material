@@ -16,6 +16,7 @@
   </object>
   <object class="GtkDialog" id="VersionsOfDialog">
     <property name="can-focus">False</property>
+    <property name="title" translatable="yes" context="versionsofdialog|VersionsOfDialog">Versions of</property>
     <property name="modal">True</property>
     <property name="type-hint">dialog</property>
     <child internal-child="vbox">
@@ -104,7 +105,6 @@
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="can-default">True</property>
-                <property name="has-default">True</property>
                 <property name="receives-default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -119,6 +119,8 @@
                 <property name="label" translatable="yes" context="versionsofdialog|open">_Open</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives-default">True</property>
                 <property name="use-underline">True</property>
                 <child internal-child="accessible">
@@ -330,6 +332,8 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes" context="versionsofdialog|label2">Existing Versions</property>
+                    <property name="ellipsize">end</property>
+                    <property name="mnemonic-widget">versions</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>
                     </attributes>
@@ -351,13 +355,9 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="104">cmis</action-widget>
-      <action-widget response="103">delete</action-widget>
-      <action-widget response="102">compare</action-widget>
-      <action-widget response="101">show</action-widget>
+      <action-widget response="-11">help</action-widget>
       <action-widget response="-7">close</action-widget>
       <action-widget response="-5">open</action-widget>
-      <action-widget response="-11">help</action-widget>
     </action-widgets>
     <child internal-child="accessible">
       <object class="AtkObject" id="VersionsOfDialog-atkobject">

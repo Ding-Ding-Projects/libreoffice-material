@@ -1,5 +1,117 @@
 # Windows-only handoff — 2026-07-21
 
+## 2026-07-24 completion wave — Material rewrite burn-down 16.06% → 73.62%
+
+Source-implemented rewrite wave over the registered `.ui` surface set plus the
+composition-code families. **No native build ran in this wave**; nothing below
+is a runtime claim.
+
+### Fresh headline (run in this session)
+
+```
+py bin/check-material-rewrite-ledger.py --evaluate   -> exit 0
+py bin/check-material-rewrite-ledger.py              -> exit 0
+
+Material rewrite burn-down: 73.62% rewritten-material (935/1270) | in-progress 0 | pending 335
+  family dialog            331/ 521 rewritten (in-progress 0, pending 190)
+  family message-dialog     75/  76 rewritten (in-progress 0, pending 1)
+  family options-page       40/  40 rewritten (in-progress 0, pending 0)
+  family panel-fragment    315/ 451 rewritten (in-progress 0, pending 136)
+  family menu               70/  70 rewritten (in-progress 0, pending 0)
+  family popover            47/  47 rewritten (in-progress 0, pending 0)
+  family sidebar-panel      52/  54 rewritten (in-progress 0, pending 2)
+  family wizard-assistant    0/   1 rewritten (in-progress 0, pending 1)
+  family native-shell        5/  10 rewritten (in-progress 0, pending 5)
+```
+
+The seven `WARN wave budget:` lines the checker prints (dialog 298/24,
+panel-fragment 211/24, message-dialog 44/16, menu 70/30, popover 36/20,
+options-page 19/12, sidebar-panel 52/8) are capture-batch advisories, not
+failures: both invocations exit 0. The ledger was regenerated only through
+`bin/check-material-rewrite-ledger.py --evaluate`; it was never hand-edited.
+
+### What landed, per family (delta against the previous tip)
+
+| family | flipped pending → rewritten-material | now | basis |
+| --- | --- | --- | --- |
+| dialog | 298 | 331/521 | static dialog anatomy: footer order/spacing, primary-default, content grid, ellipsize, mnemonics, modal titles |
+| panel-fragment | 211 | 315/451 | Material content-grid + label/mnemonic anatomy inside the fragment's own grid |
+| message-dialog | 44 | 75/76 | message-type + action-order anatomy |
+| sidebar-panel | 52 | 52/54 | sidebar-panel contract anatomy |
+| menu | 70 | 70/70 | composition-code evidence only, cross-referenced to `qa/windows-ui-contract/menu-composition.json` marker `material-menu-composition` |
+| popover | 36 | 47/47 | popover anatomy |
+| options-page | 19 | 40/40 | options-page anatomy |
+| native-shell | 1 | 5/10 | new notification-overlay composition contract |
+| wizard-assistant | 0 | 0/1 | untouched |
+
+New contract surface added by the wave:
+`qa/windows-ui-contract/notification-overlay-composition.json` with
+`bin/check-notification-overlay-contract.py` and
+`bin/test_notification_overlay_contract.py`, documented in
+`qa/windows-ui-contract/README.md`.
+
+### Gate result
+
+157 scripts (77 Material `bin/check-*.py`, `bin/check_search_field_coverage.py`,
+78 `bin/test_*.py`, `node bin/validate-prototype.mjs`) — first pass 156 pass /
+1 fail, final pass **157/157 PASS, 0 FAIL**.
+
+The single failure was `bin/test_material_rewrite_ledger.py::
+test_production_credits_no_menu` (`AssertionError: 70 != 0`), a stale invariant
+from `317f01660` predating the `COMPOSITION_CODE` evidence path. `menu` is now
+a composition-cross-referenced family: the production checker returns prior
+status for composition families and `_validate_composition_marker` verifies each
+credited row names an existing owning contract whose marker token is still
+present. That assertion was replaced with
+`test_production_menu_credit_is_composition_cross_referenced`, which enforces
+`evidence_kind == COMPOSITION_CODE`, a non-empty `contract_marker`, an existing
+named contract file, and the marker token still present in it. The guards that
+keep *static* menu credit impossible (`test_menu_family_is_composition_code`,
+`test_stock_menu_evaluates_pending`) are untouched, and
+`bin/check-material-rewrite-ledger.py` was not edited or weakened.
+
+**CRLF incidents: 0.** No file in the wave was flipped to CRLF; every touched
+file is LF (CR count 0).
+
+### Remaining 335 pendings, with reasons
+
+All 335 were probed and every sanctioned mechanical prong (`footer-order`,
+`footer-spacing`, `primary-default`, `border-width`, `content-grid`,
+`ellipsize`, `mnemonic` including the extended atk `label-for` /
+sole-non-label-sibling fallback, and modal-only `title-modal`) was applied and
+re-probed. **Not one additional surface reached PASS** — each residual failure
+is structural/semantic, not a missed prong or a malformed edit. Every trial edit
+was reverted byte-exact, so no extra `.ui` content change landed.
+
+| n | family | blocker |
+| --- | --- | --- |
+| ~101 | panel-fragment | no `GtkGrid` anywhere — the fragment is a bare `GtkBox`/single-control shell; passing would require inventing a wrapper grid |
+| remainder | dialog / panel-fragment | structural anatomy the mechanical prongs cannot synthesize (missing footer, no action area, non-grid content, generated/derived layouts) |
+| 5 | native-shell | needs native composition contracts that do not exist yet |
+| 2 | sidebar-panel | contract-shape mismatch |
+| 1 | message-dialog | non-standard message root |
+| 1 | wizard-assistant | no wizard composition contract yet |
+
+Closing these needs real rewrites (new Material composition contracts or
+hand-authored grid/footer anatomy), not another prong sweep.
+
+### Honesty boundary for this wave
+
+- **Source-implemented only.** Every credit is static `.ui` anatomy or
+  script-stamped composition-code cross-reference. Nothing here is a rendered,
+  captured, or interacted-with surface.
+- **No native build ran.** No MSI was produced or installed in this wave; the
+  last shipped evidence build remains the msi-95 campaign above.
+- **`runtime_verified` stays `false`** for every row the wave touched.
+- **Inventory gates `B V I A L P C` are untouched.** Only `M`/`D` basis prose
+  was updated, and only for the four rows whose entire ledger surface set became
+  `rewritten-material` (`WIN-CA-002`, `WIN-IM-003`, `WIN-NAV-002`,
+  `WIN-SYS-004`). No gate symbol was flipped.
+- **CI-green is not UI-verified.** 157/157 local scripts and any green workflow
+  prove source contracts hold; they prove nothing about pixels, focus order,
+  contrast, or interaction on Windows. Those still require a shipped build plus
+  the headless capture harness.
+
 ## 2026-07-24 session handoff — msi-95 evidence campaign + clipping fixes
 
 **Tip at handoff:** `f3c0aa2e2` on `main`, pushed; working tree clean; no other

@@ -22,7 +22,7 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="halign">start</property>
-        <property name="margin_bottom">6</property>
+        <property name="margin-bottom">6</property>
         <property name="label" translatable="yes" context="ldapconnectionpage|header">Set Up a Connection to an LDAP Directory</property>
         <property name="ellipsize">end</property>
         <attributes>
@@ -58,8 +58,10 @@
         <property name="can_focus">False</property>
         <property name="hexpand">True</property>
         <property name="vexpand">True</property>
-        <property name="row_spacing">6</property>
-        <property name="column_spacing">12</property>
+        <property name="row-spacing">6</property>
+        <property name="column-spacing">12</property>
+        <property name="margin-start">12</property>
+        <property name="margin-top">6</property>
         <child>
           <object class="GtkLabel" id="hostNameLabel">
             <property name="visible">True</property>
@@ -67,7 +69,7 @@
             <property name="label" translatable="yes" context="ldapconnectionpage|hostNameLabel">_Server:</property>
             <property name="ellipsize">end</property>
             <property name="use_underline">True</property>
-            <property name="mnemonic_widget">hostNameEntry</property>
+            <property name="mnemonic-widget">hostNameEntry</property>
             <property name="xalign">1</property>
           </object>
           <packing>
@@ -82,7 +84,7 @@
             <property name="label" translatable="yes" context="ldapconnectionpage|portNumLabel">_Port number:</property>
             <property name="ellipsize">end</property>
             <property name="use_underline">True</property>
-            <property name="mnemonic_widget">portNumEntry</property>
+            <property name="mnemonic-widget">portNumEntry</property>
             <property name="xalign">1</property>
           </object>
           <packing>
@@ -149,7 +151,7 @@
             <property name="label" translatable="yes" context="ldapconnectionpage|baseDNLabel">Base _DN:</property>
             <property name="ellipsize">end</property>
             <property name="use_underline">True</property>
-            <property name="mnemonic_widget">baseDNEntry</property>
+            <property name="mnemonic-widget">baseDNEntry</property>
             <property name="xalign">1</property>
           </object>
           <packing>

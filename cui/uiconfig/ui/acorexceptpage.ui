@@ -200,6 +200,8 @@
         </child>
         <child type="label">
           <object class="GtkLabel" id="label1">
+            <property name="mnemonic-widget">abbrevlist</property>
+            <property name="ellipsize">end</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="acorexceptpage|label1">Abbreviations (no Subsequent Capital)</property>

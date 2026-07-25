@@ -20,7 +20,6 @@
     <property name="can-focus">False</property>
     <property name="hexpand">True</property>
     <property name="vexpand">True</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="updatedialog|UpdateDialog">Extension Update</property>
     <property name="modal">True</property>
     <property name="default-width">0</property>
@@ -97,7 +96,12 @@
             <property name="can-focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
             <property name="row-spacing">12</property>
+            <property name="column-spacing">12</property>
             <child>
               <object class="GtkBox" id="box2">
                 <property name="visible">True</property>
@@ -377,8 +381,8 @@
     </child>
     <action-widgets>
       <action-widget response="-11">help</action-widget>
-      <action-widget response="-5">ok</action-widget>
       <action-widget response="-7">close</action-widget>
+      <action-widget response="-5">ok</action-widget>
     </action-widgets>
     <child internal-child="accessible">
       <object class="AtkObject" id="UpdateDialog-atkobject">

@@ -23,6 +23,21 @@ administratively extracted MSI payload with per-image SHA-256 in
 [`docs/screenshots/genuine/PROVENANCE.json`](docs/screenshots/genuine/PROVENANCE.json).
 This is visual evidence only — it does not by itself mark any phase verified.
 
+**2026-07-24 milestone — Material rewrite burn-down 16.06% → 73.62%:** a
+source-implemented rewrite wave moved 731 registered surfaces from `pending` to
+`rewritten-material` in
+[`qa/windows-ui-contract/material-rewrite-ledger.json`](qa/windows-ui-contract/material-rewrite-ledger.json),
+earned only through `bin/check-material-rewrite-ledger.py --evaluate` (935/1270,
+in-progress 0, pending 335; `options-page`, `menu`, and `popover` closed at
+100%). Menu credit is composition-code cross-referenced to
+`qa/windows-ui-contract/menu-composition.json`, and a new
+`notification-overlay-composition` contract closes one `native-shell` row. The
+local gate is 157/157 scripts passing. This is **static source evidence only**:
+no native build ran, `runtime_verified` stays `false`, and no Windows UI
+inventory gate `B V I A L P C` moved. A green checker is not a verified pixel —
+see [`HANDOFF.md`](HANDOFF.md) for the honesty boundary and the 335 remaining
+pendings with their structural blockers.
+
 The current delivery and verification scope is Windows. Cross-platform
 acceptance gates remain recorded below as deferred future work; they are not
 silently removed or treated as evidence for the current Windows milestone.

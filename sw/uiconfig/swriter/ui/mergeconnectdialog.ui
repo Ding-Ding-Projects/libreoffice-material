@@ -3,6 +3,7 @@
 <interface domain="sw">
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="MergeConnectDialog">
+    <property name="modal">True</property>
     <property name="can-focus">False</property>
     <property name="title" translatable="yes" context="mergeconnectdialog|MergeConnectDialog">Data Source Connection</property>
     <property name="type-hint">dialog</property>
@@ -138,6 +139,8 @@
             </child>
             <child type="label">
               <object class="GtkLabel" id="label1">
+                <property name="mnemonic-widget">existing</property>
+                <property name="use-underline">True</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes" context="mergeconnectdialog|label1">Connect</property>

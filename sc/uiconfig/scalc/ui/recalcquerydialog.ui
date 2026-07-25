@@ -6,9 +6,9 @@
     <property name="can-focus">False</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
+    <property name="title" translatable="yes" context="recalcquerydialog|RecalcQueryDialog">Recalculate?</property>
     <property name="type-hint">dialog</property>
     <property name="message-type">question</property>
-    <property name="buttons">yes-no</property>
     <child internal-child="vbox">
       <object class="GtkBox">
         <property name="can-focus">False</property>
@@ -19,6 +19,37 @@
             <property name="can-focus">False</property>
             <property name="homogeneous">True</property>
             <property name="spacing">12</property>
+            <property name="layout-style">end</property>
+            <child>
+              <object class="GtkButton" id="no">
+                <property name="label" translatable="yes" context="stock">_No</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="yes">
+                <property name="label" translatable="yes" context="stock">_Yes</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -44,5 +75,9 @@
         </child>
       </object>
     </child>
+    <action-widgets>
+      <action-widget response="-9">no</action-widget>
+      <action-widget response="-8">yes</action-widget>
+    </action-widgets>
   </object>
 </interface>

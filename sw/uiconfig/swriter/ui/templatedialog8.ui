@@ -4,7 +4,6 @@
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="TemplateDialog8">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="templatedialog8|TemplateDialog8">Page Style</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>

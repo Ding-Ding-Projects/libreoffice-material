@@ -60,6 +60,7 @@
                 <property name="label" translatable="yes" context="titlerotationtabpage|degreeL">_Degrees</property>
                 <property name="ellipsize">end</property>
                 <property name="use-underline">True</property>
+                <property name="mnemonic-widget">OrientDegree</property>
               </object>
               <packing>
                 <property name="left-attach">1</property>

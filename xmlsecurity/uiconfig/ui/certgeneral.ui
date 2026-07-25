@@ -104,8 +104,13 @@
         <property name="can-focus">False</property>
         <property name="row-spacing">6</property>
         <property name="column-spacing">6</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="margin-top">6</property>
+        <property name="margin-bottom">6</property>
         <child>
           <object class="GtkLabel" id="issued_to">
+            <property name="mnemonic-widget">issued_to_value</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="certgeneral|issued_to">Issued to: </property>
@@ -134,6 +139,7 @@
         </child>
         <child>
           <object class="GtkLabel" id="issued_by">
+            <property name="mnemonic-widget">issued_by_value</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="certgeneral|issued_by">Issued by: </property>
@@ -161,6 +167,7 @@
         </child>
         <child>
           <object class="GtkLabel" id="valid_from">
+            <property name="mnemonic-widget">valid_from_value</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="certgeneral|valid_from">Valid from:</property>
@@ -214,6 +221,7 @@
         </child>
         <child>
           <object class="GtkLabel" id="valid_to">
+            <property name="mnemonic-widget">valid_to_value</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="certgeneral|valid_to">Valid to:</property>
@@ -252,6 +260,7 @@
         </child>
         <child>
           <object class="GtkLabel" id="key_type">
+            <property name="mnemonic-widget">key_type_value</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="certgeneral|type">Key type: </property>

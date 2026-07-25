@@ -190,8 +190,8 @@
       "kind": "decision",
       "action_widgets": [
         { "id": "help", "response": -11 },
-        { "id": "ok", "response": -5 },
-        { "id": "close", "response": -7 }
+        { "id": "close", "response": -7 },
+        { "id": "ok", "response": -5 }
       ],
       "primary": "ok",
       "buttons": [
@@ -204,8 +204,8 @@
       "kind": "decision",
       "action_widgets": [
         { "id": "help", "response": -11 },
-        { "id": "ok", "response": -5 },
-        { "id": "cancel", "response": -6 }
+        { "id": "cancel", "response": -6 },
+        { "id": "ok", "response": -5 }
       ]
     },
     {
@@ -224,8 +224,8 @@
       "kind": "decision",
       "action_widgets": [
         { "id": "no", "response": -9 },
-        { "id": "yes", "response": -8 },
-        { "id": "cancel", "response": -6 }
+        { "id": "cancel", "response": -6 },
+        { "id": "yes", "response": -8 }
       ],
       "primary": "yes",
       "buttons": [
@@ -238,8 +238,8 @@
       "ui_file": "desktop/uiconfig/ui/licensedialog.ui",
       "kind": "decision",
       "action_widgets": [
-        { "id": "ok", "response": -5 },
-        { "id": "cancel", "response": -6 }
+        { "id": "cancel", "response": -6 },
+        { "id": "ok", "response": -5 }
       ],
       "buttons": [
         { "id": "ok", "label": "Accept" },

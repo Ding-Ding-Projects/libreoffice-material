@@ -14,6 +14,7 @@
   </object>
   <object class="GtkDialog" id="HyperlinkMark">
     <property name="can-focus">False</property>
+    <property name="modal">True</property>
     <property name="title" translatable="yes" context="hyperlinkmarkdialog|HyperlinkMark">Target in Document</property>
     <property name="default-width">0</property>
     <property name="default-height">0</property>
@@ -160,7 +161,7 @@
     </child>
     <action-widgets>
       <action-widget response="-6">close</action-widget>
-      <action-widget response="101">ok</action-widget>
+      <action-widget response="-5">ok</action-widget>
     </action-widgets>
   </object>
 </interface>

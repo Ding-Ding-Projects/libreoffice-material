@@ -22,7 +22,7 @@
   </object>
   <object class="GtkDialog" id="HangulHanjaConversionDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
+    <property name="border-width">0</property>
     <property name="title" translatable="yes" context="hangulhanjaconversiondialog|HangulHanjaConversionDialog">Hangul/Hanja Conversion</property>
     <property name="modal">True</property>
     <property name="default-width">0</property>
@@ -105,12 +105,17 @@
               <object class="GtkGrid">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
                 <property name="row-spacing">12</property>
                 <property name="column-spacing">6</property>
                 <child>
                   <object class="GtkLabel" id="label1">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
+                    <property name="ellipsize">end</property>
                     <property name="label" translatable="yes" context="hangulhanjaconversiondialog|label1">Original</property>
                     <property name="use-underline">True</property>
                     <property name="mnemonic-widget">originalword</property>

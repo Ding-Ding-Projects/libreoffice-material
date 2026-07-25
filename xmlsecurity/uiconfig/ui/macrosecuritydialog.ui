@@ -4,7 +4,6 @@
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="MacroSecurityDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="macrosecuritydialog|MacroSecurityDialog">Macro Security</property>
     <property name="modal">True</property>
     <property name="default-width">0</property>
@@ -98,6 +97,12 @@
             <child>
               <!-- n-columns=1 n-rows=1 -->
               <object class="GtkGrid">
+                <property name="row-spacing">12</property>
+                <property name="column-spacing">12</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <child>

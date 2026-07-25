@@ -23,8 +23,9 @@
       "source_file": "xmlsecurity/source/dialogs/digitalsignaturesdialog.cxx",
       "footer": [
         {"response": "-11", "widget": "help"},
-        {"response": "-7", "widget": "close"}
+        {"response": "-5", "widget": "close"}
       ],
+      "footer_note": "Material chapter-8.1 footer order (Help | spacer | secondary | primary). Close is the primary: DigitalSignaturesDialog::OKButtonHdl already calls m_xDialog->response(RET_OK) (-5) unconditionally, so the declared -7 was dead markup; the pin now records the response the dialog actually returns.",
       "modal_markers": [
         {"file": "xmlsecurity/source/dialogs/digitalsignaturesdialog.cxx", "pattern": "GenericDialogController(pParent, u\"xmlsec/ui/digitalsignaturesdialog.ui\"_ustr, u\"DigitalSignaturesDialog\"_ustr)", "note": "synchronous modal controller bound to the pinned .ui"},
         {"file": "xmlsecurity/source/dialogs/digitalsignaturesdialog.cxx", "pattern": "return GenericDialogController::run();", "note": "executed via the base synchronous run()"}
@@ -61,10 +62,11 @@
       "classification_note": "the 'security' router reason for this root derives from the 'xmlsecurity' path substring plus the 'certificat' object-id token; a refactor moving it out of an xmlsecurity/ path would drop it to 'input' and fail this contract (correct fail-closed behaviour).",
       "source_file": "xmlsecurity/source/dialogs/certificatechooser.cxx",
       "footer": [
-        {"response": "-5", "widget": "ok"},
+        {"response": "-11", "widget": "help"},
         {"response": "-6", "widget": "cancel"},
-        {"response": "-11", "widget": "help"}
+        {"response": "-5", "widget": "ok"}
       ],
+      "footer_note": "Material chapter-8.1 footer order (Help | spacer | secondary | primary); response codes are unchanged, only the action-widget order.",
       "modal_markers": [
         {"file": "xmlsecurity/source/dialogs/certificatechooser.cxx", "pattern": "GenericDialogController(_pParent, u\"xmlsec/ui/selectcertificatedialog.ui\"_ustr, u\"SelectCertificateDialog\"_ustr)", "note": "synchronous modal controller bound to the pinned .ui"},
         {"file": "xmlsecurity/source/dialogs/certificatechooser.cxx", "pattern": "return GenericDialogController::run();", "note": "executed via the base synchronous run()"}
@@ -80,9 +82,10 @@
       "classification_note": "the 'security' router reason for this root derives from the 'xmlsecurity' path substring (its object id alone carries no security token); a refactor out of an xmlsecurity/ path would drop it to 'input' and fail this contract (correct fail-closed behaviour).",
       "source_file": "xmlsecurity/source/dialogs/certificateviewer.cxx",
       "footer": [
-        {"response": "-5", "widget": "ok"},
-        {"response": "-11", "widget": "help"}
+        {"response": "-11", "widget": "help"},
+        {"response": "-5", "widget": "ok"}
       ],
+      "footer_note": "Material chapter-8.1 footer order (Help | spacer | secondary | primary); response codes are unchanged, only the action-widget order.",
       "modal_markers": [
         {"file": "xmlsecurity/source/dialogs/certificateviewer.cxx", "pattern": "GenericDialogController(_pParent, u\"xmlsec/ui/viewcertdialog.ui\"_ustr, u\"ViewCertDialog\"_ustr)", "note": "synchronous modal controller bound to the pinned .ui"}
       ],
@@ -101,11 +104,11 @@
       "classification_note": "certpath's CertDialog stays modal through the router's 'input' precedence (a certificate-path TreeView), not the security token -- an honest distinction from the four xmlsec roots.",
       "source_file": "cui/source/options/certpath.cxx",
       "footer": [
-        {"response": "101", "widget": "add"},
+        {"response": "-11", "widget": "help"},
         {"response": "-6", "widget": "cancel"},
-        {"response": "-5", "widget": "ok"},
-        {"response": "-11", "widget": "help"}
+        {"response": "-5", "widget": "ok"}
       ],
+      "footer_note": "Material chapter-8.1 footer order (Help | spacer | secondary | primary). The 'add' (Select NSS path...) button keeps its GtkButton object and is wired by widget id via weld_button(\"add\") in cui/source/options/certpath.cxx; it carries no response code, so it is no longer an action-widget row.",
       "modal_markers": [
         {"file": "cui/source/options/certpath.cxx", "pattern": "GenericDialogController(pParent, u\"cui/ui/certdialog.ui\"_ustr, u\"CertDialog\"_ustr)", "note": "synchronous modal controller bound to the pinned .ui"}
       ],

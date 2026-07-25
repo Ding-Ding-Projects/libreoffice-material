@@ -4,7 +4,6 @@
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="QueryFilterDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="queryfilterdialog|QueryFilterDialog">Standard Filter</property>
     <property name="modal">True</property>
     <property name="default-width">0</property>
@@ -108,6 +107,7 @@
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes" context="queryfilterdialog|label5">Field name</property>
                     <property name="ellipsize">end</property>
+                    <property name="mnemonic-widget">field1</property>
                   </object>
                   <packing>
                     <property name="left-attach">1</property>

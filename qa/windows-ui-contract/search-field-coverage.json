@@ -4,11 +4,11 @@
   "platform": "windows",
   "audit_date": "2026-07-20",
   "expected_counts": {
-    "shipping_fields": 27,
+    "shipping_fields": 28,
     "planned_fields": 0,
     "excluded_candidates": 16,
     "source_integrated_fields": 13,
-    "gap_fields": 14
+    "gap_fields": 15
   },
   "gap_taxonomy": {
     "note": "Every shipping field carries an integration_status. A 'source-integrated' field is bound to the shared controller-driven regex builder and MUST have a matching entry in regex-search-integrations.json (the checker reconciles the two registries and fails closed on drift). A 'gap' field is an honest, still-unintegrated surface; it MUST carry a gap_category from the fixed enum below plus non-empty gap_evidence citing a real file:symbol anchor for the architectural reason it cannot yet reuse the builder. Existing upstream (non-Material-guarded) source never satisfies the integration gate, so gap_evidence documents WHY, it is not a passing integration.",
@@ -53,6 +53,17 @@
     "find_icon": "gtk-find"
   },
   "shipping_fields": [
+    {
+      "coverage_id": "bibliography.toolbar-search-key",
+      "surface": "Bibliography toolbar Search Key",
+      "ui_file": "extensions/uiconfig/sbibliography/ui/editbox.ui",
+      "widget_id": "entry",
+      "query_scope": "bibliography database records",
+      "regex_builder": "adjacent-advanced-builder",
+      "integration_status": "gap",
+      "gap_category": "split UNO ownership",
+      "gap_evidence": "extensions/source/bibliography/toolbar.cxx: EditControl only hosts the entry; BibToolBar dispatches the typed text as the .uno:Bib/query command argument (nTBC_QUERY / SendDispatch) so the match is executed by the database form's UNO filter in the beamer, not by any in-process matcher this dialog could hand to the shared builder controller."
+    },
     {
       "coverage_id": "basic.object-browser",
       "surface": "BASIC Object Browser",

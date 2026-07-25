@@ -154,7 +154,6 @@
   </object>
   <object class="GtkDialog" id="AutoTextDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="autotext|AutoTextDialog">AutoText</property>
     <property name="modal">True</property>
     <property name="default-width">0</property>
@@ -167,6 +166,7 @@
         <property name="spacing">12</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="dialog-action_area1">
+            <property name="spacing">12</property>
             <property name="can-focus">False</property>
             <property name="layout-style">end</property>
             <child>
@@ -287,6 +287,10 @@
         <child>
           <!-- n-columns=2 n-rows=2 -->
           <object class="GtkGrid" id="grid1">
+            <property name="margin-bottom">6</property>
+            <property name="margin-top">6</property>
+            <property name="margin-end">12</property>
+            <property name="margin-start">12</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="hexpand">True</property>
@@ -349,6 +353,7 @@
                 </child>
                 <child type="label">
                   <object class="GtkLabel" id="label1">
+                    <property name="ellipsize">end</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes" context="autotext|label1">Save Links Relative To</property>

@@ -199,6 +199,7 @@
         </child>
         <child type="label">
           <object class="GtkLabel" id="libreofficethemeslb">
+            <property name="ellipsize">end</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="appearancetabpage|libreofficethemeslb">%PRODUCTNAME Themes</property>
@@ -644,6 +645,7 @@
             <property name="column-spacing">6</property>
             <child>
               <object class="GtkLabel" id="materialaccentlabel">
+                <property name="mnemonic-widget">materialaccent</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="halign">start</property>

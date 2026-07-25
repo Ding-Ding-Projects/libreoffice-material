@@ -60,7 +60,6 @@
   <object class="GtkPopover" id="PageColumnControl">
     <property name="can-focus">False</property>
     <property name="no-show-all">True</property>
-    <property name="border-width">4</property>
     <property name="constrain-to">none</property>
     <child>
       <object class="GtkBox" id="container">
@@ -70,6 +69,10 @@
         <property name="vexpand">True</property>
         <property name="orientation">vertical</property>
         <property name="spacing">6</property>
+        <property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+        <property name="margin-top">6</property>
+        <property name="margin-bottom">6</property>
         <child>
           <object class="GtkButton" id="column1">
             <property name="label" translatable="yes" context="pagecolumncontrol|column1">1 Column</property>

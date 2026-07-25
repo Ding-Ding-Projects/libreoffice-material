@@ -17,8 +17,8 @@
     <property name="hexpand">True</property>
     <property name="vexpand">True</property>
     <property name="border_width">6</property>
-    <property name="row_spacing">6</property>
-    <property name="column_spacing">12</property>
+    <property name="row-spacing">6</property>
+    <property name="column-spacing">12</property>
     <child>
       <object class="GtkFrame" id="section">
         <property name="visible">True</property>
@@ -34,7 +34,7 @@
             <property name="can_focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <property name="row_spacing">3</property>
+            <property name="row-spacing">3</property>
             <property name="margin-start">12</property>
             <property name="margin-top">6</property>
             <child>
@@ -118,7 +118,7 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="hexpand">True</property>
-        <property name="row_spacing">12</property>
+        <property name="row-spacing">12</property>
         <child>
           <object class="GtkFrame" id="section1">
             <property name="visible">True</property>
@@ -132,8 +132,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
-                <property name="row_spacing">6</property>
-                <property name="column_spacing">12</property>
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <property name="margin-start">12</property>
                 <property name="margin-top">6</property>
                 <child>
@@ -180,8 +180,8 @@
                   <object class="GtkGrid">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="row_spacing">6</property>
-                    <property name="column_spacing">12</property>
+                    <property name="row-spacing">6</property>
+                    <property name="column-spacing">12</property>
                     <property name="margin-start">12</property>
                     <child>
                       <object class="GtkBox" id="box1">
@@ -195,7 +195,7 @@
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes" context="sectionpage|filelabel">_File name</property>
                             <property name="use_underline">True</property>
-                            <property name="mnemonic_widget">filename</property>
+                            <property name="mnemonic-widget">filename</property>
                             <property name="ellipsize">end</property>
                             <property name="xalign">0</property>
                           </object>
@@ -211,7 +211,7 @@
                             <property name="no_show_all">True</property>
                             <property name="label" translatable="yes" context="sectionpage|ddelabel">DDE _command</property>
                             <property name="use_underline">True</property>
-                            <property name="mnemonic_widget">filename</property>
+                            <property name="mnemonic-widget">filename</property>
                             <property name="ellipsize">end</property>
                             <property name="xalign">0</property>
                           </object>
@@ -234,7 +234,7 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes" context="sectionpage|sectionlabel">_Section</property>
                         <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">sectionname</property>
+                        <property name="mnemonic-widget">sectionname</property>
                         <property name="ellipsize">end</property>
                         <property name="xalign">0</property>
                       </object>
@@ -346,8 +346,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
-                <property name="row_spacing">6</property>
-                <property name="column_spacing">12</property>
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <property name="margin-start">12</property>
                 <property name="margin-top">6</property>
                 <child>
@@ -375,7 +375,7 @@
                   <object class="GtkGrid">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="column_spacing">12</property>
+                    <property name="column-spacing">12</property>
                     <property name="margin-start">12</property>
                     <child>
                       <object class="GtkCheckButton" id="withpassword">
@@ -458,8 +458,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
-                <property name="row_spacing">6</property>
-                <property name="column_spacing">12</property>
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <property name="margin-start">12</property>
                 <property name="margin-top">6</property>
                 <child>
@@ -488,7 +488,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="hexpand">True</property>
-                    <property name="column_spacing">12</property>
+                    <property name="column-spacing">12</property>
                     <property name="margin-start">12</property>
                     <child>
                       <object class="GtkLabel" id="condlabel">
@@ -497,7 +497,7 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes" context="sectionpage|condlabel">_With Condition</property>
                         <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">withcond</property>
+                        <property name="mnemonic-widget">withcond</property>
                         <property name="ellipsize">end</property>
                         <property name="xalign">0</property>
                       </object>

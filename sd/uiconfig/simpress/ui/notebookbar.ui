@@ -3265,6 +3265,8 @@
                             <property name="valign">end</property>
                             <property name="vexpand">True</property>
                             <property name="label" translatable="yes" context="TabbedImpress|labelHomeFont">Font</property>
+                            <property name="mnemonic-widget">gdHomeFont</property>
+                            <property name="ellipsize">end</property>
                             <attributes>
                               <attribute name="style" value="italic"/>
                               <attribute name="scale" value="0.9"/>

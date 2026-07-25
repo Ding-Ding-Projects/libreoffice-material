@@ -28,8 +28,8 @@
                 <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="has_default">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -212,7 +212,7 @@
                   <object class="GtkGrid" id="grid7">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="row_spacing">6</property>
+                    <property name="row-spacing">6</property>
                     <property name="column_spacing">12</property>
                     <property name="margin-start">12</property>
                     <property name="margin-top">6</property>
@@ -224,7 +224,7 @@
                         <property name="label" translatable="yes" context="joindialog|label5">_Type:</property>
                         <property name="ellipsize">end</property>
                         <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">type</property>
+                        <property name="mnemonic-widget">type</property>
                         <property name="xalign">1</property>
                       </object>
                       <packing>

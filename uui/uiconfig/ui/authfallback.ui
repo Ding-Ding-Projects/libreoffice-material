@@ -4,7 +4,6 @@
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="AuthFallbackDlg">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="authfallback|AuthFallbackDlg">Authentication Code</property>
     <property name="modal">True</property>
     <property name="default-width">0</property>
@@ -64,6 +63,11 @@
           <object class="GtkGrid">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+            <property name="row-spacing">12</property>
             <child>
               <!-- n-columns=1 n-rows=2 -->
               <object class="GtkGrid" id="GDrive">
@@ -114,6 +118,7 @@
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes" context="authfallback|label1">Enter the 6 digit PIN:</property>
                     <property name="ellipsize">end</property>
+                    <property name="mnemonic-widget">google_code</property>
                     <property name="xalign">0</property>
                   </object>
                   <packing>

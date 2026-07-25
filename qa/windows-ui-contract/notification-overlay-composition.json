@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "contract": "material-notification-overlay-composition",
+  "platform": "windows",
+  "inventory_id": "WIN-SHL-003",
+  "status": "source-declared",
+  "runtime_verified": false,
+  "design_reference": "docs/design/09-feedback.md (non-blocking notification stack); corner-anchored snackbar/toast anatomy",
+  "note": "Pins the project-authored Material composition of the native notification overlay shell -- the surface the rewrite ledger tracks as native:notification-overlay-window (WIN-SHL-003). The overlay is NOT stock LibreOffice chrome: it is an InterimItemWindow child of the owning work-area frame (never a FloatingWindow, which would auto-dismiss on focus loss, and never an OS top-level) that anchors bottom-right with Material insets and hosts the Material notification stack .ui. Three halves are pinned: (a) the host vehicle and its bottom-right anchoring entry point in NotificationOverlayWindow.{hxx,cxx}; (b) the Material anchoring preference defaults (420 width, 16/16 insets) in include/sfx2/notificationcenter.hxx that the anchoring call consumes; (c) the controller wiring in NotificationStackController.cxx that loads sfx/ui/notificationstack.ui, welds the stack widgets, lets Tab escape back to the document, and calls RepositionBottomRight with those preferences. governed_surfaces enumerates the rewrite-ledger rows whose Material rendering rides this channel; the ledger's composition cross-reference names this contract back. Source evidence only: runtime_verified is false -- no native build, overlay pixels, or runtime capture are claimed.",
+  "governed_surfaces": [
+    {
+      "surface": "native:notification-overlay-window",
+      "family": "native-shell",
+      "inventory_id": "WIN-SHL-003",
+      "note": "The overlay shell itself: host vehicle, bottom-right anchoring and the stack .ui it hosts. The Material card anatomy inside it is credited separately by the sfx2/uiconfig/ui/notificationcard.ui ledger row and is NOT re-counted here."
+    }
+  ],
+  "host": {
+    "header": "sfx2/source/notification/NotificationOverlayWindow.hxx",
+    "source": "sfx2/source/notification/NotificationOverlayWindow.cxx",
+    "header_markers": [
+      "class NotificationOverlayWindow final : public InterimItemWindow",
+      "void RepositionBottomRight(sal_Int32 nHInset, sal_Int32 nVInset, sal_Int32 nDesiredWidth);"
+    ],
+    "source_markers": [
+      "void NotificationOverlayWindow::RepositionBottomRight(",
+      "const Size aParent(pParent->GetOutputSizePixel());",
+      "tools::Long nX = aParent.Width() - nWidth - nHInset;",
+      "tools::Long nY = aParent.Height() - nHeight - nVInset;",
+      "SetPosSizePixel(Point(nX, nY), Size(nWidth, nHeight));",
+      "SetZOrder(nullptr, ZOrderFlags::First);"
+    ],
+    "absent_markers": [
+      "FloatingWindow",
+      "WorkWindow"
+    ],
+    "absent_note": "The overlay must stay a frame-child InterimItemWindow. A FloatingWindow/WorkWindow base would auto-dismiss on focus loss or become an OS top-level, both of which break the non-blocking corner-anchored contract; this guard fails closed if either is reintroduced."
+  },
+  "anchoring_defaults": {
+    "source": "include/sfx2/notificationcenter.hxx",
+    "struct_marker": "struct SFX2_DLLPUBLIC NotificationPreferences",
+    "fields": [
+      { "name": "Width", "declaration": "sal_Int32 Width = 420;", "role": "overlay width budget clamped to the parent client area" },
+      { "name": "HorizontalInset", "declaration": "sal_Int32 HorizontalInset = 16;", "role": "bottom-right horizontal inset" },
+      { "name": "VerticalInset", "declaration": "sal_Int32 VerticalInset = 16;", "role": "bottom-right vertical inset" },
+      { "name": "MaxVisible", "declaration": "sal_Int32 MaxVisible = 3;", "role": "visible-card budget before the overflow affordance" }
+    ]
+  },
+  "controller": {
+    "source": "sfx2/source/notification/NotificationStackController.cxx",
+    "markers": [
+      "u\"sfx/ui/notificationstack.ui\"_ustr, u\"NotificationStack\"_ustr,",
+      "m_xOverlay->RepositionBottomRight(rPrefs.HorizontalInset, rPrefs.VerticalInset, rPrefs.Width);",
+      "m_xOverlay->SetLayoutHdl(LINK(this, NotificationStackController, LayoutHdl));"
+    ],
+    "focus_escape_marker": "/*bAllowCycleFocusOut*/ true",
+    "focus_escape_note": "The stack lets Tab escape back to the document so an informational notification never traps focus while typing."
+  },
+  "stack_ui": {
+    "ui_file": "sfx2/uiconfig/ui/notificationstack.ui",
+    "toplevel_id": "NotificationStack",
+    "toplevel_class": "GtkBox",
+    "toplevel_spacing": "9",
+    "card_box_id": "stack_cards",
+    "card_box_spacing": "9",
+    "required_ids": [
+      "live_region",
+      "stack_cards",
+      "overflow_button",
+      "manager_badge",
+      "manager_button"
+    ],
+    "welded_ids": [
+      "stack_cards",
+      "overflow_button",
+      "manager_button",
+      "manager_badge",
+      "live_region"
+    ],
+    "note": "Non-dialog GtkBox top level so the Windows dialog-notification contract does not count it as a modal. Material 9px stack rhythm on both the outer box and the card box; every welded id must exist in the .ui or the controller weld fails at runtime."
+  },
+  "ledger": {
+    "path": "qa/windows-ui-contract/material-rewrite-ledger.json",
+    "cross_reference_marker": "material-notification-overlay-composition",
+    "note": "Each governed surface must exist in the rewrite ledger with the declared family. When a governed row is credited rewritten-material its rewrite_evidence.anatomy_markers.contract_marker must be this contract's `contract` value, which is what the ledger's own composition cross-reference validator re-checks."
+  }
+}

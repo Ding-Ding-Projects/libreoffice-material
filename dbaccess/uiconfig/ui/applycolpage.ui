@@ -63,7 +63,7 @@
             <property name="can_focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <property name="column_spacing">12</property>
+            <property name="column-spacing">12</property>
             <property name="margin-start">12</property>
             <property name="margin-top">6</property>
             <child>
@@ -225,6 +225,8 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="label" translatable="yes" context="applycolpage|label1">Existing Columns</property>
+            <property name="ellipsize">end</property>
+            <property name="mnemonic-widget">from</property>
             <attributes>
               <attribute name="weight" value="bold"/>
             </attributes>

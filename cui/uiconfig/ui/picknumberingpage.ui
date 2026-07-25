@@ -2,37 +2,66 @@
 <!-- Generated with glade 3.40.0 -->
 <interface domain="cui">
   <requires lib="gtk+" version="3.24"/>
-  <object class="GtkScrolledWindow" id="PickNumberingPage">
+  <object class="GtkGrid" id="PickNumberingPage">
     <property name="visible">True</property>
-    <property name="can-focus">True</property>
+    <property name="can-focus">False</property>
     <property name="margin-start">6</property>
     <property name="margin-end">6</property>
     <property name="margin-top">6</property>
     <property name="margin-bottom">6</property>
     <property name="hexpand">True</property>
     <property name="vexpand">True</property>
-    <property name="hscrollbar-policy">never</property>
-    <property name="vscrollbar-policy">never</property>
-    <property name="shadow-type">in</property>
+    <property name="row-spacing">6</property>
+    <property name="column-spacing">6</property>
     <child>
-      <object class="GtkViewport">
+      <object class="GtkLabel" id="valuesetlabel">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
+        <property name="label" translatable="yes" context="picknumberingpage|valuesetlabel">Numbering _schemes</property>
+        <property name="use-underline">True</property>
+        <property name="mnemonic-widget">valueset</property>
+        <property name="ellipsize">end</property>
+        <property name="xalign">0</property>
+      </object>
+      <packing>
+        <property name="left-attach">0</property>
+        <property name="top-attach">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow" id="valuesetwin">
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
+        <property name="hscrollbar-policy">never</property>
+        <property name="vscrollbar-policy">never</property>
+        <property name="shadow-type">in</property>
         <child>
-          <object class="GtkDrawingArea" id="valueset">
+          <object class="GtkViewport">
             <property name="visible">True</property>
-            <property name="can-focus">True</property>
-            <property name="events">GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
-            <property name="hexpand">True</property>
-            <property name="vexpand">True</property>
-            <child internal-child="accessible">
-              <object class="AtkObject" id="valueset-atkobject">
-                <property name="AtkObject::accessible-description" translatable="yes" context="picknumberingpage|extended_tip|valueset">Click the numbering scheme that you want to use.</property>
+            <property name="can-focus">False</property>
+            <child>
+              <object class="GtkDrawingArea" id="valueset">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="events">GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
+                <child internal-child="accessible">
+                  <object class="AtkObject" id="valueset-atkobject">
+                    <property name="AtkObject::accessible-description" translatable="yes" context="picknumberingpage|extended_tip|valueset">Click the numbering scheme that you want to use.</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
         </child>
       </object>
+      <packing>
+        <property name="left-attach">0</property>
+        <property name="top-attach">1</property>
+      </packing>
     </child>
     <child internal-child="accessible">
       <object class="AtkObject" id="PickNumberingPage-atkobject">

@@ -217,7 +217,6 @@
                   <object class="GtkBox">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="border-width">3</property>
                     <property name="spacing">6</property>
                     <child>
                       <object class="GtkCheckButton" id="toggle_all">

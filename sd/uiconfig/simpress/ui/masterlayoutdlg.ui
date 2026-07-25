@@ -74,6 +74,16 @@
           </packing>
         </child>
         <child>
+          <object class="GtkGrid" id="contentgrid">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="row-spacing">12</property>
+            <property name="column-spacing">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+            <child>
           <object class="GtkFrame" id="PlaceholdersFrame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
@@ -193,11 +203,18 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes" context="masterlayoutdlg|Placeholders">Placeholders</property>
+                <property name="mnemonic-widget">header</property>
                 <property name="ellipsize">end</property>
                 <attributes>
                   <attribute name="weight" value="bold"/>
                 </attributes>
               </object>
+            </child>
+          </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
+              </packing>
             </child>
           </object>
           <packing>

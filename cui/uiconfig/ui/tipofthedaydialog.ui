@@ -3,8 +3,8 @@
 <interface domain="cui">
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="TipOfTheDayDialog">
+    <property name="modal">True</property>
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="TipOfTheDayDialog|Name">Tip of the Day</property>
     <property name="resizable">False</property>
     <property name="window-position">center-on-parent</property>
@@ -90,6 +90,7 @@
                 <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkLabel" id="lbTitle">
+                    <property name="ellipsize">end</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="margin-top">12</property>

@@ -143,6 +143,7 @@
             </child>
             <child type="label">
               <object class="GtkLabel" id="label1">
+                <property name="mnemonic-widget">list</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes" context="smarttagoptionspage|label1">Currently Installed Smart Tags</property>

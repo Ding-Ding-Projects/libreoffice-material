@@ -29,8 +29,8 @@
                 <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="has_default">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -91,8 +91,8 @@
             <property name="halign">start</property>
             <property name="valign">start</property>
             <property name="vexpand">True</property>
-            <property name="row_spacing">6</property>
-            <property name="column_spacing">12</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <child>
               <object class="GtkCheckButton" id="date">
                 <property name="label" translatable="yes" context="datetimedialog|date">_Include Date</property>
@@ -116,7 +116,7 @@
                 <property name="margin-start">12</property>
                 <property name="label" translatable="yes" context="datetimedialog|datelistbox_label">_Format:</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">datelistbox</property>
+                <property name="mnemonic-widget">datelistbox</property>
                 <property name="ellipsize">end</property>
                 <property name="xalign">0</property>
               </object>

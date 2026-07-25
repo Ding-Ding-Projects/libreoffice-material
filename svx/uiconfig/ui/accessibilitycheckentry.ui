@@ -10,6 +10,24 @@
     <property name="margin-bottom">1</property>
     <property name="hexpand">True</property>
     <property name="column-spacing">6</property>
+    <property name="margin-start">6</property>
+    <property name="margin-end">6</property>
+    <property name="row-spacing">6</property>
+    <child>
+      <object class="GtkLabel" id="materiala11ylabel">
+        <property name="can-focus">False</property>
+        <property name="no-show-all">True</property>
+        <property name="valign">center</property>
+        <property name="use-underline">True</property>
+        <property name="mnemonic-widget">accessibilityCheckEntryFixButton</property>
+        <property name="ellipsize">end</property>
+        <property name="xalign">0</property>
+      </object>
+      <packing>
+        <property name="left-attach">3</property>
+        <property name="top-attach">0</property>
+      </packing>
+    </child>
     <child>
       <object class="GtkLabel" id="accessibilityCheckEntryLabel">
         <property name="visible">True</property>

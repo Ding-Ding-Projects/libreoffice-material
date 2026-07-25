@@ -4,6 +4,10 @@
   <requires lib="gtk+" version="3.24"/>
   <!-- n-columns=2 n-rows=2 -->
   <object class="GtkGrid" id="additionsEntry">
+    <property name="margin-start">12</property>
+    <property name="margin-end">12</property>
+    <property name="margin-top">12</property>
+    <property name="margin-bottom">12</property>
     <property name="visible">True</property>
     <property name="can-focus">False</property>
     <property name="valign">start</property>
@@ -20,6 +24,7 @@
         <property name="column-spacing">12</property>
         <child>
           <object class="GtkLabel" id="labelDescription">
+            <property name="ellipsize">end</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="halign">start</property>
@@ -370,6 +375,7 @@
         </child>
         <child>
           <object class="GtkLabel" id="lbName">
+            <property name="mnemonic-widget">buttonInstall</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="margin-bottom">6</property>

@@ -2267,6 +2267,8 @@
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
                             <property name="label" translatable="yes" context="TabbedCalc|labelFileNew">New</property>
+                            <property name="mnemonic-widget">gdFileNew</property>
+                            <property name="ellipsize">end</property>
                             <attributes>
                               <attribute name="style" value="italic"/>
                               <attribute name="scale" value="0.9"/>

@@ -31,8 +31,8 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="hexpand">True</property>
-            <property name="row_spacing">6</property>
-            <property name="column_spacing">12</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <property name="margin-start">12</property>
             <property name="margin-top">6</property>
             <child>
@@ -42,7 +42,7 @@
                 <property name="halign">start</property>
                 <property name="label" translatable="yes" context="userdetailspage|hostnameft">_Host name:</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">hostname</property>
+                <property name="mnemonic-widget">hostname</property>
                 <property name="ellipsize">end</property>
                 <property name="xalign">1</property>
               </object>
@@ -58,7 +58,7 @@
                 <property name="halign">start</property>
                 <property name="label" translatable="yes" context="userdetailspage|portnumberft">_Port number:</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">portnumber</property>
+                <property name="mnemonic-widget">portnumber</property>
                 <property name="ellipsize">end</property>
                 <property name="xalign">1</property>
               </object>
@@ -116,7 +116,7 @@
                 <property name="halign">start</property>
                 <property name="label" translatable="yes" context="userdetailspage|optionslabel">_Driver settings:</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">options</property>
+                <property name="mnemonic-widget">options</property>
                 <property name="ellipsize">end</property>
                 <property name="xalign">1</property>
               </object>
@@ -179,7 +179,7 @@
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes" context="userdetailspage|charsetlabel">_Character set:</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">charset</property>
+                <property name="mnemonic-widget">charset</property>
                 <property name="ellipsize">end</property>
                 <property name="xalign">1</property>
               </object>

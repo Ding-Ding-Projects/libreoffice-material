@@ -171,6 +171,8 @@
             </child>
             <child type="label">
               <object class="GtkLabel" id="label1">
+                <property name="ellipsize">end</property>
+                <property name="mnemonic-widget">copyheading</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes" context="splittable|label1">Mode</property>

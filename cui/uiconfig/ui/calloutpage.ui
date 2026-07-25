@@ -59,6 +59,12 @@
     <child>
       <!-- n-columns=1 n-rows=1 -->
       <object class="GtkGrid" id="grid6">
+        <property name="row-spacing">12</property>
+        <property name="column-spacing">12</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="row_spacing">6</property>
@@ -71,6 +77,7 @@
             <property name="column_spacing">12</property>
             <child>
               <object class="GtkLabel" id="label2">
+                <property name="mnemonic-widget">extension</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes" context="calloutpage|label2">_Extension:</property>

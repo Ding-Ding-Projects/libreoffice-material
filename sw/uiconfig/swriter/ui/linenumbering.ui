@@ -43,8 +43,8 @@
                 <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="has_default">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -123,8 +123,8 @@
               <object class="GtkGrid" id="content">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="row_spacing">12</property>
-                <property name="column_spacing">24</property>
+                <property name="row-spacing">12</property>
+                <property name="column-spacing">24</property>
                 <child>
                   <object class="GtkFrame" id="frame1">
                     <property name="visible">True</property>
@@ -136,8 +136,8 @@
                       <object class="GtkGrid" id="grid2">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="row_spacing">6</property>
-                        <property name="column_spacing">12</property>
+                        <property name="row-spacing">6</property>
+                        <property name="column-spacing">12</property>
                         <property name="margin-start">12</property>
                         <property name="margin-top">6</property>
                         <child>
@@ -146,7 +146,7 @@
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes" context="linenumbering|characterstyle">Character style:</property>
                             <property name="use_underline">True</property>
-                            <property name="mnemonic_widget">styledropdown</property>
+                            <property name="mnemonic-widget">styledropdown</property>
                             <property name="ellipsize">end</property>
                             <property name="xalign">0</property>
                           </object>
@@ -160,7 +160,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes" context="linenumbering|format">Format:</property>
-                            <property name="mnemonic_widget">formatdropdown</property>
+                            <property name="mnemonic-widget">formatdropdown</property>
                             <property name="ellipsize">end</property>
                             <property name="xalign">0</property>
                           </object>
@@ -175,7 +175,7 @@
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes" context="linenumbering|position">Position:</property>
                             <property name="use_underline">True</property>
-                            <property name="mnemonic_widget">positiondropdown</property>
+                            <property name="mnemonic-widget">positiondropdown</property>
                             <property name="ellipsize">end</property>
                             <property name="xalign">0</property>
                           </object>
@@ -190,7 +190,7 @@
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes" context="linenumbering|spacing">Spacing:</property>
                             <property name="use_underline">True</property>
-                            <property name="mnemonic_widget">spacingspin</property>
+                            <property name="mnemonic-widget">spacingspin</property>
                             <property name="ellipsize">end</property>
                             <property name="xalign">0</property>
                           </object>
@@ -205,7 +205,7 @@
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes" context="linenumbering|interval">Interval:</property>
                             <property name="use_underline">True</property>
-                            <property name="mnemonic_widget">intervalspin</property>
+                            <property name="mnemonic-widget">intervalspin</property>
                             <property name="ellipsize">end</property>
                             <property name="xalign">0</property>
                           </object>
@@ -361,8 +361,8 @@
                       <object class="GtkGrid" id="grid1">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="row_spacing">6</property>
-                        <property name="column_spacing">12</property>
+                        <property name="row-spacing">6</property>
+                        <property name="column-spacing">12</property>
                         <property name="margin-start">12</property>
                         <property name="margin-top">6</property>
                         <child>
@@ -371,7 +371,7 @@
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes" context="linenumbering|text">Text:</property>
                             <property name="use_underline">True</property>
-                            <property name="mnemonic_widget">textentry</property>
+                            <property name="mnemonic-widget">textentry</property>
                             <property name="ellipsize">end</property>
                             <property name="xalign">0</property>
                           </object>
@@ -386,7 +386,7 @@
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes" context="linenumbering|every">Every:</property>
                             <property name="use_underline">True</property>
-                            <property name="mnemonic_widget">linesspin</property>
+                            <property name="mnemonic-widget">linesspin</property>
                             <property name="ellipsize">end</property>
                             <property name="xalign">0</property>
                           </object>

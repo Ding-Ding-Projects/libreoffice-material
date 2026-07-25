@@ -6,6 +6,7 @@
     <property name="can-focus">False</property>
     <property name="title" translatable="yes" context="solverprogressdialog|SolverProgressDialog">Solving...</property>
     <property name="resizable">False</property>
+    <property name="modal">True</property>
     <property name="type-hint">dialog</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog-vbox1">
@@ -48,11 +49,17 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="row-spacing">24</property>
+            <property name="column-spacing">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
             <child>
               <object class="GtkLabel" id="label2">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes" context="solverprogressdialog|label2">Solving in progress...</property>
+                <property name="ellipsize">end</property>
                 <property name="xalign">0</property>
               </object>
               <packing>

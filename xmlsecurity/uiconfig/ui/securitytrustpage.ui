@@ -232,6 +232,7 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes" context="securitytrustpage|label8">Document macros are always executed if they have been opened from one of the following locations.</property>
+                <property name="mnemonic-widget">locations</property>
                 <property name="wrap">True</property>
                 <property name="width-chars">56</property>
                 <property name="max-width-chars">56</property>

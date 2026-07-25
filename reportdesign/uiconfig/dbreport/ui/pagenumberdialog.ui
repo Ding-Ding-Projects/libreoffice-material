@@ -27,8 +27,8 @@
                 <property name="label" translatable="yes" context="stock">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="has_default">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -255,7 +255,7 @@
                     <property name="can_focus">False</property>
                     <property name="label" translatable="yes" context="pagenumberdialog|alignment_label">_Alignment:</property>
                     <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">alignment</property>
+                    <property name="mnemonic-widget">alignment</property>
                     <property name="ellipsize">end</property>
                     <property name="xalign">0</property>
                   </object>

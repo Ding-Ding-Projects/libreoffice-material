@@ -208,6 +208,8 @@
             <property name="margin-end">6</property>
             <property name="margin-top">6</property>
             <property name="margin-bottom">6</property>
+            <property name="row-spacing">12</property>
+            <property name="column-spacing">12</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
             <child>
@@ -274,6 +276,8 @@
                     <property name="hexpand">False</property>
                     <property name="vexpand">False</property>
                     <property name="label" translatable="yes" context="developmenttool|classname">Class name:</property>
+                    <property name="ellipsize">end</property>
+                    <property name="mnemonic-widget">class_name_value_id</property>
                     <accessibility>
                       <relation type="label-for" target="class_name_value_id"/>
                     </accessibility>

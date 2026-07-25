@@ -2,7 +2,7 @@
 <!-- Generated with glade 3.22.1 -->
 <interface domain="pcr">
   <requires lib="gtk+" version="3.24"/>
-  <object class="GtkBox" id="OptionDBField">
+  <object class="GtkGrid" id="OptionDBField">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="hexpand">True</property>
@@ -11,8 +11,8 @@
     <property name="margin-end">12</property>
     <property name="margin-top">12</property>
     <property name="margin-bottom">12</property>
-    <property name="orientation">vertical</property>
-    <property name="spacing">12</property>
+    <property name="row-spacing">12</property>
+    <property name="column-spacing">12</property>
     <child>
       <object class="GtkLabel" id="explLabel">
         <property name="visible">True</property>
@@ -31,9 +31,8 @@
         </child>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">0</property>
+        <property name="left_attach">0</property>
+        <property name="top_attach">0</property>
       </packing>
     </child>
     <child>
@@ -41,7 +40,10 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="halign">start</property>
-        <property name="label" translatable="yes" context="optiondbfieldpage|label1">Do you want to save the value in a database field?</property>
+        <property name="label" translatable="yes" context="optiondbfieldpage|label1">_Do you want to save the value in a database field?</property>
+        <property name="use_underline">True</property>
+        <property name="mnemonic-widget">yesRadiobutton</property>
+        <property name="ellipsize">end</property>
         <child internal-child="accessible">
           <object class="AtkObject" id="label1-atkobject">
             <property name="AtkObject::accessible-role" translatable="no">static</property>
@@ -49,9 +51,8 @@
         </child>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">1</property>
+        <property name="left_attach">0</property>
+        <property name="top_attach">1</property>
       </packing>
     </child>
     <child>
@@ -107,9 +108,8 @@
         </child>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">2</property>
+        <property name="left_attach">0</property>
+        <property name="top_attach">2</property>
       </packing>
     </child>
   </object>

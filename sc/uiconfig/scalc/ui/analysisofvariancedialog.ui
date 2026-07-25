@@ -10,6 +10,7 @@
     <property name="page-increment">0.05</property>
   </object>
   <object class="GtkDialog" id="AnalysisOfVarianceDialog">
+    <property name="modal">True</property>
     <property name="can-focus">False</property>
     <property name="title" translatable="yes" context="analysisofvariancedialog|AnalysisOfVarianceDialog">Analysis of Variance (ANOVA)</property>
     <property name="resizable">False</property>

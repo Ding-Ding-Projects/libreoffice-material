@@ -16,11 +16,7 @@
 #include <vcl/settings.hxx>
 #include <vcl/commandevent.hxx>
 #include <vcl/event.hxx>
-#include <vcl/weld/Builder.hxx>
-#include <vcl/weld/Dialog.hxx>
-#include <vcl/weld/Entry.hxx>
-#include <vcl/weld/CheckButton.hxx>
-#include <vcl/weld/SpinButton.hxx>
+#include <vcl/weld.hxx>
 #include <vcl/MaterialTokens.hxx>
 
 #include <toolkit/helper/vclunohelper.hxx>

@@ -45,7 +45,7 @@ jobs:
           script='bin/Install-LibreOfficeMaterial-FromSource.ps1'
           test -f "$script"
           # The whole point of this installer is that it never asks a question.
-          if grep -nE '(^|[^A-Za-z-])Read-Host' "$script"; then
+          if grep -nE -e '(^|[^A-Za-z-])Read-Host' "$script"; then
             echo 'The installer must not contain Read-Host; it has to stay touchless.' >&2
             exit 1
           fi
@@ -55,7 +55,7 @@ jobs:
             'perl-Font-TTF' \
             'Microsoft.VisualStudio.Component.VC.ATL' \
             "'run', '--auto'"; do
-            grep -qF "$marker" "$script" || { echo "Missing expected marker: $marker" >&2; exit 1; }
+            grep -qF -e "$marker" "$script" || { echo "Missing expected marker: $marker" >&2; exit 1; }
           done
           echo "Installer script validated: $(wc -c < "$script") bytes"
 

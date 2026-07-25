@@ -161,6 +161,8 @@ LibreOffice.VC.VC.opendb
 !/docs/*.md
 !/docs/build/
 !/docs/build/**
+!/docs/features/
+!/docs/features/**
 !/docs/evidence/
 !/docs/evidence/**
 !/docs/design/

@@ -73,8 +73,6 @@ $(eval $(call gb_Module_add_l10n_targets,vcl,\
 ifeq ($(USING_X11),TRUE)
 $(eval $(call gb_Module_add_targets,vcl,\
     $(if $(ENABLE_GEN),Library_vclplug_gen) \
-    Package_fontunxppds \
-    Package_fontunxpsprint \
 ))
 endif
 
@@ -83,12 +81,6 @@ $(eval $(call gb_Module_add_targets,vcl,\
     Library_vclplug_gtk3 \
 ))
 
-ifneq ($(ENABLE_ATSPI_TESTS),)
-$(eval $(call gb_Module_add_check_targets,vcl,\
-    CppunitTest_vcl_a11y \
-    CppunitTest_vcl_gtk3_a11y \
-))
-endif
 endif
 
 ifneq ($(ENABLE_GTK4),)
@@ -130,13 +122,11 @@ ifneq ($(ENABLE_GTK3_KDE5),)
 $(eval $(call gb_Module_add_targets,vcl,\
     CustomTarget_gtk3_kde5_moc \
     Library_vclplug_gtk3_kde5 \
-    Executable_lo_kde5filepicker \
 ))
 endif
 
 ifeq ($(OS),MACOSX)
 $(eval $(call gb_Module_add_targets,vcl,\
-    Package_osxres \
     Library_vclplug_osx \
 ))
 endif
@@ -298,12 +288,6 @@ $(eval $(call gb_Module_add_screenshot_targets,vcl,\
     CppunitTest_vcl_dialogs_test \
 ))
 
-ifneq ($(DISPLAY),)
-$(eval $(call gb_Module_add_slowcheck_targets,vcl,\
-    CppunitTest_vcl_gen \
-))
-endif
-
 ifneq (,$(filter PDFIUM,$(BUILD_TYPE)))
 $(eval $(call gb_Module_add_slowcheck_targets,vcl,\
     CppunitTest_vcl_pdfexport \
@@ -311,14 +295,6 @@ $(eval $(call gb_Module_add_slowcheck_targets,vcl,\
     CppunitTest_vcl_pdf_encryption \
     CppunitTest_vcl_filter_ipdf \
 ))
-endif
-
-ifneq ($(filter MORE_FONTS,$(BUILD_TYPE)),)
-ifeq ($(OS),LINUX)
-$(eval $(call gb_Module_add_slowcheck_targets,vcl,\
-    CppunitTest_vcl_unx_generic \
-))
-endif
 endif
 
 # vim: set noet sw=4 ts=4:

@@ -263,13 +263,13 @@ class LedgerMutationTest(unittest.TestCase):
     def test_production_family_counts(self) -> None:
         by_family = self.ledger["coverage"]["by_family"]
         expected = {
-            "dialog": 521, "message-dialog": 76, "options-page": 40,
+            "dialog": 522, "message-dialog": 76, "options-page": 40,
             "panel-fragment": 451, "menu": 70, "popover": 47,
             "sidebar-panel": 54, "wizard-assistant": 1, "native-shell": 10,
         }
         for fam, count in expected.items():
             self.assertEqual(by_family[fam]["total"], count, fam)
-        self.assertEqual(self.ledger["coverage"]["total_surfaces"], 1270)
+        self.assertEqual(self.ledger["coverage"]["total_surfaces"], 1271)
 
     # -- C3 status regression ---------------------------------------------
     def test_status_regression_rejected(self) -> None:

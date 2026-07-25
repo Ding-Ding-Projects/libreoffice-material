@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "contract": "document-tab-strip",
+  "platform": "windows",
+  "status": "source-declared",
+  "runtime_verified": false,
+  "stage": "tabbed-ui-stage-3-material-tab-strip",
+  "source_note": "Fail-closed, build-free cross-check for stage 3: the Material document-tab STRIP (SfxDocumentTabBar). The strip is a svtools::TabBar subclass that rides the already-shipped Material TabBar paint path (the calc-sheet-tabs anatomy) and, on tab activation, RAISES each document's existing top-level window via the EXACT frame-activation path the Window menu uses -- it never hosts multiple documents in one window and never performs a topness-violating cast. Everything is guarded behind the stage-2 officecfg TabsEnabled property (default false): the widget cannot even be constructed when tabs are off, so the default build stays byte-identical. The checker re-derives every fact from the real tree and fails closed on drift. runtime_verified is false throughout: the C++ is compile-plausibility only and is compiled by CI, not here; no tab pixels or window switching are claimed.",
+  "strip_hxx": "sfx2/inc/SfxDocumentTabBar.hxx",
+  "strip_cxx": "sfx2/source/appl/documenttabbar.cxx",
+  "appearance_ui": "sfx2/uiconfig/ui/documenttabappearance.ui",
+  "library_mk": "sfx2/Library_sfx.mk",
+  "uiconfig_mk": "sfx2/UIConfig_sfx.mk",
+  "reused_frame_raise_api": {
+    "note": "The load-bearing reuse. SfxDocumentTabBar::RaiseFrameForPage reuses the exact frame-activation pair the Window menu uses -- WindowListMenuController::itemSelected raises a document window with pWin->GrabFocus() then pWin->ToTop(ToTopFlags::RestoreWhenMin) after VCLUnoHelper::GetWindow(xFrame->getContainerWindow()). This raises an already-existing top-level window; it touches NO frame-topness seam and performs NO WorkWindow cast.",
+    "reference_source": "framework/source/uielement/resourcemenucontroller.cxx",
+    "reference_function": "WindowListMenuController::itemSelected",
+    "reference_markers": [
+      "VCLUnoHelper::GetWindow",
+      "getContainerWindow()",
+      "GrabFocus()",
+      "ToTop( ToTopFlags::RestoreWhenMin )"
+    ],
+    "strip_must_contain": [
+      "VCLUnoHelper::GetWindow(xFrame->getContainerWindow())",
+      "pWin->GrabFocus();",
+      "pWin->ToTop(ToTopFlags::RestoreWhenMin);"
+    ],
+    "strip_must_not_contain": [
+      "GetSystemWindow",
+      "getTopSystemWindow",
+      "static_cast<WorkWindow",
+      "SetMenuBar",
+      "SetNotebookBar"
+    ]
+  },
+  "tabbar_subclass": {
+    "note": "The strip is a real svtools::TabBar subclass (not a bespoke widget), so it inherits the Material TabBar paint the Calc sheet-tabs already contract.",
+    "hxx_must_contain": [
+      "#include <svtools/tabbar.hxx>",
+      "class SfxDocumentTabBar final : public TabBar",
+      "virtual void Paint(",
+      "override;"
+    ],
+    "cxx_base_paint_call": "TabBar::Paint(rRenderContext, rRect);"
+  },
+  "material_paint_ride": {
+    "note": "Same anatomy as ScTabControl in calc-sheet-tabs.json: tokens resolved from vcl::MaterialTokens over definition.xml, gated on VCL_FILE_WIDGET_THEME=material and NOT high contrast; the per-tab colour is held out of the base full-tab fill and drawn as an accent strip that never consults the selection state.",
+    "source": "sfx2/source/appl/documenttabbar.cxx",
+    "include": "<vcl/MaterialTokens.hxx>",
+    "env_guard": "VCL_FILE_WIDGET_THEME",
+    "high_contrast_guard": "GetHighContrastMode",
+    "markers": [
+      "MaterialTokens::fromThemeDefinition",
+      "findColor(\"outline-variant\")",
+      "findMetric(\"stroke-thin\")",
+      "findMetric(\"stroke-standard\")",
+      "findMetric(\"space-tab-inline\")",
+      "isValid()",
+      "maMaterialTabColors",
+      "PaintMaterialDocTabOverlay",
+      "SetMaterialAwareTabBgColor"
+    ],
+    "overlay_independence": {
+      "function": "SfxDocumentTabBar::PaintMaterialDocTabOverlay",
+      "must_contain": ["maMaterialTabColors", "SetFillColor(", "DrawRect("],
+      "must_not_contain": ["IsPageSelected", "GetCurPageId"]
+    }
+  },
+  "style_sourced_rendering": {
+    "note": "Every rendered attribute (label, colour, pin, favorite, order) comes from the persisted stage-2 SfxDocTabStyle, passed through SfxDocTabStyle::Normalize -- no hardcoded colour or label. The strip includes the stage-2 header and consults the DocumentTabStyles set keyed by document URL.",
+    "source": "sfx2/source/appl/documenttabbar.cxx",
+    "include": "<SfxDocTabStyle.hxx>",
+    "markers": [
+      "SfxDocTabStyle::Normalize",
+      "DocumentTabStyles",
+      "CustomLabel",
+      "BackgroundColor",
+      "Pinned",
+      "Order"
+    ],
+    "must_not_contain_hardcoded": [
+      "Color(0xFF",
+      "Color( 0xFF"
+    ]
+  },
+  "tabs_enabled_guard": {
+    "note": "The fail-closed construction guard. The static Create() factory is the only way to obtain a strip and returns nullptr unless TabsEnabled is true, so the widget cannot construct when tabs are off. TabsEnabled defaults false in the stage-2 officecfg group; when off the tabs-off path is byte-identical.",
+    "source": "sfx2/source/appl/documenttabbar.cxx",
+    "officecfg_property": "officecfg::Office::Common::DocumentTabs::TabsEnabled::get()",
+    "factory_function": "SfxDocumentTabBar::Create",
+    "markers": [
+      "officecfg::Office::Common::DocumentTabs::TabsEnabled::get()",
+      "if (!IsTabsEnabled())",
+      "return nullptr;"
+    ],
+    "schema_file": "officecfg/registry/schema/org/openoffice/Office/Common.xcs",
+    "schema_default_property": "TabsEnabled",
+    "schema_required_default": "false"
+  },
+  "appearance_editor": {
+    "note": "The per-tab appearance editor reachable from the strip's right-click context menu. Weld dialog over the .ui; edits CustomLabel/colour/pin/favorite/font from the stage-2 schema and persists through officecfg, each value re-validated by the normalizer before write. gla11y-clean (0 FATALs).",
+    "cxx": "sfx2/source/appl/documenttabbar.cxx",
+    "ui": "sfx2/uiconfig/ui/documenttabappearance.ui",
+    "context_menu_marker": "CommandEventId::ContextMenu",
+    "ui_dialog_id": "DocumentTabAppearanceDialog",
+    "ui_required_ids": ["label", "color", "pinned", "favorite", "fontsize", "ok", "cancel"],
+    "cxx_markers": [
+      "EditTabAppearance",
+      "documenttabappearance.ui",
+      "ConfigurationChanges::create()",
+      "commit()"
+    ]
+  },
+  "build_registration": {
+    "library_entry": "sfx2/source/appl/documenttabbar",
+    "uiconfig_entry": "sfx2/uiconfig/ui/documenttabappearance"
+  }
+}

@@ -77,7 +77,6 @@
             <property name="column_spacing">12</property>
             <child>
               <object class="GtkLabel" id="label2">
-                <property name="mnemonic-widget">extension</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes" context="calloutpage|label2">_Extension:</property>

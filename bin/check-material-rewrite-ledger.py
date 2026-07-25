@@ -998,6 +998,7 @@ def build_ledger(
             prior = prior_rows.get(rename_target_of[surface])
         prior_status = PENDING
         prior_evidence: dict[str, Any] = _null_evidence()
+        prior_waiver: dict[str, Any] | None = None
         if prior is not None:
             candidate = prior.get("rewrite_status")
             if candidate in STATUS_VALUES:
@@ -1005,6 +1006,14 @@ def build_ledger(
             candidate_evidence = prior.get("rewrite_evidence")
             if isinstance(candidate_evidence, Mapping):
                 prior_evidence = json.loads(json.dumps(candidate_evidence))
+            # A regression_waiver is campaign-mutable state exactly like
+            # status/evidence: C3 reads it to downgrade a genuine regression
+            # from failure to WARN, so dropping it here would make
+            # --regenerate/--evaluate non-idempotent and silently re-fail a
+            # surface that was deliberately given back.
+            candidate_waiver = prior.get("regression_waiver")
+            if isinstance(candidate_waiver, Mapping):
+                prior_waiver = json.loads(json.dumps(candidate_waiver))
         if evaluate:
             status, evidence = evaluate_surface_status(
                 repo_root,
@@ -1017,17 +1026,20 @@ def build_ledger(
             )
         else:
             status, evidence = prior_status, prior_evidence
-        surfaces.append(
-            {
-                "surface": surface,
-                "owner": owner,
-                "inventory_id": inventory_id,
-                "family": family,
-                "rewrite_class": rewrite_class_for(family),
-                "rewrite_status": status,
-                "rewrite_evidence": evidence,
-            }
-        )
+        row: dict[str, Any] = {
+            "surface": surface,
+            "owner": owner,
+            "inventory_id": inventory_id,
+            "family": family,
+            "rewrite_class": rewrite_class_for(family),
+            "rewrite_status": status,
+            "rewrite_evidence": evidence,
+        }
+        # Carry a waiver forward only while the surface is still regressed;
+        # a surface that earns its status back sheds the waiver automatically.
+        if prior_waiver is not None and status != REWRITTEN:
+            row["regression_waiver"] = prior_waiver
+        surfaces.append(row)
 
     coverage = compute_coverage(surfaces)
     ledger = {

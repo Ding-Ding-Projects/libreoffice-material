@@ -105,10 +105,10 @@
   },
   "coverage": {
     "total_surfaces": 1270,
-    "pending": 335,
+    "pending": 337,
     "in_progress": 0,
-    "rewritten_material": 935,
-    "coverage_pct": 73.62,
+    "rewritten_material": 933,
+    "coverage_pct": 73.46,
     "by_family": {
       "dialog": {
         "total": 521,
@@ -142,9 +142,9 @@
       },
       "panel-fragment": {
         "total": 451,
-        "pending": 136,
+        "pending": 138,
         "in-progress": 0,
-        "rewritten-material": 315
+        "rewritten-material": 313
       },
       "popover": {
         "total": 47,
@@ -180,15 +180,15 @@
       },
       "cui": {
         "total": 207,
-        "pending": 43,
+        "pending": 44,
         "in-progress": 0,
-        "rewritten-material": 164
+        "rewritten-material": 163
       },
       "dbaccess": {
         "total": 82,
-        "pending": 22,
+        "pending": 23,
         "in-progress": 0,
-        "rewritten-material": 60
+        "rewritten-material": 59
       },
       "desktop": {
         "total": 9,
@@ -314,9 +314,9 @@
     "by_inventory_id": {
       "WIN-BA-001": {
         "total": 90,
-        "pending": 23,
+        "pending": 24,
         "in-progress": 0,
-        "rewritten-material": 67
+        "rewritten-material": 66
       },
       "WIN-BA-002": {
         "total": 62,
@@ -536,9 +536,9 @@
       },
       "unassigned": {
         "total": 250,
-        "pending": 66,
+        "pending": 67,
         "in-progress": 0,
-        "rewritten-material": 184
+        "rewritten-material": 183
       }
     }
   },
@@ -2958,21 +2958,16 @@
       "inventory_id": "unassigned",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "rewritten-material",
+      "rewrite_status": "pending",
       "rewrite_evidence": {
-        "commit": "5053a127d612715cd50cd2413c72d51a3674d086",
-        "contract": "docs/design/06-panels.md#6.7",
-        "capture": {
-          "scene": null,
-          "sample_batch": "static-anatomy-evaluation",
-          "captured": false
-        },
-        "anatomy_markers": {
-          "content_grid_material": true,
-          "ellipsize_count": 5,
-          "mnemonic_content_labels": 1,
-          "has_own_action_widgets": false
-        }
+        "commit": null,
+        "contract": null,
+        "capture": null,
+        "anatomy_markers": {}
+      },
+      "regression_waiver": {
+        "reason": "mnemonic-widget removed: the surface carried both mnemonic-widget and mnemonic_widget for the same target, which gla11y reports as multiple mnemonic_widgets (FATAL ERROR) and which broke the Windows MSI build.",
+        "commit": "bbb5848c67ac3c87ab851d6583f52c3f08d7f90c"
       }
     },
     {
@@ -10026,21 +10021,16 @@
       "inventory_id": "WIN-BA-001",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "rewritten-material",
+      "rewrite_status": "pending",
       "rewrite_evidence": {
-        "commit": "5053a127d612715cd50cd2413c72d51a3674d086",
-        "contract": "docs/design/06-panels.md#6.7",
-        "capture": {
-          "scene": null,
-          "sample_batch": "static-anatomy-evaluation",
-          "captured": false
-        },
-        "anatomy_markers": {
-          "content_grid_material": true,
-          "ellipsize_count": 1,
-          "mnemonic_content_labels": 1,
-          "has_own_action_widgets": false
-        }
+        "commit": null,
+        "contract": null,
+        "capture": null,
+        "anatomy_markers": {}
+      },
+      "regression_waiver": {
+        "reason": "mnemonic-widget and a one-sided label-for relation removed: the mnemonic targeted a GtkBox, which cannot take focus, and gla11y reports the unreciprocated label-for as a FATAL ERROR that broke the Windows MSI build.",
+        "commit": "bbb5848c67ac3c87ab851d6583f52c3f08d7f90c"
       }
     },
     {

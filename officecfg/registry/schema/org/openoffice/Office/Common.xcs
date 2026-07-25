@@ -246,6 +246,103 @@
         </info>
       </prop>
     </group>
+    <group oor:name="DocumentTabStyle">
+      <info>
+        <desc>Per-document Material tab style. The set entry name is the
+        document URL; no identifier is ever written into the user's document.
+        Every property is untrusted persisted state that SfxDocTabStyle::Normalize
+        clamps on read (hex-only colours, an allow-listed font family, a bounded
+        font size and closed booleans), so a hand-edited registry can never inject
+        an unsafe style.</desc>
+      </info>
+      <prop oor:name="CustomLabel" oor:type="xs:string">
+        <info>
+          <desc>User-supplied tab label overriding the document title. Trimmed
+          and length-bounded on read; absent means the title is used.</desc>
+        </info>
+      </prop>
+      <prop oor:name="Pinned" oor:type="xs:boolean" oor:nillable="false">
+        <info>
+          <desc>Whether the tab is pinned to the front of the strip.</desc>
+        </info>
+        <value>false</value>
+      </prop>
+      <prop oor:name="Favorite" oor:type="xs:boolean" oor:nillable="false">
+        <info>
+          <desc>Whether the tab is marked as a favourite.</desc>
+        </info>
+        <value>false</value>
+      </prop>
+      <prop oor:name="Order" oor:type="xs:int" oor:nillable="false">
+        <info>
+          <desc>Explicit strip order index; clamped to a non-negative value on
+          read.</desc>
+        </info>
+        <value>0</value>
+      </prop>
+      <prop oor:name="GroupId" oor:type="xs:string">
+        <info>
+          <desc>Identifier of the tab group this document belongs to. Validated
+          against the group-id allow-list on read; absent means ungrouped.</desc>
+        </info>
+      </prop>
+      <prop oor:name="FontSize" oor:type="xs:short" oor:nillable="false">
+        <info>
+          <desc>Tab label font size in points, clamped to the supported range on
+          read.</desc>
+        </info>
+        <constraints>
+          <minInclusive oor:value="10">
+            <info>
+              <desc>Smallest accepted tab label font size.</desc>
+            </info>
+          </minInclusive>
+          <maxInclusive oor:value="32">
+            <info>
+              <desc>Largest accepted tab label font size.</desc>
+            </info>
+          </maxInclusive>
+        </constraints>
+        <value>13</value>
+      </prop>
+      <prop oor:name="TextColor" oor:type="xs:string">
+        <info>
+          <desc>Tab label colour. Only a #rgb / #rrggbb / #rrggbbaa hex string is
+          accepted on read; any other value is dropped so it can never inject
+          arbitrary styling.</desc>
+        </info>
+      </prop>
+      <prop oor:name="BackgroundColor" oor:type="xs:string">
+        <info>
+          <desc>Tab background colour. Only a #rgb / #rrggbb / #rrggbbaa hex
+          string is accepted on read.</desc>
+        </info>
+      </prop>
+      <prop oor:name="FontFamily" oor:type="xs:string">
+        <info>
+          <desc>Tab label font family. Only an allow-listed family name (letters,
+          digits, spaces and hyphens, bounded length) is accepted on read.</desc>
+        </info>
+      </prop>
+      <prop oor:name="Bold" oor:type="xs:boolean" oor:nillable="false">
+        <info>
+          <desc>Whether the tab label is bold.</desc>
+        </info>
+        <value>false</value>
+      </prop>
+      <prop oor:name="Italic" oor:type="xs:boolean" oor:nillable="false">
+        <info>
+          <desc>Whether the tab label is italic.</desc>
+        </info>
+        <value>false</value>
+      </prop>
+      <prop oor:name="Underline" oor:type="xs:boolean" oor:nillable="false">
+        <info>
+          <desc>Whether the tab label is underlined.</desc>
+        </info>
+        <value>false</value>
+      </prop>
+    </group>
   </templates>
   <component>
     <group oor:name="VCL">
@@ -1603,6 +1700,13 @@
         <info>
           <desc>Contains the most recently used documents displayed in the file
           menu.</desc>
+        </info>
+      </set>
+      <set oor:name="DocumentTabStyles" oor:node-type="DocumentTabStyle">
+        <info>
+          <desc>Per-document Material tab styles, keyed by document URL. The set
+          entry name is the URL, so no identifier is written into the user's
+          document. Entries are untrusted persisted state normalized on read.</desc>
         </info>
       </set>
     </group>
@@ -4992,6 +5096,93 @@
           <enumeration oor:value="1">
             <info>
               <desc>Neutral</desc>
+            </info>
+          </enumeration>
+        </constraints>
+        <value>0</value>
+      </prop>
+    </group>
+    <group oor:name="DocumentTabs">
+      <info>
+        <desc>Material document-tab strip appearance. Stored only in this stage:
+        no tab strip consumes these yet, so the values are honest-inert until the
+        strip lands. Tabs are OFF by default (TabsEnabled=false), a deliberate
+        fail-closed posture.</desc>
+      </info>
+      <prop oor:name="TabsEnabled" oor:type="xs:boolean" oor:nillable="false">
+        <info>
+          <desc>Whether the Material document-tab strip is shown. Defaults to
+          false so the tabbed UI is opt-in and cannot regress existing window
+          management until it is deliberately enabled.</desc>
+          <label>Enable document tabs</label>
+        </info>
+        <value>false</value>
+      </prop>
+      <prop oor:name="TabWidth" oor:type="xs:short" oor:nillable="false">
+        <info>
+          <desc>Selects the document-tab sizing. Honest-inert until the strip
+          lands.</desc>
+          <label>Document tab width</label>
+        </info>
+        <constraints>
+          <enumeration oor:value="0">
+            <info>
+              <desc>Compact</desc>
+            </info>
+          </enumeration>
+          <enumeration oor:value="1">
+            <info>
+              <desc>Standard (default)</desc>
+            </info>
+          </enumeration>
+          <enumeration oor:value="2">
+            <info>
+              <desc>Wide</desc>
+            </info>
+          </enumeration>
+        </constraints>
+        <value>1</value>
+      </prop>
+      <prop oor:name="TabCloseButtons" oor:type="xs:short" oor:nillable="false">
+        <info>
+          <desc>Selects when a document tab's close button is shown. Honest-inert
+          until the strip lands.</desc>
+          <label>Document tab close buttons</label>
+        </info>
+        <constraints>
+          <enumeration oor:value="0">
+            <info>
+              <desc>On hover (default)</desc>
+            </info>
+          </enumeration>
+          <enumeration oor:value="1">
+            <info>
+              <desc>Always</desc>
+            </info>
+          </enumeration>
+          <enumeration oor:value="2">
+            <info>
+              <desc>Active tab only</desc>
+            </info>
+          </enumeration>
+        </constraints>
+        <value>0</value>
+      </prop>
+      <prop oor:name="TabDensity" oor:type="xs:short" oor:nillable="false">
+        <info>
+          <desc>Selects the document-tab control density, joined to the existing
+          Appearance/MaterialDensity scale. Honest-inert until the strip lands.</desc>
+          <label>Document tab density</label>
+        </info>
+        <constraints>
+          <enumeration oor:value="0">
+            <info>
+              <desc>Comfortable (default)</desc>
+            </info>
+          </enumeration>
+          <enumeration oor:value="1">
+            <info>
+              <desc>Compact</desc>
             </info>
           </enumeration>
         </constraints>

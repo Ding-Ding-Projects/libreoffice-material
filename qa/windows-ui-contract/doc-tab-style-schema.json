@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "contract": "doc-tab-style-schema",
+  "platform": "windows",
+  "status": "static-inventory",
+  "runtime_verified": false,
+  "stage": "tabbed-ui-stage-2-persistence-and-validation",
+  "source_note": "Fail-closed, build-free cross-check that the officecfg schema for Material document tabs and the SfxDocTabStyle::Normalize clamp-on-read normalizer agree, property for property, in both directions. Stage 2 adds NO tab strip and NO frame changes: it only pins persistence + validation. The checker re-derives every fact from the real Common.xcs and the comment-stripped doctabstyle.cxx; any drift (a schema property with no normalizer branch, a normalizer branch with no schema property, a wrong type/default/enum/clamp, or TabsEnabled defaulting to anything but false) fails closed. runtime_verified is false throughout: the C++ is compile-plausibility only and is compiled by CI, not locally.",
+  "schema_file": "officecfg/registry/schema/org/openoffice/Office/Common.xcs",
+  "normalizer_cxx": "sfx2/source/appl/doctabstyle.cxx",
+  "normalizer_hxx": "sfx2/inc/SfxDocTabStyle.hxx",
+  "normalizer_function": "SfxDocTabStyle::Normalize",
+  "fail_closed_default": {
+    "property": "TabsEnabled",
+    "required_default": "false",
+    "note": "Tabs are OFF by default; a non-false default is a fail-closed violation."
+  },
+  "groups": {
+    "DocumentTabs": {
+      "xcs_scope": "group",
+      "note": "Appearance/DocumentTabs app-level strip settings, declared AFTER the Appearance group.",
+      "properties": [
+        {
+          "name": "TabsEnabled",
+          "type": "xs:boolean",
+          "default": "false",
+          "enum": null,
+          "clamp": null,
+          "normalizer_branch": "TabsEnabled"
+        },
+        {
+          "name": "TabWidth",
+          "type": "xs:short",
+          "default": "1",
+          "enum": ["0", "1", "2"],
+          "clamp": null,
+          "normalizer_branch": "TabWidth"
+        },
+        {
+          "name": "TabCloseButtons",
+          "type": "xs:short",
+          "default": "0",
+          "enum": ["0", "1", "2"],
+          "clamp": null,
+          "normalizer_branch": "TabCloseButtons"
+        },
+        {
+          "name": "TabDensity",
+          "type": "xs:short",
+          "default": "0",
+          "enum": ["0", "1"],
+          "clamp": null,
+          "normalizer_branch": "TabDensity"
+        }
+      ]
+    },
+    "DocumentTabStyle": {
+      "xcs_scope": "template",
+      "note": "Histories/DocumentTabStyles set node-type; one entry per document URL.",
+      "properties": [
+        {
+          "name": "CustomLabel",
+          "type": "xs:string",
+          "default": null,
+          "enum": null,
+          "clamp": null,
+          "normalizer_branch": "CustomLabel"
+        },
+        {
+          "name": "Pinned",
+          "type": "xs:boolean",
+          "default": "false",
+          "enum": null,
+          "clamp": null,
+          "normalizer_branch": "Pinned"
+        },
+        {
+          "name": "Favorite",
+          "type": "xs:boolean",
+          "default": "false",
+          "enum": null,
+          "clamp": null,
+          "normalizer_branch": "Favorite"
+        },
+        {
+          "name": "Order",
+          "type": "xs:int",
+          "default": "0",
+          "enum": null,
+          "clamp": null,
+          "normalizer_branch": "Order"
+        },
+        {
+          "name": "GroupId",
+          "type": "xs:string",
+          "default": null,
+          "enum": null,
+          "clamp": null,
+          "normalizer_branch": "GroupId"
+        },
+        {
+          "name": "FontSize",
+          "type": "xs:short",
+          "default": "13",
+          "enum": null,
+          "clamp": { "min": "10", "max": "32" },
+          "normalizer_branch": "FontSize"
+        },
+        {
+          "name": "TextColor",
+          "type": "xs:string",
+          "default": null,
+          "enum": null,
+          "clamp": null,
+          "normalizer_branch": "TextColor"
+        },
+        {
+          "name": "BackgroundColor",
+          "type": "xs:string",
+          "default": null,
+          "enum": null,
+          "clamp": null,
+          "normalizer_branch": "BackgroundColor"
+        },
+        {
+          "name": "FontFamily",
+          "type": "xs:string",
+          "default": null,
+          "enum": null,
+          "clamp": null,
+          "normalizer_branch": "FontFamily"
+        },
+        {
+          "name": "Bold",
+          "type": "xs:boolean",
+          "default": "false",
+          "enum": null,
+          "clamp": null,
+          "normalizer_branch": "Bold"
+        },
+        {
+          "name": "Italic",
+          "type": "xs:boolean",
+          "default": "false",
+          "enum": null,
+          "clamp": null,
+          "normalizer_branch": "Italic"
+        },
+        {
+          "name": "Underline",
+          "type": "xs:boolean",
+          "default": "false",
+          "enum": null,
+          "clamp": null,
+          "normalizer_branch": "Underline"
+        }
+      ]
+    }
+  }
+}

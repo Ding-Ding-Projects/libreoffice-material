@@ -369,6 +369,12 @@ jobs:
       - name: Run frame topness seams mutation regressions
         run: python3 bin/test_frame_topness_seams.py
 
+      - name: Validate document tab style schema contract
+        run: python3 bin/check-doc-tab-style-schema.py
+
+      - name: Run document tab style schema mutation regressions
+        run: python3 bin/test_doc_tab_style_schema.py
+
       - name: Validate command overflow contract
         run: python3 bin/check-windows-command-overflow.py
 

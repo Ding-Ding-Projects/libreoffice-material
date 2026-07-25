@@ -175,11 +175,6 @@ REQUIRED = (
         '<property name="constrain-to">window</property>',
     ),
     Rule(
-        "qt-work-area-clamp",
-        "vcl/qt5/QtInstancePopover.cxx",
-        "pScreen->availableGeometry()",
-    ),
-    Rule(
         "apply-semantics",
         "sfx2/source/dialog/RegexSearchController.cxx",
         "BuilderApplyHdl",

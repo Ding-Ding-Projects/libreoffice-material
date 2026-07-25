@@ -25,7 +25,6 @@ $(eval $(call gb_Pagein_add_objects,common,\
     ucb1 \
     configmgr \
     vclplug_gen \
-    $(if $(findstring TRUE,$(ENABLE_GTK3)),vclplug_gtk3) \
     basegfx \
     sot \
     xmlscript \
@@ -58,7 +57,6 @@ $(eval $(call gb_Pagein_add_objects,common,\
     helplinker \
     sax \
     fsstorage \
-    desktopbe1 \
     localebe1 \
     ucpexpand1 \
     sfx \

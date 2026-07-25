@@ -76,54 +76,6 @@ $(eval $(call gb_Module_add_targets,vcl,\
 ))
 endif
 
-ifneq ($(ENABLE_GTK3),)
-$(eval $(call gb_Module_add_targets,vcl,\
-    Library_vclplug_gtk3 \
-))
-
-endif
-
-ifneq ($(ENABLE_GTK4),)
-$(eval $(call gb_Module_add_targets,vcl,\
-    Library_vclplug_gtk4 \
-))
-endif
-
-ifneq ($(ENABLE_KF5),)
-$(eval $(call gb_Module_add_targets,vcl,\
-    CustomTarget_kf5_moc \
-    Library_vclplug_kf5 \
-))
-endif
-
-ifneq ($(ENABLE_KF6),)
-$(eval $(call gb_Module_add_targets,vcl,\
-    CustomTarget_kf6_moc \
-    Library_vclplug_kf6 \
-))
-endif
-
-
-ifneq ($(ENABLE_QT5),)
-$(eval $(call gb_Module_add_targets,vcl,\
-    CustomTarget_qt5_moc \
-    Library_vclplug_qt5 \
-))
-endif
-
-ifneq ($(ENABLE_QT6),)
-$(eval $(call gb_Module_add_targets,vcl,\
-    CustomTarget_qt6_moc \
-    Library_vclplug_qt6 \
-))
-endif
-
-ifneq ($(ENABLE_GTK3_KDE5),)
-$(eval $(call gb_Module_add_targets,vcl,\
-    CustomTarget_gtk3_kde5_moc \
-    Library_vclplug_gtk3_kde5 \
-))
-endif
 
 ifeq ($(OS),WNT)
 $(eval $(call gb_Module_add_targets,vcl,\

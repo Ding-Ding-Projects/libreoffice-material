@@ -10138,10 +10138,8 @@ shell/inc/registry.hxx
 shell/inc/resource.h
 shell/inc/thumbviewer.hxx
 shell/source/all/xml_parser.cxx
-shell/source/backends/desktopbe/desktopbackend.cxx
 shell/source/backends/localebe/localebackend.cxx
 shell/source/backends/localebe/localebackend.hxx
-shell/source/backends/macbe/macbackend.hxx
 shell/source/backends/wininetbe/wininetbackend.cxx
 shell/source/backends/wininetbe/wininetbackend.hxx
 shell/source/cmdmail/cmdmailmsg.cxx

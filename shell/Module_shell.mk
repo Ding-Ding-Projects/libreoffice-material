@@ -18,7 +18,6 @@ endif
 ifeq ($(gb_Side),host)
 
 $(eval $(call gb_Module_add_targets,shell,\
-	$(if $(filter-out MACOSX WNT,$(OS)),Library_desktopbe) \
 	Library_localebe \
 ))
 
@@ -36,12 +35,6 @@ $(eval $(call gb_Module_add_targets,shell,\
     Library_losessioninstall \
 ))
 endif
-endif
-
-ifeq ($(ENABLE_KF5),TRUE)
-$(eval $(call gb_Module_add_targets,shell,\
-	Library_kf5be \
-))
 endif
 
 ifeq ($(OS),WNT)
@@ -87,12 +80,6 @@ $(eval $(call gb_Module_add_targets,shell,\
 ))
 endif
 
-endif
-
-ifeq ($(OS),MACOSX)
-$(eval $(call gb_Module_add_targets,shell,\
-	Library_macbe \
-))
 endif
 
 ifeq ($(filter DESKTOP,$(BUILD_TYPE)),DESKTOP)

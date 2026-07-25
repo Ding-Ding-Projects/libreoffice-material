@@ -545,6 +545,16 @@ jobs:
                   Copy-Item -Destination $gather -Force
               }
             }
+            # Last resort: a run that died after emitting partial installer
+            # payloads still leaves an instsetoo_native install tree. Ship it
+            # zipped so a failed 3h build is never a total loss.
+            if (-not (Get-ChildItem -LiteralPath $gather -File -ErrorAction SilentlyContinue)) {
+              $partial = Join-Path $env:LO_BUILD_DIR 'workdir\CustomTarget\instsetoo_native\install'
+              if (Test-Path -LiteralPath $partial -PathType Container) {
+                $zip = Join-Path $gather 'partial-installer-payload.zip'
+                Compress-Archive -Path (Join-Path $partial '*') -DestinationPath $zip -Force
+              }
+            }
             Get-ChildItem -LiteralPath $gather -File -ErrorAction SilentlyContinue |
               Format-Table Name, Length
           } catch {
@@ -560,7 +570,7 @@ jobs:
           name: windows-msi-staged-${{ github.run_id }}-${{ github.run_attempt }}
           path: msi-artifact/
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 30
           compression-level: 0
 
       - name: Publish Windows MSI release

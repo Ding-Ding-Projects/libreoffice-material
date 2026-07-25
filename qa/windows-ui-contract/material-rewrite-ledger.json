@@ -5,7 +5,7 @@
   "generator": "bin/check-material-rewrite-ledger.py",
   "closure_registry": "qa/windows-ui-contract/ui-registry.json",
   "closure_generator": "bin/check-windows-ui-registry-closure.py",
-  "closure_registry_digest": "sha256:d5c9fe41cbb9b7ba2cf69cdba84823ba51ef4fafea7715a638bc6a72fdd474aa",
+  "closure_registry_digest": "sha256:03f0ac6115a6f4c6a51ef4ed8d41cc74426ea230f0913b1b0177f233912376a6",
   "design_archive_sha": "0b79406d",
   "source_note": "Source-level burn-down ledger of the Material rewrite program, derived 1:1 from WIN-SYS-016. Regenerate with --regenerate. Not a claim of native build or runtime evidence.",
   "rewrite_status_values": [
@@ -104,15 +104,15 @@
     }
   },
   "coverage": {
-    "total_surfaces": 1271,
-    "pending": 338,
+    "total_surfaces": 1270,
+    "pending": 337,
     "in_progress": 0,
     "rewritten_material": 933,
-    "coverage_pct": 73.41,
+    "coverage_pct": 73.46,
     "by_family": {
       "dialog": {
-        "total": 522,
-        "pending": 191,
+        "total": 521,
+        "pending": 190,
         "in-progress": 0,
         "rewritten-material": 331
       },
@@ -257,8 +257,8 @@
         "rewritten-material": 67
       },
       "sfx2": {
-        "total": 76,
-        "pending": 23,
+        "total": 75,
+        "pending": 22,
         "in-progress": 0,
         "rewritten-material": 53
       },
@@ -439,8 +439,8 @@
         "rewritten-material": 1
       },
       "WIN-SHL-001": {
-        "total": 68,
-        "pending": 20,
+        "total": 67,
+        "pending": 19,
         "in-progress": 0,
         "rewritten-material": 48
       },
@@ -20775,20 +20775,6 @@
       "surface": "sfx2/uiconfig/ui/documentpropertiesdialog.ui",
       "owner": "sfx2",
       "inventory_id": "WIN-SYS-003",
-      "family": "dialog",
-      "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
-      "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
-      }
-    },
-    {
-      "surface": "sfx2/uiconfig/ui/documenttabappearance.ui",
-      "owner": "sfx2",
-      "inventory_id": "WIN-SHL-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
       "rewrite_status": "pending",

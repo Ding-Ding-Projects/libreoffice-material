@@ -362,7 +362,6 @@ sfx2/uiconfig/ui/autoredactdialog.ui,AutoRedactDialog,GtkDialog,native-exclusion
 sfx2/uiconfig/ui/bookmarkdialog.ui,BookmarkDialog,GtkDialog,native-exclusion,,"collects input, kept modal (router Classify: KeepModal)"
 sfx2/uiconfig/ui/checkin.ui,CheckinDialog,GtkDialog,native-exclusion,,"collects input, kept modal (router Classify: KeepModal)"
 sfx2/uiconfig/ui/documentpropertiesdialog.ui,DocumentPropertiesDialog,GtkDialog,native-exclusion,,"collects input, kept modal (router Classify: KeepModal)"
-sfx2/uiconfig/ui/documenttabappearance.ui,DocumentTabAppearanceDialog,GtkDialog,native-exclusion,,"collects input, kept modal (router Classify: KeepModal)"
 sfx2/uiconfig/ui/editdocumentdialog.ui,EditDocumentDialog,GtkMessageDialog,native-exclusion,,"modal decision prompt, not acknowledgment-only (router Classify: KeepModal)"
 sfx2/uiconfig/ui/editdurationdialog.ui,EditDurationDialog,GtkDialog,native-exclusion,,"collects input, kept modal (router Classify: KeepModal)"
 sfx2/uiconfig/ui/errorfindemaildialog.ui,ErrorFindEmailDialog,GtkMessageDialog,bottom-right-notification-form,default,

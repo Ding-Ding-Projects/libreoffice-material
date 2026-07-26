@@ -4581,7 +4581,7 @@ find_msvc()
         vcbuildnumber=`ls $vctest/VC/Tools/MSVC -A1r | head -1`
         if test -n "$LO_VISUAL_STUDIO_INSTALL_PATH"; then
             case "$vcyear:$vcbuildnumber" in
-            2022:14.[34]*)
+            2022:14.@<:@34@:>@*)
                 ;;
             2026:14.5*)
                 ;;

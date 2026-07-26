@@ -168,7 +168,7 @@ jobs:
           (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.ORG_TOKEN || github.token }}
           TAG: ${{ steps.stage.outputs.tag }}
           PACKAGE_PATH: ${{ steps.stage.outputs.package_path }}
           REPOSITORY: ${{ github.repository }}

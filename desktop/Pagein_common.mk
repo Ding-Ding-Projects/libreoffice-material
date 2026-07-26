@@ -24,7 +24,6 @@ $(eval $(call gb_Pagein_add_objects,common,\
     ucpfile1 \
     ucb1 \
     configmgr \
-    vclplug_gen \
     basegfx \
     sot \
     xmlscript \

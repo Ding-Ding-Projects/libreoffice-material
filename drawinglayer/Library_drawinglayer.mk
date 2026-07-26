@@ -27,7 +27,6 @@ $(eval $(call gb_Library_use_sdk_api,drawinglayer))
 $(eval $(call gb_Library_use_externals,drawinglayer,\
 	boost_headers \
 	libxml2 \
-	$(if $(USE_HEADLESS_CODE), cairo) \
 ))
 
 ifneq ($(ENABLE_WASM_STRIP_CANVAS),TRUE)
@@ -67,19 +66,10 @@ $(eval $(call gb_Library_use_system_win32_libs,drawinglayer,\
 ))
 endif
 
-ifeq ($(OS)-$(USE_HEADLESS_CODE),WNT-)
 $(eval $(call gb_Library_add_exception_objects,drawinglayer,\
     drawinglayer/source/processor2d/d2dpixelprocessor2d \
     drawinglayer/source/processor2d/SDPRProcessor2dTools \
 ))
-endif
-
-ifeq ($(USE_HEADLESS_CODE),TRUE)
-$(eval $(call gb_Library_add_exception_objects,drawinglayer,\
-    drawinglayer/source/processor2d/cairopixelprocessor2d \
-    drawinglayer/source/processor2d/SDPRProcessor2dTools \
-))
-endif
 
 $(eval $(call gb_Library_add_exception_objects,drawinglayer,\
     drawinglayer/source/animation/animationtiming \

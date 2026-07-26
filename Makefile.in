@@ -55,7 +55,6 @@ $(BUILDDIR)/config_host.mk : $(wildcard \
 		$(SRCDIR)/config_host/*.h.in \
 		$(SRCDIR)/distro-configs/*.conf $(SRCDIR)/distro-configs/Jenkins/* \
 		$(SRCDIR)/download.lst \
-		$(SRCDIR)/sysui/desktop/macosx/*.in \
 		$(SRCDIR)/m4/*.m4 \
 		$(BUILDDIR)/autogen.input \
 		$(BUILDDIR)/autogen.lastrun \
@@ -246,8 +245,6 @@ distclean : clean compilerplugins-clean mac-app-store-package.clean
         $(BUILDDIR)/instsetoo_native/util/openoffice.lst \
         $(BUILDDIR)/solenv/lockfile/autoconf.h \
         $(BUILDDIR)/lo.xcent \
-        $(BUILDDIR)/sysui/desktop/macosx/Info.plist \
-        $(BUILDDIR)/sysui/desktop/macosx/LaunchConstraint.plist \
         $(BUILDDIR)/vs-code*.code-workspace* \
         $(BUILDDIR)/extensions/source/macosx/quicklookpreview/appex/Info.plist \
         $(BUILDDIR)/extensions/source/macosx/quicklookthumbnail/appex/Info.plist

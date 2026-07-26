@@ -13,49 +13,63 @@ seconds rather than hours into a compile.
 | 1 | `272fb99de` | iOS and Android: `vcl/ios`, `vcl/android`, `sal/android`, `Library_lo-bootstrap.mk`, EMSCRIPTEN blocks, the `vcl.common.component.{ios,android}` fragments. |
 | 2 | `58e4fec2e` | macOS, Quartz and Aqua: `vcl/osx`, `vcl/quartz`, `vcl/skia/osx`, `Library_vclplug_osx.mk`, the Aqua file picker, macOS extensions and setup, the top-level Xcode project (222 files). Fixed four unconditional `configure.ac` references to deleted `Info.plist` files that would have broken configure on Windows. |
 | 3 | `769117ddc` | Qt, KF and GTK plugin backends: `vcl/qt5`, `vcl/qt6`, `vcl/unx/{gtk3,gtk3_kde5,gtk4,kf5,kf6}`, the `shell` desktop/KDE/mac backends, seven `Library_vclplug_*` makefiles (530 files). `use_qt6` is deliberately kept — avmedia's qt6 backend still consumes it. |
+| 4+5 | *(staged)* | The non-Windows module bodies **and** the X11/headless VCL, in one commit: `vcl/{unx,headless,null,skia/x11,source/opengl/x11}` and their `vcl/inc` counterparts, `Library_vclplug_gen.mk`, the `unx`/`headless` component fragments, `sysui` (except the Windows `*.ico` files), `desktop/unx`, `svl/unx`, `shell/source/unix`, `odk/source/unoapploader/unx`, every `bridges/source/cpp_uno/gcc3_*` bridge, all non-WNT/MSC `solenv/gbuild/platform/*`, the whole `USE_HEADLESS_CODE` / `ENABLE_HEADLESS` / `--enable-headless` machinery, and the Linux CI workflow itself. |
 
-Stages 0-3 are done and were verified green by the Linux native CI leg plus the
-Windows UI contract.
+Stages 0-3 were verified green by the Linux native CI leg plus the Windows UI
+contract. Stage 4 deliberately breaks the Linux build, so stages 4 and 5 land
+together with `.github/workflows/build-installer.yml` removed in the same
+commit.
 
 ## What is preserved and why
 
 Deliberately **not** removed, because Windows depends on them:
 
-- **`sal`** — the portability layer. Untouched at every stage.
-- **`vcl/headless`** — the Windows CppUnit test path links `vclplug_win`, not
-  `svp`; an earlier "headless is the test harness" premise was wrong, so
-  headless stays.
-- **`vcl/unx/generic`, `vcl/unx/x11`, `Library_vclplug_gen.mk`** and the
-  `vcl.common.component` fragments — they belong to the final stage.
+- **`sal`** — the portability layer. Untouched at every stage. Its Windows path
+  is `sal/osl/w32`; `sal/osl/unx` is left in place deliberately.
+- **`sysui/desktop/icons/*.ico`** — the `sysui` *module* is gone, but the flat
+  `.ico` files are consumed by `desktop/WinResTarget_*.mk` on Windows and must
+  stay. Only `icons/hicolor` (freedesktop) and `icons/macos` (iconsets) went.
+- **`bridges/Library_cpp_uno.mk`** — never deleted: `bridges/Module_bridges.mk`
+  aborts the build if `bridges_SELECTED_BRIDGE` is unset. It now cascades to
+  the three MSC arms (`msvc_win32_{arm64,intel,x86-64}`) only.
+- **`solenv/gbuild/platform/unittest-failed-default.sh`** — the `?=` default at
+  `CppunitTest.mk:22`.
 - **The Windows forced-colors / high-contrast widget-draw fallback** — an
   accessibility path; untouched.
 
-## Remaining stages (NOT done)
+## The OS guard
 
-The plan has six stages, 0-5. Stages 0-3 are complete; the following are held:
-
-- **Stage 4** — the non-Windows module *bodies*.
-- **Stage 5** — `vcl/unx` + `vcl/headless` **and the Linux CI leg itself**.
-
-Stages 4 and 5 are held until an MSI baseline confirms the current state,
-**because stage 5 removes the fast Linux check** that currently guards every
-push. Losing it before an MSI baseline exists would remove the only fast
-compile signal.
+`solenv/gbuild/gbuild.mk` now hard-errors when `OS != WNT` or `COM != MSC`,
+because its only platform dispatch is
+`include $(GBUILDDIR)/platform/$(OS)_$(CPUNAME)_$(COM).mk` and no non-Windows
+platform makefile exists any more. Without the guard a wrong `OS` produced an
+obscure "no rule to make target .../LINUX_X86_64_GCC.mk".
 
 ## Failure modes and verification
 
-- Stages 0-3 are Linux-CI-green and cross-checked by the build-free gate (78
-  checkers + 78 suites, 0 failures) plus the Windows UI contract.
+- Stages 0-3 are Linux-CI-green and cross-checked by the build-free gate plus
+  the Windows UI contract.
+- **After stage 4+5 there is no fast compile check at all.** The ~3h Windows
+  MSI build is the only remaining verification, so the change was validated
+  statically instead: an inbound-reference grep before each deletion, a
+  dangling-reference sweep over every removed name afterwards, an
+  `ifeq/ifneq/ifdef/ifndef` vs `endif` balance count on every edited makefile
+  (all balance to 0), and a `configure.ac` `if`/`fi` + `case`/`esac` delta
+  check against `HEAD` (unchanged).
+- **`configure.ac` is the highest-risk file**, because a wrong edit silently
+  unsets a variable and only fails at configure time on CI. There is no
+  `autoconf` on this host, so the edits could not be syntax-checked locally.
 - **Honest caveat:** roughly 5% of the removal — `configure.ac` host-os edits
   and dropped UNO component fragments — can produce a **green MSI that fails
   only when a user opens the affected feature**. Those parts need a
-  shipped-MSI smoke test, which is exactly why stages 4-5 are gated behind an
-  MSI baseline rather than shipped on the fast Linux signal alone.
-- `.mk` files are CRLF in the worktree and normalised by git on commit, so
-  build-file edits must be newline-agnostic and verified by blob-hash
-  comparison, not by eye. (This host has `core.autocrlf=true` in the system
-  gitconfig but `false` locally, which caused several whole-file CRLF-flip
-  incidents this session.)
+  shipped-MSI smoke test.
+- `.mk` files are often CRLF in the worktree while the git blob is LF. The
+  repo-local `core.autocrlf=false` wins over the system `true`, so a CRLF
+  worktree file staged as-is flips the whole file; `git status` hides this
+  until the file is touched, because the stat cache reports it clean. Every
+  edited file here was rewritten to match its `HEAD` blob's newline style and
+  verified by per-file diffstat (20 insertions / 552 deletions across 29
+  modified files — no whole-file rewrites).
 
 ## Security considerations
 

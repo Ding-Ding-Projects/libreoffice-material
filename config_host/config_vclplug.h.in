@@ -18,7 +18,6 @@ Settings about which desktops have support enabled.
 #define ENABLE_GEN 0
 #define ENABLE_GTK3 0
 #define ENABLE_GTK3_KDE5 0
-#define ENABLE_HEADLESS 0
 #define ENABLE_KF5 0
 #define ENABLE_KF6 0
 #define ENABLE_QT5 0
@@ -28,7 +27,6 @@ Settings about which desktops have support enabled.
 /**
  * Additional settings for the plugins
  */
-#define USE_HEADLESS_CODE 0
 #define ENABLE_GSTREAMER_1_0 0
 #define ENABLE_QT6_MULTIMEDIA 0
 #define QT5_HAVE_GOBJECT 0

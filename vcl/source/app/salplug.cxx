@@ -26,7 +26,6 @@
 //   ? UNIX_DESKTOP_DETECT
 // endif
 //
-// ENABLE_HEADLESS just signifies the use of the SVP plugin!
 
 #include <config_features.h>
 #include <config_vclplug.h>
@@ -74,19 +73,7 @@
 #include <unistd.h>
 #endif
 
-#if ENABLE_HEADLESS
-#include <headless/svpinst.hxx>
-#include <unx/gendata.hxx>
-#endif
-
 namespace {
-
-#if ENABLE_HEADLESS
-SalInstance* svp_create_SalInstance()
-{
-    return new SvpSalInstance(std::make_unique<SvpSalYieldMutex>(), new GenericUnixSalData);
-}
-#endif
 
 #if HAVE_FEATURE_UI
 
@@ -97,11 +84,6 @@ extern "C" typedef SalInstance* (*salFactoryProc)();
 
 SalInstance* tryInstance( const OUString& rModuleBase, bool bForce = false )
 {
-#if ENABLE_HEADLESS
-    if (rModuleBase == "svp")
-        return svp_create_SalInstance();
-#endif
-
     SalInstance* pInst = nullptr;
     OUString aUsedModuleBase(rModuleBase);
     if (aUsedModuleBase == "kde5")
@@ -171,12 +153,6 @@ SalInstance* tryInstance( const OUString& rModuleBase, bool bForce = false )
 std::vector<OUString> autodetect_plugin_list()
 {
     const DesktopType eDesktop = get_desktop_environment();
-#if ENABLE_HEADLESS
-    // no server at all: dummy plugin
-    if (eDesktop == DesktopType::Headless)
-        return { u"svp"_ustr };
-#endif
-
     std::vector<OUString> aPlugins;
     if (eDesktop == DesktopType::LXQt || eDesktop == DesktopType::Plasma5 || eDesktop == DesktopType::Plasma6)
     {
@@ -238,11 +214,7 @@ SalInstance *CreateSalInstance()
     if (aUsePlugin == "svp")
     {
         Application::EnableBitmapRendering();
-#if ENABLE_HEADLESS
-        return svp_create_SalInstance();
-#else
         aUsePlugin.clear();
-#endif
     }
 
 #if STATIC_SAL_INSTANCE

@@ -22,9 +22,7 @@
 #include "vclmetafileprocessor2d.hxx"
 #include <config_vclplug.h>
 
-#if USE_HEADLESS_CODE
-#include <drawinglayer/processor2d/cairopixelprocessor2d.hxx>
-#elif defined(_WIN32)
+#ifdef _WIN32
 #include <drawinglayer/processor2d/d2dpixelprocessor2d.hxx>
 #include <vcl/sysdata.hxx>
 #endif
@@ -43,26 +41,6 @@ std::unique_ptr<BaseProcessor2D> createPixelProcessor2DFromScratch(
         // error: no size given
         return nullptr;
 
-#if USE_HEADLESS_CODE
-    // Linux/Cairo: now globally activated in master. Leave a
-    // possibility to deactivate for easy test/request testing
-    static bool bUsePrimitiveRenderer(nullptr == std::getenv("DISABLE_SYSTEM_DEPENDENT_PRIMITIVE_RENDERER"));
-
-    if (bUsePrimitiveRenderer)
-    {
-        // create CairoPixelProcessor2D with given size
-        std::unique_ptr<CairoPixelProcessor2D> aRetval(
-            std::make_unique<CairoPixelProcessor2D>(
-                rViewInformation2D,
-                nPixelWidth,
-                nPixelHeight,
-                bUseRGBA));
-
-        if (aRetval->valid())
-            return aRetval;
-    }
-#endif
-
     // avoid unused parameter errors
     (void)rViewInformation2D;
     (void)nPixelWidth;
@@ -77,35 +55,7 @@ std::unique_ptr<BaseProcessor2D> createPixelProcessor2DFromOutputDevice(
     OutputDevice& rTargetOutDev,
     const drawinglayer::geometry::ViewInformation2D& rViewInformation2D)
 {
-#if USE_HEADLESS_CODE
-    // Linux/Cairo: now globally activated in master. Leave a
-    // possibility to deactivate for easy test/request testing
-    static bool bUsePrimitiveRenderer(nullptr == std::getenv("DISABLE_SYSTEM_DEPENDENT_PRIMITIVE_RENDERER"));
-
-    if (bUsePrimitiveRenderer)
-    {
-        // tdf#165061 do not use SDPR when RTL is enabled, SDPR is designed
-        // for rendering EditViews and does not support RTL (yet?)
-        // tdf#165437 also need to check for HasMirroredGraphics to
-        // get *all* mirrorings covered
-        const bool bMirrored(rTargetOutDev.IsRTLEnabled() || rTargetOutDev.HasMirroredGraphics());
-
-        if (!bMirrored)
-        {
-            // create CairoPixelProcessor2D associated with the given
-            // OutputDevice
-            std::unique_ptr<CairoPixelProcessor2D> aRetval(
-                std::make_unique<CairoPixelProcessor2D>(
-                    rTargetOutDev,
-                    rViewInformation2D));
-
-            if (aRetval->valid())
-            {
-                return aRetval;
-            }
-        }
-    }
-#elif defined(_WIN32)
+#ifdef _WIN32
     // Windows: make dependent on TEST_SYSTEM_PRIMITIVE_RENDERER
     static bool bUsePrimitiveRenderer(nullptr != std::getenv("TEST_SYSTEM_PRIMITIVE_RENDERER"));
 
@@ -162,14 +112,6 @@ std::unique_ptr<BaseProcessor2D> createProcessor2DFromOutputDevice(
 Bitmap extractBitmapFromBaseProcessor2D(const std::unique_ptr<BaseProcessor2D>& rProcessor)
 {
     Bitmap aRetval;
-
-#if USE_HEADLESS_CODE
-    // currently only defined for cairo
-    CairoPixelProcessor2D* pSource(dynamic_cast<CairoPixelProcessor2D*>(rProcessor.get()));
-
-    if (nullptr != pSource)
-        aRetval = pSource->extractBitmap();
-#endif
 
     // avoid unused parameter errors
     (void)rProcessor;

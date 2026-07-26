@@ -187,7 +187,7 @@
 #include <vcl/ImageTree.hxx>
 #include <vcl/ITiledRenderable.hxx>
 #include <vcl/dialoghelper.hxx>
-#if defined(_WIN32) && !USE_HEADLESS_CODE
+#ifdef _WIN32
 #include <vcl/BitmapTools.hxx>
 #endif
 #include <unicode/uchar.h>
@@ -4304,7 +4304,7 @@ static void doc_paintTile(LibreOfficeKitDocument* pThis,
         pDevice->DrawRect(aRect);
     }
 
-#if defined(_WIN32) && !USE_HEADLESS_CODE
+#ifdef _WIN32
     // pBuffer was not used there
     pDevice->EnableMapMode(false);
     Bitmap aBmp(pDevice->GetBitmap({ 0, 0 }, { nCanvasWidth, nCanvasHeight }));

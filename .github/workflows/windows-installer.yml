@@ -26,7 +26,6 @@ on:
       - 'bin/test_*.py'
       - 'bin/validate-prototype.mjs'
       - '.github/workflows/windows-ui-contract.yml'
-      - '.github/workflows/build-installer.yml'
       - '.github/workflows/material-source.yml'
       - '.github/workflows/prototype-check.yml'
       - '.github/workflows/source-installer.yml'

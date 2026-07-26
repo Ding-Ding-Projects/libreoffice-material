@@ -187,10 +187,5 @@ $(eval $(call gb_Library_add_exception_objects,svl,\
     svl/source/svdde/ddestrg \
     svl/source/svdde/ddesvr \
 ))
-
-else
-$(eval $(call gb_Library_add_exception_objects,svl,\
-    svl/unx/source/svdde/ddedummy \
-))
 endif
 # vim: set noet sw=4 ts=4:

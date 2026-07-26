@@ -70,13 +70,6 @@ $(eval $(call gb_Module_add_l10n_targets,vcl,\
     AllLangMoTarget_vcl \
 ))
 
-ifeq ($(USING_X11),TRUE)
-$(eval $(call gb_Module_add_targets,vcl,\
-    $(if $(ENABLE_GEN),Library_vclplug_gen) \
-))
-endif
-
-
 ifeq ($(OS),WNT)
 $(eval $(call gb_Module_add_targets,vcl,\
     WinResTarget_vcl \

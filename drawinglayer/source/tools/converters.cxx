@@ -166,27 +166,6 @@ Bitmap convertToBitmap(drawinglayer::primitive2d::Primitive2DContainer&& rSeq,
         return Bitmap();
     }
 
-#if USE_HEADLESS_CODE
-    // shortcut: try to directly create a PixelProcessor2D with
-    // RGBA support - that's what we need
-    // Currently only implemented for CairoSDPR, so add code only
-    // for USE_HEADLESS_CODE, but is designed as a general functionality
-    std::unique_ptr<processor2d::BaseProcessor2D> pRGBAProcessor
-        = processor2d::createPixelProcessor2DFromScratch(rViewInformation2D, nDiscreteWidth, nDiscreteHeight, true);
-    if (pRGBAProcessor)
-    {
-        // render content
-        pRGBAProcessor->process(aSequence);
-
-        // create final Bitmap result (content)
-        const Bitmap aRetval(processor2d::extractBitmapFromBaseProcessor2D(pRGBAProcessor));
-
-        // check if we have a result and return if so
-        if (!aRetval.IsEmpty())
-            return aRetval;
-    }
-#endif
-
     const Point aEmptyPoint;
     const Size aSizePixel(nDiscreteWidth, nDiscreteHeight);
 

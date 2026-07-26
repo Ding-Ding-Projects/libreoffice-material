@@ -493,7 +493,6 @@ $(eval $(call gb_Helper_register_plugins_for_install,OOOLIBS,ooo, \
     cui \
     icg \
     sdui \
-    $(if $(ENABLE_GEN),vclplug_gen) \
     $(if $(ENABLE_WIN),vclplug_win) \
 ))
 

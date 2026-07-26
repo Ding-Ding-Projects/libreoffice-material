@@ -190,6 +190,16 @@ gb_RUN_CONFIGURE :=
 
 gb_CONFIGURE_PLATFORMS := --build=$(BUILD_PLATFORM) --host=$(HOST_PLATFORM)
 
+# This fork is strictly Windows-only: there is no platform makefile for any
+# other OS, so fail loudly here rather than with an obscure "no rule to make
+# target .../platform/LINUX_X86_64_GCC.mk" further down.
+ifneq ($(OS),WNT)
+$(error This LibreOffice fork builds only for Windows (OS=WNT); got OS=$(OS))
+endif
+ifneq ($(COM),MSC)
+$(error This LibreOffice fork builds only with MSVC (COM=MSC); got COM=$(COM))
+endif
+
 # Include platform/cpu/compiler specific config/definitions
 
 include $(GBUILDDIR)/platform/$(OS)_$(CPUNAME)_$(COM).mk

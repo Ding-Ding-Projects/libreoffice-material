@@ -73,13 +73,13 @@ class WindowsDialogNotificationContractTest(unittest.TestCase):
         # The wave that added the shared Material destructive-confirmation dialog raised the total to
         # 598 roots. The registry now mirrors the router's KeepModal policy: only acknowledgment-only
         # message boxes route to the notification form, everything else is native-exclusion.
-        self.assertEqual(598, report.total)
+        self.assertEqual(599, report.total)
         self.assertEqual(
-            {"GtkDialog": 521, "GtkMessageDialog": 76, "GtkAssistant": 1},
+            {"GtkDialog": 522, "GtkMessageDialog": 76, "GtkAssistant": 1},
             dict(report.classes),
         )
         self.assertEqual(
-            {VALIDATOR.NOTIFICATION_POLICY: 9, VALIDATOR.EXCLUSION_POLICY: 589},
+            {VALIDATOR.NOTIFICATION_POLICY: 9, VALIDATOR.EXCLUSION_POLICY: 590},
             dict(report.policies),
         )
         self.assertEqual({"default": 9}, dict(report.profiles))

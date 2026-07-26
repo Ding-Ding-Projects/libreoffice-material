@@ -1009,9 +1009,7 @@ test_split_debug=no
 test_webdav=yes
 usable_dlapi=yes
 
-# There is currently just iOS not using salplug, so this explicitly enables it.
 # must: using_freetype_fontconfig
-#  may: using_headless_plugin defaults to $using_freetype_fontconfig
 # must: using_x11
 
 # Default values, as such probably valid just for Linux, set
@@ -1092,11 +1090,7 @@ cygwin*|wsl*)
     # look at $host etc that much, it mostly uses its own $_os
     # variable, set here in this case statement.
 
-    if test "$enable_headless" != "yes"; then
-        using_freetype_fontconfig=no
-    else
-        using_freetype_fontconfig=yes
-    fi
+    using_freetype_fontconfig=no
     using_x11=no
     test_unix_dlapi=no
     test_openldap=no
@@ -1120,11 +1114,7 @@ cygwin*|wsl*)
     ;;
 
 darwin*) # macOS
-    if test "$enable_headless" != "yes"; then
-        using_freetype_fontconfig=no
-    else
-        using_freetype_fontconfig=yes
-    fi
+    using_freetype_fontconfig=no
     using_x11=no
     build_skia=yes
     enable_pagein=no
@@ -1252,7 +1242,6 @@ linux-android*)
     # API exists, but seems not really usable since Android 7 AFAIK
     usable_dlapi=no
     using_freetype_fontconfig=yes
-    using_headless_plugin=no
     using_x11=no
     build_crypto=no
     test_openldap=no
@@ -1329,7 +1318,6 @@ test "${test_kf6+set}" = set || test_kf6="$using_x11"
 test "${test_qt6+set}" = set || test_qt6="$using_x11"
 test "${test_randr+set}" = set || test_randr="$using_x11"
 test "${test_xrender+set}" = set || test_xrender="$using_x11"
-test "${using_headless_plugin+set}" = set || using_headless_plugin="$using_freetype_fontconfig"
 
 test "${test_gtk3_kde5+set}" != set -a "$test_kf5" = yes -a "$test_gtk3" = yes && test_gtk3_kde5="yes"
 # Make sure fontconfig and freetype test both either system or not
@@ -1343,7 +1331,6 @@ test "$test_kf5" = yes && test_qt5=yes
 test "$test_gtk3" != yes && enable_gtk3=no
 test "$test_gtk3" != yes -o "$test_kf5" != yes && test_gtk3_kde5=no
 test "$test_win" != yes && enable_win=no
-test "$using_freetype_fontconfig" = no && using_headless_plugin=no
 test "$using_freetype_fontconfig" = yes && test_cairo=yes
 
 # Keep in sync with the above $using_x11 depending test default list
@@ -1367,32 +1354,13 @@ disable_x11_tests()
 
 test "$using_x11" = yes && USING_X11=TRUE
 
-if test "$using_freetype_fontconfig" = yes; then
-    AC_DEFINE(USE_HEADLESS_CODE)
-    USE_HEADLESS_CODE=TRUE
-    if test "$using_headless_plugin" = yes; then
-        AC_DEFINE(ENABLE_HEADLESS)
-        ENABLE_HEADLESS=TRUE
-    fi
-    if test "$_os" = "WINNT" -a "$enable_headless" = yes; then
-        # We build them, don't do any pkg-config checks
-        test_fontconfig=no
-        test_freetype=no
-        ENABLE_FONTCONFIG=TRUE
-        ENABLE_FREETYPE=TRUE
-        BUILD_TYPE="$BUILD_TYPE FONTCONFIG FREETYPE"
-    fi
-else
+if test "$using_freetype_fontconfig" = no; then
     test_fontconfig=no
     test_freetype=no
 fi
 
-AC_SUBST(ENABLE_HEADLESS)
-AC_SUBST(USE_HEADLESS_CODE)
-
 AC_MSG_NOTICE([VCL platform has a usable dynamic loading API: $usable_dlapi])
 AC_MSG_NOTICE([VCL platform uses freetype+fontconfig: $using_freetype_fontconfig])
-AC_MSG_NOTICE([VCL platform uses headless plugin: $using_headless_plugin])
 AC_MSG_NOTICE([VCL platform uses X11: $using_x11])
 
 # ===================================================================
@@ -2004,11 +1972,6 @@ AC_ARG_ENABLE(gen,
         [To select the gen backend in case of --disable-dynamic-loading.
          Per default auto-enabled when X11 is used.]),
 ,test "${test_gen}" = no -o "${enable_gen+set}" = set || enable_gen=yes)
-
-AC_ARG_ENABLE(headless,
-    AS_HELP_STRING([--enable-headless],
-        [Enable headless plugin (svp) even on macOS or Windows.]),
-,using_headless_plugin=yes)
 
 AC_ARG_ENABLE(win,
     AS_HELP_STRING([--disable-win],
@@ -6269,10 +6232,6 @@ if test "$cross_compiling" = "yes"; then
         bin/verapdf.sh.in \
         instsetoo_native/util/openoffice.lst.in \
         config_host/*.in \
-        sysui/desktop/macosx/Info.plist.in \
-        sysui/desktop/macosx/LaunchConstraint.plist.in \
-        sysui/desktop/macosx/hardened_runtime.xcent.in \
-        sysui/desktop/macosx/lo.xcent.in \
         .vscode/vs-code-template.code-workspace.in \
         solenv/lockfile/autoconf.h.in \
         ) \
@@ -7446,11 +7405,6 @@ the  Windows SDK are installed.])
             SOLARINC="$SOLARINC -I$WINDOWS_SDK_HOME/include/um -I$WINDOWS_SDK_HOME/include/shared"
         elif test -d "$WINDOWS_SDK_HOME_unix/Include/$winsdklibsubdir/um"; then
             SOLARINC="$SOLARINC -I$WINDOWS_SDK_HOME/Include/$winsdklibsubdir/um -I$WINDOWS_SDK_HOME/Include/$winsdklibsubdir/shared"
-        fi
-        if test "$USE_HEADLESS_CODE" = "TRUE"; then
-            if test -d "$WINDOWS_SDK_HOME_unix/Include/$winsdklibsubdir/winrt"; then
-                SOLARINC="$SOLARINC -I$WINDOWS_SDK_HOME/Include/$winsdklibsubdir/winrt"
-            fi
         fi
     fi
 
@@ -10492,10 +10446,6 @@ else
     FREETYPE_LIBS_internal="-L${WORKDIR}/UnpackedTarball/freetype/instdir/lib -lfreetype"
 fi
 libo_CHECK_SYSTEM_MODULE([freetype],[FREETYPE],[freetype2 >= 9.9.3],,system,TRUE)
-if test "$_os" = WINNT -a "$ENABLE_HEADLESS" = TRUE; then
-    FREETYPE_CFLAGS="$FREETYPE_CFLAGS_internal"
-fi
-
 # ===================================================================
 # Check for system libxslt
 # to prevent incompatibilities between internal libxml2 and external libxslt,
@@ -16464,10 +16414,6 @@ AC_CONFIG_FILES([
                  bin/officeotron.sh
                  bin/verapdf.sh
                  instsetoo_native/util/openoffice.lst
-                 sysui/desktop/macosx/Info.plist
-                 sysui/desktop/macosx/LaunchConstraint.plist
-                 hardened_runtime.xcent:sysui/desktop/macosx/hardened_runtime.xcent.in
-                 lo.xcent:sysui/desktop/macosx/lo.xcent.in
                  ])
 # map unix-style mount dirs to windows directories: /mnt/c/foobar -> C:/foobar
 # easier to do it in a postprocessing command than to modify every single variable

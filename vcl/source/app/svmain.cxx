@@ -112,10 +112,6 @@
 #include <rtl/strbuf.hxx>
 #endif
 
-#ifdef LINUX
-#include <unx/gendata.hxx>
-#endif
-
 using namespace ::com::sun::star;
 
 static bool g_bIsLeanException;

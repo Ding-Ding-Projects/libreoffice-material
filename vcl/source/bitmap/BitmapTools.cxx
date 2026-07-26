@@ -282,7 +282,7 @@ Bitmap CreateFromData( RawBitmap&& rawBitmap )
     return aBmp;
 }
 
-#if defined(_WIN32) && !USE_HEADLESS_CODE
+#ifdef _WIN32
 void fillWithData(sal_uInt8* pData, Bitmap const& rBitmap)
 {
     BitmapScopedReadAccess aReadAccess(rBitmap);

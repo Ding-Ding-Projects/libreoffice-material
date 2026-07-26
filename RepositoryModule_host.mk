@@ -167,7 +167,6 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	sw \
 	swext \
 	) \
-	sysui \
 	test \
 	testtools \
 	toolkit \

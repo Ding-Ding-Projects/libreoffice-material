@@ -1280,14 +1280,14 @@ endef
 
 else # !SYSTEM_CAIRO
 
-ifneq ($(filter-out MACOSX$(ENABLE_HEADLESS) WNT$(ENABLE_HEADLESS),$(OS)),)
+ifneq ($(filter-out MACOSX WNT,$(OS)),)
 
 $(eval $(call gb_Helper_register_packages_for_install,ooo,\
 	cairo \
     pixman \
 ))
 
-ifeq ($(COM)-$(ENABLE_HEADLESS),MSC-TRUE)
+ifeq ($(COM),MSC)
 
 $(eval $(call gb_Helper_register_libraries_for_install,PLAINLIBS_OOO,ooo,\
 	cairo \

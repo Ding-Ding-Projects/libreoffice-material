@@ -21,13 +21,7 @@ $(eval $(call gb_Library_Library,vcl))
 
 $(eval $(call gb_Library_set_componentfile,vcl,vcl/vcl.common,services))
 
-ifeq ($(OS),WNT)
 $(eval $(call gb_Library_add_componentimpl,vcl,windows))
-else ifeq ($(DISABLE_GUI),TRUE)
-$(eval $(call gb_Library_add_componentimpl,vcl,headless))
-else
-$(eval $(call gb_Library_add_componentimpl,vcl,unx))
-endif
 
 $(eval $(call gb_Library_set_precompiled_header,vcl,vcl/inc/pch/precompiled_vcl))
 
@@ -42,7 +36,6 @@ $(eval $(call gb_Library_add_defs,vcl,\
     -DCUI_DLL_NAME=\"$(call gb_Library_get_runtime_filename,$(call gb_Library__get_name,cui))\" \
     -DTK_DLL_NAME=\"$(call gb_Library_get_runtime_filename,$(call gb_Library__get_name,tk))\" \
     $(if $(SYSTEM_LIBFIXMATH),-DSYSTEM_LIBFIXMATH) \
-    $(if $(filter WNT-TRUE,$(OS)-$(USE_HEADLESS_CODE)),-DDO_USE_TTF_ON_WIN32) \
 ))
 
 $(eval $(call gb_Library_use_sdk_api,vcl))
@@ -71,17 +64,7 @@ $(eval $(call gb_Library_use_libraries,vcl,\
     ucbhelper \
     utl \
     xmlreader \
-	$(if $(filter WNT-TRUE,$(OS)-$(USE_HEADLESS_CODE)), \
-        cairo \
-	) \
 ))
-
-$(if $(filter WNT-TRUE,$(OS)-$(USE_HEADLESS_CODE)), \
-	$(eval $(call gb_Library_use_static_libraries,vcl,\
-        fontconfig \
-        freetype \
-	)) \
-)
 
 $(eval $(call gb_Library_use_externals,vcl,\
     boost_headers \
@@ -641,77 +624,11 @@ $(eval $(call gb_Library_add_cobjects,vcl,\
     vcl/source/filter/jpeg/transupp \
 ))
 
-vcl_headless_code= \
-    vcl/headless/svpframe \
-    $(if $(filter-out iOS,$(OS)), \
-        vcl/headless/svpbmp \
-        vcl/headless/svpgdi \
-        vcl/headless/SvpGraphicsBackend \
-        vcl/headless/CairoCommon \
-        vcl/headless/BitmapHelper \
-    ) \
-    vcl/headless/svpdummies \
-    vcl/headless/svpinst \
-    vcl/headless/svpvd \
-    vcl/unx/generic/app/X11Helper \
-    vcl/unx/generic/app/gendisp \
-    vcl/unx/generic/app/geninst \
-
-vcl_headless_freetype_code=\
-    vcl/headless/svpprn \
-    vcl/headless/svptext \
-    vcl/unx/generic/app/gendata \
-    vcl/unx/generic/gdi/cairotextrender \
-    vcl/unx/generic/gdi/freetypetextrender \
-    vcl/unx/generic/glyphs/freetype_glyphcache \
-    vcl/unx/generic/glyphs/glyphcache \
-    vcl/unx/generic/fontmanager/fontsubst \
-    vcl/unx/generic/fontmanager/fontconfig \
-    vcl/unx/generic/fontmanager/fontmanager \
-    vcl/unx/generic/fontmanager/helper \
-    vcl/unx/generic/print/genpspgraphics \
-    vcl/unx/generic/print/genprnpsp \
-    vcl/unx/generic/print/prtsetup \
-    vcl/unx/generic/printer/jobdata \
-    vcl/unx/generic/printer/ppdparser \
-
 ifeq ($(SYSTEM_LIBFIXMATH),TRUE)
 $(eval $(call gb_Library_add_libs,vcl,\
         $(LIBFIXMATH_LIBS) \
 ))
 endif
-
-ifeq ($(USING_X11),TRUE)
-$(eval $(call gb_Library_add_exception_objects,vcl,\
-    vcl/unx/generic/desktopdetect/desktopdetector \
-    $(if $(ENABLE_CPDB), \
-        vcl/unx/generic/printer/cpdmgr \
-    ) \
-))
-
-$(eval $(call gb_Library_use_externals,vcl,\
-    dbus \
-    valgrind \
-))
-
-$(eval $(call gb_Library_add_libs,vcl,\
-    -lX11 \
-    -lXext \
-))
-endif # USING_X11
-
-ifeq ($(OS), $(filter LINUX %BSD SOLARIS, $(OS)))
-$(eval $(call gb_Library_add_libs,vcl,\
-	-lm $(UNIX_DLAPI_LIBS) \
-))
-endif
-
-ifeq ($(DISABLE_GUI),TRUE)
-$(eval $(call gb_Library_add_exception_objects,vcl,\
-    vcl/headless/headlessinst \
-))
-
-else # !DISABLE_GUI
 
 $(eval $(call gb_Library_add_exception_objects,vcl,\
     vcl/source/opengl/OpenGLContext \
@@ -721,68 +638,26 @@ $(eval $(call gb_Library_add_exception_objects,vcl,\
         vcl/skia/zone \
         vcl/skia/gdiimpl \
     ) \
-    $(if $(filter LINUX SOLARIS %BSD,$(OS)), \
-	vcl/unx/generic/window/sessioninhibitor \
-    ) \
 ))
 
 $(eval $(call gb_Library_use_externals,vcl,\
     epoxy \
     $(if $(filter SKIA,$(BUILD_TYPE)),skia) \
 ))
-endif # !DISABLE_GUI
 
-
-#
-# * plugin loader: used on all platforms except iOS and Android
-# * select headless code and corresponding libraries
-#
 $(eval $(call gb_Library_add_exception_objects,vcl,\
-    $(if $(USE_HEADLESS_CODE), \
-        $(if $(ENABLE_CUPS), \
-            vcl/unx/generic/printer/cupsmgr \
-	) \
-	$(if $(filter TRUE,$(ENABLE_CPDB) $(ENABLE_CUPS)),\
-            vcl/unx/generic/printer/printerinfomanager \
-        , \
-            vcl/null/printerinfomanager \
-        ) \
-        $(vcl_headless_code) \
-        $(vcl_headless_freetype_code) \
-    ) \
     vcl/source/pdf/$(if $(filter PDFIUM,$(BUILD_TYPE)),,Dummy)PDFiumLibrary \
 ))
 
-# fontconfig depends on expat for static builds
 $(eval $(call gb_Library_use_externals,vcl,\
-    $(if $(USE_HEADLESS_CODE), \
-        cairo \
-        $(if $(ENABLE_CPDB),cpdb) \
-        $(if $(ENABLE_CUPS),cups) \
-        fontconfig \
-        freetype \
-    ) \
     $(if $(filter PDFIUM,$(BUILD_TYPE)),pdfium) \
     $(if $(filter AFDKO,$(BUILD_TYPE)),afdko libxml2) \
-))
-
-$(eval $(call gb_Library_add_libs,vcl,\
-    $(if $(filter LINUX %BSD SOLARIS,$(OS)), \
-        -lm \
-        $(if $(DISABLE_DYNLOADING),,$(UNIX_DLAPI_LIBS)) \
-    ) \
 ))
 
 
 #
 # OS specific stuff not handled yet
 #
-
-ifeq ($(OS),HAIKU)
-$(eval $(call gb_Library_add_libs,vcl,\
-    -lbe \
-))
-endif
 
 
 

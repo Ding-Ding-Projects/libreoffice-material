@@ -2,8 +2,8 @@
 # Runs the dependency-free validator (bin/validate-prototype.mjs) on every change
 # to the prototype or its data, guarding self-containment (no external assets),
 # inline-script syntax, icon coverage, token/palette parity, catalog shape, and
-# the regex engine. Unlike build-installer.yml this always CAN pass, because it
-# checks the mockup, not a compiled build.
+# the regex engine. This build-free check validates the mockup independently of
+# the Windows-only native MSI build.
 
 name: Validate interactive prototype
 

@@ -1,5 +1,100 @@
 # Windows-only handoff — 2026-07-21
 
+## 2026-07-26 session handoff — release-channel integrity and compiled Windows-only follow-through
+
+This section supersedes the 2026-07-25 "held for an MSI baseline" status below.
+It records source/build facts separately from remote and runtime facts.
+
+### Landed and compiled
+
+- **Windows-only stages 4+5 landed** at `7874c6b85`: non-Windows module bodies,
+  X11/headless VCL, non-MSC bridges/platforms, and the former
+  `.github/workflows/build-installer.yml` Linux path were removed together.
+  Successful MSI-123 at `952090ce2` later configured and compiled the resulting
+  Windows-only product and produced its installer. That is compile evidence,
+  not runtime coverage of every affected feature.
+- **Document-tab Stage 3 was restored** at `af689a470` with both compile defects
+  fixed. It is in the source compiled by MSI-123. Tabs remain off by default,
+  and no Stage 3 pixels, activation, persistence, keyboard path, or accessibility
+  run has been captured; runtime UI remains unverified.
+- **The UI-scale control also compiled in MSI-123.** It remains intentionally
+  stored-only: the 50-400% value round-trips through configuration, but no UI
+  metric consumes it and no visible scaling is claimed.
+- **The source-installer workflow has published at least 20 releases.** This proves the
+  validation/package/release path ran. It does not prove the packaged
+  `Install-LibreOfficeMaterial-FromSource.ps1` can provision a clean Windows
+  machine, compile LibreOffice, create shortcuts, and launch the result end to
+  end.
+
+### Release-channel bug and bounded fix
+
+- **Observed incident:** a pre-fix source-installer release became GitHub
+  Latest. Because it has no `LibreOfficeMaterial-Windows-x64.msi`, the public
+  `/releases/latest/download/LibreOfficeMaterial-Windows-x64.msi` route returned
+  404. Unique source/MSI tag names did not protect the shared mutable Latest
+  pointer.
+- **Landed at `27a7c7d00`:** source releases use `--latest=false` and assert
+  after publishing that Latest is a different release containing the canonical
+  MSI; release-tag pushes no longer duplicate the Windows UI contract; CI now
+  enforces build-free fleet closure and release-channel mutation coverage.
+- **Current bounded follow-up:** all MSI publishers share one non-cancelling
+  concurrency group. A verified MSI claims Latest only if its exact commit is
+  identical to or descends from the current stable MSI commit. Older, divergent,
+  or ancestry-unprovable builds remain normal historical non-Latest releases.
+  This makes future promotion single-writer and ancestry-monotonic.
+- Behavior, configuration, failures, security boundaries, and evidence are in
+  [`docs/build/release-channel-integrity.md`](docs/build/release-channel-integrity.md).
+
+### Remote repair and legacy-run containment completed
+
+- **The one-time GitHub repair succeeded on 2026-07-26.** Latest now points to
+  `windows-msi-123-1-952090ce26` at `952090ce2` with exactly four assets. The
+  canonical unauthenticated MSI, XML, and checksum Latest URLs returned HTTP
+  200 with lengths 197,111,808, 960, and 103 bytes respectively.
+- **The three legacy unguarded MSI jobs were contained.** Runs `30209383677`,
+  `30210931048`, and `30213637979` were cancelled before this follow-up push.
+  Afterwards, Latest still resolved to the exact MSI-123 tag/commit and four
+  assets, and the cache-busted MSI/XML/checksum routes again returned HTTP 200
+  at 197,111,808/960/103 bytes.
+- **No post-change hosted MSI publisher has completed yet.** Serialization and
+  ancestry-monotonic promotion are source/static facts until a pushed workflow
+  demonstrates them.
+- The old sections below are retained as chronological history. Their Linux-CI,
+  Stage 4/5-held, Stage 3-held, and source-workflow-never-ran statements describe
+  their dates, not current repository status.
+
+### Deeper source audit — open product bugs
+
+These are source findings and future work, not runtime-verified fixes:
+
+- notification-manager selection and focus survive some filter/view changes and
+  can target records no longer shown; sequential Undo also replays the wrong
+  history state;
+- document-tab Stage 3 has no normal-product caller, lacks a fresh configuration
+  entry, can retain stale frames, and has schema/render mismatches; compile
+  success does not close those defects;
+- `i/g/m/s` controls in audited Find/Replace, Forms, and Quick Find paths are
+  cosmetic because they do not reach the real matcher;
+- the native notification overlay does not fully re-anchor on resize, while
+  warning, error, and pinned cards can auto-dismiss instead of persisting;
+- the appearance accent selector persists a value but does not invalidate or
+  update the runtime token/cache path, so the visible palette remains inert;
+- Start Center regex mode can desynchronize from its toggle, and Templates
+  search is currently a no-op. Both still need keyboard, accessibility, and
+  runtime evidence after repair.
+
+### GitHub coordination
+
+- Rolling progress is tracked in [Discussion
+  #27](https://github.com/Ding-Ding-Projects/libreoffice-material/discussions/27).
+  Commit `27a7c7d00` has its factual changelog in [Announcement
+  #28](https://github.com/Ding-Ding-Projects/libreoffice-material/discussions/28).
+- Organization Project 5 could not be read or updated: `gh project view 5`
+  returns `Resource not accessible by personal access token
+  (organization.projectV2)`. Existing project state was left untouched.
+- GitHub's GraphQL Mutation schema exposed no Discussion-pinning mutation on
+  this host/token, so Announcement #28 could not be pinned through the API.
+
 ## 2026-07-25 session handoff — Windows-only strip, source installer, tabs, UI-scale
 
 **Tip at handoff:** `79b783fce` on `main`, pushed. Working tree clean. Every

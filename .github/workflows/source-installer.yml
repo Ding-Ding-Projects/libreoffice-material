@@ -183,8 +183,36 @@ jobs:
           set -euo pipefail
           test -f "$PACKAGE_PATH"
 
+          verify_stable_latest_msi() {
+            local latest_tag latest_msi_asset
+            latest_tag="$(gh api -H 'Cache-Control: no-cache' \
+              "repos/$REPOSITORY/releases/latest" --jq .tag_name)"
+            latest_msi_asset="$(gh api -H 'Cache-Control: no-cache' \
+              "repos/$REPOSITORY/releases/latest" \
+              --jq '.assets[] | select(.name == "LibreOfficeMaterial-Windows-x64.msi") | .name')"
+            if [ "$latest_tag" = "$TAG" ] || \
+               [ "$latest_msi_asset" != "LibreOfficeMaterial-Windows-x64.msi" ]; then
+              echo "Stable Latest is not a verified Windows MSI release." >&2
+              return 1
+            fi
+          }
+
+          # Fail before creating a release when the shared stable channel is
+          # already broken. A failed validation must not leave a new release.
+          verify_stable_latest_msi
+
           # A tag is never reused or overwritten. The run number and attempt are
           # unique per run, so a collision means something is badly wrong.
+          if ! tag_ref_count="$(gh api -H 'Cache-Control: no-cache' \
+            "repos/$REPOSITORY/git/matching-refs/tags/$TAG" \
+            --jq "[.[] | select(.ref == \"refs/tags/$TAG\")] | length")"; then
+            echo "Could not prove refs/tags/$TAG is absent; refusing to publish." >&2
+            exit 1
+          fi
+          if [ "$tag_ref_count" != "0" ]; then
+            echo "Tag refs/tags/$TAG already exists; refusing to publish against an unrelated commit." >&2
+            exit 1
+          fi
           if gh release view "$TAG" --repo "$REPOSITORY" >/dev/null 2>&1; then
             echo "Release $TAG already exists; refusing to overwrite it." >&2
             exit 1
@@ -236,14 +264,5 @@ jobs:
           # Source packages are a parallel delivery channel. They must never
           # replace the verified Windows MSI release used by the public Latest
           # download and updater URLs.
-          latest_tag="$(gh api -H 'Cache-Control: no-cache' \
-            "repos/$REPOSITORY/releases/latest" --jq .tag_name)"
-          latest_msi_asset="$(gh api -H 'Cache-Control: no-cache' \
-            "repos/$REPOSITORY/releases/latest" \
-            --jq '.assets[] | select(.name == "LibreOfficeMaterial-Windows-x64.msi") | .name')"
-          if [ "$latest_tag" = "$TAG" ] || \
-             [ "$latest_msi_asset" != "LibreOfficeMaterial-Windows-x64.msi" ]; then
-            echo "Source release disturbed the stable Latest Windows MSI route." >&2
-            exit 1
-          fi
+          verify_stable_latest_msi
           echo "Published https://github.com/${REPOSITORY}/releases/tag/${TAG}"

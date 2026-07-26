@@ -15,6 +15,37 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-26 milestone — Windows-only compile closure and release-channel
+containment:** Windows-only stages 4+5 landed at `7874c6b85`, including removal
+of the Linux installer workflow, and the resulting tree compiled in successful
+MSI-123 at `952090ce2`. Restored document-tab Stage 3 (`af689a470`) and the
+UI-scale control were in that build; tabs still have no runtime UI evidence,
+and UI scale remains stored-only. The source-installer workflow has published
+at least 20 releases, but its packaged PowerShell installer remains unverified
+end to end. A pre-fix source release displaced the stable MSI from GitHub Latest and
+made the public Latest MSI URL return 404. Commit `27a7c7d00` made source
+releases non-Latest, excluded release tags from the Windows UI contract, and
+added CI fleet-closure/release-channel guards. Current source additionally
+serializes MSI publishers and permits Latest promotion only along proven commit
+ancestry. The one-time remote repair restored
+`windows-msi-123-1-952090ce26` at `952090ce2` as Latest with four assets; the
+canonical MSI/XML/checksum routes returned HTTP 200 at
+197,111,808/960/103-byte lengths. The three legacy unguarded MSI runs were
+cancelled before this follow-up push and the repaired API/assets/routes were
+rechecked; a post-change hosted MSI publisher run remains pending. See
+[`docs/build/release-channel-integrity.md`](docs/build/release-channel-integrity.md).
+
+The same 2026-07-26 source audit keeps six product bug clusters explicitly open:
+filtered notification-manager selection/focus can act on hidden records and
+sequential Undo is wrong; document tabs lack a normal-product caller and fresh
+configuration entry, retain stale frames, and have schema/render mismatches;
+`i/g/m/s` controls in Find/Replace, Forms, and Quick Find do not reach the real
+matcher; the notification overlay does not fully re-anchor on resize and can
+auto-dismiss warning, error, or pinned cards; the persisted appearance accent
+does not update the runtime token cache; and Start Center regex mode can
+desynchronize while Templates search is a no-op. These findings add work; they
+do not reduce the compile evidence above or create runtime evidence.
+
 **2026-07-23 milestone — first genuine cross-suite capture:** the shipped
 `windows-msi-89-1-705cf7ff4b` release binary produced the first honest Material
 screenshots spanning the Start Center (light, dark, forced high contrast), all six
@@ -23,7 +54,7 @@ administratively extracted MSI payload with per-image SHA-256 in
 [`docs/screenshots/genuine/PROVENANCE.json`](docs/screenshots/genuine/PROVENANCE.json).
 This is visual evidence only — it does not by itself mark any phase verified.
 
-**2026-07-25 milestones:** the Windows-only OS strip landed stages 0–3
+**2026-07-25 milestones (status at that date; superseded above):** the Windows-only OS strip landed stages 0–3
 (iOS/Android, macOS/Quartz/Aqua, Qt/KF/GTK plugin backends removed, each
 Linux-CI-green; stages 4–5 held for an MSI baseline); a touchless
 build-from-source installer (`bin/Install-LibreOfficeMaterial-FromSource.ps1`)
@@ -74,14 +105,16 @@ stands in for whole-suite completion.
   as the whole-suite visual and interaction target — 11 suite surfaces, a regex
   builder on every search bar, and a Find & Replace dialog (explicitly a
   hand-built mockup, not a build screenshot);
-- guard that reference and the build path in CI: a dependency-free validator
-  (`bin/validate-prototype.mjs`) and `prototype-check.yml` check its
-  self-containment, tokens, icons, and regex engine, while `build-installer.yml`
-  attempts a Linux package and every `main` push (or manual dispatch) starts
-  `windows-installer.yml`. The Windows workflow pins Visual Studio 2022,
+- guard that reference and the Windows build path in CI: a dependency-free
+  validator (`bin/validate-prototype.mjs`) and `prototype-check.yml` check its
+  self-containment, tokens, icons, and regex engine, while every `main` push (or
+  manual dispatch) starts `windows-installer.yml`. The former Linux installer
+  workflow was deliberately removed with Windows-only stages 4+5. The Windows
+  workflow pins Visual Studio 2022,
   provisions Cygwin, runs the required native tests, uploads the validated MSI
-  directly to an exact draft release, and only then publishes a normal public,
-  non-prerelease Latest Windows x64 MSI release;
+  directly to an exact draft release, and only then publishes a normal public
+  release. Its single-writer policy promotes that release to Latest only when
+  the built commit is identical to or descends from the current stable MSI;
 - define native build profiles and artifact retention rules, including a
   source-controlled local Windows bootstrap/build entry point;
 - preflight the low-level computer-use driver and an off-screen desktop;
@@ -101,8 +134,8 @@ dedicated VS 2022/Cygwin profile and a clean preflight passed; the first real
 configure then exposed the absent C++ Clang compiler required by the default
 Skia build. The local bootstrap now requires that component before retrying.
 The hosted Windows workflow uses a clean LF checkout and a pinned runner that
-supplies its prerequisites. Current
-source Linux run `29695793821` and Windows run `29695815101` both passed
+supplies its prerequisites. Before the Windows-only cut removed the Linux
+workflow, Linux run `29695793821` and Windows run `29695815101` both passed
 `tools_test`, `extensions_test_update`, `vcl_widget_definition_reader_test`,
 `vcl_file_definition_widget_draw_test`, and `vcl_treeview`; the Windows run also
 passed the legacy CLI payload check and built the full LibreOfficeDev
@@ -162,12 +195,12 @@ initial propagation delay, cache-busted unauthenticated Latest downloads for all
 four assets matched the release sizes and SHA-256 values exactly. This is a real
 historical release, but not the corrected updater candidate described below.
 
-The corrected candidate was subsequently published as the normal public,
-non-draft, non-prerelease Latest release
+The corrected candidate was subsequently published as a normal public,
+non-draft, non-prerelease release and was verified as Latest at that time:
 [`windows-msi-local-20260720-fbba560e2`](https://github.com/Ding-Ding-Projects/libreoffice-material/releases/tag/windows-msi-local-20260720-fbba560e2)
 on 2026-07-20 at 06:44:07 UTC. It targets exact product source
 `fbba560e27db26de605c40aa237c554c1f0744b1` and contains exactly four public
-assets. Cache-busted unauthenticated Latest downloads matched the published
+assets. Cache-busted unauthenticated Latest downloads then matched the published
 sizes and SHA-256 values: MSI 199,688,192 bytes,
 `180e511c065f3e21cd9e4fd0abe31f8886b0cc5ce5ce27a48f2890f83d1afeea`;
 sidecar 102 bytes,
@@ -176,6 +209,10 @@ JSON manifest 1,011 bytes,
 `12e6495e5d5051657dd99e6c0afc6d61941144c1bcde5f792f09a9949bea0fc1`;
 and XML manifest 972 bytes,
 `b686d9e9641360c3962bc27b8b6517b9a76c14c06cd50efbcbcfe485724eab72`.
+Those immutable release bytes remain valid evidence. A later pre-fix source
+release displaced it from Latest and caused a 404; the completed one-time repair,
+legacy-run cancellations, and post-cancellation recheck are recorded in the
+2026-07-26 milestone above.
 
 The local script is intentionally non-destructive: it checks safe short roots,
 both tool/build-drive free space, and a clean checkout before installing
@@ -221,7 +258,8 @@ with no collector errors; this is a
 collector smoke result, not a full accessibility audit.
 The required native targets, local Windows MSI, and newest light Start Center
 headless smoke have completed for exact source `393263ad9`; the older normal
-release and four public Latest assets are also verified. The launch fix at `fbba560e2` passed
+release's four immutable assets and its historical Latest downloads are also
+verified. The launch fix at `fbba560e2` passed
 `CppunitTest_extensions_test_update`, an incremental full product/MSI build, and
 Windows Installer administrative extraction. Its corrected unsigned
 199,688,192-byte MSI is `180e511c…afeea`; the 4,885-file, 603,901,200-byte
@@ -245,7 +283,9 @@ desktop closure, and driver-process cleanup. Their manifests are
 [`20260720-144200-393263ad92-windows-headless-dark`](docs/evidence/runs/20260720-144200-393263ad92-windows-headless-dark/manifest.json)
 and
 [`20260720-144249-393263ad92-windows-headless-highcontrast`](docs/evidence/runs/20260720-144249-393263ad92-windows-headless-highcontrast/manifest.json).
-The corrected normal release and its four public Latest assets are verified.
+The corrected normal release's four immutable assets and its historical Latest
+downloads are verified. The mutable route is repaired to MSI-123; the three
+legacy unguarded runs were cancelled and the route was rechecked afterwards.
 Updater download/stage/consent flow, MSI install/repair/upgrade/uninstall and
 restart-suppression lifecycle proof and the remaining UI/accessibility matrix
 remain pending. The wrapper's final dist staging phase passed again at exact
@@ -284,9 +324,10 @@ contract, and five shared regex-builder instances. It specifies the design the n
 of a compiled build, so it does not advance any acceptance gate or the
 verified-capture count. The exact-source local MSI and Start Center evidence are
 tracked separately. The corrected normal
-`windows-msi-local-20260720-fbba560e2` Latest release has four byte-verified
-public assets and targets the five-argument updater-launch correction. Release
-publication is complete, but it does not close the updater runtime or
+`windows-msi-local-20260720-fbba560e2` release has four byte-verified public
+assets and targets the five-argument updater-launch correction. It was verified
+as Latest before the source-channel incident. Immutable publication is complete,
+and the route has since been repaired to MSI-123; the release does not close updater runtime or
 restart-suppression lifecycle gate. The older `577059e274` release remains
 historical with its launch-argument warning. The historical assetless release/tag `e` contains no
 build and does not satisfy any release or evidence gate. Neither package workflow
@@ -800,12 +841,23 @@ Exit gate:
 
 ## Phase 8 — release readiness and upstreamability
 
-**Status: in progress — corrected normal release and public assets verified;
-updater and MSI lifecycle proof pending**
+**Status: in progress — Latest repaired to MSI-123 and legacy runs contained;
+revised publisher proof, updater, and MSI lifecycle proof pending**
 
 - complete native validation of the Windows updater and stable packaging path;
 - preserve the exact GitHub Latest XML, strict MSI metadata/hash checks,
   protected staging, explicit consent, and no-silent-install contract;
+- retain the completed 2026-07-26 repair evidence after a source-installer
+  release displaced the stable MSI from Latest: MSI-123 restored, four assets,
+  and HTTP-200 canonical MSI/XML/checksum routes at the expected lengths; the
+  three old-policy runs were cancelled and the check repeated afterwards;
+- keep source-installer releases explicitly non-Latest and verify after each
+  publication that Latest still contains the canonical MSI; serialize stable
+  MSI publishers and promote only a commit identical to or descended from the
+  current stable commit;
+- keep all eligible build-free checkers and mutation suites closed under CI
+  fleet-coverage validation, and keep release tags from duplicating the Windows
+  UI contract's branch-push run;
 - execute the statically validated disposable Windows Sandbox harness that pins
   old/corrected MSI hashes and requires exact-zero install, same-version update,
   repair, and uninstall results with no restart indicators or host mutation;
@@ -814,8 +866,10 @@ updater and MSI lifecycle proof pending**
   ProductCode remained registered and the run correctly rejected lifecycle
   acceptance before repair/uninstall;
 - publish through the draft-first workflow only after exact target, asset,
-  digest, normal-release, and public Latest checks pass; current source handles
-  GitHub's temporary `untagged-*` draft URL and still needs pushed-run proof;
+  digest, and normal-release checks pass; a release that is not a proven
+  ancestry-forward stable candidate remains public but non-Latest. Current
+  source handles GitHub's temporary `untagged-*` draft URL and still needs a
+  post-change pushed-run proof;
 - contributor, design-review, and regression-triage documentation;
 - licensing, attribution, trademark, privacy, and security reviews;
 - split generally useful improvements into reviewable upstream proposals;

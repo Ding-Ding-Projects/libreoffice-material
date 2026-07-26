@@ -91,6 +91,21 @@ def violations(contents: Mapping[str, str]) -> list[str]:
     for marker in postcondition_markers:
         if marker not in source:
             errors.append(f"source-release:Latest postcondition missing {marker!r}")
+    if source.count("verify_stable_latest_msi") != 3:
+        errors.append(
+            "source-release:stable Latest verifier must be defined once and called before and after publication"
+        )
+    tag_ref_markers = (
+        'if ! tag_ref_count="$(gh api -H \'Cache-Control: no-cache\' \\',
+        '"repos/$REPOSITORY/git/matching-refs/tags/$TAG"',
+        '--jq "[.[] | select(.ref == \\"refs/tags/$TAG\\")] | length")"; then',
+        'if [ "$tag_ref_count" != "0" ]; then',
+    )
+    for marker in tag_ref_markers:
+        if marker not in source:
+            errors.append(
+                f"source-release:fail-closed exact-tag check missing {marker!r}"
+            )
 
     contract = contents.get(CONTRACT_WORKFLOW, "")
     push_block = _contract_push_block(contract)
@@ -107,11 +122,36 @@ def violations(contents: Mapping[str, str]) -> list[str]:
             errors.append("contract-workflow:release-tag pushes must stay excluded")
 
     windows = contents.get(WINDOWS_WORKFLOW, "")
-    if (
-        "gh release edit $tag --draft=false --prerelease=false --latest --repo"
-        not in windows
-    ):
-        errors.append("windows-release:verified MSI promotion must claim Latest")
+    monotonic_markers = (
+        "group: ${{ github.ref == 'refs/heads/main' && 'windows-msi-stable-publisher' || format('windows-msi-nonpublisher-{0}', github.run_id) }}",
+        "cancel-in-progress: false",
+        "$promoteToLatest = $true",
+        '"repos/$repository/compare/$latestBeforeCommit...${{ github.sha }}"',
+        "if ([string]$comparison.status -notin @('ahead', 'identical'))",
+        "$latestMode = if ($promoteToLatest) { '--latest' } else { '--latest=false' }",
+        "gh release edit $tag --draft=false --prerelease=false $latestMode --repo",
+        "if (-not $promoteToLatest)",
+        "function Test-StableLatestReleaseShape($releaseObject)",
+        "-and (Test-StableLatestReleaseShape $preservedLatest)",
+        "[long]$preservedLatest.id -eq [long]$latestBefore.id",
+    )
+    for marker in monotonic_markers:
+        if marker not in windows:
+            errors.append(f"windows-release:monotonic Latest marker missing {marker!r}")
+    if "group: windows-msi-${{ github.sha }}" in windows:
+        errors.append("windows-release:per-SHA concurrency permits out-of-order Latest writes")
+    if windows.count("[string]$preservedLatest.tag_name -ne $tag") != 2:
+        errors.append(
+            "windows-release:historical release must never validate itself as Latest"
+        )
+    if windows.count("$promoteToLatest = $true") != 1:
+        errors.append(
+            "windows-release:promotion may be enabled only by its initial fail-safe default"
+        )
+    if windows.count("$promoteToLatest = $false") != 4:
+        errors.append(
+            "windows-release:all four API, target, compare, and ancestry failures must withhold promotion"
+        )
     if "releases/latest/download/${encodedAssetName}" not in windows:
         errors.append("windows-release:public Latest asset-byte verification missing")
 

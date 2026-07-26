@@ -13,12 +13,15 @@ seconds rather than hours into a compile.
 | 1 | `272fb99de` | iOS and Android: `vcl/ios`, `vcl/android`, `sal/android`, `Library_lo-bootstrap.mk`, EMSCRIPTEN blocks, the `vcl.common.component.{ios,android}` fragments. |
 | 2 | `58e4fec2e` | macOS, Quartz and Aqua: `vcl/osx`, `vcl/quartz`, `vcl/skia/osx`, `Library_vclplug_osx.mk`, the Aqua file picker, macOS extensions and setup, the top-level Xcode project (222 files). Fixed four unconditional `configure.ac` references to deleted `Info.plist` files that would have broken configure on Windows. |
 | 3 | `769117ddc` | Qt, KF and GTK plugin backends: `vcl/qt5`, `vcl/qt6`, `vcl/unx/{gtk3,gtk3_kde5,gtk4,kf5,kf6}`, the `shell` desktop/KDE/mac backends, seven `Library_vclplug_*` makefiles (530 files). `use_qt6` is deliberately kept — avmedia's qt6 backend still consumes it. |
-| 4+5 | *(staged)* | The non-Windows module bodies **and** the X11/headless VCL, in one commit: `vcl/{unx,headless,null,skia/x11,source/opengl/x11}` and their `vcl/inc` counterparts, `Library_vclplug_gen.mk`, the `unx`/`headless` component fragments, `sysui` (except the Windows `*.ico` files), `desktop/unx`, `svl/unx`, `shell/source/unix`, `odk/source/unoapploader/unx`, every `bridges/source/cpp_uno/gcc3_*` bridge, all non-WNT/MSC `solenv/gbuild/platform/*`, the whole `USE_HEADLESS_CODE` / `ENABLE_HEADLESS` / `--enable-headless` machinery, and the Linux CI workflow itself. |
+| 4+5 | `7874c6b85` | The non-Windows module bodies **and** the X11/headless VCL, in one commit: `vcl/{unx,headless,null,skia/x11,source/opengl/x11}` and their `vcl/inc` counterparts, `Library_vclplug_gen.mk`, the `unx`/`headless` component fragments, `sysui` (except the Windows `*.ico` files), `desktop/unx`, `svl/unx`, `shell/source/unix`, `odk/source/unoapploader/unx`, every `bridges/source/cpp_uno/gcc3_*` bridge, all non-WNT/MSC `solenv/gbuild/platform/*`, the whole `USE_HEADLESS_CODE` / `ENABLE_HEADLESS` / `--enable-headless` machinery, and the former Linux installer workflow itself. |
 
-Stages 0-3 were verified green by the Linux native CI leg plus the Windows UI
-contract. Stage 4 deliberately breaks the Linux build, so stages 4 and 5 land
-together with `.github/workflows/build-installer.yml` removed in the same
-commit.
+Stages 0-3 were historically verified green by the former Linux native CI leg
+plus the Windows UI contract. Stage 4 deliberately made a Linux build
+unsupported, so stages 4 and 5 landed together at `7874c6b85` with
+`.github/workflows/build-installer.yml` removed in the same commit. The
+resulting Windows-only tree later compiled in the successful MSI-123 build at
+`952090ce2`. That is real Windows product/MSI compile evidence, not runtime
+coverage for every feature whose non-Windows counterpart was removed.
 
 ## What is preserved and why
 
@@ -47,18 +50,20 @@ obscure "no rule to make target .../LINUX_X86_64_GCC.mk".
 
 ## Failure modes and verification
 
-- Stages 0-3 are Linux-CI-green and cross-checked by the build-free gate plus
-  the Windows UI contract.
-- **After stage 4+5 there is no fast compile check at all.** The ~3h Windows
-  MSI build is the only remaining verification, so the change was validated
-  statically instead: an inbound-reference grep before each deletion, a
+- Stages 0-3 were Linux-CI-green before that workflow was deliberately removed;
+  the build-free gate and Windows UI contract remain active.
+- **After stage 4+5 there is no Linux compile path.** The ~3h Windows MSI build
+  is the native compile gate. Before MSI-123 completed, the change was validated
+  statically with an inbound-reference grep before each deletion, a
   dangling-reference sweep over every removed name afterwards, an
   `ifeq/ifneq/ifdef/ifndef` vs `endif` balance count on every edited makefile
   (all balance to 0), and a `configure.ac` `if`/`fi` + `case`/`esac` delta
-  check against `HEAD` (unchanged).
-- **`configure.ac` is the highest-risk file**, because a wrong edit silently
-  unsets a variable and only fails at configure time on CI. There is no
-  `autoconf` on this host, so the edits could not be syntax-checked locally.
+  check against `HEAD` (unchanged). Successful MSI-123 at `952090ce2` then
+  compiled the resulting product and produced its installer.
+- **`configure.ac` was the highest-risk file**, because a wrong edit could
+  silently unset a variable and fail only at configure time. There was no
+  `autoconf` on the authoring host, so the edits were not syntax-checked locally;
+  MSI-123 subsequently passed configure and compile on Windows.
 - **Honest caveat:** roughly 5% of the removal — `configure.ac` host-os edits
   and dropped UNO component fragments — can produce a **green MSI that fails
   only when a user opens the affected feature**. Those parts need a

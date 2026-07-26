@@ -1,9 +1,11 @@
 # Source installer — build and run from source, touchless
 
-> **Verification status: UNVERIFIED END TO END.** Neither the installer script
-> nor its release workflow has been observed completing a real build. A full
-> LibreOffice Windows build takes roughly three hours and tens of gigabytes,
-> and the machine this was authored on has no build root. Read
+> **Verification status: SCRIPT UNVERIFIED END TO END.** By 2026-07-26 the
+> release workflow had published at least 20 source-installer releases, so its validation,
+> packaging, and GitHub publication path has run. The installer script itself
+> has never been observed provisioning a clean host and completing a real
+> LibreOffice build and launch. A full Windows build takes roughly three hours
+> and tens of gigabytes. Read
 > [Verification status](#verification-status) before relying on anything here.
 
 - Script: [`bin/Install-LibreOfficeMaterial-FromSource.ps1`](../../bin/Install-LibreOfficeMaterial-FromSource.ps1)
@@ -228,17 +230,31 @@ from, or gates on the MSI job, so a downloadable installer exists roughly two
 minutes after a push instead of three hours.
 
 Steps: check out; validate the script (assert no `Read-Host`, assert the
-mirrored markers are present); parse the script with the PowerShell parser;
+mirrored markers are present); run the build-free fleet-closure and release-
+channel integrity checker/mutation suites; parse the script with the PowerShell parser;
 stage a zip of the script plus `README.txt` and `SHA256SUMS.txt`; upload the zip
 as a workflow artifact with `if: always()` and `continue-on-error: true` so it
 survives a failure, matching the failure-proof pattern in
-`windows-installer.yml`; then publish a non-draft release.
+`windows-installer.yml`; then publish a normal non-draft release that is
+explicitly marked `--latest=false`.
 
 **Tagging:** `source-installer-<run_number>-<attempt>-<sha10>`. Prebuilt MSI
-releases use `windows-msi-<run_number>-<attempt>-<sha10>`, so the two namespaces
-are disjoint and can never collide. The publish step queries the tag first and
-**fails rather than overwriting** an existing release, and afterwards asserts
-`isDraft == false`.
+releases use `windows-msi-<run_number>-<attempt>-<sha10>`, so the channel
+namespaces are disjoint. Before creating a release, the publish step performs a
+fail-closed matching-ref lookup for the exact source tag; an API error is not
+accepted as absence, and an existing ref or release is never overwritten. It
+also reads the repository's uncached Latest release both before and after
+publication, failing unless that release differs from the source tag and
+contains exactly the canonical `LibreOfficeMaterial-Windows-x64.msi` asset.
+The preflight prevents a new release when inherited remote state is already
+wrong; the workflow still cannot infer or perform an operational repair. After
+publication it also asserts `isDraft == false`.
+
+Source release tags are excluded from the Windows UI contract's `push` trigger.
+That contract still runs for every branch push, pull request, and manual
+dispatch, but publishing this fast source package no longer launches a duplicate
+full static fleet for the same commit. The complete mutable-Latest policy is in
+[`release-channel-integrity.md`](release-channel-integrity.md).
 
 ## Verification status
 
@@ -251,6 +267,17 @@ What was done:
   `opencode run --help` on the authoring machine.
 - The workflow YAML was parsed successfully.
 - The repository's build-free check/test gate was run and still passes.
+- At least twenty `source-installer-*` releases had been published by 2026-07-26.
+  This is real workflow packaging/publication evidence, not execution evidence
+  for the PowerShell installer inside the zip.
+- Commit `27a7c7d00` added `--latest=false`, the stable-MSI post-publication
+  assertion, tag-push exclusion for the Windows UI contract, and CI fleet-
+  closure/release-channel mutation checks. The one-time remote repair restored
+  `windows-msi-123-1-952090ce26` at `952090ce2` as Latest with four assets and
+  HTTP-200 MSI/XML/checksum routes. Run `30213637973` attempt 2 then published
+  `source-installer-20-2-27a7c7d000` successfully while preserving MSI-123 as
+  Latest. The newer fail-closed matching-ref preflight remains source/static
+  evidence until the follow-up push runs this workflow.
 
 What was **not** done, and must not be claimed:
 
@@ -258,7 +285,13 @@ What was **not** done, and must not be claimed:
   dependency install, not a checkout, not a configure, not a build, not a
   launch.
 - The auto-fix loop has never fired against a real failure.
-- The release workflow has never run on GitHub; no release has been published.
+- No clean Windows host has run the packaged script through dependency
+  provisioning, checkout, configure, compile, shortcut creation, and launch.
+- The pre-fix source channel displaced the Windows MSI from GitHub Latest and
+  made the public Latest MSI URL return 404. The source policy prevents a
+  repeat, and the one-time repair plus public reachability checks have completed.
+  The three legacy unguarded MSI runs were cancelled and Latest was rechecked
+  afterwards; no source-script runtime claim follows from this release repair.
 
 The installer is written to be defensive and log-heavy precisely because of
 this. The transcript under `<BuildRoot>\installer-logs` is the only acceptable

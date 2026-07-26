@@ -10,8 +10,9 @@ document engine, file-format support, and accessibility foundations.
 > widget tokens, full-track progress indicators, value-sensitive level
 > indicators, native outlined frames, net-less tree connectors, stricter VCL
 > definition parsing, broader state coverage, Start Center changes, and a
-> consent-based Windows updater are present in source, and the current source
-> has passed its five required native C++ targets in Linux Actions run
+> consent-based Windows updater are present in source. Before the Windows-only
+> cut removed Linux CI, the then-current tree passed its five required native
+> C++ targets in Linux Actions run
 > [`29695793821`](https://github.com/Ding-Ding-Projects/libreoffice-material/actions/runs/29695793821)
 > and in Windows Actions run
 > [`29695815101`](https://github.com/Ding-Ding-Projects/libreoffice-material/actions/runs/29695815101).
@@ -22,8 +23,8 @@ document engine, file-format support, and accessibility foundations.
 > 199,692,288-byte Windows x64 MSI, and successfully administratively extracted
 > its payload with Windows Installer status `0`.
 > The whole GUI has not been rewritten, and no application surface is
-> Material-complete. The corrected build is now a normal public, non-draft,
-> non-prerelease Latest release at
+> Material-complete. The corrected build was published as a normal public,
+> non-draft, non-prerelease release at
 > [`windows-msi-local-20260720-fbba560e2`](https://github.com/Ding-Ding-Projects/libreoffice-material/releases/tag/windows-msi-local-20260720-fbba560e2).
 > It targets exact product source `fbba560e27db26de605c40aa237c554c1f0744b1`,
 > contains exactly the MSI plus its checksum and two update manifests, and was
@@ -31,7 +32,15 @@ document engine, file-format support, and accessibility foundations.
 > SHA-256
 > `180e511c065f3e21cd9e4fd0abe31f8886b0cc5ce5ce27a48f2890f83d1afeea`.
 > Cache-busted unauthenticated Latest downloads for all four corrected assets
-> matched the release sizes and SHA-256 values exactly. A later real Sandbox
+> matched the release sizes and SHA-256 values exactly at that time. On
+> 2026-07-26 a pre-fix source-installer release displaced the stable MSI from
+> GitHub Latest, so the public Latest MSI URL returned 404. The immutable
+> corrected release remained available by its explicit tag. The one-time repair
+> has now restored `windows-msi-123-1-952090ce26` at `952090ce2` as Latest with
+> exactly four assets; the canonical MSI/XML/checksum Latest URLs returned HTTP
+> 200 with lengths 197,111,808/960/103 bytes. The three legacy unguarded MSI
+> runs were cancelled before this follow-up push; the same API shape and public
+> route lengths were reverified after cancellation. A later real Sandbox
 > diagnostic found that this release's updater command still mixes
 > major-upgrade and repair properties: it detects the old ProductCode but
 > `REINSTALL=ALL` prevents the new ProductCode from selecting features. Current
@@ -61,19 +70,19 @@ document engine, file-format support, and accessibility foundations.
 > [design reference](https://ding-ding-projects.github.io/libreoffice-material/prototype.html)
 > is a mockup, not the app. To run the actual editor, install upstream LibreOffice
 > from [libreoffice.org](https://www.libreoffice.org/download/), which does not
-> include these Material changes. An automated pipeline
-> ([`build-installer.yml`](.github/workflows/build-installer.yml)) attempts a
-> Linux build, while [`windows-installer.yml`](.github/workflows/windows-installer.yml)
-> now starts a Visual Studio 2022/Cygwin Windows x64 MSI build on every `main`
-> push (manual dispatch remains available). Both publish **only** after genuine
-> packages pass structural validation. Run `29695815101` at
-> `e4dc8a850c982f33d8722fc203f86591b2993e8b` proves the repaired CLI payload,
-> required native targets and full installation-set build. The local VS 2026
-> run adds exact-source MSI, Start Center smoke, and bounded UNO-tree evidence.
-> The corrected normal release and its public Latest asset bytes are verified,
-> but updater-runtime and MSI lifecycle proof are not accepted yet.
-> Hosted Windows publication for the newest pushed source is still running; the
-> exact local VS 2026 result below is not yet a hosted release.
+> include these Material changes. This fork is now strictly Windows-only.
+> Stages 4+5 landed at `7874c6b85`, removing the former Linux installer workflow
+> with the remaining non-Windows build bodies. Successful MSI-123 at
+> `952090ce2` compiled that tree, restored document-tab Stage 3 (`af689a470`),
+> and the UI-scale control. Tabs still lack runtime UI evidence; UI scale remains
+> stored-only. The source-installer workflow has published at least 20 releases,
+> but its packaged build-from-source script remains unverified end to end. Current
+> release-channel guards make source packages non-Latest, exclude release tags
+> from the Windows UI contract, close the build-free CI fleet, and serialize
+> future MSI Latest promotion along proven commit ancestry. The one-time remote
+> repair and legacy-run containment are complete; a post-change hosted publisher
+> run still requires final verification. See
+> [`docs/build/release-channel-integrity.md`](docs/build/release-channel-integrity.md).
 
 [Project site](https://ding-ding-projects.github.io/libreoffice-material/) ·
 [Interactive preview](https://ding-ding-projects.github.io/libreoffice-material/prototype.html) ·
@@ -83,10 +92,15 @@ document engine, file-format support, and accessibility foundations.
 [Material specification](MATERIAL_DESIGN.md) ·
 [Full design spec](docs/design/README.md) ·
 [Headless UI evidence plan](docs/HEADLESS_UI_EVIDENCE.md) ·
-[Screenshot index](docs/SCREENSHOTS.md)
+[Screenshot index](docs/SCREENSHOTS.md) ·
+[Release-channel integrity](docs/build/release-channel-integrity.md)
 
 **[Download the latest Windows x64 MSI](https://github.com/Ding-Ding-Projects/libreoffice-material/releases/latest/download/LibreOfficeMaterial-Windows-x64.msi)** ·
-[Release details](https://github.com/Ding-Ding-Projects/libreoffice-material/releases/tag/windows-msi-local-20260720-fbba560e2)
+[Release details](https://github.com/Ding-Ding-Projects/libreoffice-material/releases/tag/windows-msi-123-1-952090ce26)
+
+The repaired Latest route returned HTTP 200 at the expected MSI length on
+2026-07-26. The three old-policy runs were cancelled and the route was rechecked
+after their cancellation; the revised publisher still needs a hosted run.
 
 ## What is true today
 
@@ -101,7 +115,7 @@ document engine, file-format support, and accessibility foundations.
 | Headless harness | Appearance smoke accepted; fresh/legacy no-nag runner source-ready | The sibling low-level driver launched the exact MSI payload on run-scoped off-screen desktops, resolved stable runtime ownership, captured nine canonical states, drove background pointer and Tab input in every appearance profile, collected nine bounded UNO trees with no collector errors, shut down normally, and left zero matching processes/windows. A dedicated blank-Writer runner now encodes fresh/legacy profiles, suppression-free launch, batch-safe profile URIs, inherited crash-dump neutralization, exact total-window/PID/HWND/thread/DPI polling, dedicated-listener cleanup, and independent screenshot/UNO deny checks; it has not produced runtime evidence yet. All accepted canonical runs used dedicated same-token MCP sessions so UNO and the GUI shared the same integrity boundary; see [`docs/HEADLESS_UI_EVIDENCE.md`](docs/HEADLESS_UI_EVIDENCE.md) |
 | Interactive design reference | Published mockup | [`site/prototype.html`](site/prototype.html) — all 11 suite surfaces, customizable bottom-right dialog/notification forms, bulk manager, recoverable local Git-style ledger, and one documented advanced regex builder shared by all five prototype search surfaces; guarded by [`bin/validate-prototype.mjs`](bin/validate-prototype.mjs) (9/9) and the `prototype-check` CI |
 | Windows updater | Protected staging and no-restart source regressions pass; end-user flow not yet exercised | Windows-only update source reads the exact GitHub Latest XML asset, rejects untrusted or legacy state, verifies the canonical MSI metadata and bytes, stages through protected LocalAppData, and requires default-No consent before a visible install. Current source launches a major update with exactly `/i`, the staged MSI, `REBOOT=ReallySuppress`, and `MSIRESTARTMANAGERCONTROL=DisableShutdown`; repair-only `REINSTALL` properties are excluded. Its regression suite covers this four-argument vector, exclusive `CREATE_NEW` staging, the SYSTEM/Administrators/Owner Rights DACL, and a retained read lock that rejects write/delete opens. Download/consent/visible-launch and real MSI lifecycle proof remain pending; see [Privacy](PRIVACY.md) |
-| Installer / release | Local exact-source MSI/package gate and earlier normal Latest release verified | Exact implementation commit `393263ad924eae8d64b4f9a35bd6486ef83578fc` passed the full VS 2026 product build, the five-target native regression phase, MSI staging, and administrative extraction. Its unsigned 199,651,328-byte MSI is `7e8b1057…00e9`, embeds the exact build ID, contains one `soffice.exe`, and packages a Start Center without the retired footer Donate widget. The public, normal, non-draft, non-prerelease Latest release remains `windows-msi-local-20260720-fbba560e2`; it predates this UI change and the current four-argument updater and is not lifecycle proof. A statically validated [Windows Sandbox lifecycle harness](qa/windows-installer-lifecycle/README.md) pins the old/corrected packages and requires exact-zero install/update/repair/uninstall results with `/norestart`, `REBOOT=ReallySuppress`, unchanged reboot indicators, and clean uninstall. Three isolated launches failed closed; the third proved the Upgrade table found the old ProductCode but repair-only `REINSTALL` properties selected no features and skipped removal. Current source corrects that command split; a fresh acceptance run remains open. Hosted publication also now accepts GitHub's temporary draft URL before promotion while continuing to require the canonical tag URL after publishing; exact pushed-run verification remains pending |
+| Installer / release | MSI-123 is Latest; revised publisher run pending | The one-time repair restored `windows-msi-123-1-952090ce26` at `952090ce2` as Latest with exactly four assets. Canonical unauthenticated MSI/XML/checksum routes returned HTTP 200 with 197,111,808/960/103-byte lengths. Source releases are now non-Latest; the Windows UI contract excludes release-tag pushes; CI enforces fleet/release-channel closure; and future MSI promotion is serialized and ancestry-monotonic. Three legacy unguarded MSI runs were cancelled and Latest was rechecked; a post-change hosted publisher run still requires verification. The source workflow has published at least 20 packages, but the packaged build-from-source script remains unverified end to end. MSI-123 compiled Windows-only stages 4+5, restored document-tab Stage 3, and UI scale; tabs remain runtime-unverified and scale remains stored-only. See [release-channel integrity](docs/build/release-channel-integrity.md). |
 
 This table is deliberately conservative. A roadmap item changes state only when
 its code, build result, interaction checks, and committed visual evidence agree.
@@ -295,9 +309,11 @@ source includes:
 The local static validator passes with 2 schemes, 23 semantic color tokens per
 scheme, 3 semantic typography roles, 8 semantic shape tokens, 15 semantic
 metric roles, 72 style slots, 79 parts, and 205 states.
-The static validator remains source validation, but the current five required
-native C++ targets—including the focused `vcl_treeview` builder fixture—passed
-in Linux Actions, Windows Actions, and the exact-source local VS 2026 build. A
+The static validator remains source validation, but the five required native
+C++ targets—including the focused `vcl_treeview` builder fixture—passed in the
+historical pre-Windows-only Linux run, Windows Actions, and the exact-source
+local VS 2026 build. The later Windows-only tree completed MSI-123 at
+`952090ce2`. A
 real `soffice` Start Center smoke has now passed Home/focus/Templates in all
 three appearance profiles; no surface is yet verified Material-complete, and the broader
 appearance, input, localization, suite, and updater matrix remains open.
@@ -344,8 +360,8 @@ prove that every visible control used the file theme — the first release built
 after this change is the first shipped binary with Material active by default,
 and no pixel evidence exists for it yet. The
 `vcl_widget_definition_reader_test` and `vcl_file_definition_widget_draw_test`
-targets have passed in the hosted current source runs and the local VS 2026
-build. The exact-source MSI payload supplied the accepted `soffice` run linked
+targets passed in the hosted pre-Windows-only runs and the local VS 2026 build.
+The exact-source MSI payload supplied the accepted `soffice` run linked
 above, which had both variables set by hand.
 
 ## Windows updater source milestone
@@ -354,7 +370,11 @@ The Windows package source now enables LibreOffice's consent-based updater
 against one exact feed:
 `https://github.com/Ding-Ding-Projects/libreoffice-material/releases/latest/download/windows-update-manifest.xml`.
 GitHub's Latest route supplies the workflow-generated XML for the normal stable
-release. The parser accepts one Windows x64 MSI only when its safe release tag,
+release. After the pre-fix source-channel incident, the 2026-07-26 repair
+restored MSI-123 and the canonical XML route returned HTTP 200 at 960 bytes;
+the three legacy publisher runs were cancelled and that route was rechecked.
+The parser accepts one
+Windows x64 MSI only when its safe release tag,
 tag-derived GitHub URL, canonical `LibreOfficeMaterial-Windows-x64.msi` name,
 `application/x-msi` MIME type, positive byte count, and lowercase SHA-256 all
 match. Legacy or malformed persisted update state is discarded before a resume.
@@ -400,16 +420,21 @@ download/protected-stage/consent/install flow, MSI install/repair/upgrade/
 restart-suppression lifecycle, and broader UI/accessibility matrix are still pending.
 
 The stable release workflow starts on every push to `main` (manual dispatch
-remains available), creates a draft release, uploads the validated MSI and update
-metadata directly to that release, and checks the exact target, asset names,
-upload states, sizes, and digests. It then promotes the verified draft to a normal
-public, non-prerelease Latest release and checks the public Latest feed. Only
-diagnostics use an Actions artifact, and a failed draft is cleaned up. The
-independently staged corrected release
+remains available), creates a draft release, uploads the validated MSI and
+update metadata directly to that release, and checks the exact target, asset
+names, upload states, sizes, and digests. All publisher-capable main runs now
+share one non-cancelling concurrency group; non-main manual diagnostics use a
+run-unique group and cannot occupy the stable queue. A verified draft is promoted to Latest only
+when its exact commit is identical to or descends from the current stable MSI
+commit; an older, divergent, or ancestry-unprovable build becomes a normal
+historical non-Latest release. A successful promotion still checks the public
+Latest feed and all four cache-busted assets. Only diagnostics use an Actions
+artifact, and a failed draft is cleaned up. The independently staged corrected release
 [`windows-msi-local-20260720-fbba560e2`](https://github.com/Ding-Ding-Projects/libreoffice-material/releases/tag/windows-msi-local-20260720-fbba560e2)
-is now the normal public, non-prerelease Latest release. It targets exact source
+was verified as the normal public, non-prerelease Latest release before the
+2026-07-26 source-channel incident. It targets exact source
 `fbba560e27db26de605c40aa237c554c1f0744b1` and has exactly four assets.
-Cache-busted unauthenticated Latest downloads matched the release assets exactly:
+Cache-busted unauthenticated Latest downloads then matched the release assets exactly:
 the 199,688,192-byte MSI is
 `180e511c065f3e21cd9e4fd0abe31f8886b0cc5ce5ce27a48f2890f83d1afeea`;
 the 102-byte checksum sidecar is
@@ -418,6 +443,13 @@ the 1,011-byte JSON manifest is
 `12e6495e5d5051657dd99e6c0afc6d61941144c1bcde5f792f09a9949bea0fc1`;
 and the 972-byte XML manifest is
 `b686d9e9641360c3962bc27b8b6517b9a76c14c06cd50efbcbcfe485724eab72`.
+The immutable tag and bytes remain evidence. The repaired mutable Latest route
+now points to MSI-123 and its canonical public downloads returned HTTP 200 at
+the expected lengths. Source-installer releases now use `--latest=false`, fail
+closed on exact-tag lookup, and check the canonical MSI both before and after
+publication; the three legacy unguarded runs were cancelled and the repaired
+route was rechecked. See
+[`docs/build/release-channel-integrity.md`](docs/build/release-channel-integrity.md).
 Hosted workflow run `29720519794` later completed unsuccessfully and remains
 historical workflow diagnosis, not release evidence.
 
@@ -620,16 +652,20 @@ and the imported build files before configuring a machine.
 > `msiexec` race with an explicit hidden waited process. Exact implementation
 > commit `7029dccf4` subsequently passed all five native targets, full product/MSI
 > regeneration, administrative extraction, and final canonical staging. This
-> local result complements the hosted result:
-> current-source Linux run `29695793821` and Windows run `29695815101` passed
+> local result complements the hosted results from before the Windows-only cut:
+> Linux run `29695793821` and Windows run `29695815101` passed
 > all five required native C++ targets, and the Windows run built the full
 > installation set but stopped at MSI staging. Hosted run `29720519794` later
 > completed unsuccessfully and is historical workflow diagnosis. A separate
-> corrected normal public, non-prerelease Latest
-> release exists at `windows-msi-local-20260720-fbba560e2`; it targets
+> corrected normal public, non-prerelease release exists at
+> `windows-msi-local-20260720-fbba560e2`; it was verified as Latest before the
+> later source-channel incident and targets
 > `fbba560e27db26de605c40aa237c554c1f0744b1`, and its four public assets have
-> been independently downloaded and matched byte-for-byte. This publication does
-> not establish updater-runtime or MSI lifecycle behavior.
+> been independently downloaded and matched byte-for-byte. Its immutable assets
+> remain evidence. The mutable Latest route has since been repaired to MSI-123;
+> the three legacy unguarded runs were cancelled and the route was rechecked.
+> Neither publication
+> establishes updater-runtime or MSI lifecycle behavior.
 
 > **Optional local VS 2026 profile:** Visual Studio 2022 remains the default
 > and the profile that matches the current Windows CI workflow. To select VS

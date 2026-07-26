@@ -7,6 +7,7 @@ on:
     paths:
       - "bin/check-material-theme.py"
       - "bin/check-startcenter-no-donate.py"
+      - "bin/lint-ui.py"
       - "bin/test_material_theme_validator.py"
       - "bin/test_startcenter_no_donate.py"
       - "include/tools/XmlWalker.hxx"
@@ -36,6 +37,7 @@ on:
     paths:
       - "bin/check-material-theme.py"
       - "bin/check-startcenter-no-donate.py"
+      - "bin/lint-ui.py"
       - "bin/test_material_theme_validator.py"
       - "bin/test_startcenter_no_donate.py"
       - "include/tools/XmlWalker.hxx"

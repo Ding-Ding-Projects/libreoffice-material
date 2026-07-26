@@ -103,6 +103,16 @@ class BuildFreeGateCoverageTest(unittest.TestCase):
         self.assertIn("bin/test_material_theme_validator.py", referenced)
         self.assertIn("bin/test_startcenter_no_donate.py", referenced)
 
+    def test_lint_ui_must_trigger_on_push_and_pull_request(self) -> None:
+        workflows = dict(self.workflows)
+        source = workflows[VALIDATOR.MATERIAL_SOURCE_WORKFLOW]
+        self.assertEqual(2, source.count('- "bin/lint-ui.py"'))
+        workflows[VALIDATOR.MATERIAL_SOURCE_WORKFLOW] = source.replace(
+            '- "bin/lint-ui.py"', '- "bin/not-the-linter.py"', 1
+        )
+        errors = self.failures(workflows=workflows)
+        self.assertTrue(any("lint-ui.py must trigger both" in e for e in errors), errors)
+
     def test_inherited_upstream_linters_stay_excluded(self) -> None:
         for name in VALIDATOR.UPSTREAM_CHECK_EXCLUSIONS:
             self.assertNotIn(f"bin/{name}", self.eligible)

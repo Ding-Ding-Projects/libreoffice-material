@@ -49,9 +49,11 @@ permissions:
   contents: write
 
 concurrency:
-  # A distinct group per source commit keeps duplicate runs for one SHA orderly
-  # without allowing a newer main push to replace an older pending build.
-  group: windows-msi-${{ github.sha }}
+  # Latest is a single mutable release pointer, so MSI publishers must never run
+  # concurrently. A manual run on another branch or tag cannot publish, so give
+  # it a run-unique group rather than letting a six-hour diagnostic build occupy
+  # or replace the pending slot in the stable main-branch publisher queue.
+  group: ${{ github.ref == 'refs/heads/main' && 'windows-msi-stable-publisher' || format('windows-msi-nonpublisher-{0}', github.run_id) }}
   cancel-in-progress: false
 
 jobs:
@@ -732,6 +734,28 @@ jobs:
             }
             return $true
           }
+          function Test-StableLatestReleaseShape($releaseObject) {
+            $requiredNames = @(
+              $installerName
+              "$installerName.sha256"
+              'windows-msi-manifest.json'
+              'windows-update-manifest.xml'
+            ) | Sort-Object
+            $remoteAssets = @($releaseObject.assets)
+            $remoteNames = @($remoteAssets | ForEach-Object { [string]$_.name } | Sort-Object)
+            if ($remoteAssets.Count -ne 4 `
+                -or @(Compare-Object $requiredNames $remoteNames).Count -ne 0) {
+              return $false
+            }
+            foreach ($remoteAsset in $remoteAssets) {
+              if ([string]$remoteAsset.state -ne 'uploaded' `
+                  -or [long]$remoteAsset.size -le 0 `
+                  -or [string]$remoteAsset.digest -notmatch '^sha256:[0-9a-f]{64}$') {
+                return $false
+              }
+            }
+            return $true
+          }
           function Get-ReleaseForExactTag {
             $releaseJson = gh release view $tag --repo $repository --json tagName,name,isDraft,isPrerelease,publishedAt,targetCommitish,url,assets 2>$null
             if ($LASTEXITCODE -ne 0) {
@@ -929,8 +953,53 @@ jobs:
           if ($promotionTagCommit -ne '${{ github.sha }}') {
             throw "Release tag $tag no longer peels to this workflow commit; refusing promotion."
           }
+
+          # A manual run can target an older commit, and queued builds can finish
+          # after a newer MSI has already shipped. Publish every verified package,
+          # but claim the mutable Latest pointer only when this SHA is a descendant
+          # of the current stable MSI commit. The constant workflow concurrency
+          # group makes this check-and-promote sequence single-writer.
+          $promoteToLatest = $true
+          $latestBefore = $null
+          $latestBeforeJson = gh api -H 'Cache-Control: no-cache' "repos/$repository/releases/latest" 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            Write-Warning 'Could not read the current Latest release; publishing this MSI without changing Latest.'
+            $promoteToLatest = $false
+          }
+          else {
+            $latestBefore = ($latestBeforeJson -join [Environment]::NewLine) | ConvertFrom-Json
+            $latestBeforeHasMsi = @(
+              $latestBefore.assets | Where-Object { [string]$_.name -eq $installerName }
+            ).Count -eq 1
+            if ($latestBeforeHasMsi) {
+              $latestBeforeCommit = [string]$latestBefore.target_commitish
+              if ($latestBeforeCommit -notmatch '^[0-9a-fA-F]{40}$') {
+                Write-Warning 'Current Latest MSI does not name an exact commit; preserving it rather than guessing ancestry.'
+                $promoteToLatest = $false
+              }
+              elseif ($latestBeforeCommit -ne '${{ github.sha }}') {
+                $compareJson = gh api -H 'Cache-Control: no-cache' `
+                  "repos/$repository/compare/$latestBeforeCommit...${{ github.sha }}" 2>$null
+                if ($LASTEXITCODE -ne 0) {
+                  Write-Warning 'Could not prove this build descends from the current Latest MSI; preserving Latest.'
+                  $promoteToLatest = $false
+                }
+                else {
+                  $comparison = ($compareJson -join [Environment]::NewLine) | ConvertFrom-Json
+                  if ([string]$comparison.status -notin @('ahead', 'identical')) {
+                    Write-Host ("Publishing $tag as a normal historical release because " +
+                      "${{ github.sha }} is not newer than Latest commit $latestBeforeCommit " +
+                      "(compare status: $($comparison.status)).")
+                    $promoteToLatest = $false
+                  }
+                }
+              }
+            }
+          }
+
+          $latestMode = if ($promoteToLatest) { '--latest' } else { '--latest=false' }
           $tag | Set-Content -LiteralPath $promotionMarker -Encoding ascii
-          gh release edit $tag --draft=false --prerelease=false --latest --repo $repository
+          gh release edit $tag --draft=false --prerelease=false $latestMode --repo $repository
           if ($LASTEXITCODE -ne 0) {
             throw "Publishing or recovering verified release $tag failed with exit code $LASTEXITCODE."
           }
@@ -960,62 +1029,86 @@ jobs:
           }
 
           $latestAssetsVerified = $false
-          for ($attempt = 1; $attempt -le 36; $attempt++) {
-            $latestJson = gh api -H 'Cache-Control: no-cache' "repos/$repository/releases/latest"
+          if (-not $promoteToLatest) {
+            $preservedLatestJson = gh api -H 'Cache-Control: no-cache' "repos/$repository/releases/latest"
             if ($LASTEXITCODE -eq 0) {
-              $latest = ($latestJson -join [Environment]::NewLine) | ConvertFrom-Json
-              if ($latest.tag_name -eq $tag -and -not $latest.draft -and -not $latest.prerelease `
-                  -and $latest.name -eq $releaseTitle `
-                  -and $latest.target_commitish -eq '${{ github.sha }}' `
-                  -and (Test-ExactReleaseAssets $latest)) {
-                $allPublicAssetsMatch = $true
-                $publicVerificationOrder = @(
-                  'windows-update-manifest.xml'
-                  'windows-msi-manifest.json'
-                  "$installerName.sha256"
-                  $installerName
-                )
-                foreach ($assetName in $publicVerificationOrder) {
-                  $cacheBuster = "${{ github.run_id }}-${{ github.run_attempt }}-$attempt-$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"
-                  $encodedAssetName = [uri]::EscapeDataString($assetName)
-                  $publicAssetUrl = "https://github.com/$repository/releases/latest/download/${encodedAssetName}?cachebust=$cacheBuster"
-                  $publicAssetPath = Join-Path $env:RUNNER_TEMP "latest-$attempt-$assetName"
-                  Remove-Item -LiteralPath $publicAssetPath -Force -ErrorAction SilentlyContinue
-                  curl.exe -fsSL --retry 3 --retry-all-errors --retry-delay 3 `
-                    --connect-timeout 30 --max-time 900 `
-                    -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' `
-                    $publicAssetUrl -o $publicAssetPath
-                  if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $publicAssetPath -PathType Leaf)) {
-                    $allPublicAssetsMatch = $false
+              $preservedLatest = ($preservedLatestJson -join [Environment]::NewLine) | ConvertFrom-Json
+              $preservedIdentityMatches = if ($latestBefore) {
+                [long]$preservedLatest.id -eq [long]$latestBefore.id `
+                  -and [string]$preservedLatest.tag_name -eq [string]$latestBefore.tag_name `
+                  -and [string]$preservedLatest.target_commitish -eq [string]$latestBefore.target_commitish
+              }
+              else {
+                [string]$preservedLatest.tag_name -ne $tag
+              }
+              $latestAssetsVerified = $preservedIdentityMatches `
+                -and [string]$preservedLatest.tag_name -ne $tag `
+                -and -not [bool]$preservedLatest.draft `
+                -and -not [bool]$preservedLatest.prerelease `
+                -and (Test-StableLatestReleaseShape $preservedLatest)
+            }
+            if ($latestAssetsVerified) {
+              Write-Host "Published $tag without demoting the existing verified Latest MSI release."
+            }
+          }
+          else {
+            for ($attempt = 1; $attempt -le 36; $attempt++) {
+              $latestJson = gh api -H 'Cache-Control: no-cache' "repos/$repository/releases/latest"
+              if ($LASTEXITCODE -eq 0) {
+                $latest = ($latestJson -join [Environment]::NewLine) | ConvertFrom-Json
+                if ($latest.tag_name -eq $tag -and -not $latest.draft -and -not $latest.prerelease `
+                    -and $latest.name -eq $releaseTitle `
+                    -and $latest.target_commitish -eq '${{ github.sha }}' `
+                    -and (Test-ExactReleaseAssets $latest)) {
+                  $allPublicAssetsMatch = $true
+                  $publicVerificationOrder = @(
+                    'windows-update-manifest.xml'
+                    'windows-msi-manifest.json'
+                    "$installerName.sha256"
+                    $installerName
+                  )
+                  foreach ($assetName in $publicVerificationOrder) {
+                    $cacheBuster = "${{ github.run_id }}-${{ github.run_attempt }}-$attempt-$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"
+                    $encodedAssetName = [uri]::EscapeDataString($assetName)
+                    $publicAssetUrl = "https://github.com/$repository/releases/latest/download/${encodedAssetName}?cachebust=$cacheBuster"
+                    $publicAssetPath = Join-Path $env:RUNNER_TEMP "latest-$attempt-$assetName"
                     Remove-Item -LiteralPath $publicAssetPath -Force -ErrorAction SilentlyContinue
-                    Write-Warning "Public Latest download failed for $assetName on polling attempt $attempt."
+                    curl.exe -fsSL --retry 3 --retry-all-errors --retry-delay 3 `
+                      --connect-timeout 30 --max-time 900 `
+                      -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' `
+                      $publicAssetUrl -o $publicAssetPath
+                    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $publicAssetPath -PathType Leaf)) {
+                      $allPublicAssetsMatch = $false
+                      Remove-Item -LiteralPath $publicAssetPath -Force -ErrorAction SilentlyContinue
+                      Write-Warning "Public Latest download failed for $assetName on polling attempt $attempt."
+                      break
+                    }
+                    $expectedPublicAsset = $expectedAssetMetadata[$assetName]
+                    $publicAsset = Get-Item -LiteralPath $publicAssetPath
+                    $publicAssetDigest = "sha256:$((Get-FileHash -LiteralPath $publicAssetPath -Algorithm SHA256).Hash.ToLowerInvariant())"
+                    if ([long]$publicAsset.Length -ne $expectedPublicAsset.size `
+                        -or $publicAssetDigest -ne $expectedPublicAsset.digest) {
+                      $allPublicAssetsMatch = $false
+                      Remove-Item -LiteralPath $publicAssetPath -Force -ErrorAction SilentlyContinue
+                      Write-Warning "Public Latest bytes did not match staged asset $assetName on polling attempt $attempt."
+                      break
+                    }
+                    Remove-Item -LiteralPath $publicAssetPath -Force
+                  }
+                  if ($allPublicAssetsMatch) {
+                    $latestAssetsVerified = $true
                     break
                   }
-                  $expectedPublicAsset = $expectedAssetMetadata[$assetName]
-                  $publicAsset = Get-Item -LiteralPath $publicAssetPath
-                  $publicAssetDigest = "sha256:$((Get-FileHash -LiteralPath $publicAssetPath -Algorithm SHA256).Hash.ToLowerInvariant())"
-                  if ([long]$publicAsset.Length -ne $expectedPublicAsset.size `
-                      -or $publicAssetDigest -ne $expectedPublicAsset.digest) {
-                    $allPublicAssetsMatch = $false
-                    Remove-Item -LiteralPath $publicAssetPath -Force -ErrorAction SilentlyContinue
-                    Write-Warning "Public Latest bytes did not match staged asset $assetName on polling attempt $attempt."
-                    break
-                  }
-                  Remove-Item -LiteralPath $publicAssetPath -Force
-                }
-                if ($allPublicAssetsMatch) {
-                  $latestAssetsVerified = $true
-                  break
                 }
               }
-            }
-            Write-Host "Waiting for public Latest routing and all four cache-busted assets ($attempt/36)."
-            if ($attempt -lt 36) {
-              Start-Sleep -Seconds 10
+              Write-Host "Waiting for public Latest routing and all four cache-busted assets ($attempt/36)."
+              if ($attempt -lt 36) {
+                Start-Sleep -Seconds 10
+              }
             }
           }
           if (-not $latestAssetsVerified) {
-            throw 'The public Latest route did not resolve all four assets to the validated release bytes.'
+            throw 'The public Latest route was not a valid Windows MSI release after publication.'
           }
 
       - name: Clean up failed draft release

@@ -8,8 +8,9 @@ built in three stages and is **guarded OFF by default**.
   only, no runtime capability).
 - Stage 2 — `508740c16` — the `officecfg` document-tab style schema, the
   clamp-on-read normalizer, and their contract.
-- Stage 3 — `4c32d58a2` — the Material document-tab strip
-  (`SfxDocumentTabBar`) and its per-tab appearance editor.
+- Stage 3 — restored at `af689a470` after the initial attempt and its reverts —
+  the Material document-tab strip (`SfxDocumentTabBar`) and its per-tab
+  appearance editor, with both compile errors corrected.
 
 ## Behavior
 
@@ -114,14 +115,17 @@ strip contains no hardcoded colour or label.
 
 ## Verification status
 
-**Source-implemented and guarded; RUNTIME UNVERIFIED.**
+**Source-implemented, guarded, and compile-verified; RUNTIME UI UNVERIFIED.**
 
 - Cross-checked build-free by three fail-closed contracts:
   `qa/windows-ui-contract/frame-topness-seams.json` (stage 1),
   `doc-tab-style-schema.json` (stage 2), and `document-tab-strip.json`
   (stage 3). All three carry `"runtime_verified": false`.
-- The C++ is compile-plausibility only; it is compiled by the ~3h Windows MSI
-  CI leg, not in this repository.
+- Restored Stage 3 commit `af689a470` is an ancestor of successful MSI-123 at
+  `952090ce2`; that workflow compiled the Windows product and produced the MSI.
+  This closes the compile gate for the strip/editor source, but it does not
+  prove construction, painting, activation, persistence, or accessibility at
+  runtime.
 - **Tabs do not render until an MSI exercises them.** No tab pixels and no
   window switching are claimed here.
 - True in-window multi-document hosting is a later, CI-gated stage and is

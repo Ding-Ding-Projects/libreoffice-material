@@ -1362,8 +1362,10 @@ def _validate_anatomy_persistence(
         kind = evidence_kind_for(family)
         if kind == STATIC_UI:
             try:
-                root = cache.get(surface) or _parse_root(repo_root, surface)
-                cache[surface] = root
+                root = cache.get(surface)
+                if root is None:
+                    root = _parse_root(repo_root, surface)
+                    cache[surface] = root
                 fresh = derive_static_markers(family, root)
             except ValidationError as error:
                 failures.append(f"C4 anatomy: {surface} re-derivation failed: {error}")

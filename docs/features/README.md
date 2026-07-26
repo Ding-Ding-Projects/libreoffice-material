@@ -14,8 +14,8 @@ own "Verification status" section.
 
 | Document | Covers | Runtime status |
 | --- | --- | --- |
-| [`document-tabs.md`](document-tabs.md) | The Material document-tab strip (`SfxDocumentTabBar`), its per-tab appearance editor, `officecfg` config, and clamp-on-read style normalizer. Stages 1-3. | Source-implemented, guarded off by default; **runtime UNVERIFIED**. |
-| [`ui-scale.md`](ui-scale.md) | The persisted 50-400% UI-scale control on Tools > Options > Appearance (refs tdf#101646). | **Stored-value only**; no live rescale; runtime UNVERIFIED. |
+| [`document-tabs.md`](document-tabs.md) | The Material document-tab strip (`SfxDocumentTabBar`), its per-tab appearance editor, `officecfg` config, and clamp-on-read style normalizer. Stages 1-3. | Compiled in MSI-123, guarded off by default; **runtime UI UNVERIFIED**. |
+| [`ui-scale.md`](ui-scale.md) | The persisted 50-400% UI-scale control on Tools > Options > Appearance (refs tdf#101646). | Compiled in MSI-123; **stored-value only**, no live rescale; runtime UNVERIFIED. |
 
 There is no HTTP or API surface in this category, so no Postman collection
 applies to it.

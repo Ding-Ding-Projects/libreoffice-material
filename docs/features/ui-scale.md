@@ -50,15 +50,19 @@ no privileged behavior.
 
 ## Verification status
 
-**Source-implemented; STORED-VALUE-ONLY; RUNTIME UNVERIFIED.**
+**Source-implemented and compile-verified; STORED-VALUE-ONLY; RUNTIME
+UNVERIFIED.**
 
 - Cross-checked build-free by `qa/windows-ui-contract/material-ui-scale.json`,
   which carries `"runtime_verified": false` and `"stored_only": true`. Its
   mutation suite proves that promoting either flag fails closed.
 - The metric that would actually rescale the UI is **deferred exactly like
   `MaterialDensity`**; both the `.xcs` `<desc>` and the contract say so.
-- The C++ is compile-plausibility only; the real compile is the ~3h Windows MSI
-  CI leg. No visible rescaling is claimed.
+- The feature commit `79b783fce` is an ancestor of successful MSI-123 at
+  `952090ce2`; that workflow compiled the Windows product and produced the MSI.
+  No runtime Options-page interaction or visible rescaling is claimed. The
+  compiled stage remains intentionally stored-only because no metric consumes
+  the value.
 - The `.ui` change was verified gla11y-clean (0 new errors) — a reciprocal
   label-for/labelled-by pair and a mnemonic to the focusable spin button — the
   same class of a11y FATAL that broke the MSI build earlier this session.

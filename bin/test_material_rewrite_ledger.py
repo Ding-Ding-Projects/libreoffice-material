@@ -360,6 +360,38 @@ class LedgerMutationTest(unittest.TestCase):
         CK._validate_anatomy_persistence(REPOSITORY, rows, {}, failures)
         self.assertTrue(any("C4 anatomy" in f and "markers changed" in f for f in failures), failures)
 
+    def test_static_anatomy_reuses_cached_childless_element(self) -> None:
+        surface = "sub/childless.ui"
+        cached_root = CK.ET.Element("interface")
+        self.assertEqual(len(cached_root), 0)
+        rows = {
+            surface: {
+                "rewrite_status": CK.REWRITTEN,
+                "family": CK.FAMILY_OPTIONS,
+                "rewrite_evidence": {
+                    "anatomy_markers": CK.derive_static_markers(
+                        CK.FAMILY_OPTIONS, cached_root
+                    )
+                },
+            }
+        }
+        cache = {surface: cached_root}
+        parse_calls = []
+        original = CK._parse_root
+
+        def record_parse(repo_root, parsed_surface):
+            parse_calls.append((repo_root, parsed_surface))
+            return CK.ET.Element("reparsed-interface")
+
+        CK._parse_root = record_parse
+        try:
+            CK._validate_anatomy_persistence(REPOSITORY, rows, cache, [])
+        finally:
+            CK._parse_root = original
+
+        self.assertEqual(parse_calls, [])
+        self.assertIs(cache[surface], cached_root)
+
     def test_static_predicate_function_rejects_bad_footer(self) -> None:
         surface = self.rewritten_static_surface()
         markers = copy.deepcopy(

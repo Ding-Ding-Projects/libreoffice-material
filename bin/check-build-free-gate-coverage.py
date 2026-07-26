@@ -25,6 +25,7 @@ from typing import Mapping, Sequence
 
 
 REPOSITORY = Path(__file__).resolve().parents[1]
+MATERIAL_SOURCE_WORKFLOW = ".github/workflows/material-source.yml"
 UPSTREAM_CHECK_EXCLUSIONS = frozenset(
     {
         "check-autocorr.py",
@@ -98,6 +99,14 @@ def violations(
     referenced = referenced_scripts(workflows)
     for path in sorted(eligible - referenced):
         errors.append(f"workflow-coverage:{path}:eligible build-free gate is not invoked")
+
+    material_source = workflows.get(MATERIAL_SOURCE_WORKFLOW, "")
+    if 'run: python3 bin/lint-ui.py sfx2/uiconfig/ui/startcenter.ui' not in material_source:
+        errors.append("trigger-coverage:material-source:Start Center lint command missing")
+    if material_source.count('- "bin/lint-ui.py"') != 2:
+        errors.append(
+            "trigger-coverage:material-source:bin/lint-ui.py must trigger both push and pull_request"
+        )
     return errors
 
 

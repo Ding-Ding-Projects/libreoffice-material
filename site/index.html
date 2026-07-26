@@ -52,7 +52,7 @@
             than replacing the document engine with a web shell.
           </p>
           <div class="hero-actions">
-            <a class="button button-filled" href="https://github.com/Ding-Ding-Projects/libreoffice-material/releases/latest/download/LibreOfficeMaterial-Windows-x64.msi">Download Windows MSI</a>
+            <a class="button button-filled" href="https://github.com/Ding-Ding-Projects/libreoffice-material/releases/latest/download/LibreOfficeMaterial-Windows-x64.msi">Download latest MSI</a>
             <a class="button button-filled" href="#roadmap">Explore the roadmap</a>
             <a
               class="button button-outlined"
@@ -61,21 +61,22 @@
           </div>
           <p class="truth-note">
             Native Material, Start Center, and consent-based Windows updater
-            changes are present in source. Current-source Linux run
-            <code>29695793821</code> and Windows run <code>29695815101</code>
-            passed all five required native C++ targets; the Windows run also
-            built the full LibreOfficeDev installation set and checked the
-            legacy CLI payload. A later exact-source local VS 2026 build at
-            <code>577059e274</code> passed those native targets, produced an
-            unsigned 199,692,288-byte MSI, and successfully extracted it.
-            Corrected source <code>fbba560e27</code> forwarded all five updater
-            launch arguments, and its extracted runtime supplied nine canonical
-            light, dark, and forced-high-contrast Start Center captures with nine
-            bounded UNO trees and no collector errors. Each appearance profile
-            includes visible keyboard focus on the accessible Open File button. The
-            corrected build is the normal public,
-            non-prerelease Latest release with four byte-verified assets. The whole
-            GUI is incomplete, and MSI lifecycle proof remains pending.
+            changes are present in source. This fork is now Windows-only:
+            stages 4+5 landed at <code>7874c6b85</code>, and successful MSI-123
+            at <code>952090ce2</code> compiled that tree, restored document-tab
+            Stage 3, and the stored-only UI-scale control. Tabs still have no
+            runtime UI evidence. At least twenty source-installer releases prove the
+            package workflow, not an end-to-end source build. A pre-fix source
+            release displaced the stable MSI from GitHub Latest, causing the
+            public Latest MSI URL to return 404. The one-time repair restored
+            <code>windows-msi-123-1-952090ce26</code> at
+            <code>952090ce2</code> as Latest with four assets; canonical
+            MSI/XML/checksum routes returned HTTP 200 at
+            197,111,808/960/103-byte lengths. Future source releases are
+            non-Latest and future MSI promotion is serialized and ancestry-
+            monotonic. Three legacy unguarded runs were cancelled and Latest
+            was rechecked; a post-change hosted publisher run and MSI lifecycle
+            proof remain open.
           </p>
         </div>
 
@@ -106,7 +107,7 @@
             </div>
             <div>
               <dt>Build / installer</dt>
-              <dd><span class="state state-verified">Corrected Latest release public</span></dd>
+              <dd><span class="state state-progress">MSI-123 Latest; guarded run pending</span></dd>
             </div>
             <div>
               <dt>Windows updater</dt>
@@ -241,15 +242,22 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
           </div>
           <p class="truth-note">
             Native targets, a corrected local exact-source MSI, corrected light,
-            dark, and high-contrast Start Center headless/UNO-tree smoke, and a normal public corrected
-            Latest release have completed. The release targets
+            dark, and high-contrast Start Center headless/UNO-tree smoke, and a
+            normal public corrected release have completed. The release targets
             <code>fbba560e27db26de605c40aa237c554c1f0744b1</code> and its four public
-            assets are byte-verified. Updater and MSI
+            assets were byte-verified through its explicit tag and, before the
+            source-channel incident, through Latest. Updater and MSI
             install/repair/upgrade/uninstall/restart-suppression runtime remain open.
             Every <code>main</code> push now starts the
             stable workflow, which uploads the validated MSI directly to an exact
-            draft before promoting it to a normal public non-prerelease Latest
-            release. Only diagnostics use an Actions artifact.
+            draft. MSI publishers are single-writer; only a commit identical to
+            or descended from the current stable MSI may be promoted to Latest.
+            Other verified builds remain public historical releases. Source
+            packages are explicitly non-Latest. The repaired Latest pointer now
+            targets MSI-123 and its canonical public routes returned HTTP 200 at
+            the expected lengths. Three legacy unguarded runs were cancelled and
+            those facts were rechecked. Only diagnostics use an Actions artifact. See the
+            <a href="https://github.com/Ding-Ding-Projects/libreoffice-material/blob/main/docs/build/release-channel-integrity.md">release-channel integrity contract</a>.
           </p>
         </div>
         <p class="blocker-note">
@@ -278,15 +286,18 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
           commit <code>393263ad9</code> then passed the same product/native/MSI
           path; its 199,651,328-byte MSI and accepted light off-screen run show
           Help and Extensions with no footer Donate control.
-          Current-source Linux run <code>29695793821</code> and Windows run
-          <code>29695815101</code> passed all five required native C++ targets;
-          the latter also built the full installation set. Its staging rule
+          Before the Windows-only cut, Linux run <code>29695793821</code> and
+          Windows run <code>29695815101</code> passed all five required native
+          C++ targets; the latter also built the full installation set. Its staging rule
           recursively found two intermediate MSI databases alongside the final
           installer, so no artifact was uploaded. Corrected source
           <code>fbba560e27</code> produced and extracted a new MSI, its runtime
           passed scoped Start Center UI/UNO smoke, and its normal public
-          <a href="https://github.com/Ding-Ding-Projects/libreoffice-material/releases/tag/windows-msi-local-20260720-fbba560e2">Latest release</a>
-          has exactly four byte-verified assets. Updater/installer lifecycle
+          <a href="https://github.com/Ding-Ding-Projects/libreoffice-material/releases/tag/windows-msi-local-20260720-fbba560e2">explicit release</a>
+          has exactly four byte-verified assets. It was verified as Latest at
+          publication; after the later source-channel incident, the mutable
+          route was repaired to MSI-123 with public reachability checks.
+          Updater/installer lifecycle
           results remain pending. A first isolated lifecycle launch failed
           closed during result serialization, left the host safety state
           unchanged, and produced no accepted lifecycle bundle; the corrected
@@ -515,7 +526,7 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
         <ol class="roadmap-list">
           <li class="roadmap-item current">
             <span class="phase-number">0</span>
-            <div><p class="phase-state">In progress</p><h3>Reproducible foundation</h3><p>Provenance, design contract, site, corrected public release, real headless captures, and bounded UNO smoke are recorded; full reproducibility, installer lifecycle, and accessibility gates remain open.</p></div>
+            <div><p class="phase-state">In progress</p><h3>Reproducible foundation</h3><p>Provenance, design contract, site, repaired and post-cancellation-rechecked MSI-123 Latest routing, real headless captures, and bounded UNO smoke are recorded; full reproducibility, installer lifecycle, and accessibility gates remain open.</p></div>
           </li>
           <li class="roadmap-item">
             <span class="phase-number">1</span>
@@ -531,7 +542,7 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
           </li>
           <li class="roadmap-item">
             <span class="phase-number">7–8</span>
-            <div><p class="phase-state">Source in progress</p><h3>Hardening and release proof</h3><p>The corrected normal Latest release and four public assets are verified. Consent-based updater and draft-first automation exist in source; installer lifecycle, accessibility, locale, performance, and compatibility proof remains.</p></div>
+            <div><p class="phase-state">Source in progress</p><h3>Hardening and release proof</h3><p>MSI-123 is restored as Latest, its canonical public routes returned HTTP 200, and three legacy unguarded runs were cancelled before a successful recheck. Source packages are now non-Latest, release-tag CI duplication is removed, static fleet closure is enforced, and future MSI promotion is serialized and ancestry-monotonic. Hosted proof of the revised publisher, installer lifecycle, accessibility, locale, performance, and compatibility remain open.</p></div>
           </li>
         </ol>
       </section>

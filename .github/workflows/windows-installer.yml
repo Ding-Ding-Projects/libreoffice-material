@@ -265,9 +265,26 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $setup = 'C:\cygwin-setup.exe'
-          curl.exe -fL --retry 5 --retry-delay 5 https://cygwin.com/setup-x86_64.exe -o $setup
-          if ($LASTEXITCODE -ne 0) {
-            throw 'Downloading the official Cygwin installer failed.'
+          # Resilient download: cygwin.com is a single host and an outage there
+          # otherwise fails the whole ~3h build. Try each source with generous
+          # retries (incl. HTTP errors) and fall back across hosts; a truncated
+          # file is treated as a failure so a bad byte-count never passes.
+          $setupSources = @(
+            'https://cygwin.com/setup-x86_64.exe',
+            'https://www.cygwin.com/setup-x86_64.exe'
+          )
+          $setupOk = $false
+          foreach ($setupUrl in $setupSources) {
+            curl.exe -fL --retry 8 --retry-delay 15 --retry-all-errors --connect-timeout 30 $setupUrl -o $setup
+            if ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $setup) -and
+                (Get-Item -LiteralPath $setup).Length -gt 100000) {
+              $setupOk = $true
+              break
+            }
+            Write-Warning "Cygwin installer download from $setupUrl failed; trying next source."
+          }
+          if (-not $setupOk) {
+            throw 'Downloading the official Cygwin installer failed from all sources.'
           }
           $signature = Get-AuthenticodeSignature -LiteralPath $setup
           Write-Host "Cygwin setup signature: $($signature.Status) / $($signature.SignerCertificate.Subject)"

@@ -7,10 +7,10 @@
   "source_note": "Deterministic source-level closure ledger for WIN-SYS-016. Regenerate with --regenerate. Not a claim of native implementation, a successful build, or any runtime evidence.",
   "unassigned_id": "unassigned",
   "counts": {
-    "ui_surfaces": 1260,
+    "ui_surfaces": 1261,
     "native_surfaces": 10,
-    "total_surfaces": 1270,
-    "assigned": 1020,
+    "total_surfaces": 1271,
+    "assigned": 1021,
     "unassigned": 250
   },
   "mapping": {
@@ -6045,6 +6045,13 @@
       "owner": "sfx2",
       "inventory_id": "WIN-SYS-003",
       "mapped_by": "override"
+    },
+    {
+      "kind": "ui-file",
+      "surface": "sfx2/uiconfig/ui/documenttabappearance.ui",
+      "owner": "sfx2",
+      "inventory_id": "WIN-SHL-001",
+      "mapped_by": "prefix"
     },
     {
       "kind": "ui-file",

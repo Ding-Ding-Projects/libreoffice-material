@@ -2,6 +2,11 @@ name: Windows UI contract
 
 on:
   push:
+    # Run on every branch push, but not on release-tag creation. The source
+    # installer publishes a tag after each main push; accepting tag pushes here
+    # used to run this exhaustive suite twice for the same commit.
+    branches:
+      - "**"
   pull_request:
   workflow_dispatch:
 
@@ -495,3 +500,44 @@ jobs:
 
       - name: Run Math editor mutation regressions
         run: python3 bin/test_math_editor_contract.py
+
+      # --- Fleet closure: previously local-only checks now enforced in CI ---
+
+      - name: Validate configuration-layer coverage
+        run: python3 bin/check-config-layer-coverage.py
+
+      - name: Run configuration-layer coverage mutation regressions
+        run: python3 bin/test_config_layer_coverage.py
+
+      - name: Validate Material rewrite ledger
+        run: python3 bin/check-material-rewrite-ledger.py
+
+      - name: Run Material rewrite ledger mutation regressions
+        run: python3 bin/test_material_rewrite_ledger.py
+
+      - name: Validate notification overlay composition
+        run: python3 bin/check-notification-overlay-contract.py
+
+      - name: Run notification overlay mutation regressions
+        run: python3 bin/test_notification_overlay_contract.py
+
+      - name: Validate notebookbar UI conformance
+        run: python3 bin/check-windows-notebookbar-ui-conformance.py
+
+      - name: Run notebookbar UI conformance mutation regressions
+        run: python3 bin/test_windows_notebookbar_ui_conformance.py
+
+      - name: Run accessibility-gate mutation regressions
+        run: python3 bin/test_check_ui_a11y_fatals.py
+
+      - name: Validate build-free workflow coverage
+        run: python3 bin/check-build-free-gate-coverage.py
+
+      - name: Run build-free workflow coverage mutation regressions
+        run: python3 bin/test_build_free_gate_coverage.py
+
+      - name: Validate release-channel integrity
+        run: python3 bin/check-release-channel-integrity.py
+
+      - name: Run release-channel integrity mutation regressions
+        run: python3 bin/test_release_channel_integrity.py

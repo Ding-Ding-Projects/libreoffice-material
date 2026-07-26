@@ -38,6 +38,13 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Validate CI and release-channel integrity
+        run: |
+          python3 bin/check-build-free-gate-coverage.py
+          python3 bin/test_build_free_gate_coverage.py
+          python3 bin/check-release-channel-integrity.py
+          python3 bin/test_release_channel_integrity.py
+
       - name: Validate the installer script
         shell: bash
         run: |
@@ -216,12 +223,27 @@ jobs:
             --target "${{ github.sha }}" \
             --title "Source installer ${TAG}" \
             --notes "$notes" \
+            --latest=false \
             "$PACKAGE_PATH" \
             "${PACKAGE_PATH}.sha256"
 
           published_draft="$(gh release view "$TAG" --repo "$REPOSITORY" --json isDraft --jq .isDraft)"
           if [ "$published_draft" != "false" ]; then
             echo "Release $TAG was published as a draft; that is not acceptable." >&2
+            exit 1
+          fi
+
+          # Source packages are a parallel delivery channel. They must never
+          # replace the verified Windows MSI release used by the public Latest
+          # download and updater URLs.
+          latest_tag="$(gh api -H 'Cache-Control: no-cache' \
+            "repos/$REPOSITORY/releases/latest" --jq .tag_name)"
+          latest_msi_asset="$(gh api -H 'Cache-Control: no-cache' \
+            "repos/$REPOSITORY/releases/latest" \
+            --jq '.assets[] | select(.name == "LibreOfficeMaterial-Windows-x64.msi") | .name')"
+          if [ "$latest_tag" = "$TAG" ] || \
+             [ "$latest_msi_asset" != "LibreOfficeMaterial-Windows-x64.msi" ]; then
+            echo "Source release disturbed the stable Latest Windows MSI route." >&2
             exit 1
           fi
           echo "Published https://github.com/${REPOSITORY}/releases/tag/${TAG}"

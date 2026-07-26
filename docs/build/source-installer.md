@@ -1,7 +1,7 @@
 # Source installer — build and run from source, touchless
 
 > **Verification status: SCRIPT UNVERIFIED END TO END.** By 2026-07-26 the
-> release workflow had published at least 20 source-installer releases, so its validation,
+> release workflow had published at least 21 source-installer releases, so its validation,
 > packaging, and GitHub publication path has run. The installer script itself
 > has never been observed provisioning a clean host and completing a real
 > LibreOffice build and launch. A full Windows build takes roughly three hours
@@ -267,7 +267,7 @@ What was done:
   `opencode run --help` on the authoring machine.
 - The workflow YAML was parsed successfully.
 - The repository's build-free check/test gate was run and still passes.
-- At least twenty `source-installer-*` releases had been published by 2026-07-26.
+- At least twenty-one `source-installer-*` releases had been published by 2026-07-26.
   This is real workflow packaging/publication evidence, not execution evidence
   for the PowerShell installer inside the zip.
 - Commit `27a7c7d00` added `--latest=false`, the stable-MSI post-publication
@@ -276,8 +276,9 @@ What was done:
   `windows-msi-123-1-952090ce26` at `952090ce2` as Latest with four assets and
   HTTP-200 MSI/XML/checksum routes. Run `30213637973` attempt 2 then published
   `source-installer-20-2-27a7c7d000` successfully while preserving MSI-123 as
-  Latest. The newer fail-closed matching-ref preflight remains source/static
-  evidence until the follow-up push runs this workflow.
+  Latest. Run `30214506688` subsequently exercised the fail-closed matching-ref
+  preflight, published `source-installer-21-1-a507c86445`, and preserved MSI-123
+  again.
 
 What was **not** done, and must not be claimed:
 

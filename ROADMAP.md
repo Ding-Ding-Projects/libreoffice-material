@@ -21,7 +21,7 @@ of the Linux installer workflow, and the resulting tree compiled in successful
 MSI-123 at `952090ce2`. Restored document-tab Stage 3 (`af689a470`) and the
 UI-scale control were in that build; tabs still have no runtime UI evidence,
 and UI scale remains stored-only. The source-installer workflow has published
-at least 20 releases, but its packaged PowerShell installer remains unverified
+at least 21 releases, but its packaged PowerShell installer remains unverified
 end to end. A pre-fix source release displaced the stable MSI from GitHub Latest and
 made the public Latest MSI URL return 404. Commit `27a7c7d00` made source
 releases non-Latest, excluded release tags from the Windows UI contract, and
@@ -32,7 +32,10 @@ ancestry. The one-time remote repair restored
 canonical MSI/XML/checksum routes returned HTTP 200 at
 197,111,808/960/103-byte lengths. The three legacy unguarded MSI runs were
 cancelled before this follow-up push and the repaired API/assets/routes were
-rechecked; a post-change hosted MSI publisher run remains pending. See
+rechecked. Initial hosted MSI run `30214506398` then failed before job creation
+because inline substitutions exceeded GitHub's 21,000-character expression
+limit; current source uses default `GITHUB_*` variables and pins that constraint,
+so a successful post-change hosted MSI publisher run remains pending. See
 [`docs/build/release-channel-integrity.md`](docs/build/release-channel-integrity.md).
 
 The same 2026-07-26 source audit keeps six product bug clusters explicitly open:

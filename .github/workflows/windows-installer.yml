@@ -602,9 +602,9 @@ jobs:
           GH_TOKEN: ${{ secrets.ORG_TOKEN || github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $short = '${{ github.sha }}'.Substring(0, 10)
-          $tag = "windows-msi-${{ github.run_number }}-${{ github.run_attempt }}-$short"
-          $repository = '${{ github.repository }}'
+          $short = $env:GITHUB_SHA.Substring(0, 10)
+          $tag = "windows-msi-$($env:GITHUB_RUN_NUMBER)-$($env:GITHUB_RUN_ATTEMPT)-$short"
+          $repository = $env:GITHUB_REPOSITORY
           $releaseUrl = "https://github.com/$repository/releases/tag/$tag"
           $installerName = 'LibreOfficeMaterial-Windows-x64.msi'
           $releaseManifest = @(Get-Content -LiteralPath 'dist-windows\windows-msi-manifest.json' -Raw | ConvertFrom-Json)
@@ -622,8 +622,8 @@ jobs:
           <inst:description xmlns:inst="http://update.libreoffice.org/description">
             <inst:id>LibreOffice Material Windows x64</inst:id>
             <inst:version>Windows x64 $short</inst:version>
-            <inst:buildid>${{ github.sha }}</inst:buildid>
-            <inst:gitid>${{ github.sha }}</inst:gitid>
+            <inst:buildid>$($env:GITHUB_SHA)</inst:buildid>
+            <inst:gitid>$($env:GITHUB_SHA)</inst:gitid>
             <inst:os>Windows</inst:os>
             <inst:arch>X86_64</inst:arch>
             <inst:update type="application/x-msi" src="$installerUrl" sha256="$installerHash" size="$installerBytes" release-tag="$tag" file-name="$installerName" />
@@ -646,8 +646,8 @@ jobs:
           $expectedFeedText = [ordered]@{
             id = 'LibreOffice Material Windows x64'
             version = "Windows x64 $short"
-            buildid = '${{ github.sha }}'
-            gitid = '${{ github.sha }}'
+            buildid = $env:GITHUB_SHA
+            gitid = $env:GITHUB_SHA
             os = 'Windows'
             arch = 'X86_64'
           }
@@ -682,11 +682,11 @@ jobs:
             throw 'The persisted update manifest differs from the validated XML.'
           }
           $notes = @"
-          Unofficial, unsigned LibreOfficeDev Windows x64 build from commit ${{ github.sha }}.
+          Unofficial, unsigned LibreOfficeDev Windows x64 build from commit $($env:GITHUB_SHA).
 
           The MSI passed the required native C++ regression targets, including updater protocol parsing, trusted-source validation, and file-integrity regression tests. It also passed an administrative extraction check and contains soffice.exe. The built-in updater follows only this repository's normal Latest release, checks the canonical MSI byte count and SHA-256 after download and again before launch, and requires explicit default-No consent before starting the interactive Windows Installer. The package is currently unsigned; these checks detect corruption but do not replace publisher code signing. Its low-level off-screen desktop interaction and screenshot result will be linked here after the release asset is exercised on Windows. Do not install it over an official LibreOffice release.
 
-          Workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          Workflow run: https://github.com/$($env:GITHUB_REPOSITORY)/actions/runs/$($env:GITHUB_RUN_ID)
           "@
           $releaseTitle = "LibreOffice Material Windows x64 — $short"
           $installerPath = Join-Path 'dist-windows' $installerName
@@ -810,14 +810,14 @@ jobs:
             throw "Tag $tag exceeded the bounded annotated-tag peel depth."
           }
 
-          $createdMarker = Join-Path $env:RUNNER_TEMP "windows-msi-release-created-${{ github.run_id }}-${{ github.run_attempt }}.json"
-          $promotionMarker = Join-Path $env:RUNNER_TEMP "windows-msi-release-promotion-${{ github.run_id }}-${{ github.run_attempt }}.txt"
+          $createdMarker = Join-Path $env:RUNNER_TEMP "windows-msi-release-created-$($env:GITHUB_RUN_ID)-$($env:GITHUB_RUN_ATTEMPT).json"
+          $promotionMarker = Join-Path $env:RUNNER_TEMP "windows-msi-release-promotion-$($env:GITHUB_RUN_ID)-$($env:GITHUB_RUN_ATTEMPT).txt"
           Remove-Item -LiteralPath $createdMarker, $promotionMarker -Force -ErrorAction SilentlyContinue
           $release = Get-ReleaseForExactTag
           if ($release) {
             if ($release.tagName -ne $tag `
                 -or $release.name -ne $releaseTitle `
-                -or $release.targetCommitish -ne '${{ github.sha }}' `
+                -or $release.targetCommitish -ne $env:GITHUB_SHA `
                 -or -not (Test-ReleaseUrlForState $release) `
                 -or $release.isPrerelease `
                 -or ($release.isDraft -and $release.publishedAt) `
@@ -825,7 +825,7 @@ jobs:
               throw "A release named $tag already exists but is not the exact normal release state owned by this run."
             }
             $resolvedExistingTag = Resolve-ExactTagCommit
-            if ($resolvedExistingTag -ne '${{ github.sha }}') {
+            if ($resolvedExistingTag -ne $env:GITHUB_SHA) {
               throw "Existing release tag $tag does not peel to this workflow commit."
             }
             $existingState = if ($release.isDraft) { 'draft' } else { 'published' }
@@ -849,7 +849,7 @@ jobs:
             # resolves to THIS commit before anything is promoted.
             $createdTagJson = gh api --method POST "repos/$repository/git/refs" `
               -f ref="refs/tags/$tag" `
-              -f sha='${{ github.sha }}'
+              -f sha=$env:GITHUB_SHA
             $tagPostExitCode = $LASTEXITCODE
             $tagCreatedViaApi = ($tagPostExitCode -eq 0)
             if (-not $tagCreatedViaApi) {
@@ -869,11 +869,11 @@ jobs:
             $createdTagResponseIsExact = $tagCreatedViaApi `
               -and $createdTag.ref -eq "refs/tags/$tag" `
               -and [string]$createdTag.object.type -eq 'commit' `
-              -and [string]$createdTag.object.sha -eq '${{ github.sha }}'
+              -and [string]$createdTag.object.sha -eq $env:GITHUB_SHA
             $createdTagResolvesToCommit = $false
             if ($createdTagResponseIsExact) {
               for ($tagAttempt = 1; $tagAttempt -le 12; $tagAttempt++) {
-                if ((Resolve-ExactTagCommit) -eq '${{ github.sha }}') {
+                if ((Resolve-ExactTagCommit) -eq $env:GITHUB_SHA) {
                   $createdTagResolvesToCommit = $true
                   break
                 }
@@ -888,12 +888,12 @@ jobs:
             }
             [ordered]@{
               tag = $tag
-              source_commit = '${{ github.sha }}'
+              source_commit = $env:GITHUB_SHA
             } | ConvertTo-Json | Set-Content -LiteralPath $createdMarker -Encoding utf8
 
             gh release create $tag @assets `
               --title $releaseTitle `
-              --target '${{ github.sha }}' `
+              --target $env:GITHUB_SHA `
               --draft `
               --prerelease=false `
               --latest=false `
@@ -914,9 +914,9 @@ jobs:
               $candidateTagCommit = Resolve-ExactTagCommit
               $candidateTagMatches = $candidate.tagName -eq $tag
               $candidateNameMatches = $candidate.name -eq $releaseTitle
-              $candidateTargetMatches = $candidate.targetCommitish -eq '${{ github.sha }}'
+              $candidateTargetMatches = $candidate.targetCommitish -eq $env:GITHUB_SHA
               $candidateUrlMatchesState = Test-ReleaseUrlForState $candidate
-              $candidateTagCommitMatches = $candidateTagCommit -eq '${{ github.sha }}'
+              $candidateTagCommitMatches = $candidateTagCommit -eq $env:GITHUB_SHA
               $candidateAssetsMatch = Test-ExactReleaseAssets $candidate
               if ($candidateTagMatches `
                   -and $candidateNameMatches `
@@ -950,7 +950,7 @@ jobs:
           # Re-resolve immediately before promotion so a moved or retargeted tag
           # can never publish assets for a commit other than this workflow SHA.
           $promotionTagCommit = Resolve-ExactTagCommit
-          if ($promotionTagCommit -ne '${{ github.sha }}') {
+          if ($promotionTagCommit -ne $env:GITHUB_SHA) {
             throw "Release tag $tag no longer peels to this workflow commit; refusing promotion."
           }
 
@@ -977,9 +977,9 @@ jobs:
                 Write-Warning 'Current Latest MSI does not name an exact commit; preserving it rather than guessing ancestry.'
                 $promoteToLatest = $false
               }
-              elseif ($latestBeforeCommit -ne '${{ github.sha }}') {
+              elseif ($latestBeforeCommit -ne $env:GITHUB_SHA) {
                 $compareJson = gh api -H 'Cache-Control: no-cache' `
-                  "repos/$repository/compare/$latestBeforeCommit...${{ github.sha }}" 2>$null
+                  "repos/$repository/compare/$latestBeforeCommit...$($env:GITHUB_SHA)" 2>$null
                 if ($LASTEXITCODE -ne 0) {
                   Write-Warning 'Could not prove this build descends from the current Latest MSI; preserving Latest.'
                   $promoteToLatest = $false
@@ -988,7 +988,7 @@ jobs:
                   $comparison = ($compareJson -join [Environment]::NewLine) | ConvertFrom-Json
                   if ([string]$comparison.status -notin @('ahead', 'identical')) {
                     Write-Host ("Publishing $tag as a normal historical release because " +
-                      "${{ github.sha }} is not newer than Latest commit $latestBeforeCommit " +
+                      "$($env:GITHUB_SHA) is not newer than Latest commit $latestBeforeCommit " +
                       "(compare status: $($comparison.status)).")
                     $promoteToLatest = $false
                   }
@@ -1012,9 +1012,9 @@ jobs:
                 -and $candidate.tagName -eq $tag -and -not $candidate.isDraft `
                 -and $candidate.name -eq $releaseTitle `
                 -and -not $candidate.isPrerelease -and $candidate.publishedAt `
-                -and $candidate.targetCommitish -eq '${{ github.sha }}' `
+                -and $candidate.targetCommitish -eq $env:GITHUB_SHA `
                 -and $candidate.url -eq $releaseUrl `
-                -and $candidateTagCommit -eq '${{ github.sha }}' `
+                -and $candidateTagCommit -eq $env:GITHUB_SHA `
                 -and (Test-ExactReleaseAssets $candidate)) {
               $publishedRelease = $candidate
               break
@@ -1058,7 +1058,7 @@ jobs:
                 $latest = ($latestJson -join [Environment]::NewLine) | ConvertFrom-Json
                 if ($latest.tag_name -eq $tag -and -not $latest.draft -and -not $latest.prerelease `
                     -and $latest.name -eq $releaseTitle `
-                    -and $latest.target_commitish -eq '${{ github.sha }}' `
+                    -and $latest.target_commitish -eq $env:GITHUB_SHA `
                     -and (Test-ExactReleaseAssets $latest)) {
                   $allPublicAssetsMatch = $true
                   $publicVerificationOrder = @(
@@ -1068,7 +1068,7 @@ jobs:
                     $installerName
                   )
                   foreach ($assetName in $publicVerificationOrder) {
-                    $cacheBuster = "${{ github.run_id }}-${{ github.run_attempt }}-$attempt-$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"
+                    $cacheBuster = "$($env:GITHUB_RUN_ID)-$($env:GITHUB_RUN_ATTEMPT)-$attempt-$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"
                     $encodedAssetName = [uri]::EscapeDataString($assetName)
                     $publicAssetUrl = "https://github.com/$repository/releases/latest/download/${encodedAssetName}?cachebust=$cacheBuster"
                     $publicAssetPath = Join-Path $env:RUNNER_TEMP "latest-$attempt-$assetName"

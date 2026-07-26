@@ -140,11 +140,20 @@ class ReleaseChannelIntegrityTest(unittest.TestCase):
     def test_windows_release_requires_ancestry_comparison(self) -> None:
         contents = self.mutate(
             VALIDATOR.WINDOWS_WORKFLOW,
-            '"repos/$repository/compare/$latestBeforeCommit...${{ github.sha }}"',
-            '"repos/$repository/commits/${{ github.sha }}"',
+            '"repos/$repository/compare/$latestBeforeCommit...$($env:GITHUB_SHA)"',
+            '"repos/$repository/commits/$($env:GITHUB_SHA)"',
         )
         errors = self.failures(contents)
         self.assertTrue(any("monotonic Latest marker" in e for e in errors), errors)
+
+    def test_large_windows_publish_run_avoids_inline_expression_limit(self) -> None:
+        contents = self.mutate(
+            VALIDATOR.WINDOWS_WORKFLOW,
+            "$short = $env:GITHUB_SHA.Substring(0, 10)",
+            "$short = '${{ github.sha }}'.Substring(0, 10)",
+        )
+        errors = self.failures(contents)
+        self.assertTrue(any("inline expressions" in e for e in errors), errors)
 
     def test_windows_release_rejects_backward_comparison_status(self) -> None:
         contents = self.mutate(

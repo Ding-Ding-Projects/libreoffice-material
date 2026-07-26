@@ -64,6 +64,12 @@ public Latest assets with cache busting and compares their bytes. When
 promotion is withheld, it verifies the preserved release identity when the
 pre-publish read succeeded and requires the exact stable four-asset shape.
 
+The publish body is more than 23 KB. It therefore reads the standard
+`GITHUB_SHA`, `GITHUB_REPOSITORY`, and run-number/attempt/id environment
+variables directly. Inline `${{ ... }}` substitutions would make GitHub compile
+the whole scalar as one expression and exceed its 21,000-character limit before
+any job starts; the integrity mutation suite rejects that regression.
+
 ### CI fleet closure
 
 `bin/check-build-free-gate-coverage.py` inventories every eligible build-free
@@ -104,6 +110,7 @@ update to the workflow, updater metadata, contracts, and documentation.
 | A build-free checker is omitted from CI | Fleet-closure validation fails |
 | A release tag is pushed | The Windows UI contract does not duplicate its branch-push run |
 | A release tag already exists | The publisher fails instead of overwriting immutable release state |
+| The large publish body gains an inline GitHub expression | Integrity validation fails before GitHub can reject the workflow at compile time |
 
 The pre-fix 404 is the important distinction: repository source can be fixed
 while the remote mutable pointer remains wrong. The 2026-07-26 repair required
@@ -131,12 +138,16 @@ from a green source checker.
   assertion, branch-only Windows UI triggers, build-free fleet closure, and the
   release-channel integrity checker/mutation suite. Source run `30213637973`
   attempt 2 subsequently published `source-installer-20-2-27a7c7d000` while
-  preserving MSI-123 as Latest. The later exact-tag matching-ref preflight is
-  locally verified and awaits its first hosted run.
+  preserving MSI-123 as Latest. Run `30214506688` then hosted the exact-tag
+  matching-ref preflight successfully, published `source-installer-21-1-a507c86445`,
+  and again preserved MSI-123.
 - Current source also serializes MSI publishers and makes Latest promotion
-  ancestry-monotonic. No MSI workflow has yet completed under that revised
-  publisher, so hosted behavior remains unverified.
-- At least twenty source-installer releases had been published by 2026-07-26.
+  ancestry-monotonic. Initial hosted run `30214506398` failed before job creation
+  when its inline substitutions exceeded GitHub's 21,000-character expression
+  limit. Current source removes every inline expression from the 23 KB publish
+  scalar, parses locally, and has a mutation regression; no MSI workflow has yet
+  completed under that revised publisher.
+- At least twenty-one source-installer releases had been published by 2026-07-26.
   That proves the packaging/publishing channel has run; it does **not** prove that
   `Install-LibreOfficeMaterial-FromSource.ps1` can provision a clean Windows
   host, compile LibreOffice, install shortcuts, and launch the result end to

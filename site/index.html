@@ -65,7 +65,7 @@
             stages 4+5 landed at <code>7874c6b85</code>, and successful MSI-123
             at <code>952090ce2</code> compiled that tree, restored document-tab
             Stage 3, and the stored-only UI-scale control. Tabs still have no
-            runtime UI evidence. At least twenty source-installer releases prove the
+            runtime UI evidence. At least twenty-one source-installer releases prove the
             package workflow, not an end-to-end source build. A pre-fix source
             release displaced the stable MSI from GitHub Latest, causing the
             public Latest MSI URL to return 404. The one-time repair restored
@@ -75,8 +75,11 @@
             197,111,808/960/103-byte lengths. Future source releases are
             non-Latest and future MSI promotion is serialized and ancestry-
             monotonic. Three legacy unguarded runs were cancelled and Latest
-            was rechecked; a post-change hosted publisher run and MSI lifecycle
-            proof remain open.
+            was rechecked. The exact-tag source preflight is hosted-green;
+            initial MSI run <code>30214506398</code> exposed GitHub's 21,000-
+            character expression limit before job creation, and current source
+            removes inline expressions from that 23 KB body. A successful
+            hosted publisher run and MSI lifecycle proof remain open.
           </p>
         </div>
 
@@ -107,7 +110,7 @@
             </div>
             <div>
               <dt>Build / installer</dt>
-              <dd><span class="state state-progress">MSI-123 Latest; guarded run pending</span></dd>
+              <dd><span class="state state-progress">MSI-123 Latest; expression-safe run pending</span></dd>
             </div>
             <div>
               <dt>Windows updater</dt>

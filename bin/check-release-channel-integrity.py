@@ -69,6 +69,19 @@ def _contract_push_block(source: str) -> str | None:
     return source[start:end]
 
 
+def _windows_publish_run_block(source: str) -> str | None:
+    step = source.find("      - name: Publish Windows MSI release")
+    if step < 0:
+        return None
+    start = source.find("        run: |", step)
+    if start < 0:
+        return None
+    end = source.find("      - name: Clean up failed draft release", start)
+    if end < 0:
+        return None
+    return source[start:end]
+
+
 def violations(contents: Mapping[str, str]) -> list[str]:
     errors: list[str] = []
     for relative in FILES:
@@ -122,11 +135,30 @@ def violations(contents: Mapping[str, str]) -> list[str]:
             errors.append("contract-workflow:release-tag pushes must stay excluded")
 
     windows = contents.get(WINDOWS_WORKFLOW, "")
+    publish_run = _windows_publish_run_block(windows)
+    if publish_run is None:
+        errors.append("windows-release:publish run block not found")
+    else:
+        if "${{" in publish_run:
+            errors.append(
+                "windows-release:large publish run must use GITHUB_* environment variables, not inline expressions"
+            )
+        for variable in (
+            "GITHUB_SHA",
+            "GITHUB_REPOSITORY",
+            "GITHUB_RUN_ID",
+            "GITHUB_RUN_NUMBER",
+            "GITHUB_RUN_ATTEMPT",
+        ):
+            if f"$env:{variable}" not in publish_run:
+                errors.append(
+                    f"windows-release:publish run missing default environment variable {variable}"
+                )
     monotonic_markers = (
         "group: ${{ github.ref == 'refs/heads/main' && 'windows-msi-stable-publisher' || format('windows-msi-nonpublisher-{0}', github.run_id) }}",
         "cancel-in-progress: false",
         "$promoteToLatest = $true",
-        '"repos/$repository/compare/$latestBeforeCommit...${{ github.sha }}"',
+        '"repos/$repository/compare/$latestBeforeCommit...$($env:GITHUB_SHA)"',
         "if ([string]$comparison.status -notin @('ahead', 'identical'))",
         "$latestMode = if ($promoteToLatest) { '--latest' } else { '--latest=false' }",
         "gh release edit $tag --draft=false --prerelease=false $latestMode --repo",
@@ -184,8 +216,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(
         "Release-channel integrity passed: source packages are explicitly non-Latest, "
         "their publish step proves the stable MSI route survived, verified MSI releases "
-        "own Latest, public links stay canonical, and tag creation cannot duplicate the "
-        "branch contract run."
+        "own Latest, the large publisher avoids inline-expression limits, public links "
+        "stay canonical, and tag creation cannot duplicate the branch contract run."
     )
     return 0
 

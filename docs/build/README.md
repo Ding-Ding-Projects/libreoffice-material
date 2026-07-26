@@ -30,7 +30,7 @@ releases cannot collide. That alone does not protect GitHub's shared mutable
 MSI promotion is serialized and may move only to the same commit or a
 descendant. See [Release-channel integrity](release-channel-integrity.md).
 
-As of 2026-07-26, the source workflow had published at least 20 releases, but the source
+As of 2026-07-26, the source workflow had published at least 21 releases, but the source
 installer script itself remained unverified end to end. A pre-fix source
 release also displaced the stable MSI from Latest, causing the public MSI
 Latest URL to return 404. The source guard is present, and the one-time remote
@@ -38,3 +38,7 @@ repair restored `windows-msi-123-1-952090ce26` at `952090ce2`: Latest again has
 exactly four assets, while the canonical MSI/XML/checksum routes returned HTTP
 200 with 197,111,808/960/103-byte lengths. The three legacy unguarded runs were
 cancelled and those API/route facts were rechecked afterwards.
+Source run `30214506688` then verified the fail-closed exact-tag preflight.
+Initial revised MSI run `30214506398` was rejected before job creation by
+GitHub's 21,000-character expression limit; current source makes the 23 KB
+publish scalar expression-free through standard `GITHUB_*` environment variables.

@@ -20,7 +20,7 @@ It records source/build facts separately from remote and runtime facts.
 - **The UI-scale control also compiled in MSI-123.** It remains intentionally
   stored-only: the 50-400% value round-trips through configuration, but no UI
   metric consumes it and no visible scaling is claimed.
-- **The source-installer workflow has published at least 20 releases.** This proves the
+- **The source-installer workflow has published at least 21 releases.** This proves the
   validation/package/release path ran. It does not prove the packaged
   `Install-LibreOfficeMaterial-FromSource.ps1` can provision a clean Windows
   machine, compile LibreOffice, create shortcuts, and launch the result end to
@@ -56,9 +56,14 @@ It records source/build facts separately from remote and runtime facts.
   Afterwards, Latest still resolved to the exact MSI-123 tag/commit and four
   assets, and the cache-busted MSI/XML/checksum routes again returned HTTP 200
   at 197,111,808/960/103 bytes.
-- **No post-change hosted MSI publisher has completed yet.** Serialization and
-  ancestry-monotonic promotion are source/static facts until a pushed workflow
-  demonstrates them.
+- **The exact-tag source preflight is hosted-verified.** Run `30214506688`
+  published `source-installer-21-1-a507c86445` and preserved MSI-123 as Latest.
+- **No post-change hosted MSI publisher has completed yet.** Initial run
+  `30214506398` failed before job creation because inline GitHub substitutions
+  made the 23 KB PowerShell body exceed the 21,000-character expression limit.
+  Current source uses default `GITHUB_*` environment variables throughout that
+  body and adds a mutation guard; local PowerShell parsing is clean, but the
+  follow-up hosted run remains pending.
 - The old sections below are retained as chronological history. Their Linux-CI,
   Stage 4/5-held, Stage 3-held, and source-workflow-never-ran statements describe
   their dates, not current repository status.
@@ -88,7 +93,10 @@ These are source findings and future work, not runtime-verified fixes:
 - Rolling progress is tracked in [Discussion
   #27](https://github.com/Ding-Ding-Projects/libreoffice-material/discussions/27).
   Commit `27a7c7d00` has its factual changelog in [Announcement
-  #28](https://github.com/Ding-Ding-Projects/libreoffice-material/discussions/28).
+  #28](https://github.com/Ding-Ding-Projects/libreoffice-material/discussions/28),
+  and pushed commit `a507c8644` plus its hosted MSI workflow-compile failure are
+  recorded in [Announcement
+  #29](https://github.com/Ding-Ding-Projects/libreoffice-material/discussions/29).
 - Organization Project 5 could not be read or updated: `gh project view 5`
   returns `Resource not accessible by personal access token
   (organization.projectV2)`. Existing project state was left untouched.

@@ -817,20 +817,33 @@ jobs:
             # publication. Create an exact lightweight tag first so the draft
             # and every uploaded asset are cryptographically bound to this SHA
             # before the release can be promoted.
+            # Creating the ref directly is preferred, but some repository or
+            # org policies deny git/refs writes to GITHUB_TOKEN with HTTP 403
+            # even though `gh release create` may create the same tag. Do not
+            # fail a ~3h build at the last step over that: fall back to letting
+            # the release create the tag, and still verify below that the tag
+            # resolves to THIS commit before anything is promoted.
             $createdTagJson = gh api --method POST "repos/$repository/git/refs" `
               -f ref="refs/tags/$tag" `
               -f sha='${{ github.sha }}'
-            if ($LASTEXITCODE -ne 0) {
-              throw "Creating exact release tag $tag failed with exit code $LASTEXITCODE."
+            $tagPostExitCode = $LASTEXITCODE
+            $tagCreatedViaApi = ($tagPostExitCode -eq 0)
+            if (-not $tagCreatedViaApi) {
+              Write-Warning ("Creating exact release tag $tag via git/refs failed with exit code " +
+                "$tagPostExitCode; deferring tag creation to the release itself. The exact-commit " +
+                "check below still applies.")
             }
-            $createdTag = ($createdTagJson -join [Environment]::NewLine) | ConvertFrom-Json
+            $createdTag = if ($tagCreatedViaApi) {
+              ($createdTagJson -join [Environment]::NewLine) | ConvertFrom-Json
+            } else { $null }
             # The POST response is authoritative for the ref it just created, so
             # validate it directly. GitHub's matching-refs read, however, is
             # eventually consistent right after a ref POST, so the exact-tag
             # resolution is bounded-retried instead of failing on a single
             # not-yet-visible read. Same checks, just retried; succeed on the
             # first match, keep the original throw on exhaustion.
-            $createdTagResponseIsExact = $createdTag.ref -eq "refs/tags/$tag" `
+            $createdTagResponseIsExact = $tagCreatedViaApi `
+              -and $createdTag.ref -eq "refs/tags/$tag" `
               -and [string]$createdTag.object.type -eq 'commit' `
               -and [string]$createdTag.object.sha -eq '${{ github.sha }}'
             $createdTagResolvesToCommit = $false
@@ -846,7 +859,7 @@ jobs:
                 }
               }
             }
-            if (-not $createdTagResponseIsExact -or -not $createdTagResolvesToCommit) {
+            if ($tagCreatedViaApi -and (-not $createdTagResponseIsExact -or -not $createdTagResolvesToCommit)) {
               throw "GitHub did not create exact tag $tag at this workflow commit."
             }
             [ordered]@{

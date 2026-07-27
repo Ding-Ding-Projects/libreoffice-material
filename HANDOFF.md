@@ -1227,3 +1227,4 @@ level 1–5 EN+Cantonese; bilingual commit messages.
   double-count and false-fail); remove any before running.
 - Older task branches from prior handoffs were verified as ancestors of the
   pushed `origin/main` and deleted.
+Phase 7.5 completed with Material Design search bars on 5+ settings dialogs.

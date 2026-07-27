@@ -44,6 +44,8 @@ EXPECTED_SHIPPING_CONTROLS = {
     ("sw/uiconfig/swriter/ui/sidebarquickfind.ui", "searchterm"),
     ("xmlsecurity/uiconfig/ui/selectcertificatedialog.ui", "searchbox"),
     ("sfx2/uiconfig/ui/startcenter.ui", "start_search"),
+    ("cui/uiconfig/ui/autocorrectdialog.ui", "searchEntry"),
+    ("cui/uiconfig/ui/optgeneralpage.ui", "searchEntry"),
 }
 
 SPEC = importlib.util.spec_from_file_location("check_search_field_coverage", VALIDATOR_PATH)
@@ -308,7 +310,9 @@ class SearchFieldCoverageTests(unittest.TestCase):
 
         # Start Center's start_search shipped, so it belongs to the audited
         # shipping set and the planned group is now empty.
-        self.assertIn(("sfx2/uiconfig/ui/startcenter.ui", "start_search"), actual_shipping)
+        self.assertIn(("sfx2/uiconfig/ui/startcenter.ui", "start_search"),
+    ("cui/uiconfig/ui/autocorrectdialog.ui", "searchEntry"),
+    ("cui/uiconfig/ui/optgeneralpage.ui", "searchEntry"), actual_shipping)
         self.assertSetEqual(EXPECTED_SHIPPING_CONTROLS, actual_shipping)
         self.assertSetEqual(set(), actual_planned)
 
@@ -470,3 +474,4 @@ class IntegrationLedgerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

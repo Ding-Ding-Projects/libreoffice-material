@@ -842,6 +842,12 @@ Exit gate:
 - P0/P1 visual defects are closed and no critical workflow lacks evidence;
 - release notes identify known exceptions without hiding them.
 
+## Phase 7.5 — Settings dialog search bars (COMPLETED)
+
+Material Design search bars added to AutoCorrect, Spelling, Dictionary, and Security settings dialogs with inline regex builder support. All follow existing treeopt.cxx pattern.
+
+---
+
 ## Phase 8 — release readiness and upstreamability
 
 **Status: in progress — Latest repaired to MSI-123 and legacy runs contained;
@@ -901,3 +907,4 @@ Every visible component or workflow must be checked against:
 | Compatibility | document results and user profile behavior unchanged unless specified |
 
 The live evidence contract is in [`docs/HEADLESS_UI_EVIDENCE.md`](docs/HEADLESS_UI_EVIDENCE.md).
+

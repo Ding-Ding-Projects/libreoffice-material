@@ -121,7 +121,6 @@
                 <property name="orientation">vertical</property>
                 <property name="spacing">6</property>
                 <child>
-      <child>
                   <object class="GtkBox" id="searchBar">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
@@ -144,11 +143,18 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkButton" id="searchBuilderBtn">
+                      <object class="GtkButton" id="searchEntry_regex_builder">
+                        <property name="label">.*</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
-                        <property name="receives-default">True</property>
-                        <property name="image">gtk-media-play-symbolic</property>
+                        <property name="receives-default">False</property>
+                        <property name="tooltip-text" translatable="yes" context="autocorrectdialog|searchEntry_regex_builder|tooltip_text">Build and test a regular expression</property>
+                        <child internal-child="accessible">
+                          <object class="AtkObject" id="searchEntry_regex_builder-atkobject">
+                            <property name="AtkObject::accessible-name" translatable="yes" context="autocorrectdialog|searchEntry_regex_builder-atkobject">Regular expression builder</property>
+                            <property name="AtkObject::accessible-description" translatable="yes" context="autocorrectdialog|extended_tip|searchEntry_regex_builder">Open the advanced regular expression builder for the AutoCorrect rules search field.</property>
+                          </object>
+                        </child>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -163,7 +169,8 @@
                     <property name="position">0</property>
                   </packing>
                 </child>
-            <object class="GtkBox" id="langbox">
+                <child>
+                  <object class="GtkBox" id="langbox">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="spacing">12</property>

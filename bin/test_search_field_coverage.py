@@ -172,10 +172,10 @@ class SearchFieldCoverageTests(unittest.TestCase):
         # Start Center now ships (the start_search control exists in the tree and
         # is a source-integrated regex-search field), so it moved from the planned
         # group into the audited shipping set.
-        self.assertEqual(28, stats.shipping_fields)
+        self.assertEqual(30, stats.shipping_fields)
         self.assertEqual(0, stats.planned_fields)
         self.assertEqual(16, stats.excluded_candidates)
-        self.assertEqual(41, stats.discovered_candidates)
+        self.assertEqual(43, stats.discovered_candidates)
 
     def test_duplicate_control_coverage_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -311,15 +311,18 @@ class SearchFieldCoverageTests(unittest.TestCase):
         # Start Center's start_search shipped, so it belongs to the audited
         # shipping set and the planned group is now empty.
         self.assertIn(("sfx2/uiconfig/ui/startcenter.ui", "start_search"),
-    ("cui/uiconfig/ui/autocorrectdialog.ui", "searchEntry"),
-    ("cui/uiconfig/ui/optgeneralpage.ui", "searchEntry"), actual_shipping)
+                      actual_shipping)
+        self.assertIn(("cui/uiconfig/ui/autocorrectdialog.ui", "searchEntry"),
+                      actual_shipping)
+        self.assertIn(("cui/uiconfig/ui/optgeneralpage.ui", "searchEntry"),
+                      actual_shipping)
         self.assertSetEqual(EXPECTED_SHIPPING_CONTROLS, actual_shipping)
         self.assertSetEqual(set(), actual_planned)
 
-    def test_repository_integration_split_is_thirteen_and_fifteen(self) -> None:
+    def test_repository_integration_split_is_thirteen_and_seventeen(self) -> None:
         _, stats = validator.validate_registry(REPO_ROOT, REGISTRY_PATH)
         self.assertEqual(13, stats.source_integrated_fields)
-        self.assertEqual(15, stats.gap_fields)
+        self.assertEqual(17, stats.gap_fields)
 
 
 class IntegrationLedgerTests(unittest.TestCase):

@@ -18,6 +18,7 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -213,6 +214,33 @@ STOCK_MENU_UI = """<?xml version="1.0" encoding="UTF-8"?>
 </interface>
 """
 
+# A page whose only ellipsize/mnemonic properties live under a GtkNotebook
+# ``child type="tab"`` pseudo-label. VclBuilder consumes that node as tab-caption
+# metadata; it is not a content widget and must earn zero label credit.
+TAB_PSEUDO_LABEL_UI = """<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="test">
+  <requires lib="gtk+" version="3.24"/>
+  <object class="GtkGrid" id="page">
+    <property name="row-spacing">6</property>
+    <property name="column-spacing">12</property>
+    <property name="margin-start">6</property>
+    <property name="margin-end">6</property>
+    <property name="margin-top">6</property>
+    <property name="margin-bottom">6</property>
+    <child>
+      <object class="GtkEntry" id="entry"/>
+    </child>
+    <child type="tab">
+      <object class="GtkLabel" id="tab-caption">
+        <property name="label" translatable="yes">_Settings</property>
+        <property name="mnemonic-widget">entry</property>
+        <property name="ellipsize">end</property>
+      </object>
+    </child>
+  </object>
+</interface>
+"""
+
 
 class LedgerMutationTest(unittest.TestCase):
     @classmethod
@@ -255,6 +283,36 @@ class LedgerMutationTest(unittest.TestCase):
         with tmp.open("w", encoding="utf-8", newline="\n") as fh:
             fh.write(CK.serialize_ledger(ledger))
         return tmp
+
+    def git(self, repo: Path, *args: str) -> str:
+        completed = subprocess.run(
+            ["git", "-C", str(repo), *args],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        return completed.stdout.strip()
+
+    def git_repo_with_surface(self, first_xml: str, second_xml: str | None = None):
+        repo = Path(tempfile.mkdtemp(prefix="mrl_git_"))
+        (repo / "sub").mkdir()
+        surface = "sub/test.ui"
+        path = repo / surface
+        self.git(repo, "init", "-q")
+        self.git(repo, "config", "user.name", "Ledger Test")
+        self.git(repo, "config", "user.email", "ledger@example.invalid")
+        path.write_text(first_xml, encoding="utf-8")
+        self.git(repo, "add", surface)
+        self.git(repo, "commit", "-q", "-m", "baseline")
+        first = self.git(repo, "rev-parse", "HEAD")
+        second = first
+        if second_xml is not None:
+            path.write_text(second_xml, encoding="utf-8")
+            self.git(repo, "add", surface)
+            self.git(repo, "commit", "-q", "-m", "candidate")
+            second = self.git(repo, "rev-parse", "HEAD")
+        return repo, surface, first, second
 
     # -- production baseline ----------------------------------------------
     def test_production_passes(self) -> None:
@@ -300,13 +358,52 @@ class LedgerMutationTest(unittest.TestCase):
         tmp = self.write_temp(lg)
         # baseline injected via monkeypatch of the git-show loader
         original = CK.load_committed_baseline
-        CK.load_committed_baseline = lambda repo, path: self.ledger
+        CK.load_committed_baseline = lambda repo, path, baseline_ref=None: self.ledger
         try:
             with self.assertRaises(CK.ValidationError) as ctx:
                 CK.validate(REPOSITORY, tmp)
             self.assertIn("C3 status regression", str(ctx.exception))
         finally:
             CK.load_committed_baseline = original
+
+    def test_c3_loads_explicit_candidate_baseline_not_head(self) -> None:
+        repo = Path(tempfile.mkdtemp(prefix="mrl_baseline_"))
+        ledger = repo / "qa/windows-ui-contract/material-rewrite-ledger.json"
+        ledger.parent.mkdir(parents=True)
+        self.git(repo, "init", "-q")
+        self.git(repo, "config", "user.name", "Ledger Test")
+        self.git(repo, "config", "user.email", "ledger@example.invalid")
+        ledger.write_text('{"sentinel":"push-baseline"}\n', encoding="utf-8")
+        self.git(repo, "add", ledger.relative_to(repo).as_posix())
+        self.git(repo, "commit", "-q", "-m", "baseline")
+        baseline = self.git(repo, "rev-parse", "HEAD")
+        ledger.write_text('{"sentinel":"candidate"}\n', encoding="utf-8")
+        self.git(repo, "add", ledger.relative_to(repo).as_posix())
+        self.git(repo, "commit", "-q", "-m", "candidate")
+
+        loaded = CK.load_committed_baseline(repo, ledger, baseline)
+        self.assertEqual(loaded["sentinel"], "push-baseline")
+        self.assertEqual(
+            CK.load_committed_baseline(repo, ledger)["sentinel"], "push-baseline"
+        )
+        self.assertEqual(
+            CK.load_committed_baseline(repo, ledger, "HEAD")["sentinel"],
+            "candidate",
+        )
+
+    def test_c3_explicit_missing_baseline_fails_closed(self) -> None:
+        with self.assertRaises(CK.ValidationError) as ctx:
+            CK.load_committed_baseline(REPOSITORY, LEDGER_PATH, "f" * 40)
+        self.assertIn("explicit baseline", str(ctx.exception))
+
+    def test_workflow_fetches_history_and_passes_event_baseline(self) -> None:
+        workflow = (REPOSITORY / ".github/workflows/windows-ui-contract.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("fetch-depth: 0", workflow)
+        self.assertIn("github.event.pull_request.base.sha", workflow)
+        self.assertIn("github.event.before", workflow)
+        self.assertIn('--baseline-ref "$MATERIAL_REWRITE_BASELINE_REF"', workflow)
 
     # -- C1 digest / parity -----------------------------------------------
     def test_digest_mismatch_rejected(self) -> None:
@@ -404,6 +501,42 @@ class LedgerMutationTest(unittest.TestCase):
         ok, why = CK.static_predicate(CK.FAMILY_MESSAGE, markers)
         self.assertFalse(ok, why)
 
+    def test_screenshot_annotation_save_is_default_and_close_is_cancel(self) -> None:
+        root = CK._parse_root(REPOSITORY, CK.SCREENSHOT_ANNOTATION_SURFACE)
+        ok, why = CK.screenshot_annotation_semantics(root)
+        self.assertTrue(ok, why)
+        markers = CK.derive_dialog_markers(root)
+        self.assertEqual(markers["action_order"], [CK.RET_CANCEL, 101])
+        self.assertEqual(markers["primary_id"], "save")
+        self.assertEqual(markers["default_id"], "save")
+
+    def test_screenshot_annotation_close_as_ok_default_is_rejected(self) -> None:
+        xml = (REPOSITORY / CK.SCREENSHOT_ANNOTATION_SURFACE).read_text(
+            encoding="utf-8"
+        )
+        broken = xml.replace(
+            '<property name="has-focus">True</property>\n'
+            '                <property name="receives-default">True</property>',
+            '<property name="has-focus">True</property>\n'
+            '                <property name="can-default">True</property>\n'
+            '                <property name="has-default">True</property>\n'
+            '                <property name="receives-default">True</property>',
+            1,
+        ).replace(
+            '                <property name="can-default">True</property>\n'
+            '                <property name="has-default">True</property>\n',
+            "",
+            1,
+        ).replace(
+            '      <action-widget response="-6">cancel</action-widget>\n'
+            '      <action-widget response="101">save</action-widget>',
+            '      <action-widget response="-5">cancel</action-widget>',
+        )
+        self.assertNotEqual(broken, xml)
+        ok, why = CK.screenshot_annotation_semantics(CK.ET.fromstring(broken))
+        self.assertFalse(ok, why)
+        self.assertIn("RET_CANCEL", why)
+
     # -- C4 anatomy persistence (composition-code) -------------------------
     def test_composition_marker_tampering_rejected(self) -> None:
         _lg, rows = self.fresh()
@@ -437,6 +570,78 @@ class LedgerMutationTest(unittest.TestCase):
         failures = []
         CK._validate_evidence_shape(row, surface, failures)
         self.assertTrue(any("C5 evidence" in f and "owning contract" in f for f in failures), failures)
+
+    def test_stale_prechange_evidence_commit_is_rejected(self) -> None:
+        stock = CONFORMING_DIALOG_UI.replace(
+            '<property name="row-spacing">12</property>',
+            '<property name="row-spacing">0</property>',
+        )
+        repo, surface, stale, current = self.git_repo_with_surface(
+            stock, CONFORMING_DIALOG_UI
+        )
+        markers = CK.derive_dialog_markers(CK._parse_root(repo, surface))
+        row = {
+            "surface": surface,
+            "family": CK.FAMILY_DIALOG,
+            "rewrite_status": CK.REWRITTEN,
+            "rewrite_evidence": CK.build_static_evidence(
+                CK.FAMILY_DIALOG, stale, markers
+            ),
+        }
+        failures = []
+        CK._validate_evidence_provenance(repo, {surface: row}, failures)
+        self.assertTrue(
+            any("C5 provenance" in failure and stale in failure for failure in failures),
+            failures,
+        )
+
+        row["rewrite_evidence"]["commit"] = current
+        failures = []
+        CK._validate_evidence_provenance(repo, {surface: row}, failures)
+        self.assertEqual([], failures)
+
+    def test_evaluate_refreshes_a_stale_static_commit(self) -> None:
+        stock = CONFORMING_DIALOG_UI.replace(
+            '<property name="row-spacing">12</property>',
+            '<property name="row-spacing">0</property>',
+        )
+        repo, surface, stale, current = self.git_repo_with_surface(
+            stock, CONFORMING_DIALOG_UI
+        )
+        markers = CK.derive_dialog_markers(CK._parse_root(repo, surface))
+        prior = CK.build_static_evidence(CK.FAMILY_DIALOG, stale, markers)
+        status, evidence = CK.evaluate_surface_status(
+            repo,
+            surface,
+            CK.FAMILY_DIALOG,
+            {},
+            CK.REWRITTEN,
+            prior,
+            current,
+            audit_provenance=True,
+        )
+        self.assertEqual(status, CK.REWRITTEN)
+        self.assertEqual(evidence["commit"], current)
+
+    def test_evaluate_refuses_to_stamp_uncommitted_surface(self) -> None:
+        stock = CONFORMING_DIALOG_UI.replace(
+            '<property name="row-spacing">12</property>',
+            '<property name="row-spacing">0</property>',
+        )
+        repo, surface, _stale, head = self.git_repo_with_surface(stock)
+        (repo / surface).write_text(CONFORMING_DIALOG_UI, encoding="utf-8")
+        with self.assertRaises(CK.ValidationError) as ctx:
+            CK.evaluate_surface_status(
+                repo,
+                surface,
+                CK.FAMILY_DIALOG,
+                {},
+                CK.PENDING,
+                CK._null_evidence(),
+                head,
+                audit_provenance=True,
+            )
+        self.assertIn("uncommitted evidence path", str(ctx.exception))
 
     # -- C7 coverage -------------------------------------------------------
     def test_coverage_drift_rejected(self) -> None:
@@ -559,6 +764,41 @@ class LedgerMutationTest(unittest.TestCase):
         )
         self.assertEqual(status, CK.PENDING)
 
+    def test_notebook_tab_pseudo_label_earns_no_content_label_credit(self) -> None:
+        repo, surface = self._write_ui(TAB_PSEUDO_LABEL_UI)
+        root = CK._parse_root(repo, surface)
+        markers = CK.derive_surface_body_markers(root)
+        self.assertTrue(markers["content_grid_material"])
+        self.assertEqual(markers["ellipsize_count"], 0)
+        self.assertEqual(markers["mnemonic_content_labels"], 0)
+        ok, why = CK.predicate_surface_body(markers)
+        self.assertFalse(ok, why)
+
+    def test_zero_grid_spacing_and_margins_are_not_material(self) -> None:
+        broken = CONFORMING_DIALOG_UI.replace(
+            '<property name="row-spacing">12</property>',
+            '<property name="row-spacing">0</property>',
+        )
+        for name in ("margin-start", "margin-end", "margin-top", "margin-bottom"):
+            broken = broken.replace(
+                f'<property name="{name}">6</property>',
+                f'<property name="{name}">0</property>',
+            )
+        repo, surface = self._write_ui(broken)
+        markers = CK.derive_dialog_markers(CK._parse_root(repo, surface))
+        self.assertFalse(markers["content_grid_material"])
+        status, evidence = CK.evaluate_surface_status(
+            repo,
+            surface,
+            CK.FAMILY_DIALOG,
+            {},
+            CK.PENDING,
+            CK._null_evidence(),
+            "a" * 40,
+        )
+        self.assertEqual(status, CK.PENDING)
+        self.assertEqual(evidence, CK._null_evidence())
+
     def test_evaluate_pending_when_action_order_scrambled(self) -> None:
         # move OK out of the last (primary) slot -> footer anatomy fails
         broken = CONFORMING_DIALOG_UI.replace(
@@ -612,6 +852,25 @@ class LedgerMutationTest(unittest.TestCase):
         )
         self.assertEqual(status, CK.REWRITTEN)
         self.assertEqual(evidence, prior_ev)
+
+    def test_evaluate_drops_false_credit_only_with_explicit_audit_flag(self) -> None:
+        broken = CONFORMING_DIALOG_UI.replace(
+            '<property name="row-spacing">12</property>',
+            '<property name="row-spacing">0</property>',
+        )
+        repo, surface = self._write_ui(broken)
+        status, evidence = CK.evaluate_surface_status(
+            repo,
+            surface,
+            CK.FAMILY_DIALOG,
+            {},
+            CK.REWRITTEN,
+            {"commit": "c" * 40, "contract": "x", "capture": {}, "anatomy_markers": {"a": 1}},
+            "a" * 40,
+            allow_static_status_loss=True,
+        )
+        self.assertEqual(status, CK.PENDING)
+        self.assertEqual(evidence, CK._null_evidence())
 
     def test_evaluate_reproduces_committed_ledger(self) -> None:
         # re-running --evaluate from the committed tree is a no-op: the earned
@@ -678,6 +937,32 @@ class LedgerMutationTest(unittest.TestCase):
             repo, surface, CK.FAMILY_POPOVER, {}, CK.PENDING, CK._null_evidence(), "a" * 40
         )
         self.assertEqual(status, CK.PENDING)
+
+    def test_evaluate_pending_when_popover_metrics_are_zero(self) -> None:
+        broken = CONFORMING_POPOVER_UI.replace(
+            '<property name="spacing">6</property>',
+            '<property name="spacing">0</property>',
+        )
+        for name in ("margin-start", "margin-end", "margin-top", "margin-bottom"):
+            broken = broken.replace(
+                f'<property name="{name}">6</property>',
+                f'<property name="{name}">0</property>',
+            )
+        repo, surface = self._write_ui(broken)
+        markers = CK.derive_popover_markers(CK._parse_root(repo, surface))
+        self.assertFalse(markers["container_has_spacing"])
+        self.assertFalse(markers["container_has_margin"])
+        status, evidence = CK.evaluate_surface_status(
+            repo,
+            surface,
+            CK.FAMILY_POPOVER,
+            {},
+            CK.PENDING,
+            CK._null_evidence(),
+            "a" * 40,
+        )
+        self.assertEqual(status, CK.PENDING)
+        self.assertEqual(evidence, CK._null_evidence())
 
     def test_popover_predicate_requires_both_prongs(self) -> None:
         # spacing+margins AND no border-width -> pass; drop either prong -> fail

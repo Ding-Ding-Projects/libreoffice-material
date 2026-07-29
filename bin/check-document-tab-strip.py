@@ -449,6 +449,13 @@ def violations(contract: dict, contents: dict[str, str]) -> list[str]:
             f"build:uiconfig -- {reg['uiconfig_entry']!r} not registered in "
             f"{contract['uiconfig_mk']}"
         )
+    for required_include in reg.get("source_required_includes", []):
+        marker = f"#include {required_include}"
+        if marker not in cxx:
+            errors.append(
+                f"build:include -- required definition include {marker!r} missing "
+                f"from {contract['strip_cxx']}"
+            )
 
     return errors
 

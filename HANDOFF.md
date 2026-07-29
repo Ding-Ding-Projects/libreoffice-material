@@ -43,7 +43,7 @@ Document Tab Appearance snapshot landed at `baae1c416`.
 ### QA and honesty boundary
 
 - Focused static gates pass: regex-builder foundation validator + 10 tests;
-  regex-search integration validator + 100 tests; document-tab validator + 39
+  regex-search integration validator + 100 tests; document-tab validator + 40
   tests; four notification validators + 112 build-free tests; Material rewrite
   ledger validator + 55 tests; JSON/Python parsing; and `git diff --check`.
 - The integration validator rejects raw-engine bypasses and dead marker routes
@@ -57,7 +57,16 @@ Document Tab Appearance snapshot landed at `baae1c416`.
   C++ tests were therefore inspected and registered but not compiled or run
   locally. No headless/off-screen LibreOffice interaction, screenshot,
   accessibility, pixel, localization, or performance proof is claimed here.
-  Hosted CI is the first native compile boundary for this source.
+  Hosted CI is the first native compile boundary for this source. Exact-source
+  MSI run
+  [`30423589955`](https://github.com/Ding-Ding-Projects/libreoffice-material/actions/runs/30423589955)
+  reached that boundary at `2ce36a777` and failed while linking the first
+  critical desktop library: `documenttabbar.cxx` used `MapUnit::MapPoint` with
+  only the forward declaration from `vcl/mapmod.hxx`. The current correction
+  includes `tools/mapunit.hxx`, removes the adjacent MSVC local-shadow warning,
+  and pins the definition include in a mutation regression. The corrected
+  hosted MSI rerun is pending; the failed run skipped its dedicated native tests
+  and final product/MSI build.
 
 ## 2026-07-28 session handoff — CI repair + adversarially-verified burn-down wave 73.41% → 83.24%
 

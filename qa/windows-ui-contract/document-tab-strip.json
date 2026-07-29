@@ -87,7 +87,7 @@
       "TextColor",
       "FontFamily",
       "FontSize",
-      "else if (sal_Int16 n; aAny >>= n)",
+      "else if (sal_Int16 nValue16; aAny >>= nValue16)",
       "aStyle.nFontSize",
       "Bold",
       "Italic",
@@ -254,6 +254,9 @@
   },
   "build_registration": {
     "library_entry": "sfx2/source/appl/documenttabbar",
-    "uiconfig_entry": "sfx2/uiconfig/ui/documenttabappearance"
+    "uiconfig_entry": "sfx2/uiconfig/ui/documenttabappearance",
+    "source_required_includes": [
+      "<tools/mapunit.hxx>"
+    ]
   }
 }

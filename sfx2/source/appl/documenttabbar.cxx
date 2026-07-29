@@ -13,6 +13,8 @@
 
 #include <officecfg/Office/Common.hxx>
 
+#include <tools/mapunit.hxx>
+
 #include <vcl/svapp.hxx>
 #include <vcl/settings.hxx>
 #include <vcl/commandevent.hxx>
@@ -280,10 +282,10 @@ SfxDocTabStyle::Result lcl_normalizedField(const uno::Reference<container::XName
     // one normalizer entry point validates every field uniformly.
     if (bool b; aAny >>= b)
         aRaw = b ? u"true"_ustr : u"false"_ustr;
-    else if (sal_Int16 n; aAny >>= n)
-        aRaw = OUString::number(n);
-    else if (sal_Int32 n; aAny >>= n)
-        aRaw = OUString::number(n);
+    else if (sal_Int16 nValue16; aAny >>= nValue16)
+        aRaw = OUString::number(nValue16);
+    else if (sal_Int32 nValue32; aAny >>= nValue32)
+        aRaw = OUString::number(nValue32);
     else
         aAny >>= aRaw;
     return SfxDocTabStyle::Normalize(rsKey, aRaw);

@@ -115,17 +115,21 @@ strip contains no hardcoded colour or label.
 
 ## Verification status
 
-**Source-implemented, guarded, and compile-verified; RUNTIME UI UNVERIFIED.**
+**Source-implemented and guarded; current follow-up compile rerun and RUNTIME UI
+verification remain pending.**
 
 - Cross-checked build-free by three fail-closed contracts:
   `qa/windows-ui-contract/frame-topness-seams.json` (stage 1),
   `doc-tab-style-schema.json` (stage 2), and `document-tab-strip.json`
   (stage 3). All three carry `"runtime_verified": false`.
 - Restored Stage 3 commit `af689a470` is an ancestor of successful MSI-123 at
-  `952090ce2`; that workflow compiled the Windows product and produced the MSI.
-  This closes the compile gate for the strip/editor source, but it does not
-  prove construction, painting, activation, persistence, or accessibility at
-  runtime.
+  `952090ce2`; that workflow is historical compile evidence for the restored
+  Stage 3 source. The 2026-07-29 follow-up subsequently changed the strip, and
+  exact-source run `30423589955` failed its first critical desktop-library link
+  because `MapUnit::MapPoint` had only a forward declaration. Current source
+  includes `tools/mapunit.hxx` and pins that requirement in the fail-closed
+  contract, but its corrected hosted rerun remains pending. Neither run proves
+  construction, painting, activation, persistence, or accessibility at runtime.
 - **Tabs do not render until an MSI exercises them.** No tab pixels and no
   window switching are claimed here.
 - True in-window multi-document hosting is a later, CI-gated stage and is

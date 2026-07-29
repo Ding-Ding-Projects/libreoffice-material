@@ -33,7 +33,7 @@ active Start Center query after recent-document maintenance reloads, prevents
 docked side borders from being subtracted twice from document-tab width, and
 makes notification Undo follow repository chain order across wall-clock
 rollback. The fail-closed regex integration suite now has 100 regressions, and
-the document-tab suite has 39.
+the document-tab suite has 40.
 
 The rewrite evaluator itself also had a fail-closed dead end: a valid historical
 snapshot was retained after a still-conforming surface changed, so C4 rejected
@@ -43,8 +43,15 @@ its mutation coverage now refresh such evidence. The audited headline is
 previously over-credited surfaces; eleven rows now carry explicit regression
 waivers in total. All claims in this milestone are source/static/build-free
 evidence. There is no configured local LibreOffice build, so the new C++ tests,
-native compilation, headless interaction, pixels, accessibility, and
-performance remain unverified until CI/build-host evidence exists.
+headless interaction, pixels, accessibility, and performance remain unverified.
+Exact-source MSI run
+[`30423589955`](https://github.com/Ding-Ding-Projects/libreoffice-material/actions/runs/30423589955)
+provided the first hosted compiler contact for this follow-up and failed in the
+first critical desktop-library link because the document-tab source used
+`MapUnit::MapPoint` through a forward declaration. Current source includes the
+defining `tools/mapunit.hxx` header, removes the adjacent MSVC local-shadow
+warning, and has a fail-closed regression for the include; a corrected hosted
+MSI rerun is pending, so this is not yet successful native-build proof.
 
 **2026-07-28 milestone — CI repair + provisional burn-down 73.41% → 83.24%:**
 the Phase 7.5 search-bar merge had left `main` red (gla11y FATALs, illegal
@@ -58,7 +65,9 @@ genuine `RegexSearchController` wiring for both Phase 7.5 search bars
 wave result; the 2026-07-29 commit-auditable evaluation above corrects it to
 223. Per-surface blocked evidence remains in
 `docs/design/material-rewrite-wave-2026-07-28-evidence.json`; the wave C++ is
-source-implemented pending its first MSI compile.
+source-implemented. Its first exact-SHA MSI compile did not clear; the
+document-tab definition-include correction is present and a corrected rerun is
+pending.
 
 **2026-07-26 milestone — Windows-only compile closure and release-channel
 containment:** Windows-only stages 4+5 landed at `7874c6b85`, including removal

@@ -228,8 +228,8 @@ class DocumentTabStripContractTest(unittest.TestCase):
     def test_font_size_short_is_not_read_fails(self) -> None:
         contents = self.mutated(
             self.cxx_key,
-            "else if (sal_Int16 n; aAny >>= n)",
-            "else if (sal_Int64 n; aAny >>= n)",
+            "else if (sal_Int16 nValue16; aAny >>= nValue16)",
+            "else if (sal_Int64 nValue64; aAny >>= nValue64)",
         )
         self.assertTrue(any("style:cxx" in f for f in self.failures(contents=contents)))
 
@@ -396,6 +396,16 @@ class DocumentTabStripContractTest(unittest.TestCase):
         )
         self.assertTrue(
             any("uiconfig" in f for f in self.failures(contents=contents))
+        )
+
+    def test_missing_mapunit_definition_include_fails(self) -> None:
+        contents = self.mutated(
+            self.cxx_key,
+            "#include <tools/mapunit.hxx>\n",
+            "",
+        )
+        self.assertTrue(
+            any("build:include" in f for f in self.failures(contents=contents))
         )
 
     # --- runtime honesty ---------------------------------------------------

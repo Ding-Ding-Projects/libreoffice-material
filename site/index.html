@@ -72,7 +72,9 @@
             <code>windows-msi-123-1-952090ce26</code> at
             <code>952090ce2</code> as Latest with four assets; canonical
             MSI/XML/checksum routes returned HTTP 200 at
-            197,111,808/960/103-byte lengths. Future source releases are
+            197,111,808/960/103-byte lengths. The guarded publisher has since
+            advanced Latest to <code>windows-msi-132-1-90e5ea4f1e</code> at
+            <code>90e5ea4f1e</code>, also with four assets. Future source releases are
             non-Latest and future MSI promotion is serialized and ancestry-
             monotonic. Three legacy unguarded runs were cancelled and Latest
             was rechecked. The exact-tag source preflight is hosted-green;
@@ -83,8 +85,11 @@
             2026-07-29 source audit closes the recorded notification,
             document-tab, search-route, accent, Start Center/Templates, and
             AutoCorrect behavior defects under static/build-free contracts.
-            This follow-up has not yet been natively compiled or exercised in
-            the headless UI harness.
+            Exact-source MSI run <code>30423589955</code> reached the native
+            compiler and exposed a missing document-tab <code>MapUnit</code>
+            definition include. Current source fixes and regression-pins that
+            include, but the corrected hosted MSI rerun remains pending. This
+            follow-up has not been exercised in the headless UI harness.
           </p>
         </div>
 
@@ -115,7 +120,7 @@
             </div>
             <div>
               <dt>Build / installer</dt>
-              <dd><span class="state state-verified">MSI-131 Latest (verified green)</span></dd>
+              <dd><span class="state state-verified">MSI-132 Latest (verified green)</span></dd>
             </div>
             <div>
               <dt>Windows updater</dt>
@@ -261,10 +266,11 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
             draft. MSI publishers are single-writer; only a commit identical to
             or descended from the current stable MSI may be promoted to Latest.
             Other verified builds remain public historical releases. Source
-            packages are explicitly non-Latest. The repaired Latest pointer now
-            targets MSI-123 and its canonical public routes returned HTTP 200 at
-            the expected lengths. Three legacy unguarded runs were cancelled and
-            those facts were rechecked. Only diagnostics use an Actions artifact. See the
+            packages are explicitly non-Latest. The 2026-07-26 repair targeted
+            MSI-123 and its canonical public routes returned HTTP 200 at the
+            expected lengths; the guarded publisher has since advanced Latest to
+            MSI-132. Three legacy unguarded runs were cancelled and those facts
+            were rechecked. Only diagnostics use an Actions artifact. See the
             <a href="https://github.com/Ding-Ding-Projects/libreoffice-material/blob/main/docs/build/release-channel-integrity.md">release-channel integrity contract</a>.
           </p>
         </div>
@@ -304,7 +310,8 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
           <a href="https://github.com/Ding-Ding-Projects/libreoffice-material/releases/tag/windows-msi-local-20260720-fbba560e2">explicit release</a>
           has exactly four byte-verified assets. It was verified as Latest at
           publication; after the later source-channel incident, the mutable
-          route was repaired to MSI-123 with public reachability checks.
+          route was repaired to MSI-123 with public reachability checks and has
+          since advanced through the guarded publisher to MSI-132.
           Updater/installer lifecycle
           results remain pending. A first isolated lifecycle launch failed
           closed during result serialization, left the host safety state
@@ -534,7 +541,7 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
         <ol class="roadmap-list">
           <li class="roadmap-item current">
             <span class="phase-number">0</span>
-            <div><p class="phase-state">In progress</p><h3>Reproducible foundation</h3><p>Provenance, design contract, site, repaired and post-cancellation-rechecked MSI-123 Latest routing, real headless captures, and bounded UNO smoke are recorded; full reproducibility, installer lifecycle, and accessibility gates remain open.</p></div>
+            <div><p class="phase-state">In progress</p><h3>Reproducible foundation</h3><p>Provenance, design contract, site, historically repaired MSI-123 routing, guarded MSI-132 Latest publication, real headless captures, and bounded UNO smoke are recorded; full reproducibility, installer lifecycle, and accessibility gates remain open.</p></div>
           </li>
           <li class="roadmap-item">
             <span class="phase-number">1</span>
@@ -550,7 +557,7 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
           </li>
           <li class="roadmap-item">
             <span class="phase-number">7–8</span>
-            <div><p class="phase-state">Source in progress</p><h3>Hardening and release proof</h3><p>MSI-123 is restored as Latest, its canonical public routes returned HTTP 200, and three legacy unguarded runs were cancelled before a successful recheck. Source packages are now non-Latest, release-tag CI duplication is removed, static fleet closure is enforced, and future MSI promotion is serialized and ancestry-monotonic. Hosted proof of the revised publisher, installer lifecycle, accessibility, locale, performance, and compatibility remain open.</p></div>
+            <div><p class="phase-state">Source in progress</p><h3>Hardening and release proof</h3><p>The historical MSI-123 repair restored the canonical public routes, three legacy unguarded runs were cancelled before a successful recheck, and the ancestry-guarded publisher has since advanced Latest through MSI-132. Source packages are non-Latest, release-tag CI duplication is removed, and static fleet closure is enforced. The current source correction rerun, installer lifecycle, accessibility, locale, performance, and compatibility remain open.</p></div>
           </li>
         </ol>
       </section>

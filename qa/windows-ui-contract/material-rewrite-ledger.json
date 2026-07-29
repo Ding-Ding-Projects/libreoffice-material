@@ -22767,7 +22767,7 @@
       "rewrite_class": "dialog-anatomy",
       "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": "90e5ea4f1eb06c3865ddfc428ea260cc40914896",
+        "commit": "8177946113427e42483cf040791d4a7713928bab",
         "contract": "docs/design/08-dialogs.md#8.1",
         "capture": {
           "scene": null,
@@ -22792,8 +22792,8 @@
           "destructive_class": false,
           "footer_spacing": 12,
           "content_grid_material": true,
-          "ellipsize_count": 3,
-          "mnemonic_content_labels": 3,
+          "ellipsize_count": 5,
+          "mnemonic_content_labels": 5,
           "has_legacy_border": false,
           "title_present": true,
           "modal": true

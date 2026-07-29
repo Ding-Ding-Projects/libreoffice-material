@@ -22,6 +22,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
@@ -639,6 +640,54 @@ class LedgerMutationTest(unittest.TestCase):
         )
         self.assertEqual(status, CK.REWRITTEN)
         self.assertEqual(evidence["commit"], current)
+
+    def test_evaluate_refreshes_a_valid_historical_snapshot_after_anatomy_changes(self) -> None:
+        changed = CONFORMING_DIALOG_UI.replace(
+            '            <child>\n'
+            '              <object class="GtkEntry" id="entry"/>\n'
+            '            </child>',
+            '            <child>\n'
+            '              <object class="GtkLabel" id="lbl2">\n'
+            '                <property name="label" translatable="yes">_Value:</property>\n'
+            '                <property name="use-underline">True</property>\n'
+            '                <property name="mnemonic-widget">entry</property>\n'
+            '                <property name="ellipsize">end</property>\n'
+            '              </object>\n'
+            '            </child>\n'
+            '            <child>\n'
+            '              <object class="GtkEntry" id="entry"/>\n'
+            '            </child>',
+        )
+        self.assertNotEqual(changed, CONFORMING_DIALOG_UI)
+        repo, surface, prior_commit, current_commit = self.git_repo_with_surface(
+            CONFORMING_DIALOG_UI, changed
+        )
+        prior_root = ET.fromstring(CONFORMING_DIALOG_UI)
+        prior_markers = CK.derive_static_markers(CK.FAMILY_DIALOG, prior_root)
+        prior = CK.build_static_evidence(
+            CK.FAMILY_DIALOG, prior_commit, prior_markers
+        )
+
+        status, evidence = CK.evaluate_surface_status(
+            repo,
+            surface,
+            CK.FAMILY_DIALOG,
+            {},
+            CK.REWRITTEN,
+            prior,
+            current_commit,
+            audit_provenance=True,
+        )
+
+        self.assertEqual(status, CK.REWRITTEN)
+        self.assertEqual(evidence["commit"], current_commit)
+        self.assertNotEqual(evidence["anatomy_markers"], prior_markers)
+        self.assertEqual(
+            evidence["anatomy_markers"],
+            CK.derive_static_markers(
+                CK.FAMILY_DIALOG, CK._parse_root(repo, surface)
+            ),
+        )
 
     def test_evaluate_refuses_to_stamp_uncommitted_surface(self) -> None:
         stock = CONFORMING_DIALOG_UI.replace(

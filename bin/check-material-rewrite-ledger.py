@@ -1248,7 +1248,15 @@ def evaluate_surface_status(
 
     if passed:
         assert markers is not None
-        if prior_status == REWRITTEN and prior_evidence.get("commit"):
+        # Preserve rich prior evidence only while it still describes the live anatomy. A valid
+        # historical snapshot can otherwise mask a later, still-conforming source change: C4 then
+        # rejects the stale markers after --evaluate has already chosen to keep them, leaving no
+        # supported regeneration path.
+        if (
+            prior_status == REWRITTEN
+            and prior_evidence.get("commit")
+            and prior_evidence.get("anatomy_markers") == markers
+        ):
             matches, _why = _evidence_snapshot_matches(
                 repo_root, surface, family, prior_evidence
             )

@@ -3636,6 +3636,12 @@ void SfxViewFrame::SetViewFrame( SfxViewFrame* pFrame )
     SetSVWinData(pFrame ? pFrame->m_pWinData : nullptr);
 
     SfxGetpApp()->SetViewFrame_Impl( pFrame );
+
+    // Focus activation is also the cheap runtime configuration seam: it
+    // creates/destroys the opt-in strip after TabsEnabled changes, rereads
+    // per-document styles, and restores this frame's own active page.
+    if (pFrame)
+        pFrame->GetFrame().RefreshDocumentTabBar_Impl();
 }
 
 VclPtr<SfxInfoBarWindow> SfxViewFrame::AppendInfoBar(const OUString& sId,

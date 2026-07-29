@@ -24,8 +24,10 @@
  *
  * SfxDocumentTabBar is a svtools::TabBar subclass that renders one tab per open
  * document and, on tab activation, RAISES that document's already-existing
- * top-level window. It drives the existing one-window-per-document model; it
- * does NOT host multiple documents inside one window (that stays deferred).
+ * top-level window. Each normal top-level SfxFrame owns one strip for its
+ * lifetime and reserves its height in SfxFrame's content layout. It drives the
+ * existing one-window-per-document model; it does NOT host multiple documents
+ * inside one window.
  *
  * It rides the already-shipped Material TabBar paint path exactly as
  * ScTabControl (the Calc sheet-tab strip) does -- see
@@ -34,21 +36,19 @@
  * only while the Material file-widget theme is active, the @outline-variant
  * strip top rule and the per-tab @stroke-standard colour accent strip held out
  * of the base full-tab fill (docs/design/05-navigation.md 6). Every rendered
- * attribute (label, colour, pin, order) comes from each document's persisted
- * SfxDocTabStyle (stage 2); nothing is hardcoded.
+ * attribute (label, colours, font, emphasis, favourite, pin, order) comes from
+ * each document's persisted SfxDocTabStyle (stage 2); nothing is hardcoded.
  *
  * FAIL-CLOSED GUARD. The strip is opt-in and inert by default. Create() returns
  * nullptr -- so the widget cannot even be constructed -- unless BOTH
  *   officecfg::Office::Common::DocumentTabs::TabsEnabled == true, AND
  *   the Material file-widget theme is active (VCL_FILE_WIDGET_THEME=material,
  *   high contrast not resolved).
- * When tabs are off the caller holds a null pointer and shows nothing, so the
- * default build path is byte-identical for users who do not enable tabs.
+ * When tabs are off the caller holds a null pointer, reserves no layout space,
+ * and shows nothing.
  *
- * NOTE: compile-plausibility only in this stage. It follows sfx2 conventions and
- * is registered in sfx2/Library_sfx.mk, but is compiled by CI, not locally, and
- * no runtime rendering or window-switching is claimed. The build-free contract
- * qa/windows-ui-contract/document-tab-strip.json pins the source shape.
+ * The build-free contract qa/windows-ui-contract/document-tab-strip.json pins
+ * the source and owner wiring. Runtime evidence is tracked separately.
  */
 
 namespace com::sun::star::frame { class XFrame; }
@@ -66,13 +66,19 @@ public:
      * Guarded factory: the ONLY way to obtain a strip. Returns nullptr -- so no
      * widget is constructed and nothing is shown -- unless the TabsEnabled
      * officecfg guard is true AND the Material theme is active. This is the seam
-     * that keeps the tabs-off build byte-identical.
+     * that keeps the tabs-off UI/layout path inert.
      */
-    static VclPtr<SfxDocumentTabBar> Create(vcl::Window* pParent);
+    static VclPtr<SfxDocumentTabBar>
+    Create(vcl::Window* pParent,
+           const css::uno::Reference<css::frame::XFrame>& xOwnerFrame);
 
     /** True only when TabsEnabled is set in officecfg (stage-2 group, default
      *  false). Static so callers can gate window/chrome layout without a widget. */
     static bool IsTabsEnabled();
+
+    /** True when the opt-in setting and Material/non-high-contrast theme guard
+     *  both allow a strip to exist. */
+    static bool ShouldShow();
 
     virtual ~SfxDocumentTabBar() override;
     virtual void dispose() override;
@@ -81,8 +87,13 @@ public:
      *  document's persisted SfxDocTabStyle for label/colour/pin/order. */
     void Rebuild();
 
+    /** Height reserved by SfxFrame's content layout, including the largest
+     *  configured per-tab point size and the configured density. */
+    tools::Long GetPreferredHeight() const;
+
 private:
-    explicit SfxDocumentTabBar(vcl::Window* pParent);
+    SfxDocumentTabBar(vcl::Window* pParent,
+                      const css::uno::Reference<css::frame::XFrame>& xOwnerFrame);
 
     /// One row per rendered tab: the tab page id and the frame it raises.
     struct TabEntry
@@ -91,6 +102,13 @@ private:
         css::uno::Reference<css::frame::XFrame> xFrame;
     };
     std::vector<TabEntry> maEntries;
+
+    /// The top-level frame that owns this particular strip. Its page is always
+    /// restored as current after a cross-window activation.
+    css::uno::Reference<css::frame::XFrame> mxOwnerFrame;
+
+    /// Largest resolved per-page point size, used by the SfxFrame layout.
+    sal_Int16 mnLargestFontSize;
 
     /// User tab colours held out of the base full-tab fill while the Material
     /// theme is active, drawn as an accent strip under the label instead
@@ -117,6 +135,9 @@ private:
 
     /// Look up the frame bound to a page id, or an empty reference.
     css::uno::Reference<css::frame::XFrame> FrameForPage(sal_uInt16 nPageId) const;
+
+    /// Restore the page belonging to mxOwnerFrame as the active page.
+    void SelectOwnerFrame();
 
     /// Open the per-tab appearance editor for a page (right-click context menu).
     void EditTabAppearance(sal_uInt16 nPageId);

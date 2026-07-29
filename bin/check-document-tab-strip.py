@@ -41,8 +41,16 @@ checker re-derives every fact from the real tree and fails closed on drift:
   topness-violating primitives (``GetSystemWindow``, ``static_cast<WorkWindow``,
   ``SetMenuBar`` ...). The reference function still exists in framework.
 
-* Appearance editor -- the context-menu weld editor exists with the required .ui
-  ids and persists through officecfg.
+* Production owner/layout -- every normal SfxFrame owns and disposes the strip,
+  creates it after its WorkWindow exists, and reserves its preferred height.
+
+* Synchronisation/safety -- open, close, title, active-frame and configuration
+  changes refresh strips; disposed UNO frames are skipped; the owning frame is
+  restored as active after a cross-window raise.
+
+* Appearance editor/rendering -- the context-menu weld editor creates the first
+  dynamic-set entry, losslessly round-trips CSS hex and FontSize, and the shared
+  TabBar paint path consumes per-page typography and text colour.
 
 * Build registration -- both the .cxx and the .ui are registered in their .mk.
 
@@ -55,6 +63,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -84,6 +93,14 @@ def load_repository(repo_root: Path = REPOSITORY) -> tuple[dict, dict[str, str]]
         "appearance_ui",
         "library_mk",
         "uiconfig_mk",
+        "frame_hxx",
+        "frame_impl_hxx",
+        "frame_cxx",
+        "frame2_cxx",
+        "viewframe_cxx",
+        "viewframe2_cxx",
+        "tabbar_hxx",
+        "tabbar_cxx",
     )
     for key in file_keys:
         rel = contract[key]
@@ -103,23 +120,32 @@ def load_repository(repo_root: Path = REPOSITORY) -> tuple[dict, dict[str, str]]
 def _function_body(text: str, function: str) -> str | None:
     """Extract the brace-delimited body of the first definition of a function."""
 
-    idx = text.find(function)
+    # Mask comments without changing offsets. LibreOffice commonly places long
+    # documentation blocks between a function signature and its opening brace;
+    # comment semicolons/braces must not look like declarations or bodies.
+    source = re.sub(
+        r"//[^\n]*|/\*.*?\*/",
+        lambda match: " " * len(match.group(0)),
+        text,
+        flags=re.DOTALL,
+    )
+    idx = source.find(function)
     while idx != -1:
-        brace = text.find("{", idx)
-        semic = text.find(";", idx)
+        brace = source.find("{", idx)
+        semic = source.find(";", idx)
         if brace != -1 and (semic == -1 or brace < semic):
             depth = 0
             i = brace
-            while i < len(text):
-                if text[i] == "{":
+            while i < len(source):
+                if source[i] == "{":
                     depth += 1
-                elif text[i] == "}":
+                elif source[i] == "}":
                     depth -= 1
                     if depth == 0:
                         return text[brace : i + 1]
                 i += 1
             return None
-        idx = text.find(function, idx + len(function))
+        idx = source.find(function, idx + len(function))
     return None
 
 
@@ -149,6 +175,14 @@ def violations(contract: dict, contents: dict[str, str]) -> list[str]:
     ui = contents[contract["appearance_ui"]]
     lib_mk = contents[contract["library_mk"]]
     ui_mk = contents[contract["uiconfig_mk"]]
+    frame_hxx = contents[contract["frame_hxx"]]
+    frame_impl_hxx = contents[contract["frame_impl_hxx"]]
+    frame_cxx = contents[contract["frame_cxx"]]
+    frame2_cxx = contents[contract["frame2_cxx"]]
+    viewframe_cxx = contents[contract["viewframe_cxx"]]
+    viewframe2_cxx = contents[contract["viewframe2_cxx"]]
+    tabbar_hxx = contents[contract["tabbar_hxx"]]
+    tabbar_cxx = contents[contract["tabbar_cxx"]]
 
     # runtime_verified must stay false: this is build-free source evidence only.
     if contract.get("runtime_verified") is not False:
@@ -279,11 +313,126 @@ def violations(contract: dict, contents: dict[str, str]) -> list[str]:
     for marker in editor["cxx_markers"]:
         if marker not in cxx:
             errors.append(f"editor:cxx -- missing marker {marker!r}")
+    for marker in editor.get("cxx_must_not_contain", []):
+        if marker in cxx:
+            errors.append(f"editor:cxx -- forbidden lossy/stale marker {marker!r}")
     if f'id="{editor["ui_dialog_id"]}"' not in ui:
         errors.append(f"editor:ui -- missing dialog id {editor['ui_dialog_id']!r}")
     for wid in editor["ui_required_ids"]:
         if f'id="{wid}"' not in ui:
             errors.append(f"editor:ui -- missing widget id {wid!r}")
+
+    # --- production owner and layout --------------------------------------
+    owner = contract["production_owner_and_layout"]
+    owner_sources = frame_impl_hxx + "\n" + frame_cxx
+    for marker in owner["owner_markers"]:
+        if marker not in owner_sources:
+            errors.append(f"owner:lifetime -- missing marker {marker!r}")
+    create_body = _function_body(frame_cxx, owner["create_function"])
+    if create_body is None:
+        errors.append(f"owner:create -- function {owner['create_function']!r} not found")
+    else:
+        for marker in owner["create_markers"]:
+            if marker not in create_body:
+                errors.append(f"owner:create -- missing marker {marker!r}")
+    workwindow_body = _function_body(frame_cxx, owner["workwindow_function"])
+    if workwindow_body is None:
+        errors.append(
+            f"owner:workwindow -- function {owner['workwindow_function']!r} not found"
+        )
+    else:
+        for marker in owner["workwindow_markers"]:
+            if marker not in workwindow_body:
+                errors.append(f"owner:workwindow -- missing marker {marker!r}")
+    layout_body = _function_body(frame_cxx, owner["layout_function"])
+    if layout_body is None:
+        errors.append(f"owner:layout -- function {owner['layout_function']!r} not found")
+    else:
+        for marker in owner["layout_markers"]:
+            if marker not in layout_body:
+                errors.append(f"owner:layout -- missing marker {marker!r}")
+    for marker in (
+        "RefreshDocumentTabBar_Impl",
+        "RefreshDocumentTabBars_Impl",
+    ):
+        if marker not in frame_hxx:
+            errors.append(f"owner:api -- frame header missing {marker!r}")
+
+    # --- synchronization and disposed-frame safety ------------------------
+    sync = contract["synchronization_and_safety"]
+    sync_sources = {
+        "frame_cxx": frame_cxx,
+        "frame2_cxx": frame2_cxx,
+        "viewframe_cxx": viewframe_cxx,
+        "viewframe2_cxx": viewframe2_cxx,
+        "strip_cxx": cxx,
+    }
+    for source_name, markers in sync["sync_markers"].items():
+        source = sync_sources[source_name]
+        for marker in markers:
+            if marker not in source:
+                errors.append(
+                    f"sync:{source_name} -- missing refresh marker {marker!r}"
+                )
+    for marker in sync["strip_markers"]:
+        if marker not in cxx:
+            errors.append(f"safety:strip -- missing marker {marker!r}")
+    for requirement in sync.get("function_markers", []):
+        source_name = requirement["source"]
+        body = _function_body(sync_sources[source_name], requirement["function"])
+        if body is None:
+            errors.append(
+                f"sync:{source_name} -- function {requirement['function']!r} not found"
+            )
+            continue
+        for marker in requirement["markers"]:
+            if marker not in body:
+                errors.append(
+                    f"sync:{source_name} -- {requirement['function']} missing {marker!r}"
+                )
+    select_body = _function_body(cxx, "SfxDocumentTabBar::Select()")
+    if select_body is None or "SelectOwnerFrame();" not in select_body:
+        errors.append(
+            "sync:selection -- Select must restore the owner page after raising a frame"
+        )
+
+    # --- per-page rendering hooks -----------------------------------------
+    for marker in ("SetPageFont", "SetPageTextColor"):
+        if marker not in tabbar_hxx:
+            errors.append(f"style:tabbar-hxx -- missing per-page API {marker!r}")
+        if marker not in tabbar_cxx:
+            errors.append(f"style:tabbar-cxx -- per-page API {marker!r} is not implemented")
+    for marker in (
+        "pItem->moPageFont.value_or",
+        "pItem->moPageTextColor",
+    ):
+        if marker not in tabbar_cxx:
+            errors.append(f"style:tabbar-cxx -- missing paint-path marker {marker!r}")
+
+    # --- CSS hex decode and lossless editor round-trip --------------------
+    hex_contract = contract["hex_roundtrip"]
+    parse_body = _function_body(cxx, hex_contract["function"])
+    if parse_body is None:
+        errors.append(f"hex:decode -- function {hex_contract['function']!r} not found")
+    else:
+        for marker in hex_contract["must_contain"]:
+            if marker not in parse_body:
+                errors.append(f"hex:decode -- missing marker {marker!r}")
+        for marker in hex_contract["must_not_contain"]:
+            if marker in parse_body:
+                errors.append(f"hex:decode -- forbidden lossy marker {marker!r}")
+    for marker in hex_contract["roundtrip_markers"]:
+        if marker not in cxx:
+            errors.append(f"hex:roundtrip -- missing marker {marker!r}")
+
+    # --- Favorite behaviour and schema honesty ----------------------------
+    favorite = contract["favorite_and_schema_honesty"]
+    for marker in favorite["favorite_markers"]:
+        if marker not in cxx:
+            errors.append(f"favorite:behavior -- missing marker {marker!r}")
+    for marker in favorite["schema_markers"]:
+        if marker not in xcs:
+            errors.append(f"schema:honesty -- missing marker {marker!r}")
 
     # --- build registration ------------------------------------------------
     reg = contract["build_registration"]

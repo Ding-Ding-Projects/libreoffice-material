@@ -91,6 +91,9 @@ void SfxFrameWindow_Impl::DataChanged( const DataChangedEvent& rDCEvt )
     SfxWorkWindow *pWorkWin = m_pFrame->GetWorkWindow_Impl();
     if ( pWorkWin )
         pWorkWin->DataChanged_Impl();
+    // High-contrast/theme transitions can make the guarded strip appear or
+    // disappear, and can change its preferred font-driven height.
+    m_pFrame->RefreshDocumentTabBar_Impl();
 }
 
 bool SfxFrameWindow_Impl::EventNotify( NotifyEvent& rNEvt )
@@ -306,6 +309,8 @@ SfxFrame::SfxFrame( vcl::Window& i_rContainerWindow )
 
 void SfxFrame::SetPresentationMode( bool bSet )
 {
+    m_pImpl->bPresentationMode = bSet;
+
     if ( GetCurrentViewFrame() )
         GetCurrentViewFrame()->GetWindow().SetBorderStyle( bSet ? WindowBorderStyle::NOBORDER : WindowBorderStyle::NORMAL );
 
@@ -326,6 +331,8 @@ void SfxFrame::SetPresentationMode( bool bSet )
         GetWorkWindow_Impl()->SetDockingAllowed( !bSet );
     if ( GetCurrentViewFrame() )
         GetCurrentViewFrame()->GetDispatcher()->Update_Impl( true );
+
+    RefreshDocumentTabBar_Impl();
 }
 
 SystemWindow* SfxFrame::GetSystemWindow() const

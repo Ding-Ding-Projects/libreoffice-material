@@ -269,7 +269,8 @@
       </prop>
       <prop oor:name="Favorite" oor:type="xs:boolean" oor:nillable="false">
         <info>
-          <desc>Whether the tab is marked as a favourite.</desc>
+          <desc>Whether the tab is visibly marked with a star and sorted before
+          non-favourites within the same pinned state.</desc>
         </info>
         <value>false</value>
       </prop>
@@ -282,8 +283,10 @@
       </prop>
       <prop oor:name="GroupId" oor:type="xs:string">
         <info>
-          <desc>Identifier of the tab group this document belongs to. Validated
-          against the group-id allow-list on read; absent means ungrouped.</desc>
+          <desc>Reserved identifier for a future tab-group affordance. It is
+          validated against the group-id allow-list and preserved, but the
+          current one-window-per-document strip does not group tabs; absent
+          means ungrouped.</desc>
         </info>
       </prop>
       <prop oor:name="FontSize" oor:type="xs:short" oor:nillable="false">
@@ -5127,10 +5130,11 @@
     </group>
     <group oor:name="DocumentTabs">
       <info>
-        <desc>Material document-tab strip appearance. Stored only in this stage:
-        no tab strip consumes these yet, so the values are honest-inert until the
-        strip lands. Tabs are OFF by default (TabsEnabled=false), a deliberate
-        fail-closed posture.</desc>
+        <desc>Material document-tab strip appearance. The guarded SfxFrame-owned
+        strip consumes TabsEnabled, TabWidth and TabDensity. Tabs are OFF by
+        default (TabsEnabled=false), a deliberate fail-closed posture.
+        TabCloseButtons remains reserved and explicitly inert until the strip
+        gains a close-button affordance.</desc>
       </info>
       <prop oor:name="TabsEnabled" oor:type="xs:boolean" oor:nillable="false">
         <info>
@@ -5143,8 +5147,7 @@
       </prop>
       <prop oor:name="TabWidth" oor:type="xs:short" oor:nillable="false">
         <info>
-          <desc>Selects the document-tab sizing. Honest-inert until the strip
-          lands.</desc>
+          <desc>Selects the maximum document-tab width used by the strip.</desc>
           <label>Document tab width</label>
         </info>
         <constraints>
@@ -5168,8 +5171,9 @@
       </prop>
       <prop oor:name="TabCloseButtons" oor:type="xs:short" oor:nillable="false">
         <info>
-          <desc>Selects when a document tab's close button is shown. Honest-inert
-          until the strip lands.</desc>
+          <desc>Reserved selection for a future document-tab close-button
+          affordance. The current one-window-per-document strip intentionally
+          does not render close buttons, so this value is inert.</desc>
           <label>Document tab close buttons</label>
         </info>
         <constraints>
@@ -5193,8 +5197,8 @@
       </prop>
       <prop oor:name="TabDensity" oor:type="xs:short" oor:nillable="false">
         <info>
-          <desc>Selects the document-tab control density, joined to the existing
-          Appearance/MaterialDensity scale. Honest-inert until the strip lands.</desc>
+          <desc>Selects the document-tab control density and therefore the
+          vertical padding reserved by the frame layout.</desc>
           <label>Document tab density</label>
         </info>
         <constraints>

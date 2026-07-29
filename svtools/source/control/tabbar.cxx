@@ -42,6 +42,7 @@
 #include <svtools/strings.hrc>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <vector>
 #include <vcl/idle.hxx>
 #include <bitmaps.hlst>
@@ -216,6 +217,8 @@ struct ImplTabBarItem
     bool mbProtect : 1;
     Color maTabBgColor;
     Color maTabTextColor;
+    std::optional<vcl::Font> moPageFont;
+    std::optional<Color> moPageTextColor;
 
     ImplTabBarItem(sal_uInt16 nItemId, OUString aText, TabBarPageBits nPageBits)
         : mnId(nItemId)
@@ -673,9 +676,12 @@ bool TabBar::ImplCalcWidth()
             mnCurMaxWidth = 1;
     }
 
+    auto popIt = GetOutDev()->ScopedPush(vcl::PushFlags::FONT);
     bool bChanged = false;
     for (auto& rItem : mpImpl->maItemList)
     {
+        const vcl::Font aPageFont = rItem.moPageFont.value_or(aFont);
+        GetOutDev()->SetFont(aPageFont);
         tools::Long nNewWidth = GetTextWidth(rItem.GetRenderText());
         if (mnCurMaxWidth && (nNewWidth > mnCurMaxWidth))
         {
@@ -688,7 +694,7 @@ bool TabBar::ImplCalcWidth()
         }
 
         // Padding is dependent on font height - bigger font = bigger padding
-        tools::Long nFontWidth = aFont.GetFontHeight();
+        tools::Long nFontWidth = aPageFont.GetFontHeight();
         if (rItem.mbProtect)
             nNewWidth += 24;
         nNewWidth += nFontWidth * 2;
@@ -1211,11 +1217,10 @@ void TabBar::Paint(vcl::RenderContext& rRenderContext, const tools::Rectangle& r
             aDrawer.mbProtect = pItem->mbProtect;
             aDrawer.drawTab();
 
-            // currently visible sheet is drawn using a bold font
-            if (bCurrent)
-                rRenderContext.SetFont(aFont);
-            else
-                rRenderContext.SetFont(aLightFont);
+            // currently visible sheets use a bold font unless the caller
+            // supplied an explicit per-page font.
+            rRenderContext.SetFont(
+                pItem->moPageFont.value_or(bCurrent ? aFont : aLightFont));
 
             // Set the correct FillInBrush depending on status
 
@@ -1225,6 +1230,9 @@ void TabBar::Paint(vcl::RenderContext& rRenderContext, const tools::Rectangle& r
                 rRenderContext.SetTextColor(pItem->maTabTextColor);
             else
                 rRenderContext.SetTextColor(aFaceTextColor);
+
+            if (!rStyleSettings.GetHighContrastMode() && pItem->moPageTextColor)
+                rRenderContext.SetTextColor(*pItem->moPageTextColor);
 
             // Special display of tab name depending on page bits
 
@@ -1662,6 +1670,29 @@ void TabBar::SetTabBgColor(sal_uInt16 nPageId, const Color& aTabBgColor)
         rItem.maTabBgColor = COL_AUTO;
         rItem.maTabTextColor = COL_AUTO;
     }
+}
+
+void TabBar::SetPageFont(sal_uInt16 nPageId, const vcl::Font& rFont)
+{
+    const sal_uInt16 nPos = GetPagePos(nPageId);
+    if (nPos == PAGE_NOT_FOUND)
+        return;
+
+    mpImpl->maItemList[nPos].moPageFont = rFont;
+    mbSizeFormat = true;
+    if (IsReallyVisible() && IsUpdateMode())
+        Invalidate();
+}
+
+void TabBar::SetPageTextColor(sal_uInt16 nPageId, const Color& rColor)
+{
+    const sal_uInt16 nPos = GetPagePos(nPageId);
+    if (nPos == PAGE_NOT_FOUND)
+        return;
+
+    mpImpl->maItemList[nPos].moPageTextColor = rColor;
+    if (IsReallyVisible() && IsUpdateMode())
+        Invalidate();
 }
 
 void TabBar::RemovePage(sal_uInt16 nPageId)

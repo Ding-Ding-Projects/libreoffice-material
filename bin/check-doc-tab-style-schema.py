@@ -9,7 +9,7 @@
 
 Stage 2 of the tabbed-UI feature is PERSISTENCE + VALIDATION only. It adds the
 officecfg schema for document-tab styles (an ``Appearance/DocumentTabs`` group
-and a ``Histories/DocumentTabStyles`` set, node-type ``DocumentTabStyle``) and a
+and a ``History/DocumentTabStyles`` set, node-type ``DocumentTabStyle``) and a
 clamp-on-read normalizer (``SfxDocTabStyle::Normalize`` in
 ``sfx2/source/appl/doctabstyle.cxx``). It adds NO tab strip and NO frame
 changes.

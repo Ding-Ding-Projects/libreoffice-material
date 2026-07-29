@@ -21,6 +21,11 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+        with:
+          # C3 compares the candidate ledger with the real push/PR baseline,
+          # and C5 resolves historical evidence snapshots. Both must fail
+          # closed instead of silently degrading under a shallow checkout.
+          fetch-depth: 0
 
       - name: Validate native dialog policy registry
         run: python3 bin/check-windows-dialog-notification-contract.py
@@ -510,7 +515,9 @@ jobs:
         run: python3 bin/test_config_layer_coverage.py
 
       - name: Validate Material rewrite ledger
-        run: python3 bin/check-material-rewrite-ledger.py
+        env:
+          MATERIAL_REWRITE_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+        run: python3 bin/check-material-rewrite-ledger.py --baseline-ref "$MATERIAL_REWRITE_BASELINE_REF"
 
       - name: Run Material rewrite ledger mutation regressions
         run: python3 bin/test_material_rewrite_ledger.py

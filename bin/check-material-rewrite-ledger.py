@@ -36,18 +36,23 @@ structure without touching campaign progress):
 
 ``--regenerate`` rewrites the row set (structure only, statuses preserved).
 ``--evaluate`` goes further: it STATICALLY PARSES every static-family surface's
-``.ui`` via ElementTree and recomputes its status, crediting
+committed ``.ui`` via ElementTree and recomputes its status, crediting
 ``rewritten-material`` only where the surface satisfies its FULL family predicate
 (the dialog/message/surface-body/popover markers), and leaving it ``pending``
 otherwise -- conservative, no partial credit. Composition families (menu,
 sidebar-panel, native-shell) keep their contract-cross-reference status
 untouched. The credit is earned and reproducible: re-running ``--evaluate`` from
 a clean checkout re-derives the same markers and the same pass/fail from the
-tree. The default mode validates and prints the headline coverage number.
+tree. New or stale evidence is stamped with the most recent commit that actually
+changed the credited surface (or composition contract); evaluation refuses to
+stamp an uncommitted path. The default mode validates and prints the headline
+coverage number.
 Validation runs seven fail-closed checks: C1 closure parity + digest, C2
-attribution parity, C3 no status regression (baseline = the committed file), C4
-anatomy-marker persistence, C5 evidence completeness, C6 classifier parity, C7
-coverage parity.
+attribution parity, C3 no status regression against an explicit push/PR baseline
+(falling back to ``HEAD^`` locally), C4 anatomy-marker persistence, C5 evidence
+completeness plus commit-snapshot provenance, C6 classifier parity, C7 coverage
+parity. The production Screenshot Annotation dialog also carries a targeted
+semantic guard: Save remains the Enter default while Close remains RET_CANCEL.
 
 This is source-level evidence only: ``runtime_verified`` is false everywhere and
 no native build, dialog pixel, or runtime interaction is claimed.
@@ -99,6 +104,9 @@ STATUS_ORDINAL = {PENDING: 0, IN_PROGRESS: 1, REWRITTEN: 2}
 STATIC_EVAL_BATCH = "static-anatomy-evaluation"
 
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
+ZERO_COMMIT = "0" * 40
+SCREENSHOT_ANNOTATION_SURFACE = "cui/uiconfig/ui/screenshotannotationdialog.ui"
+SCREENSHOT_SAVE_RESPONSE = 101
 
 # --- GTK response codes (mirrors bin/check-material-dialog-anatomy.py) ------
 RET_OK = -5
@@ -356,6 +364,37 @@ def _direct_properties(obj: ET.Element) -> dict[str, str]:
     return props
 
 
+def _has_positive_metric(props: Mapping[str, str], names: Sequence[str]) -> bool:
+    """Return true only for an explicitly declared, positive integer metric."""
+
+    for name in names:
+        raw = props.get(name)
+        if raw is None:
+            continue
+        try:
+            if int(raw) > 0:
+                return True
+        except ValueError:
+            continue
+    return False
+
+
+def _iter_objects_excluding_notebook_tabs(root: ET.Element):
+    """Yield real widget objects, excluding ``<child type="tab">`` metadata.
+
+    VclBuilder consumes a notebook tab child as page-caption metadata; its
+    GtkLabel is not instantiated as content. Counting ellipsize or mnemonic
+    properties below that pseudo-child would therefore award invisible anatomy.
+    """
+
+    for child in root:
+        if _tag(child.tag) == "child" and child.get("type") == "tab":
+            continue
+        if _tag(child.tag) == "object":
+            yield child
+        yield from _iter_objects_excluding_notebook_tabs(child)
+
+
 def _style_classes(obj: ET.Element) -> set[str]:
     classes: set[str] = set()
     for child in obj:
@@ -469,10 +508,11 @@ def _content_grid_material(dialog: ET.Element) -> bool:
         if _tag(obj.tag) != "object" or obj.get("class") != "GtkGrid":
             continue
         props = _direct_properties(obj)
-        has_spacing = "row-spacing" in props or "column-spacing" in props
-        has_margin = any(
-            key in props
-            for key in ("margin-start", "margin-end", "margin-top", "margin-bottom")
+        has_spacing = _has_positive_metric(
+            props, ("row-spacing", "column-spacing")
+        )
+        has_margin = _has_positive_metric(
+            props, ("margin-start", "margin-end", "margin-top", "margin-bottom")
         )
         if has_spacing and has_margin:
             return True
@@ -481,19 +521,21 @@ def _content_grid_material(dialog: ET.Element) -> bool:
 
 def _count_ellipsize(dialog: ET.Element) -> int:
     count = 0
-    for obj in dialog.iter():
-        if _tag(obj.tag) == "object" and obj.get("class") == "GtkLabel":
-            if _direct_properties(obj).get("ellipsize", "").lower() == "end":
-                count += 1
+    for obj in _iter_objects_excluding_notebook_tabs(dialog):
+        if obj.get("class") == "GtkLabel" and (
+            _direct_properties(obj).get("ellipsize", "").lower() == "end"
+        ):
+            count += 1
     return count
 
 
 def _count_mnemonic_labels(dialog: ET.Element) -> int:
     count = 0
-    for obj in dialog.iter():
-        if _tag(obj.tag) == "object" and obj.get("class") == "GtkLabel":
-            if "mnemonic-widget" in _direct_properties(obj):
-                count += 1
+    for obj in _iter_objects_excluding_notebook_tabs(dialog):
+        if obj.get("class") == "GtkLabel" and (
+            "mnemonic-widget" in _direct_properties(obj)
+        ):
+            count += 1
     return count
 
 
@@ -650,12 +692,12 @@ def derive_popover_markers(root: ET.Element) -> dict[str, Any]:
     popover = _find_popover_object(root)
     container = _first_child_object(popover) if popover is not None else None
     cprops = _direct_properties(container) if container is not None else {}
-    has_spacing = any(
-        key in cprops for key in ("spacing", "row-spacing", "column-spacing")
+    has_spacing = _has_positive_metric(
+        cprops, ("spacing", "row-spacing", "column-spacing")
     )
-    has_margin = any(
-        key in cprops
-        for key in ("margin-start", "margin-end", "margin-top", "margin-bottom", "margin")
+    has_margin = _has_positive_metric(
+        cprops,
+        ("margin-start", "margin-end", "margin-top", "margin-bottom", "margin"),
     )
     return {
         "popover_present": popover is not None,
@@ -681,12 +723,23 @@ def derive_static_markers(family: str, root: ET.Element) -> dict[str, Any]:
 # --------------------------------------------------------------------------
 # Acceptance predicates
 # --------------------------------------------------------------------------
+def _is_primary_response(response: Any) -> bool:
+    """Accept stock affirmative responses and application-owned custom actions."""
+
+    return response in PRIMARY_RESPONSES or (
+        isinstance(response, int) and not isinstance(response, bool) and response >= 0
+    )
+
+
 def _footer_anatomy_ok(markers: Mapping[str, Any]) -> tuple[bool, str]:
     order = markers.get("action_order") or []
     if not order:
         return False, "no action-widgets footer"
-    if order[-1] not in PRIMARY_RESPONSES:
-        return False, f"primary response {order[-1]} not in {sorted(PRIMARY_RESPONSES)}"
+    if not _is_primary_response(order[-1]):
+        return False, (
+            f"primary response {order[-1]} is neither an affirmative stock "
+            "response nor a non-negative custom action"
+        )
     body = list(order)
     if body and body[0] == RET_HELP:
         body = body[1:]
@@ -759,7 +812,7 @@ def predicate_dialog(markers: Mapping[str, Any]) -> tuple[bool, str]:
 
 def predicate_wizard(markers: Mapping[str, Any]) -> tuple[bool, str]:
     order = markers.get("action_order") or []
-    if not order or order[-1] not in PRIMARY_RESPONSES:
+    if not order or not _is_primary_response(order[-1]):
         return False, "wizard forward action is not the primary"
     if not markers.get("content_grid_material"):
         return False, "wizard page content grid lacks Material spacing/margins"
@@ -857,12 +910,263 @@ def _head_commit(repo_root: Path) -> str | None:
     return out if COMMIT_RE.match(out) else None
 
 
+_COMMIT_EXISTS_CACHE: dict[tuple[str, str], bool] = {}
+_ANCESTOR_CACHE: dict[tuple[str, str, str], bool] = {}
+_COMMITTED_PATH_CACHE: dict[tuple[str, str, str], bytes | None] = {}
+
+
+def _commit_exists(repo_root: Path, commit: str) -> bool:
+    key = (str(repo_root.resolve()), commit)
+    cached = _COMMIT_EXISTS_CACHE.get(key)
+    if cached is not None:
+        return cached
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "cat-file", "-e", f"{commit}^{{commit}}"],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        result = False
+    else:
+        result = completed.returncode == 0
+    _COMMIT_EXISTS_CACHE[key] = result
+    return result
+
+
+def _is_ancestor(repo_root: Path, ancestor: str, descendant: str) -> bool:
+    key = (str(repo_root.resolve()), ancestor, descendant)
+    cached = _ANCESTOR_CACHE.get(key)
+    if cached is not None:
+        return cached
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "merge-base", "--is-ancestor", ancestor, descendant],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        result = False
+    else:
+        result = completed.returncode == 0
+    _ANCESTOR_CACHE[key] = result
+    return result
+
+
+def _committed_path(repo_root: Path, commit: str, path: str) -> bytes | None:
+    key = (str(repo_root.resolve()), commit, path)
+    if key in _COMMITTED_PATH_CACHE:
+        return _COMMITTED_PATH_CACHE[key]
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "show", f"{commit}:{path}"],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except OSError:
+        data = None
+    else:
+        data = completed.stdout if completed.returncode == 0 else None
+    _COMMITTED_PATH_CACHE[key] = data
+    return data
+
+
+def _prefetch_committed_paths(
+    repo_root: Path, requests: Sequence[tuple[str, str]]
+) -> None:
+    """Populate historical blobs with one ``git cat-file --batch`` process."""
+
+    root_key = str(repo_root.resolve())
+    pending: list[tuple[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for commit, path in requests:
+        pair = (commit, path)
+        cache_key = (root_key, commit, path)
+        if pair not in seen and cache_key not in _COMMITTED_PATH_CACHE:
+            pending.append(pair)
+            seen.add(pair)
+    if not pending:
+        return
+
+    request_bytes = (
+        "".join(f"{commit}:{path}\n" for commit, path in pending).encode("utf-8")
+    )
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "cat-file", "--batch"],
+            check=False,
+            input=request_bytes,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except OSError:
+        return  # Per-path fallback will report the specific failure.
+    if completed.returncode != 0:
+        return
+
+    output = completed.stdout
+    offset = 0
+    try:
+        for commit, path in pending:
+            newline = output.index(b"\n", offset)
+            header = output[offset:newline]
+            offset = newline + 1
+            cache_key = (root_key, commit, path)
+            if header.endswith(b" missing"):
+                _COMMITTED_PATH_CACHE[cache_key] = None
+                continue
+            fields = header.rsplit(b" ", 2)
+            if len(fields) != 3 or fields[1] != b"blob":
+                _COMMITTED_PATH_CACHE[cache_key] = None
+                continue
+            size = int(fields[2])
+            _COMMITTED_PATH_CACHE[cache_key] = output[offset : offset + size]
+            offset += size + 1  # git appends one record-separating newline.
+    except (ValueError, IndexError):
+        # A malformed batch response must not be trusted. Remove entries from
+        # this batch so normal per-path reads can fail closed with useful detail.
+        for commit, path in pending:
+            _COMMITTED_PATH_CACHE.pop((root_key, commit, path), None)
+
+
+def _prefetch_evidence_snapshots(
+    repo_root: Path, rows: Sequence[Mapping[str, Any]]
+) -> None:
+    requests: list[tuple[str, str]] = []
+    for row in rows:
+        if row.get("rewrite_status") != REWRITTEN:
+            continue
+        family = row.get("family")
+        evidence = row.get("rewrite_evidence")
+        surface = row.get("surface")
+        if (
+            family not in FAMILY_DEFS
+            or not isinstance(evidence, Mapping)
+            or not isinstance(surface, str)
+        ):
+            continue
+        commit = evidence.get("commit")
+        if not (isinstance(commit, str) and COMMIT_RE.match(commit)):
+            continue
+        if evidence_kind_for(family) == STATIC_UI:
+            requests.append((commit, surface))
+        else:
+            contract = evidence.get("contract")
+            if isinstance(contract, str) and contract:
+                requests.append((commit, contract))
+    _prefetch_committed_paths(repo_root, requests)
+
+
+def _latest_committed_path_revision(repo_root: Path, path: str) -> str:
+    """Return the last commit that changed ``path``, refusing dirty input.
+
+    A commit containing the ledger cannot name its own future SHA. The supported
+    workflow is therefore deliberately two phase: commit source/contract edits,
+    then run ``--evaluate`` and commit the generated ledger. This helper makes
+    accidentally stamping the pre-change parent impossible.
+    """
+
+    try:
+        clean = subprocess.run(
+            ["git", "-C", str(repo_root), "diff", "--quiet", "HEAD", "--", path],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+        )
+    except OSError as error:
+        raise ValidationError(f"cannot inspect Git state for {path}: {error}") from error
+    if clean.returncode == 1:
+        raise ValidationError(
+            f"--evaluate refuses to stamp uncommitted evidence path {path}; "
+            "commit the source/contract change first, then rerun --evaluate"
+        )
+    if clean.returncode != 0:
+        detail = clean.stderr.decode("utf-8", errors="replace").strip()
+        raise ValidationError(f"cannot inspect Git state for {path}: {detail}")
+
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "log", "-1", "--format=%H", "HEAD", "--", path],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except OSError as error:
+        raise ValidationError(f"cannot resolve evidence commit for {path}: {error}") from error
+    commit = completed.stdout.decode("utf-8", errors="replace").strip()
+    if completed.returncode != 0 or not COMMIT_RE.match(commit):
+        detail = completed.stderr.decode("utf-8", errors="replace").strip()
+        raise ValidationError(
+            f"cannot resolve the last committed revision for evidence path {path}: {detail}"
+        )
+    return commit
+
+
+def _evidence_snapshot_matches(
+    repo_root: Path,
+    surface: str,
+    family: str,
+    evidence: Mapping[str, Any],
+) -> tuple[bool, str]:
+    """Prove that the evidence commit itself contains the credited snapshot."""
+
+    commit = evidence.get("commit")
+    if not (isinstance(commit, str) and COMMIT_RE.match(commit)):
+        return False, "evidence commit is not 40-hex"
+    if not _commit_exists(repo_root, commit):
+        return False, f"evidence commit {commit} is unavailable"
+
+    markers = evidence.get("anatomy_markers")
+    if evidence_kind_for(family) == STATIC_UI:
+        payload = _committed_path(repo_root, commit, surface)
+        if payload is None:
+            return False, f"{surface} is absent at evidence commit {commit}"
+        try:
+            root = ET.fromstring(payload)
+            committed_markers = derive_static_markers(family, root)
+        except (ET.ParseError, ValidationError) as error:
+            return False, f"cannot derive {surface} at evidence commit {commit}: {error}"
+        passed, why = static_predicate(family, committed_markers)
+        if not passed:
+            return False, f"evidence commit {commit} fails the {family} predicate ({why})"
+        if markers != committed_markers:
+            return False, (
+                f"evidence commit {commit} does not contain the stored anatomy snapshot"
+            )
+        return True, ""
+
+    contract = evidence.get("contract")
+    token = markers.get("contract_marker") if isinstance(markers, Mapping) else None
+    if not isinstance(contract, str) or not contract:
+        return False, "composition evidence names no contract path"
+    payload = _committed_path(repo_root, commit, contract)
+    if payload is None:
+        return False, f"{contract} is absent at evidence commit {commit}"
+    try:
+        contract_data = json.loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        return False, f"cannot parse {contract} at evidence commit {commit}: {error}"
+    if not (
+        isinstance(token, str)
+        and token
+        and isinstance(contract_data, Mapping)
+        and contract_data.get("contract") == token
+    ):
+        return False, (
+            f"evidence commit {commit} does not contain composition marker {token!r}"
+        )
+    return True, ""
+
+
 def _static_capture() -> dict[str, Any]:
     return {"scene": None, "sample_batch": STATIC_EVAL_BATCH, "captured": False}
 
 
 def build_static_evidence(
-    family: str, head_commit: str | None, markers: Mapping[str, Any]
+    family: str, source_commit: str | None, markers: Mapping[str, Any]
 ) -> dict[str, Any]:
     """Assemble the evidence block for a surface newly credited by --evaluate.
 
@@ -873,13 +1177,13 @@ def build_static_evidence(
     still match byte-for-byte.
     """
 
-    if not (isinstance(head_commit, str) and COMMIT_RE.match(head_commit)):
+    if not (isinstance(source_commit, str) and COMMIT_RE.match(source_commit)):
         raise ValidationError(
-            "--evaluate needs a 40-hex HEAD commit to stamp a new rewritten flip; "
-            "none could be resolved (run inside a Git checkout)"
+            "--evaluate needs a committed 40-hex source revision to stamp a "
+            "rewritten flip; none could be resolved"
         )
     return {
-        "commit": head_commit,
+        "commit": source_commit,
         "contract": FAMILY_DEFS[family]["design_ref"],
         "capture": _static_capture(),
         "anatomy_markers": json.loads(json.dumps(markers)),
@@ -894,12 +1198,16 @@ def evaluate_surface_status(
     prior_status: str,
     prior_evidence: Mapping[str, Any],
     head_commit: str | None,
+    *,
+    allow_static_status_loss: bool = False,
+    audit_provenance: bool = False,
 ) -> tuple[str, dict[str, Any]]:
     """Recompute a surface's status from the LIVE .ui tree (``--evaluate``).
 
-    * Composition families (sidebar-panel, native-shell) keep the existing
+    * Composition families (menu, sidebar-panel, native-shell) keep the existing
       contract-cross-reference path: their status/evidence is campaign-owned and
-      is never recomputed statically -- returned verbatim.
+      is never recomputed statically. A stale evidence SHA is refreshed to the
+      last committed revision of the named contract.
     * Static families are credited ``rewritten-material`` iff ALL of the family
       predicate's markers pass; otherwise the surface stays ``pending``. There is
       no partial credit: a some-but-not-all surface is ``pending``.
@@ -908,12 +1216,23 @@ def evaluate_surface_status(
       satisfies its predicate keeps that status here so the honest place to fail
       is C4 anatomy persistence, not a silent downgrade.
     * A still-passing surface that was already ``rewritten-material`` keeps its
-      richer prior evidence (e.g. a real pixel capture) verbatim rather than
-      being overwritten with the static-evaluation stub.
+      richer prior evidence (e.g. a real pixel capture) when its named commit
+      proves the stored snapshot; stale evidence is rebuilt from committed source.
     """
 
     prior_evidence = json.loads(json.dumps(prior_evidence))
     if evidence_kind_for(family) == COMPOSITION_CODE:
+        if audit_provenance and prior_status == REWRITTEN:
+            matches, _why = _evidence_snapshot_matches(
+                repo_root, surface, family, prior_evidence
+            )
+            if not matches:
+                contract = prior_evidence.get("contract")
+                if not isinstance(contract, str) or not contract:
+                    return prior_status, prior_evidence
+                prior_evidence["commit"] = _latest_committed_path_revision(
+                    repo_root, contract
+                )
         return prior_status, prior_evidence
 
     root = cache.get(surface)
@@ -930,10 +1249,21 @@ def evaluate_surface_status(
     if passed:
         assert markers is not None
         if prior_status == REWRITTEN and prior_evidence.get("commit"):
-            return REWRITTEN, prior_evidence
-        return REWRITTEN, build_static_evidence(family, head_commit, markers)
+            matches, _why = _evidence_snapshot_matches(
+                repo_root, surface, family, prior_evidence
+            )
+            if matches:
+                return REWRITTEN, prior_evidence
+        source_commit = (
+            _latest_committed_path_revision(repo_root, surface)
+            if audit_provenance
+            else head_commit
+        )
+        return REWRITTEN, build_static_evidence(family, source_commit, markers)
 
     if STATUS_ORDINAL.get(prior_status, 0) > STATUS_ORDINAL[PENDING]:
+        if allow_static_status_loss:
+            return PENDING, _null_evidence()
         return prior_status, prior_evidence
     return PENDING, _null_evidence()
 
@@ -945,6 +1275,7 @@ def build_ledger(
     allow_status_loss: bool = False,
     rename_map: Mapping[str, str] | None = None,
     evaluate: bool = False,
+    allow_static_status_loss: bool = False,
 ) -> dict[str, Any]:
     """Enumerate fresh from the closure and (re)build the ledger deterministically.
 
@@ -967,6 +1298,7 @@ def build_ledger(
         for row in existing.get("surfaces", []):
             if isinstance(row, Mapping) and isinstance(row.get("surface"), str):
                 prior_rows[row["surface"]] = row
+    _prefetch_evidence_snapshots(repo_root, list(prior_rows.values()))
 
     # Refuse to silently drop campaign progress: a prior in-progress/rewritten
     # row whose surface vanished from the closure must be re-homed with
@@ -1023,6 +1355,8 @@ def build_ledger(
                 prior_status,
                 prior_evidence,
                 head_commit,
+                allow_static_status_loss=allow_static_status_loss,
+                audit_provenance=True,
             )
         else:
             status, evidence = prior_status, prior_evidence
@@ -1037,7 +1371,23 @@ def build_ledger(
         }
         # Carry a waiver forward only while the surface is still regressed;
         # a surface that earns its status back sheds the waiver automatically.
-        if prior_waiver is not None and status != REWRITTEN:
+        if (
+            evaluate
+            and allow_static_status_loss
+            and STATUS_ORDINAL.get(status, 0) < STATUS_ORDINAL.get(prior_status, 0)
+        ):
+            if not (isinstance(head_commit, str) and COMMIT_RE.match(head_commit)):
+                raise ValidationError(
+                    "--allow-static-status-loss needs a resolvable 40-hex HEAD commit"
+                )
+            row["regression_waiver"] = {
+                "reason": (
+                    "static acceptance audit correction: the live surface no "
+                    "longer satisfies the hardened predicate"
+                ),
+                "commit": head_commit,
+            }
+        elif prior_waiver is not None and status != REWRITTEN:
             row["regression_waiver"] = prior_waiver
         surfaces.append(row)
 
@@ -1123,33 +1473,59 @@ def read_ledger(ledger_path: Path) -> dict[str, Any]:
     return data
 
 
-def load_committed_baseline(repo_root: Path, ledger_path: Path) -> dict[str, Any] | None:
-    """Return the committed (HEAD) ledger, or None on the first commit.
+def load_committed_baseline(
+    repo_root: Path,
+    ledger_path: Path,
+    baseline_ref: str | None = None,
+) -> dict[str, Any] | None:
+    """Return the ledger at the actual candidate baseline.
 
-    C3 uses the committed file as the prior campaign state; a missing baseline
-    (first commit) means every surface's baseline status is treated as pending.
+    CI supplies the push ``before`` SHA or pull-request base SHA explicitly.
+    Local validation falls back to ``HEAD^`` so a committed candidate is never
+    compared with itself. A missing implicit ``HEAD^`` is allowed only for the
+    repository's first commit; an explicit but unavailable baseline fails closed.
     """
 
     try:
         rel = ledger_path.resolve().relative_to(repo_root.resolve()).as_posix()
     except ValueError:
         rel = ledger_path.name
+    requested = (baseline_ref or "").strip()
+    explicit = bool(requested and requested != ZERO_COMMIT)
+    ref = requested if explicit else "HEAD^"
     try:
         completed = subprocess.run(
-            ["git", "-C", str(repo_root), "show", f"HEAD:{rel}"],
+            ["git", "-C", str(repo_root), "show", f"{ref}:{rel}"],
             check=False,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-    except OSError:
+    except OSError as error:
+        if explicit:
+            raise ValidationError(
+                f"C3 baseline: cannot read explicit baseline {ref}: {error}"
+            ) from error
         return None
     if completed.returncode != 0:
+        if explicit:
+            detail = completed.stderr.decode("utf-8", errors="replace").strip()
+            raise ValidationError(
+                f"C3 baseline: explicit baseline {ref} cannot provide {rel}: {detail}"
+            )
         return None
     try:
         data = json.loads(completed.stdout.decode("utf-8", errors="replace"))
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as error:
+        if explicit:
+            raise ValidationError(
+                f"C3 baseline: {ref}:{rel} is not valid JSON: {error}"
+            ) from error
         return None
-    return data if isinstance(data, dict) else None
+    if not isinstance(data, dict):
+        if explicit:
+            raise ValidationError(f"C3 baseline: {ref}:{rel} is not a JSON object")
+        return None
+    return data
 
 
 # --------------------------------------------------------------------------
@@ -1341,6 +1717,100 @@ def _validate_evidence_shape(row: Mapping[str, Any], surface: str, failures: lis
             )
 
 
+def _validate_evidence_provenance(
+    repo_root: Path,
+    rows: Mapping[str, Mapping[str, Any]],
+    failures: list[str],
+) -> None:
+    """Require every non-pending evidence SHA to resolve inside candidate history.
+
+    A rewritten row additionally proves that its named commit contains the exact
+    static anatomy snapshot or composition-contract marker being credited.
+    """
+
+    head = _head_commit(repo_root)
+    if head is None:
+        failures.append("C5 provenance: cannot resolve the candidate HEAD commit")
+        return
+    _prefetch_evidence_snapshots(repo_root, list(rows.values()))
+    for surface in sorted(rows):
+        row = rows[surface]
+        status = row.get("rewrite_status")
+        if status not in (IN_PROGRESS, REWRITTEN):
+            continue
+        evidence = row.get("rewrite_evidence")
+        if not isinstance(evidence, Mapping):
+            continue
+        commit = evidence.get("commit")
+        if not (isinstance(commit, str) and COMMIT_RE.match(commit)):
+            continue  # C5 shape already reports this.
+        if not _commit_exists(repo_root, commit):
+            failures.append(
+                f"C5 provenance: {surface} evidence commit {commit} is unavailable "
+                "(fetch full history; shallow validation is not auditable)"
+            )
+            continue
+        if not _is_ancestor(repo_root, commit, head):
+            failures.append(
+                f"C5 provenance: {surface} evidence commit {commit} is not an "
+                f"ancestor of candidate HEAD {head}"
+            )
+            continue
+        if status == REWRITTEN:
+            family = row.get("family")
+            if family not in FAMILY_DEFS:
+                continue  # C4/C6 report the unknown family.
+            matches, why = _evidence_snapshot_matches(
+                repo_root, surface, family, evidence
+            )
+            if not matches:
+                failures.append(f"C5 provenance: {surface}: {why}")
+
+
+def screenshot_annotation_semantics(root: ET.Element) -> tuple[bool, str]:
+    """Pin Save/Close behavior that generic footer anatomy cannot infer."""
+
+    dialog = _find_dialog_object(root)
+    if dialog is None:
+        return False, "dialog object is missing"
+    action = _action_widgets(dialog)
+    if action != [("cancel", RET_CANCEL), ("save", SCREENSHOT_SAVE_RESPONSE)]:
+        return False, (
+            "action responses must remain Close/Cancel=RET_CANCEL followed by "
+            f"Save={SCREENSHOT_SAVE_RESPONSE}; got {action!r}"
+        )
+    markers = derive_dialog_markers(root)
+    if markers.get("primary_id") != "save":
+        return False, "Save is not the primary footer action"
+    if markers.get("default_id") != "save":
+        return False, "Save is not the Enter default"
+    if markers.get("default_response") != SCREENSHOT_SAVE_RESPONSE:
+        return False, "Save's custom response is not the Enter default response"
+    if not markers.get("primary_can_default"):
+        return False, "Save is not marked can-default/has-default"
+    return True, ""
+
+
+def _validate_screenshot_annotation_dialog(
+    repo_root: Path,
+    cache: dict[str, ET.Element],
+    failures: list[str],
+) -> None:
+    try:
+        root = cache.get(SCREENSHOT_ANNOTATION_SURFACE)
+        if root is None:
+            root = _parse_root(repo_root, SCREENSHOT_ANNOTATION_SURFACE)
+            cache[SCREENSHOT_ANNOTATION_SURFACE] = root
+    except ValidationError as error:
+        failures.append(f"C8 dialog semantics: {error}")
+        return
+    ok, why = screenshot_annotation_semantics(root)
+    if not ok:
+        failures.append(
+            f"C8 dialog semantics: {SCREENSHOT_ANNOTATION_SURFACE}: {why}"
+        )
+
+
 def _validate_anatomy_persistence(
     repo_root: Path,
     rows: Mapping[str, Mapping[str, Any]],
@@ -1484,7 +1954,12 @@ def _warn_wave_budget(
             )
 
 
-def validate(repo_root: Path, ledger_path: Path) -> dict[str, Any]:
+def validate(
+    repo_root: Path,
+    ledger_path: Path,
+    *,
+    baseline_ref: str | None = None,
+) -> dict[str, Any]:
     repo_root = repo_root.resolve()
     ledger = read_ledger(ledger_path)
     _registry, digest, attribution = fresh_closure(repo_root)
@@ -1500,14 +1975,16 @@ def validate(repo_root: Path, ledger_path: Path) -> dict[str, Any]:
     _validate_attribution(rows, attribution, failures)
     _validate_classifier(repo_root, rows, attribution, cache, failures)
 
-    baseline = load_committed_baseline(repo_root, ledger_path)
+    baseline = load_committed_baseline(repo_root, ledger_path, baseline_ref)
     _validate_status_regression(rows, baseline, failures, warnings)
     _warn_wave_budget(rows, baseline, warnings)
 
     for surface in sorted(rows):
         _validate_evidence_shape(rows[surface], surface, failures)
 
+    _validate_evidence_provenance(repo_root, rows, failures)
     _validate_anatomy_persistence(repo_root, rows, cache, failures)
+    _validate_screenshot_annotation_dialog(repo_root, cache, failures)
     _validate_coverage(ledger, rows, failures)
     _validate_acceptance_table(ledger, failures)
 
@@ -1565,6 +2042,14 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser.add_argument("--registry", type=Path, default=None, help="closure registry (unused override slot; closure enumerates fresh)")
     parser.add_argument("--ledger", type=Path, default=None)
     parser.add_argument(
+        "--baseline-ref",
+        default=None,
+        help=(
+            "Git ref whose ledger is the C3 baseline (CI must pass the push "
+            "before SHA or PR base SHA; empty/omitted falls back to HEAD^)"
+        ),
+    )
+    parser.add_argument(
         "--regenerate",
         action="store_true",
         help="rewrite the ledger row set (structure only; statuses preserved)",
@@ -1590,6 +2075,14 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         action="store_true",
         help="permit --regenerate to drop non-pending rows whose surface vanished",
     )
+    parser.add_argument(
+        "--allow-static-status-loss",
+        action="store_true",
+        help=(
+            "with --evaluate, explicitly downgrade prior static credits that "
+            "fail the current predicate and record a regression waiver"
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -1614,6 +2107,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         else repo_root / "qa/windows-ui-contract/material-rewrite-ledger.json"
     )
     try:
+        if args.allow_static_status_loss and not args.evaluate:
+            raise ValidationError(
+                "--allow-static-status-loss is valid only together with --evaluate"
+            )
         if args.regenerate or args.evaluate:
             existing = read_ledger(ledger_path) if ledger_path.is_file() else None
             ledger = build_ledger(
@@ -1622,9 +2119,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 allow_status_loss=args.allow_status_loss,
                 rename_map=_parse_rename_map(args.rename_map),
                 evaluate=args.evaluate,
+                allow_static_status_loss=args.allow_static_status_loss,
             )
             write_ledger(ledger_path, ledger)
-        ledger = validate(repo_root, ledger_path)
+        ledger = validate(repo_root, ledger_path, baseline_ref=args.baseline_ref)
     except ValidationError as error:
         print(f"Material rewrite ledger failed:\n{error}", file=sys.stderr)
         return 1

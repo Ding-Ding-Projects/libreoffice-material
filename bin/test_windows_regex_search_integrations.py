@@ -1720,6 +1720,112 @@ class ControllerDrivenSitesTest(unittest.TestCase):
         )
 
 
+class AutoCorrectStateRefreshRegisteredTest(unittest.TestCase):
+    """AutoCorrect model rebuilds must never bypass its still-active rules query."""
+
+    def setUp(self) -> None:
+        self.registry, self.coverage, self.contents = VALIDATOR.load_repository(REPOSITORY)
+        self.entry = next(
+            item
+            for item in self.registry["integrations"]
+            if item.get("coverage_id") == "options.autocorrect-rules"
+        )
+
+    def failures(
+        self,
+        *,
+        registry: dict | None = None,
+        contents: dict[str, str] | None = None,
+    ) -> list[str]:
+        return VALIDATOR.violations(
+            self.registry if registry is None else registry,
+            self.coverage,
+            self.contents if contents is None else contents,
+        )
+
+    def replace_in_function(
+        self, source: str, signature: str, old: str, new: str
+    ) -> str:
+        start = source.index(signature)
+        opening = source.index("{", start + len(signature))
+        depth = 0
+        end = -1
+        for index in range(opening, len(source)):
+            if source[index] == "{":
+                depth += 1
+            elif source[index] == "}":
+                depth -= 1
+                if depth == 0:
+                    end = index + 1
+                    break
+        self.assertNotEqual(-1, end)
+        function = source[start:end]
+        mutated = function.replace(old, new, 1)
+        self.assertNotEqual(function, mutated)
+        return source[:start] + mutated + source[end:]
+
+    def test_registered_refresh_contract_is_clean_and_complete(self) -> None:
+        contract = self.entry["state_refresh_contract"]
+        self.assertEqual(7, contract["expected_sites"])
+        self.assertEqual(7, len(contract["sites"]))
+        self.assertEqual([], self.failures())
+
+    def test_each_rebuild_site_requires_the_refresh_call(self) -> None:
+        source_file = self.entry["source_file"]
+        contract = self.entry["state_refresh_contract"]
+        for index, site in enumerate(contract["sites"]):
+            with self.subTest(signature=site["signature"]):
+                contents = dict(self.contents)
+                contents[source_file] = self.replace_in_function(
+                    contents[source_file],
+                    site["signature"],
+                    contract["call_marker"],
+                    "RefreshSearchFilterRemoved()",
+                )
+                errors = self.failures(contents=contents)
+                self.assertTrue(
+                    any(
+                        f"state_refresh_contract:site[{index}]:refresh call" in error
+                        for error in errors
+                    ),
+                    errors,
+                )
+
+    def test_mutation_refresh_guards_are_required(self) -> None:
+        source_file = self.entry["source_file"]
+        contract = self.entry["state_refresh_contract"]
+        for index, site in enumerate(contract["sites"]):
+            guard = site.get("guard_marker")
+            if not guard:
+                continue
+            with self.subTest(signature=site["signature"]):
+                contents = dict(self.contents)
+                contents[source_file] = self.replace_in_function(
+                    contents[source_file], site["signature"], guard, "if (true)"
+                )
+                errors = self.failures(contents=contents)
+                self.assertTrue(
+                    any(
+                        f"state_refresh_contract:site[{index}]:guard" in error
+                        for error in errors
+                    ),
+                    errors,
+                )
+
+    def test_refresh_site_inventory_fails_closed(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        entry = next(
+            item
+            for item in registry["integrations"]
+            if item.get("coverage_id") == "options.autocorrect-rules"
+        )
+        entry["state_refresh_contract"]["sites"].pop()
+        self.assertTrue(
+            any("state_refresh_contract:expected_sites count drift" in error
+                for error in self.failures(registry=registry))
+        )
+
+
 class TemplatesManagerRegisteredTest(unittest.TestCase):
     """The reviewed Template Manager integration must validate against real source."""
 

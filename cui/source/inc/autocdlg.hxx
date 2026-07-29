@@ -256,6 +256,8 @@ public:
     void    NewEntry(const OUString& sShort, const OUString& sLong, bool bKeepSourceFormatting);
     /// Contributes the replacement table to the dialog's rules search.
     void    CollectSearchLists(std::vector<OfaAutoCorrSearchList>& rLists);
+    /// Synchronizes row-dependent actions after the dialog changes row sensitivity.
+    void    SearchFilterChanged();
 };
 
 // class OfaAutocorrExceptPage ---------------------------------------------
@@ -311,6 +313,8 @@ public:
     void                SetLanguage(LanguageType eSet);
     /// Contributes the abbreviation and double-capital exception lists to the dialog's rules search.
     void                CollectSearchLists(std::vector<OfaAutoCorrSearchList>& rLists);
+    /// Synchronizes row-dependent actions after the dialog changes row sensitivity.
+    void                SearchFilterChanged();
 
 };
 

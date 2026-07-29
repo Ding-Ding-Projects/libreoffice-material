@@ -888,10 +888,9 @@ void SfxTemplateManagerDlg::SearchUpdate()
     std::vector<TemplateItemProperties> aItems = maLocalView.getFilteredItems(
         [&](const TemplateItemProperties& rItem) -> bool
         {
-            if (bEmpty)
-                return true;
-            return aApplicationFilter.MatchApplication(rItem)
-                   && aMatchedTitles.find(rItem.aName) != aMatchedTitles.end();
+            if (!aApplicationFilter.MatchApplication(rItem))
+                return false;
+            return bEmpty || aMatchedTitles.find(rItem.aName) != aMatchedTitles.end();
         });
     maLocalView.insertItems(aItems, mxCBFolder->get_active() != 0, true);
     maLocalView.Invalidate();

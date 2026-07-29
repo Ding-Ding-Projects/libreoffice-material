@@ -111,10 +111,10 @@ class BaseRailWorkspaceTest(unittest.TestCase):
         # call must fail closed rather than satisfy the marker.
         files = self.mutated(
             "dbaccess/source/ui/app/AppIconControl.cxx",
-            "vcl::MaterialTokens::fromThemeDefinition(bDark",
-            "// vcl::MaterialTokens::fromThemeDefinition(bDark",
+            "vcl::MaterialTokens::fromCurrentTheme(bDark",
+            "// vcl::MaterialTokens::fromCurrentTheme(bDark",
         )
-        self.assert_fails("missing marker in code ('MaterialTokens::fromThemeDefinition')", files=files)
+        self.assert_fails("missing marker in code ('MaterialTokens::fromCurrentTheme')", files=files)
 
     # -- token consumption --------------------------------------------------------------------
     def test_rejects_dropped_surface_container_token(self) -> None:

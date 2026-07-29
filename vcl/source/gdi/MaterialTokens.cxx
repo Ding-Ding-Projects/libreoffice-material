@@ -13,6 +13,7 @@
 #include <widgetdraw/WidgetDefinitionReader.hxx>
 
 #include <config_folders.h>
+#include <officecfg/Office/Common.hxx>
 #include <rtl/bootstrap.hxx>
 #include <rtl/strbuf.hxx>
 #include <sal/log.hxx>
@@ -236,6 +237,21 @@ OString MaterialTokens::computeMaterialScheme(std::string_view rAccentBase, bool
 MaterialTokens MaterialTokens::fromThemeDefinition(std::string_view rAccentBase, bool bDark)
 {
     return fromThemeDefinition(computeMaterialScheme(rAccentBase, bDark));
+}
+
+MaterialTokens MaterialTokens::fromCurrentTheme(bool bDark)
+{
+    // Keep this order identical to the officecfg enum and appearance.ui combo. Invalid values fall
+    // back to Violet, whose empty base preserves the original light/"dark" scheme keys.
+    static constexpr std::array<std::string_view, 6> aAccentBases
+        = { "", "blue", "teal", "green", "amber", "rose" };
+    static const sal_Int16 nAccent
+        = officecfg::Office::Common::Appearance::MaterialAccent::get();
+    const std::size_t nIndex
+        = nAccent >= 0 && static_cast<std::size_t>(nAccent) < aAccentBases.size()
+              ? static_cast<std::size_t>(nAccent)
+              : 0;
+    return fromThemeDefinition(aAccentBases[nIndex], bDark);
 }
 
 std::optional<Color> MaterialTokens::findColor(std::string_view rRole) const

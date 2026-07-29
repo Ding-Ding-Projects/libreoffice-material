@@ -67,7 +67,7 @@ std::optional<MaterialRailSelection> lcl_getMaterialRailSelection()
         return std::nullopt;
     const bool bDark = Application::GetSettings().GetStyleSettings().GetWindowColor().IsDark();
     const vcl::MaterialTokens aTokens
-        = vcl::MaterialTokens::fromThemeDefinition(bDark ? "dark"_ostr : OString());
+        = vcl::MaterialTokens::fromCurrentTheme(bDark);
     if (!aTokens.isValid())
         return std::nullopt;
     const std::optional<Color> oFill = aTokens.findColor("primary-container");

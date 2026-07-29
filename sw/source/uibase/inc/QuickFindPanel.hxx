@@ -98,6 +98,7 @@ private:
     DECL_LINK(SimilarityCheckButtonToggledHandler, weld::Toggleable&, void);
     DECL_LINK(SimilaritySettingsDialogButtonClickedHandler, weld::Button&, void);
     DECL_LINK(RegularExpressionsCheckButtonToggledHandler, weld::Toggleable&, void);
+    DECL_LINK(MatchCaseCheckButtonToggledHandler, weld::Toggleable&, void);
 
     void FillSearchFindsList();
     bool UpgradeSearchToSearchDialog();

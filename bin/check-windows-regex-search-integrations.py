@@ -55,6 +55,11 @@ from typing import Any, Mapping
 
 REPOSITORY = Path(__file__).resolve().parents[1]
 REGISTRY_PATH = "qa/windows-ui-contract/regex-search-integrations.json"
+FULL_FLAG_RUNTIME_COVERAGE = {
+    "forms.record-search",
+    "document.find-replace",
+    "writer.quick-find",
+}
 COVERAGE_PATH = "qa/windows-ui-contract/search-field-coverage.json"
 CONTROLLER_SOURCE = "sfx2/source/dialog/RegexSearchController.cxx"
 
@@ -672,6 +677,7 @@ def _validate_constructor(
     handler: str,
     default_mode: str,
     case_insensitive: bool | None,
+    case_seed_expression: str | None,
     errors: list[str],
 ) -> None:
     controller_wiring = re.compile(
@@ -698,9 +704,15 @@ def _validate_constructor(
         required.append("aState.Mode = sfx2::RegexSearchMode::RegularExpression;")
     if case_insensitive is not None:
         # The seeded CaseInsensitive flag is cross-validated against the declared
-        # default_mode and is never optional.
+        # default_mode and is never optional. Engine-preserving surfaces may
+        # declare the live native-control expression that restores persisted state.
+        seed_expression = (
+            case_seed_expression
+            if case_seed_expression
+            else ("true" if case_insensitive else "false")
+        )
         required.append(
-            f"aState.Flags.CaseInsensitive = {'true' if case_insensitive else 'false'};"
+            f"aState.Flags.CaseInsensitive = {seed_expression};"
         )
     for marker in required:
         if marker not in constructor:
@@ -1260,6 +1272,12 @@ def violations(
                 case_insensitive = None
             else:
                 case_insensitive = declared
+        case_seed_expression = entry.get("engine_case_seed")
+        if case_seed_expression is not None and (
+            not isinstance(case_seed_expression, str) or not case_seed_expression.strip()
+        ):
+            errors.append(f"{context}:engine_case_seed:non-empty expression required")
+            case_seed_expression = None
 
         ui_text = contents.get(ui_file)
         if ui_text is None:
@@ -1315,6 +1333,24 @@ def violations(
         for marker in source_markers:
             if marker not in source:
                 errors.append(f"{context}:source-wiring:missing {marker}")
+        runtime_flag_markers = entry.get("runtime_flag_markers")
+        if coverage_id in FULL_FLAG_RUNTIME_COVERAGE:
+            if not isinstance(runtime_flag_markers, list) or not runtime_flag_markers:
+                errors.append(
+                    f"{context}:runtime-flag-markers:non-empty array required"
+                )
+            else:
+                for marker_index, marker in enumerate(runtime_flag_markers):
+                    if not isinstance(marker, str) or not marker.strip():
+                        errors.append(
+                            f"{context}:runtime-flag-markers[{marker_index}]:"
+                            "non-empty source marker required"
+                        )
+                    elif marker not in source:
+                        errors.append(
+                            f"{context}:runtime-flag-markers[{marker_index}]:"
+                            f"missing {marker}"
+                        )
         if f"{entry_member}->connect_changed" in source:
             errors.append(f"{context}:source-wiring:direct changed handler bypasses controller")
         if f"{button_member}->connect_clicked" in source:
@@ -1347,6 +1383,7 @@ def violations(
                 handler,
                 default_mode,
                 case_insensitive,
+                case_seed_expression,
                 errors,
             )
 

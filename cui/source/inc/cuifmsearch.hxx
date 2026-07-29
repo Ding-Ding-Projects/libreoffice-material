@@ -100,7 +100,7 @@ class FmSearchDialog final : public weld::GenericDialogController
     std::unique_ptr<sfx2::RegexSearchController> m_xRegexSearchController;
     // Guards the two-way mode mirror between the native "Regular expression" check button and the
     // shared regex builder controller so neither side re-triggers the other.
-    bool m_bMirroringRegexMode = false;
+    bool m_bMirroringRegexOptions = false;
 
 public:
     /** This can search in different sets of fields. There is a number of contexts; their names are in strContexts (separated

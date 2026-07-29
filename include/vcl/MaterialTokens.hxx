@@ -76,6 +76,11 @@ public:
         flag stays byte-identical to the default/"dark" path. */
     static MaterialTokens fromThemeDefinition(std::string_view rAccentBase, bool bDark);
 
+    /** Resolve Office::Common::Appearance::MaterialAccent and load its light or dark scheme. The
+        appearance page applies this preference through the existing restart path, so process-local
+        paint caches remain safe. */
+    static MaterialTokens fromCurrentTheme(bool bDark);
+
     /** True only when the file was read, every token section validated, and the
         loaded token names matched the published vocabulary exactly. */
     bool isValid() const { return mbValid; }

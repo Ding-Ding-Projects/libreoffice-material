@@ -51,7 +51,7 @@
     "env_guard": "VCL_FILE_WIDGET_THEME",
     "high_contrast_guard": "GetHighContrastMode",
     "markers": [
-      "MaterialTokens::fromThemeDefinition",
+      "MaterialTokens::fromCurrentTheme",
       "findColor(\"outline-variant\")",
       "findMetric(\"stroke-thin\")",
       "findMetric(\"stroke-standard\")",

@@ -28,9 +28,9 @@ using namespace sfx2;
 namespace
 {
 NotificationRecord makeRecord(std::string_view rId, NotificationFolder eFolder, bool bRead,
-                              sal_Int64 nCreatedAt,
-                              NotificationSeverity eSeverity = NotificationSeverity::Information,
-                              std::string_view rSource = "custom.source")
+                               sal_Int64 nCreatedAt,
+                               NotificationSeverity eSeverity = NotificationSeverity::Information,
+                               std::string_view rSource = "custom.source", bool bPinned = false)
 {
     NotificationRecord aRecord;
     aRecord.Id = OString(rId);
@@ -39,6 +39,7 @@ NotificationRecord makeRecord(std::string_view rId, NotificationFolder eFolder, 
     aRecord.Folder = eFolder;
     aRecord.Read = bRead;
     aRecord.CreatedAt = nCreatedAt;
+    aRecord.Pinned = bPinned;
     return aRecord;
 }
 
@@ -80,8 +81,11 @@ public:
     void testVisibleCardsExcludeArchivedAndDeleted();
     void testRowsForViewFilterAndSort();
     void testSelectionVectorStableSnapshotOrder();
+    void testSelectionVectorUsesVisibleRowsOnly();
     void testReconcileSelectionDropsVanished();
     void testLatestUndoableCommitSkipsMaintenance();
+    void testLatestUndoableCommitSkipsReversedActions();
+    void testAutoDismissProtectsPinnedAndHighSeverity();
     void testMakeRowRedaction();
     void testDistinctSources();
 
@@ -92,8 +96,11 @@ public:
     CPPUNIT_TEST(testVisibleCardsExcludeArchivedAndDeleted);
     CPPUNIT_TEST(testRowsForViewFilterAndSort);
     CPPUNIT_TEST(testSelectionVectorStableSnapshotOrder);
+    CPPUNIT_TEST(testSelectionVectorUsesVisibleRowsOnly);
     CPPUNIT_TEST(testReconcileSelectionDropsVanished);
     CPPUNIT_TEST(testLatestUndoableCommitSkipsMaintenance);
+    CPPUNIT_TEST(testLatestUndoableCommitSkipsReversedActions);
+    CPPUNIT_TEST(testAutoDismissProtectsPinnedAndHighSeverity);
     CPPUNIT_TEST(testMakeRowRedaction);
     CPPUNIT_TEST(testDistinctSources);
     CPPUNIT_TEST_SUITE_END();
@@ -221,6 +228,23 @@ void NotificationViewModelTest::testSelectionVectorStableSnapshotOrder()
     CPPUNIT_ASSERT((aVector == std::vector<OString>{ "b", "d" }));
 }
 
+void NotificationViewModelTest::testSelectionVectorUsesVisibleRowsOnly()
+{
+    NotificationCenterSnapshotRef xSnapshot = makeSnapshot({
+        makeRecord("warning", NotificationFolder::Inbox, false, 10,
+                   NotificationSeverity::Warning),
+        makeRecord("error", NotificationFolder::Inbox, false, 20, NotificationSeverity::Error),
+    });
+    const std::vector<NotificationDisplayRow> aWarnings = NotificationViewModel::RowsForView(
+        *xSnapshot, NotificationView::Inbox, NotificationSeverity::Warning, OString(),
+        NotificationSortOrder::Newest);
+    const std::set<OString> aSelection{ OString("warning"), OString("error") };
+
+    const std::vector<OString> aVisibleSelection
+        = NotificationViewModel::SelectionVectorForRows(aSelection, aWarnings);
+    CPPUNIT_ASSERT((aVisibleSelection == std::vector<OString>{ "warning" }));
+}
+
 void NotificationViewModelTest::testReconcileSelectionDropsVanished()
 {
     NotificationCenterSnapshotRef xSnapshot = makeSnapshot({
@@ -252,6 +276,73 @@ void NotificationViewModelTest::testLatestUndoableCommitSkipsMaintenance()
     NotificationCenterSnapshotRef xMaintenanceOnly = makeSnapshot(
         {}, { makeHistory("m1", NotificationAction::Maintenance, 500) });
     CPPUNIT_ASSERT(NotificationViewModel::LatestUndoableCommit(*xMaintenanceOnly).isEmpty());
+}
+
+void NotificationViewModelTest::testLatestUndoableCommitSkipsReversedActions()
+{
+    // The Undo commit reverses c2. The next Undo must target c1, never the Undo commit itself.
+    NotificationCenterSnapshotRef xOneUndo = makeSnapshot(
+        {},
+        {
+            makeHistory("c1", NotificationAction::Add, 100),
+            makeHistory("undo-c2", NotificationAction::Undo, 300),
+            makeHistory("c2", NotificationAction::Delete, 200),
+        });
+    CPPUNIT_ASSERT_EQUAL(OString("c1"),
+                         NotificationViewModel::LatestUndoableCommit(*xOneUndo));
+
+    // A new user action after an Undo starts at the top of the undo stack.
+    NotificationCenterSnapshotRef xNewAction = makeSnapshot(
+        {},
+        {
+            makeHistory("c1", NotificationAction::Add, 100),
+            makeHistory("c2", NotificationAction::Delete, 200),
+            makeHistory("undo-c2", NotificationAction::Undo, 300),
+            makeHistory("c3", NotificationAction::Pin, 400),
+        });
+    CPPUNIT_ASSERT_EQUAL(OString("c3"),
+                         NotificationViewModel::LatestUndoableCommit(*xNewAction));
+
+    NotificationCenterSnapshotRef xExhausted = makeSnapshot(
+        {},
+        {
+            makeHistory("c1", NotificationAction::Add, 100),
+            makeHistory("c2", NotificationAction::Delete, 200),
+            makeHistory("undo-c2", NotificationAction::Undo, 300),
+            makeHistory("undo-c1", NotificationAction::Undo, 400),
+        });
+    CPPUNIT_ASSERT(NotificationViewModel::LatestUndoableCommit(*xExhausted).isEmpty());
+}
+
+void NotificationViewModelTest::testAutoDismissProtectsPinnedAndHighSeverity()
+{
+    NotificationCenterSnapshotRef xSnapshot = makeSnapshot({
+        makeRecord("old-info", NotificationFolder::Inbox, false, 10,
+                   NotificationSeverity::Information),
+        makeRecord("pinned-info", NotificationFolder::Inbox, false, 20,
+                   NotificationSeverity::Information, "custom.source", true),
+        makeRecord("warning", NotificationFolder::Inbox, false, 30,
+                   NotificationSeverity::Warning),
+        makeRecord("new-success", NotificationFolder::Inbox, false, 40,
+                   NotificationSeverity::Success),
+    });
+    const std::vector<NotificationDisplayRow> aRows
+        = NotificationViewModel::VisibleCards(*xSnapshot, xSnapshot->Preferences);
+    CPPUNIT_ASSERT_EQUAL(OString("old-info"),
+                         NotificationViewModel::OldestAutoDismissibleId(aRows));
+
+    NotificationCenterSnapshotRef xProtectedOnly = makeSnapshot({
+        makeRecord("pinned", NotificationFolder::Inbox, false, 10,
+                   NotificationSeverity::Information, "custom.source", true),
+        makeRecord("warning", NotificationFolder::Inbox, false, 20,
+                   NotificationSeverity::Warning),
+        makeRecord("error", NotificationFolder::Inbox, false, 30,
+                   NotificationSeverity::Error),
+    });
+    const std::vector<NotificationDisplayRow> aProtectedRows
+        = NotificationViewModel::VisibleCards(*xProtectedOnly, xProtectedOnly->Preferences);
+    CPPUNIT_ASSERT(
+        NotificationViewModel::OldestAutoDismissibleId(aProtectedRows).isEmpty());
 }
 
 void NotificationViewModelTest::testMakeRowRedaction()

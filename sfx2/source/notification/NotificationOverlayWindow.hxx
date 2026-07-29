@@ -12,6 +12,8 @@
 #include <vcl/InterimItemWindow.hxx>
 #include <tools/link.hxx>
 
+class VclWindowEvent;
+
 namespace sfx2
 {
 /**
@@ -39,7 +41,14 @@ public:
     void SetLayoutHdl(const Link<NotificationOverlayWindow&, void>& rLink) { m_aLayoutHdl = rLink; }
 
 private:
+    vcl::Window* m_pObservedParent;
+    sal_Int32 m_nHorizontalInset = 0;
+    sal_Int32 m_nVerticalInset = 0;
+    sal_Int32 m_nDesiredWidth = 0;
+    bool m_bAnchored = false;
     Link<NotificationOverlayWindow&, void> m_aLayoutHdl;
+
+    DECL_LINK(ParentEventHdl, VclWindowEvent&, void);
 };
 
 } // namespace sfx2

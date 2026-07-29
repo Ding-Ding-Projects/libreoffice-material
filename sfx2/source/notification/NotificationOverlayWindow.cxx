@@ -9,6 +9,7 @@
 
 #include "NotificationOverlayWindow.hxx"
 
+#include <vcl/vclevent.hxx>
 #include <vcl/weld/Container.hxx>
 #include <vcl/window.hxx>
 
@@ -19,14 +20,24 @@ namespace sfx2
 NotificationOverlayWindow::NotificationOverlayWindow(vcl::Window* pParent, const OUString& rUIFile,
                                                      const OUString& rId, bool bAllowCycleFocusOut)
     : InterimItemWindow(pParent, rUIFile, rId, bAllowCycleFocusOut)
+    , m_pObservedParent(pParent)
 {
     InitControlBase(m_xContainer.get());
+    if (m_pObservedParent)
+        m_pObservedParent->AddEventListener(
+            LINK(this, NotificationOverlayWindow, ParentEventHdl));
 }
 
 NotificationOverlayWindow::~NotificationOverlayWindow() { disposeOnce(); }
 
 void NotificationOverlayWindow::dispose()
 {
+    if (m_pObservedParent)
+    {
+        m_pObservedParent->RemoveEventListener(
+            LINK(this, NotificationOverlayWindow, ParentEventHdl));
+        m_pObservedParent = nullptr;
+    }
     m_aLayoutHdl = Link<NotificationOverlayWindow&, void>();
     InterimItemWindow::dispose();
 }
@@ -40,6 +51,11 @@ void NotificationOverlayWindow::Resize()
 void NotificationOverlayWindow::RepositionBottomRight(sal_Int32 nHInset, sal_Int32 nVInset,
                                                       sal_Int32 nDesiredWidth)
 {
+    m_nHorizontalInset = nHInset;
+    m_nVerticalInset = nVInset;
+    m_nDesiredWidth = nDesiredWidth;
+    m_bAnchored = true;
+
     vcl::Window* pParent = GetParent();
     if (!pParent)
         return;
@@ -67,6 +83,20 @@ void NotificationOverlayWindow::RepositionBottomRight(sal_Int32 nHInset, sal_Int
     Show();
     // Raise above siblings without grabbing top-level focus.
     SetZOrder(nullptr, ZOrderFlags::First);
+}
+
+IMPL_LINK(NotificationOverlayWindow, ParentEventHdl, VclWindowEvent&, rEvent, void)
+{
+    if (rEvent.GetId() == VclEventId::ObjectDying)
+    {
+        m_pObservedParent = nullptr;
+        return;
+    }
+
+    // A hidden manager must stay hidden. Visible overlays follow their owner's client area without
+    // waiting for another snapshot, preference change, or frame-activation event.
+    if (rEvent.GetId() == VclEventId::WindowResize && m_bAnchored && IsVisible())
+        RepositionBottomRight(m_nHorizontalInset, m_nVerticalInset, m_nDesiredWidth);
 }
 
 } // namespace sfx2

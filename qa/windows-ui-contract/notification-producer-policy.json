@@ -91,7 +91,7 @@
       "wiring_markers": [
         {
           "file": "svx/source/dialog/srchdlg.cxx",
-          "pattern": "g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());",
+          "pattern": "g_bMaterialReplaceAllPending\n            = m_pSearchItem->GetCommand() == SvxSearchCmd::REPLACE_ALL;",
           "note": "Arms the one-shot Replace All confirmation flag in CommandHdl_Impl before the synchronous FID_SEARCH_NOW dispatch. A partial revert removing only this arming leaves the producer defined but never armed -- dead code the existence checks alone would still pass."
         },
         {

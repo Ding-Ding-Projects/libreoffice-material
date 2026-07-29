@@ -59,7 +59,7 @@ std::optional<Color> lcl_getMaterialRailFill()
         return std::nullopt;
     const bool bDark = Application::GetSettings().GetStyleSettings().GetWindowColor().IsDark();
     const vcl::MaterialTokens aTokens
-        = vcl::MaterialTokens::fromThemeDefinition(bDark ? "dark"_ostr : OString());
+        = vcl::MaterialTokens::fromCurrentTheme(bDark);
     if (!aTokens.isValid())
         return std::nullopt;
     return aTokens.findColor("surface-container");

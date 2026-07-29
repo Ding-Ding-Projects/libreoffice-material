@@ -25,6 +25,10 @@ from pathlib import Path
 
 
 REPOSITORY = Path(__file__).resolve().parents[1]
+REPLACE_ALL_ARM_MARKER = (
+    "g_bMaterialReplaceAllPending\n"
+    "            = m_pSearchItem->GetCommand() == SvxSearchCmd::REPLACE_ALL;"
+)
 VALIDATOR_PATH = REPOSITORY / "bin/check-notification-producer-contract.py"
 REGISTRY_PATH = REPOSITORY / "qa/windows-ui-contract/notification-producer-policy.json"
 
@@ -214,7 +218,7 @@ class NotificationProducerContractTest(unittest.TestCase):
         # wiring_markers so the arming/consumption/guard sites stay bound.
         producer = self.producer("srchdlg-replace-all-outcome")
         patterns = {marker["pattern"] for marker in producer.get("wiring_markers", [])}
-        self.assertIn("g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());", patterns)
+        self.assertIn(REPLACE_ALL_ARM_MARKER, patterns)
         self.assertIn("lcl_NotifyMaterialReplaceOutcome(sStr);", patterns)
         self.assertIn('std::getenv("VCL_FILE_WIDGET_THEME")', patterns)
 
@@ -223,12 +227,10 @@ class NotificationProducerContractTest(unittest.TestCase):
         # exists, so every existence check passes; only the wiring marker catches the dead code.
         files = self.mutated(
             "svx/source/dialog/srchdlg.cxx",
-            "g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());",
+            REPLACE_ALL_ARM_MARKER,
             "g_bMaterialReplaceAllPending = false;",
         )
-        self.assert_fails(
-            "g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());", files=files
-        )
+        self.assert_fails("m_pSearchItem->GetCommand() == SvxSearchCmd::REPLACE_ALL", files=files)
 
     def test_rejects_missing_consumption_wiring_marker(self) -> None:
         # Remove every SetSearchLabel consumption call. The producer function definition survives
@@ -252,21 +254,22 @@ class NotificationProducerContractTest(unittest.TestCase):
         # The arming site surviving only inside a comment must not satisfy the reachability marker.
         files = self.mutated(
             "svx/source/dialog/srchdlg.cxx",
-            "g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());",
-            "// g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());",
+            REPLACE_ALL_ARM_MARKER,
+            "// " + REPLACE_ALL_ARM_MARKER,
         )
-        self.assert_fails(
-            "g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());", files=files
-        )
+        self.assert_fails("m_pSearchItem->GetCommand() == SvxSearchCmd::REPLACE_ALL", files=files)
 
     def test_rejects_tampered_wiring_pattern(self) -> None:
         # A wiring pattern that no longer matches real source (e.g. anchored to the wrong button)
         # fails closed rather than silently binding nothing.
         registry = self.registry_copy()
         markers = self.producer_in(registry, "srchdlg-replace-all-outcome")["wiring_markers"]
-        markers[0]["pattern"] = "g_bMaterialReplaceAllPending = (&rBtn == m_xNoSuchButton.get());"
+        markers[0]["pattern"] = (
+            "g_bMaterialReplaceAllPending\n"
+            "            = m_pSearchItem->GetCommand() == SvxSearchCmd::FIND_ALL;"
+        )
         self.assert_fails(
-            "g_bMaterialReplaceAllPending = (&rBtn == m_xNoSuchButton.get());", registry=registry
+            "m_pSearchItem->GetCommand() == SvxSearchCmd::FIND_ALL", registry=registry
         )
 
     def test_wiring_markers_absent_still_passes(self) -> None:

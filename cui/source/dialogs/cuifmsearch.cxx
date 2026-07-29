@@ -159,13 +159,17 @@ FmSearchDialog::FmSearchDialog(weld::Window* pParent, const OUString& sInitialTe
     m_xRegexSearchController = std::make_unique<sfx2::RegexSearchController>(
         m_xDialog.get(), *m_pcmbSearchText, *m_xRegexBuilderButton,
         LINK(this, FmSearchDialog, OnSearchTextModified));
+    // Forms advances to one record at a time and has no "all results" model. Do not expose a
+    // cosmetic global flag on this surface; i/m/s still feed the real matcher below.
+    m_xRegexSearchController->SetGlobalFlagEnabled(false);
     // Preserve the dialog's current match mode and case default (FmSearchEngine is case-sensitive
     // by default, m_nTransliterationFlags == NONE): seed the builder from the native "Regular
     // expression" check button so opening the dialog changes nothing until the user opts in.
     sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
     aState.Mode = m_pcbRegular->get_active() ? sfx2::RegexSearchMode::RegularExpression
                                              : sfx2::RegexSearchMode::Literal;
-    aState.Flags.CaseInsensitive = false;
+    aState.Flags.CaseInsensitive = !m_pcbCase->get_active();
+    aState.Flags.Global = false;
     m_xRegexSearchController->SetState(aState);
 }
 
@@ -285,10 +289,17 @@ IMPL_LINK_NOARG(FmSearchDialog, OnClickedSearchAgain, weld::Button&, void)
 {
     if (m_pbClose->get_sensitive())
     {   // the button has the function 'search'
-        OUString strThisRoundText = m_pcmbSearchText->get_active_text();
+        const OUString strHistoryText = m_pcmbSearchText->get_active_text();
+        OUString strThisRoundText = strHistoryText;
+        if (m_pcbRegular->get_active() && m_xRegexSearchController)
+        {
+            sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+            aState.Pattern = strHistoryText;
+            strThisRoundText = sfx2::RegexSearchService::GetEffectivePattern(aState);
+        }
         // to history
-        m_pcmbSearchText->remove_text(strThisRoundText);
-        m_pcmbSearchText->insert_text(0, strThisRoundText);
+        m_pcmbSearchText->remove_text(strHistoryText);
+        m_pcmbSearchText->insert_text(0, strHistoryText);
         // the remove/insert makes sure that a) the OUString does not appear twice and
         // that b) the last searched strings are at the beginning and limit the list length
         constexpr int MAX_HISTORY_ENTRIES = 50;
@@ -372,19 +383,24 @@ IMPL_LINK_NOARG(FmSearchDialog, OnSearchTextModified, weld::ComboBox&, void)
     // invoked explicitly. Mirror only when the mode actually differs so a plain text edit never
     // reverts a manual checkbox change (OnCheckBoxToggled feeds manual toggles back into the
     // controller), keeping the checkbox, the engine and the saved setting coherent.
-    if (m_xRegexSearchController && !m_bMirroringRegexMode)
+    if (m_xRegexSearchController && !m_bMirroringRegexOptions)
     {
         const sfx2::RegexSearchState& rState = m_xRegexSearchController->GetState();
+        m_bMirroringRegexOptions = true;
         if (m_pcbRegular->get_active()
             != (rState.Mode == sfx2::RegexSearchMode::RegularExpression))
         {
-            m_bMirroringRegexMode = true;
             m_pcbRegular->set_active(rState.Mode == sfx2::RegexSearchMode::RegularExpression);
             // set_active() does not emit the toggled signal, so run the handler by hand to push
             // the new mode into FmSearchEngine and update the dependent option controls.
             OnCheckBoxToggled(*m_pcbRegular);
-            m_bMirroringRegexMode = false;
         }
+        if (m_pcbCase->get_active() == rState.Flags.CaseInsensitive)
+        {
+            m_pcbCase->set_active(!rState.Flags.CaseInsensitive);
+            OnCheckBoxToggled(*m_pcbCase);
+        }
+        m_bMirroringRegexOptions = false;
     }
 
     if ((!m_pcmbSearchText->get_active_text().isEmpty()) || !m_prbSearchForText->get_active())
@@ -423,7 +439,20 @@ IMPL_LINK(FmSearchDialog, OnCheckBoxToggled, weld::Toggleable&, rBox, void)
     if (&rBox == m_pcbUseFormat.get())
         m_pSearchEngine->SetFormatterUsing(bChecked);
     else if (&rBox == m_pcbCase.get())
+    {
         m_pSearchEngine->SetCaseSensitive(bChecked);
+        if (m_xRegexSearchController && !m_bMirroringRegexOptions)
+        {
+            sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+            if (aState.Flags.CaseInsensitive == bChecked)
+            {
+                aState.Flags.CaseInsensitive = !bChecked;
+                m_bMirroringRegexOptions = true;
+                m_xRegexSearchController->SetState(aState);
+                m_bMirroringRegexOptions = false;
+            }
+        }
+    }
     // direction -> pass on and reset the checkbox-text for StartOver
     else if (&rBox == m_pcbBackwards.get())
     {
@@ -479,7 +508,8 @@ IMPL_LINK(FmSearchDialog, OnCheckBoxToggled, weld::Toggleable&, rBox, void)
         // shared builder controller so its stored mode matches the engine and the saved setting,
         // and so a later text edit does not revert the user's choice via OnSearchTextModified.
         // Skip while that handler is mirroring the other way to avoid re-entrancy.
-        if (&rBox == m_pcbRegular.get() && m_xRegexSearchController && !m_bMirroringRegexMode)
+        if (&rBox == m_pcbRegular.get() && m_xRegexSearchController
+            && !m_bMirroringRegexOptions)
         {
             const sfx2::RegexSearchMode eMode = m_pcbRegular->get_active()
                                                     ? sfx2::RegexSearchMode::RegularExpression
@@ -488,9 +518,9 @@ IMPL_LINK(FmSearchDialog, OnCheckBoxToggled, weld::Toggleable&, rBox, void)
             if (aState.Mode != eMode)
             {
                 aState.Mode = eMode;
-                m_bMirroringRegexMode = true;
+                m_bMirroringRegexOptions = true;
                 m_xRegexSearchController->SetState(aState);
-                m_bMirroringRegexMode = false;
+                m_bMirroringRegexOptions = false;
             }
         }
     }

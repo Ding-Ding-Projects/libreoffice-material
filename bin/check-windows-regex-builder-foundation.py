@@ -45,6 +45,21 @@ REQUIRED = (
         "bool Global = true;",
     ),
     Rule(
+        "global-capability-api",
+        "include/sfx2/RegexSearchController.hxx",
+        "void SetGlobalFlagEnabled(bool bEnabled);",
+    ),
+    Rule(
+        "global-capability-clears-state",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "m_aState.Flags.Global = false;",
+    ),
+    Rule(
+        "global-capability-hides-control",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "m_xGlobal->set_visible(bGlobalFlagEnabled);",
+    ),
+    Rule(
         "multiline-flag",
         "include/sfx2/RegexSearchController.hxx",
         "bool Multiline = false;",

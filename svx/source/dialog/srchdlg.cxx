@@ -354,7 +354,10 @@ SvxSearchDialog::SvxSearchDialog(weld::Window* pParent, SfxChildWindow* pChildWi
     sfx2::RegexSearchState aState = m_xSearchRegexController->GetState();
     aState.Mode = m_xRegExpBtn->get_active() ? sfx2::RegexSearchMode::RegularExpression
                                              : sfx2::RegexSearchMode::Literal;
-    aState.Flags.CaseInsensitive = true;
+    aState.Flags.CaseInsensitive = !m_xMatchCaseCB->get_active();
+    // The dialog already has explicit Find All / Replace All actions. Keep normal Find/Replace
+    // single-shot until the builder's g flag opts into those commands.
+    aState.Flags.Global = false;
     m_xSearchRegexController->SetState(aState);
 }
 
@@ -1161,9 +1164,20 @@ void SvxSearchDialog::SyncRegexControllerFromToggle()
     const sfx2::RegexSearchMode eMode = m_xRegExpBtn->get_active()
                                             ? sfx2::RegexSearchMode::RegularExpression
                                             : sfx2::RegexSearchMode::Literal;
+    const bool bCaseInsensitive = !m_xMatchCaseCB->get_active();
+    bool bStateChanged = false;
     if (aState.Mode != eMode)
     {
         aState.Mode = eMode;
+        bStateChanged = true;
+    }
+    if (aState.Flags.CaseInsensitive != bCaseInsensitive)
+    {
+        aState.Flags.CaseInsensitive = bCaseInsensitive;
+        bStateChanged = true;
+    }
+    if (bStateChanged)
+    {
         // GetState() returns the controller's cached pattern, which can be stale on the VCL
         // (Windows) backend: Init_Impl pre-fills the search term with a programmatic
         // set_entry_text that never fires the combo's changed handler, so the controller was
@@ -1378,7 +1392,11 @@ IMPL_LINK(SvxSearchDialog, CommandHdl_Impl, weld::Button&, rBtn, void)
         }
         else
         {
-            m_pSearchItem->SetSearchString(m_xSearchLB->get_active_text());
+            const OUString aRawSearchString = m_xSearchLB->get_active_text();
+            sfx2::RegexSearchState aRegexState = m_xSearchRegexController->GetState();
+            aRegexState.Pattern = aRawSearchString;
+            m_pSearchItem->SetSearchString(
+                sfx2::RegexSearchService::GetEffectivePattern(aRegexState));
             m_pSearchItem->SetReplaceString(m_xReplaceLB->get_active_text());
 
             if ( &rBtn == m_xReplaceBtn.get() )
@@ -1441,12 +1459,13 @@ IMPL_LINK(SvxSearchDialog, CommandHdl_Impl, weld::Button&, rBtn, void)
             m_pSearchItem->SetSearchFormatted(m_xSearchFormattedCB->get_active());
         }
 
-        if ((&rBtn == m_xSearchBtn.get()) ||  (&rBtn == m_xBackSearchBtn.get()))
-            m_pSearchItem->SetCommand(SvxSearchCmd::FIND);
+        const bool bGlobal = m_xSearchRegexController->GetState().Flags.Global;
+        if ((&rBtn == m_xSearchBtn.get()) || (&rBtn == m_xBackSearchBtn.get()))
+            m_pSearchItem->SetCommand(bGlobal ? SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND);
         else if ( &rBtn == m_xSearchAllBtn.get() )
             m_pSearchItem->SetCommand(SvxSearchCmd::FIND_ALL);
         else if ( &rBtn == m_xReplaceBtn.get() )
-            m_pSearchItem->SetCommand(SvxSearchCmd::REPLACE);
+            m_pSearchItem->SetCommand(bGlobal ? SvxSearchCmd::REPLACE_ALL : SvxSearchCmd::REPLACE);
         else if ( &rBtn == m_xReplaceAllBtn.get() )
             m_pSearchItem->SetCommand(SvxSearchCmd::REPLACE_ALL);
 
@@ -1465,9 +1484,15 @@ IMPL_LINK(SvxSearchDialog, CommandHdl_Impl, weld::Button&, rBtn, void)
         // its outcome label back through SvxSearchDialogWrapper::SetSearchLabel during this
         // synchronous dispatch, where the flag is consumed; it is cleared again immediately after so
         // no later, unrelated label update can pick it up.
-        g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());
+        g_bMaterialReplaceAllPending
+            = m_pSearchItem->GetCommand() == SvxSearchCmd::REPLACE_ALL;
         m_rBindings.ExecuteSynchron(FID_SEARCH_NOW, ppArgs);
         g_bMaterialReplaceAllPending = false;
+        // The dispatched item used the effective m/s-prefixed pattern. Keep the user's raw pattern
+        // in dialog/module state and history so reopening the builder never exposes implementation
+        // prefixes as editable text.
+        if (!m_xLayoutBtn->get_active() || bInclusive)
+            m_pSearchItem->SetSearchString(m_xSearchLB->get_active_text());
     }
     else if ( &rBtn == m_xCloseBtn.get() )
     {
@@ -1575,13 +1600,15 @@ IMPL_LINK( SvxSearchDialog, ModifyHdl_Impl, weld::ComboBox&, rEd, void )
 
 IMPL_LINK_NOARG(SvxSearchDialog, SearchTermModifyHdl_Impl, weld::ComboBox&, void)
 {
-    // native-regex-option-sync: reflect the shared advanced regex builder's mode into the
-    // dialog's existing "Regular expressions" toggle. The dialog computes its own
-    // SearchOptions from that toggle, so there is deliberately no second matching path here.
+    // native-regex-option-sync: reflect the shared advanced regex builder's mode and i flag into
+    // the dialog's existing controls. CommandHdl_Impl routes m/s and g to the real matcher.
     const sfx2::RegexSearchState& rState = m_xSearchRegexController->GetState();
     const bool bRegExp = rState.Mode == sfx2::RegexSearchMode::RegularExpression;
     const bool bModeToggleChanged = m_xRegExpBtn->get_active() != bRegExp;
+    const bool bCaseToggleChanged
+        = m_xMatchCaseCB->get_active() == rState.Flags.CaseInsensitive;
     m_xRegExpBtn->set_active(rState.Mode == sfx2::RegexSearchMode::RegularExpression);
+    m_xMatchCaseCB->set_active(!rState.Flags.CaseInsensitive);
 
     // set_active() above does not emit the toggled signal, so on its own it would bypass
     // ClickHdl_Impl's mutual exclusion and could leave "Regular expressions" visibly checked
@@ -1590,9 +1617,9 @@ IMPL_LINK_NOARG(SvxSearchDialog, SearchTermModifyHdl_Impl, weld::ComboBox&, void
     // ClickHdl_Impl so the option checkboxes stay consistent; it also refreshes the search-term
     // validation and Find/Replace button enablement. Only reachable after construction, where
     // m_pSearchItem (dereferenced by that path) is set; the seeding call never flips the toggle.
-    if (bModeToggleChanged && m_pSearchItem)
+    if ((bModeToggleChanged || bCaseToggleChanged) && m_pSearchItem)
     {
-        ClickHdl_Impl(m_xRegExpBtn.get());
+        ClickHdl_Impl(bModeToggleChanged ? m_xRegExpBtn.get() : m_xMatchCaseCB.get());
         return;
     }
 

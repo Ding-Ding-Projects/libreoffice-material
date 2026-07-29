@@ -34,6 +34,7 @@ namespace sfx2
 class NotificationPresenter;
 class NotificationOverlayWindow;
 class NotificationCard;
+struct NotificationDisplayRow;
 
 /** Builds and maintains the bottom-right card stack, overflow control, and manager FAB from the
     retained snapshot and preferences. All card actions map to one service request each. */
@@ -61,7 +62,8 @@ private:
 
     void Create(vcl::Window* pOwner);
     void Rebuild();
-    void ScheduleAutoDismiss(const NotificationPreferences& rPreferences, sal_uInt32 nVisible);
+    void ScheduleAutoDismiss(const NotificationPreferences& rPreferences,
+                             const std::vector<NotificationDisplayRow>& rVisibleCards);
 
     DECL_LINK(OverflowHdl, weld::Button&, void);
     DECL_LINK(ManagerButtonHdl, weld::Button&, void);

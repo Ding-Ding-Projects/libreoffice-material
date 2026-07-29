@@ -57,7 +57,7 @@
   "replace_all_flag": {
     "flag": "g_bMaterialReplaceAllPending",
     "context_signature": "IMPL_LINK(SvxSearchDialog, CommandHdl_Impl, weld::Button&, rBtn, void)",
-    "arm_marker": "g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());",
+    "arm_marker": "g_bMaterialReplaceAllPending\n            = m_pSearchItem->GetCommand() == SvxSearchCmd::REPLACE_ALL;",
     "clear_marker": "g_bMaterialReplaceAllPending = false;",
     "invariant": "The one-shot Replace-All confirmation flag is armed exactly once and cleared exactly once inside CommandHdl_Impl's Replace-All branch, so no later unrelated label update can pick it up."
   },

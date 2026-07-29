@@ -76,7 +76,7 @@ std::optional<Color> lcl_materialStatusColor(std::string_view rRole)
     static std::optional<vcl::MaterialTokens> spDarkTokens;
     std::optional<vcl::MaterialTokens>& rCache = bDark ? spDarkTokens : spLightTokens;
     if (!rCache)
-        rCache = vcl::MaterialTokens::fromThemeDefinition(bDark ? "dark"_ostr : OString());
+        rCache = vcl::MaterialTokens::fromCurrentTheme(bDark);
     if (!rCache->isValid())
         return std::nullopt;
     return rCache->findColor(rRole);
@@ -102,7 +102,7 @@ std::optional<tools::Long> lcl_materialStatusMetric(std::string_view rName)
 
     static std::optional<vcl::MaterialTokens> spTokens;
     if (!spTokens)
-        spTokens = vcl::MaterialTokens::fromThemeDefinition(OString());
+        spTokens = vcl::MaterialTokens::fromCurrentTheme(false);
     if (!spTokens->isValid())
         return std::nullopt;
     if (const std::optional<sal_Int32> oValue = spTokens->findMetric(rName))

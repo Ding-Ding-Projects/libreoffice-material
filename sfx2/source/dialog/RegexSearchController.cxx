@@ -351,7 +351,8 @@ class RegexBuilderPopover final
     DECL_LINK(PopoverClosedHdl, weld::Popover&, void);
 
 public:
-    RegexBuilderPopover(weld::Widget* pParent, const RegexSearchState& rState)
+    RegexBuilderPopover(weld::Widget* pParent, const RegexSearchState& rState,
+                        bool bGlobalFlagEnabled)
         : m_pParent(pParent)
         , m_xBuilder(Application::CreateBuilder(pParent, u"sfx/ui/regexbuilder.ui"_ustr))
         , m_xPopover(m_xBuilder->weld_popover(u"RegexBuilderPopover"_ustr))
@@ -406,6 +407,7 @@ public:
         m_xRegexMode->set_active(m_aState.Mode == RegexSearchMode::RegularExpression);
         m_xCaseInsensitive->set_active(m_aState.Flags.CaseInsensitive);
         m_xGlobal->set_active(m_aState.Flags.Global);
+        m_xGlobal->set_visible(bGlobalFlagEnabled);
         m_xMultiline->set_active(m_aState.Flags.Multiline);
         m_xDotAll->set_active(m_aState.Flags.DotMatchesNewline);
         m_xTestText->set_text(m_aState.TestText);
@@ -823,6 +825,13 @@ void RegexSearchController::SetTestText(const OUString& rTestText)
     m_aState.TestText = rTestText;
 }
 
+void RegexSearchController::SetGlobalFlagEnabled(bool bEnabled)
+{
+    m_bGlobalFlagEnabled = bEnabled;
+    if (!bEnabled)
+        m_aState.Flags.Global = false;
+}
+
 void RegexSearchController::ToggleMode()
 {
     SetMode(m_aState.Mode == RegexSearchMode::RegularExpression
@@ -863,7 +872,8 @@ void RegexSearchController::ShowBuilder()
         m_xBuilderPopover.reset();
     }
 
-    m_xBuilderPopover = std::make_unique<RegexBuilderPopover>(m_pBuilderParent, m_aState);
+    m_xBuilderPopover = std::make_unique<RegexBuilderPopover>(
+        m_pBuilderParent, m_aState, m_bGlobalFlagEnabled);
     m_xBuilderPopover->SetApplyHdl(LINK(this, RegexSearchController, BuilderApplyHdl));
     m_xBuilderPopover->SetClosedHdl(LINK(this, RegexSearchController, BuilderClosedHdl));
     m_bBuilderPopoverOpen = true;

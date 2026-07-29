@@ -145,16 +145,17 @@ void NotificationStackController::Rebuild()
             SfxResId(STR_NOTIF_ANNOUNCE_NEW).replaceFirst(u"%1"_ustr, aRows.front().SourceLabel));
     }
 
-    ScheduleAutoDismiss(rPrefs, static_cast<sal_uInt32>(aRows.size()));
+    ScheduleAutoDismiss(rPrefs, aRows);
 }
 
 void NotificationStackController::ScheduleAutoDismiss(const NotificationPreferences& rPreferences,
-                                                      sal_uInt32 nVisible)
+                                                       const std::vector<NotificationDisplayRow>&
+                                                           rVisibleCards)
 {
     m_aAutoDismiss.Stop();
-    // Never auto-dismiss when disabled or when the timeout is off; decision-required prompts never
-    // reach the stack this checkpoint (they keep modal semantics).
-    if (!rPreferences.Enabled || rPreferences.TimeoutSeconds <= 0 || nVisible == 0)
+    // Warning/error and pinned cards require explicit user action and must never be timed away.
+    if (!rPreferences.Enabled || rPreferences.TimeoutSeconds <= 0
+        || NotificationViewModel::OldestAutoDismissibleId(rVisibleCards).isEmpty())
         return;
     m_aAutoDismiss.SetTimeout(static_cast<sal_uInt64>(rPreferences.TimeoutSeconds) * 1000);
     m_aAutoDismiss.Start();
@@ -166,11 +167,9 @@ IMPL_LINK_NOARG(NotificationStackController, AutoDismissHdl, Timer*, void)
         return;
     const std::vector<NotificationDisplayRow> aRows
         = NotificationViewModel::VisibleCards(*m_xSnapshot, m_xSnapshot->Preferences);
-    if (aRows.empty())
+    const OString aOldest = NotificationViewModel::OldestAutoDismissibleId(aRows);
+    if (aOldest.isEmpty())
         return;
-    // Archive the oldest visible card (top of the stack); still in Inbox because VisibleCards only
-    // returns unarchived, undeleted Inbox rows from the current snapshot.
-    const OString aOldest = aRows.back().Id;
     m_rPresenter.GetService().archive({ aOldest }, m_rPresenter.MakeRefreshCompletion());
 }
 

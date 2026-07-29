@@ -174,7 +174,8 @@ QuickFindPanel::QuickFindPanel(weld::Widget* pParent, const uno::Reference<frame
     aState.Mode = m_xRegularExpressionsCheckButton->get_active()
                       ? sfx2::RegexSearchMode::RegularExpression
                       : sfx2::RegexSearchMode::Literal;
-    aState.Flags.CaseInsensitive = true;
+    aState.Flags.CaseInsensitive = !m_xMatchCaseCheckButton->get_active();
+    aState.Flags.Global = true;
     m_xRegexSearchController->SetState(aState);
     // Keep the sync between the native "Regular expressions" option and the builder's mode
     // two-way: a manual toggle of the check button must update the controller, otherwise the
@@ -182,6 +183,8 @@ QuickFindPanel::QuickFindPanel(weld::Widget* pParent, const uno::Reference<frame
     // edit and the search would run literally.
     m_xRegularExpressionsCheckButton->connect_toggled(
         LINK(this, QuickFindPanel, RegularExpressionsCheckButtonToggledHandler));
+    m_xMatchCaseCheckButton->connect_toggled(
+        LINK(this, QuickFindPanel, MatchCaseCheckButtonToggledHandler));
 
     m_xSearchOptionsToolbar->connect_clicked(
         LINK(this, QuickFindPanel, SearchOptionsToolbarClickedHandler));
@@ -286,14 +289,23 @@ IMPL_LINK_NOARG(QuickFindPanel, RegularExpressionsCheckButtonToggledHandler, wel
     m_xRegexSearchController->SetState(aState);
 }
 
+IMPL_LINK_NOARG(QuickFindPanel, MatchCaseCheckButtonToggledHandler, weld::Toggleable&, void)
+{
+    sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+    const bool bCaseInsensitive = !m_xMatchCaseCheckButton->get_active();
+    if (aState.Flags.CaseInsensitive == bCaseInsensitive)
+        return;
+    aState.Flags.CaseInsensitive = bCaseInsensitive;
+    m_xRegexSearchController->SetState(aState);
+}
+
 IMPL_LINK_NOARG(QuickFindPanel, SearchComboBoxChangedHandler, weld::ComboBox&, void)
 {
-    // Mirror the advanced builder's Literal/RegularExpression choice into the panel's existing
-    // "Regular expressions" option so the document search engine honours it. The engine still
-    // computes its full option set (case, whole words, similarity, comments) from these check
-    // buttons, so there is no second matching path.
+    // Mirror the advanced builder's mode and i flag into the panel's existing options. Multiline,
+    // dot-all and global are consumed directly by FillSearchFindsList below.
     const sfx2::RegexSearchState& rState = m_xRegexSearchController->GetState();
     m_xRegularExpressionsCheckButton->set_active(rState.Mode == sfx2::RegexSearchMode::RegularExpression);
+    m_xMatchCaseCheckButton->set_active(!rState.Flags.CaseInsensitive);
 
     m_xSearchComboBox->set_entry_message_type(weld::EntryMessageType::Normal);
     m_xSearchFindsList->clear();
@@ -553,12 +565,11 @@ void QuickFindPanel::FillSearchFindsList()
     m_pWrtShell->AssureStdMode();
 
     i18nutil::SearchOptions2 aSearchOptions;
-    aSearchOptions.Locale = GetAppLanguageTag().getLocale();
-    aSearchOptions.searchString = sFindEntry;
-    aSearchOptions.replaceString.clear();
     if (m_xRegularExpressionsCheckButton->get_active())
     {
-        aSearchOptions.AlgorithmType2 = css::util::SearchAlgorithms2::REGEXP;
+        // Use the shared controller's real descriptor so i/m/s reach Writer's matcher instead of
+        // affecting only the builder preview.
+        aSearchOptions = m_xRegexSearchController->GetSearchOptions();
     }
     else
     {
@@ -576,15 +587,23 @@ void QuickFindPanel::FillSearchFindsList()
         else
             aSearchOptions.AlgorithmType2 = css::util::SearchAlgorithms2::ABSOLUTE;
     }
+    aSearchOptions.Locale = GetAppLanguageTag().getLocale();
+    aSearchOptions.searchString = m_xRegularExpressionsCheckButton->get_active()
+                                      ? aSearchOptions.searchString
+                                      : sFindEntry;
+    aSearchOptions.replaceString.clear();
     TransliterationFlags nTransliterationFlags = TransliterationFlags::IGNORE_WIDTH;
     if (!m_xMatchCaseCheckButton->get_active())
         nTransliterationFlags |= TransliterationFlags::IGNORE_CASE;
     aSearchOptions.transliterateFlags = nTransliterationFlags;
 
+    const FindRanges eFindRanges = m_xRegexSearchController->GetState().Flags.Global
+                                       ? FindRanges::InBody | FindRanges::InSelAll
+                                       : FindRanges::InBody;
     m_pWrtShell->StartAllAction();
     /*sal_Int32 nFound =*/m_pWrtShell->SearchPattern(
         aSearchOptions, m_xCommentsCheckButton->get_active(), SwDocPositions::Start,
-        SwDocPositions::End, FindRanges::InBody | FindRanges::InSelAll, false);
+        SwDocPositions::End, eFindRanges, false);
     m_pWrtShell->EndAllAction();
 
     if (m_pWrtShell->HasMark())

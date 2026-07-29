@@ -88,7 +88,8 @@ public:
     /** Inbox/Unread/Archived/Deleted tallies for the tab suffixes. */
     static NotificationCounts Counts(const NotificationCenterSnapshot& rSnapshot);
 
-    /** Newest history commit whose action is undoable (not a maintenance checkpoint); "" if none. */
+    /** Newest history commit that has not already been reversed by a later Undo commit. Maintenance
+        checkpoints and sentinels are never undoable; "" means the undo stack is exhausted. */
     static OString LatestUndoableCommit(const NotificationCenterSnapshot& rSnapshot);
 
     /** Build exactly one ID vector from the selection, in snapshot order, dropping vanished ids.
@@ -96,9 +97,19 @@ public:
     static std::vector<OString> SelectionVector(const std::set<OString>& rSelection,
                                                  const NotificationCenterSnapshot& rSnapshot);
 
+    /** Build a bulk-action vector from the currently displayed rows only. This prevents a selection
+        hidden by a folder or filter change from being mutated by a later bulk action. */
+    static std::vector<OString>
+    SelectionVectorForRows(const std::set<OString>& rSelection,
+                           const std::vector<NotificationDisplayRow>& rRows);
+
     /** Reconcile a selection against the ids still present in the snapshot. */
     static std::set<OString> ReconcileSelection(const std::set<OString>& rSelection,
-                                                const NotificationCenterSnapshot& rSnapshot);
+                                                 const NotificationCenterSnapshot& rSnapshot);
+
+    /** Oldest visible low-priority, unpinned card eligible for timed archive; "" if none. */
+    static OString
+    OldestAutoDismissibleId(const std::vector<NotificationDisplayRow>& rVisibleCards);
 
     /** Clamp the visible-card count to the schema-permitted range. */
     static sal_Int32 ClampVisible(sal_Int32 nMaxVisible);

@@ -239,8 +239,11 @@ void NotificationManagerController::Show(const OString& rFocusId)
     if (!rFocusId.isEmpty())
     {
         m_aFocusId = rFocusId;
-        // Focus a specific record from a card: switch to the folder-neutral Inbox list.
+        // Focus a specific record from a card: switch to Inbox and clear filters that could hide the
+        // requested row immediately.
         m_eView = NotificationView::Inbox;
+        m_oSeverityFilter.reset();
+        m_aSourceFilter.clear();
         m_xTabInbox->set_active(true);
         RepopulateAll();
     }
@@ -259,7 +262,9 @@ std::vector<OString> NotificationManagerController::BuildSelectionVector() const
 {
     if (!m_xSnapshot)
         return {};
-    return NotificationViewModel::SelectionVector(m_aSelection, *m_xSnapshot);
+    const std::vector<NotificationDisplayRow> aRows = NotificationViewModel::RowsForView(
+        *m_xSnapshot, m_eView, m_oSeverityFilter, m_aSourceFilter, m_eSort);
+    return NotificationViewModel::SelectionVectorForRows(m_aSelection, aRows);
 }
 
 void NotificationManagerController::SubmitBulk(
@@ -283,6 +288,10 @@ void NotificationManagerController::RepopulateAll()
         return;
     const NotificationCounts aCounts = NotificationViewModel::Counts(*m_xSnapshot);
     UpdateTabs(aCounts);
+    const bool bCanUndo
+        = !NotificationViewModel::LatestUndoableCommit(*m_xSnapshot).isEmpty();
+    m_xUndo->set_sensitive(bCanUndo);
+    m_xUndo2->set_sensitive(bCanUndo);
     UpdateVisibility();
     PopulateSourceFilter();
     PopulateList();
@@ -350,13 +359,29 @@ void NotificationManagerController::PopulateSourceFilter()
 
 void NotificationManagerController::PopulateList()
 {
-    if (!m_xListPanel->get_visible())
+    if (!m_xListPanel->get_visible() || !m_xSnapshot)
         return;
+
+    const std::vector<NotificationDisplayRow> aRows = NotificationViewModel::RowsForView(
+        *m_xSnapshot, m_eView, m_oSeverityFilter, m_aSourceFilter, m_eSort);
+    std::set<OString> aVisibleIds;
+    for (const NotificationDisplayRow& rRow : aRows)
+        aVisibleIds.insert(rRow.Id);
+
+    // Folder/filter changes revoke hidden selection and focus. Otherwise a later bulk or detail
+    // action could mutate a record the manager no longer shows.
+    for (auto it = m_aSelection.begin(); it != m_aSelection.end();)
+    {
+        if (!aVisibleIds.count(*it))
+            it = m_aSelection.erase(it);
+        else
+            ++it;
+    }
+    if (!m_aFocusId.isEmpty() && !aVisibleIds.count(m_aFocusId))
+        m_aFocusId.clear();
 
     m_xList->freeze();
     m_xList->clear();
-    const std::vector<NotificationDisplayRow> aRows = NotificationViewModel::RowsForView(
-        *m_xSnapshot, m_eView, m_oSeverityFilter, m_aSourceFilter, m_eSort);
     for (const NotificationDisplayRow& rRow : aRows)
     {
         m_xList->append();
@@ -544,12 +569,14 @@ IMPL_LINK(NotificationManagerController, SevFilterHdl, const OUString&, rIdent, 
     else
         m_oSeverityFilter.reset();
     PopulateList();
+    PopulateDetail();
 }
 
 IMPL_LINK(NotificationManagerController, SrcFilterHdl, const OUString&, rIdent, void)
 {
     m_aSourceFilter = rIdent == u"all" ? OString() : rIdent.toUtf8();
     PopulateList();
+    PopulateDetail();
 }
 
 IMPL_LINK(NotificationManagerController, SortHdl, const OUString&, rIdent, void)

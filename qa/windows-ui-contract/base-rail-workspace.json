@@ -14,7 +14,7 @@
     "high_contrast_marker": "GetHighContrastMode()",
     "token_include": "<vcl/MaterialTokens.hxx>",
     "resolver_markers": [
-      "MaterialTokens::fromThemeDefinition",
+      "MaterialTokens::fromCurrentTheme",
       "findColor("
     ]
   },

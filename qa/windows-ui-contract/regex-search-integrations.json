@@ -99,6 +99,12 @@
       "native_regex_toggle": "m_pcbRegular",
       "native_regex_toggle_id": "cbRegular",
       "engine_default_case_insensitive": false,
+      "engine_case_seed": "!m_pcbCase->get_active()",
+      "runtime_flag_markers": [
+        "m_xRegexSearchController->SetGlobalFlagEnabled(false);",
+        "strThisRoundText = sfx2::RegexSearchService::GetEffectivePattern(aState);",
+        "aState.Flags.CaseInsensitive = !bChecked;"
+      ],
       "runtime_verified": false
     },
     {
@@ -122,6 +128,12 @@
       "native_regex_toggle": "m_xRegExpBtn",
       "native_regex_toggle_id": "regexp",
       "engine_default_case_insensitive": true,
+      "engine_case_seed": "!m_xMatchCaseCB->get_active()",
+      "runtime_flag_markers": [
+        "sfx2::RegexSearchService::GetEffectivePattern(aRegexState)",
+        "bGlobal ? SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND",
+        "aState.Flags.CaseInsensitive = bCaseInsensitive;"
+      ],
       "runtime_verified": false
     },
     {
@@ -145,6 +157,12 @@
       "native_regex_toggle": "m_xRegularExpressionsCheckButton",
       "native_regex_toggle_id": "regularexpressions",
       "engine_default_case_insensitive": true,
+      "engine_case_seed": "!m_xMatchCaseCheckButton->get_active()",
+      "runtime_flag_markers": [
+        "aSearchOptions = m_xRegexSearchController->GetSearchOptions();",
+        "m_xRegexSearchController->GetState().Flags.Global",
+        "aState.Flags.CaseInsensitive = bCaseInsensitive;"
+      ],
       "runtime_verified": false
     },
     {

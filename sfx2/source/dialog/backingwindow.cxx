@@ -555,6 +555,13 @@ IMPL_LINK_NOARG( BackingWindow, FilterHdl, weld::ComboBox&, void )
 IMPL_LINK_NOARG(BackingWindow, SearchModifyHdl, weld::TextWidget&, void)
 {
     const sfx2::RegexSearchState& rState = mxStartSearchController->GetState();
+    const bool bRegexMode = rState.Mode == sfx2::RegexSearchMode::RegularExpression;
+    if (mxStartSearchRegexModeToggle->get_active() != bRegexMode)
+    {
+        mbSyncingStartSearchMode = true;
+        mxStartSearchRegexModeToggle->set_active(bRegexMode);
+        mbSyncingStartSearchMode = false;
+    }
     const bool bEmpty = rState.Pattern.isEmpty();
     const bool bValid = bEmpty || sfx2::RegexSearchService::Validate(rState).IsValid;
     // TextSearch intentionally equates straight and typographic quotes in literal mode. Keep the
@@ -590,13 +597,16 @@ IMPL_LINK_NOARG(BackingWindow, SearchClearHdl, weld::Button&, void)
     mxStartSearch->grab_focus();
 }
 
-IMPL_LINK_NOARG(BackingWindow, SearchModeToggleHdl, weld::Toggleable&, void)
+IMPL_LINK(BackingWindow, SearchModeToggleHdl, weld::Toggleable&, rToggle, void)
 {
-    // The .* toggle flips the shared controller between literal and regular-expression matching. The
-    // controller re-validates the current pattern under the new mode and notifies the owner filter
-    // (SearchModifyHdl) exactly once, so the recent-documents list reflects the new mode immediately.
-    if (mxStartSearchController)
-        mxStartSearchController->ToggleMode();
+    if (mxStartSearchController && !mbSyncingStartSearchMode)
+    {
+        // Assign from the toggle's actual state rather than blindly flipping the controller. This
+        // also repairs state after the advanced builder changes mode programmatically.
+        mxStartSearchController->SetMode(
+            rToggle.get_active() ? sfx2::RegexSearchMode::RegularExpression
+                                 : sfx2::RegexSearchMode::Literal);
+    }
 }
 
 IMPL_LINK( BackingWindow, ToggleHdl, weld::Toggleable&, rButton, void )

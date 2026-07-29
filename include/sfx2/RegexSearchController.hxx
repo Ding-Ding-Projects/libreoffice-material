@@ -147,6 +147,7 @@ class SFX2_DLLPUBLIC RegexSearchController final
     OUString m_aOriginalBuilderAccessibleDescription;
     RegexSearchState m_aState;
     std::unique_ptr<RegexBuilderPopover> m_xBuilderPopover;
+    bool m_bGlobalFlagEnabled = true;
     bool m_bBuilderPopoverOpen = false;
     bool m_bProgrammaticTextUpdate = false;
     Link<weld::TextWidget&, void> m_aOwnerEntryChangedHdl;
@@ -190,6 +191,13 @@ public:
     const RegexSearchState& GetState() const { return m_aState; }
     void SetState(const RegexSearchState& rState);
     void SetTestText(const OUString& rTestText);
+    /** Configure whether the owning search surface can execute a global search.
+
+        Call this before ShowBuilder(). Surfaces whose result model can only
+        advance to one match must disable the flag instead of presenting a
+        cosmetic option. Disabling it also clears the cached Global state.
+     */
+    void SetGlobalFlagEnabled(bool bEnabled);
 
     /** Flip the search mode between literal and regular expression.
 

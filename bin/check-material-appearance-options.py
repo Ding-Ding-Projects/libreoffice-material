@@ -24,9 +24,9 @@ source-only, so it cannot silently drift:
 * **Apply path** -- the page applies Material appearance through the EXISTING restart
   dialog (``executeRestartDialog`` / ``RESTART_REASON_THEME_CHANGE``); the Stage-3 live
   token-cache re-key symbols must be ABSENT from the cui page.
-* **Scheme string** -- the accent order matches the ``MaterialAccent`` enumeration and
-  the appearance.ui combo items, so the schema, the UI and D's accent-key composition
-  cannot diverge.
+* **Scheme string/runtime route** -- the accent order matches the ``MaterialAccent``
+  enumeration and appearance.ui combo items; ``MaterialTokens::fromCurrentTheme`` reads
+  that persisted value and every Material paint consumer resolves through it after restart.
 
 Density and reduced motion are stored-value-only and honest-inert this stage (the metric
 / motion plumbing is Stage 3). Source evidence only: ``runtime_verified`` is false.
@@ -60,8 +60,18 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 def _referenced_sources(registry: Mapping[str, Any]) -> set[str]:
     paths: set[str] = set()
-    for key in ("schema_source", "ui_source", "controller_source", "controller_header"):
+    for key in (
+        "schema_source",
+        "ui_source",
+        "controller_source",
+        "controller_header",
+        "token_header",
+        "token_source",
+    ):
         value = registry.get(key)
+        if isinstance(value, str):
+            paths.add(value)
+    for value in registry.get("runtime_consumers", []) or []:
         if isinstance(value, str):
             paths.add(value)
     return paths
@@ -298,6 +308,40 @@ def _validate_scheme_string(
                 )
 
 
+def _validate_runtime_resolution(
+    registry: Mapping[str, Any], contents: Mapping[str, str], errors: list[str]
+) -> None:
+    token_header = contents.get(registry.get("token_header", ""), "")
+    token_source = contents.get(registry.get("token_source", ""), "")
+    if "static MaterialTokens fromCurrentTheme(bool bDark);" not in token_header:
+        errors.append("runtime:MaterialTokens::fromCurrentTheme declaration missing")
+    required_source_markers = (
+        "MaterialTokens MaterialTokens::fromCurrentTheme(bool bDark)",
+        "officecfg::Office::Common::Appearance::MaterialAccent::get()",
+        '{ "", "blue", "teal", "green", "amber", "rose" }',
+        "return fromThemeDefinition(aAccentBases[nIndex], bDark);",
+    )
+    for marker in required_source_markers:
+        if marker not in token_source:
+            errors.append(f"runtime:token resolver marker {marker!r} missing")
+
+    consumers = registry.get("runtime_consumers")
+    if not isinstance(consumers, list) or not consumers:
+        errors.append("runtime:runtime_consumers must be a non-empty array")
+        return
+    for path in consumers:
+        if not isinstance(path, str):
+            errors.append("runtime:consumer path must be a string")
+            continue
+        source = contents.get(path)
+        if source is None:
+            errors.append(f"runtime:consumer {path!r} missing")
+        elif "MaterialTokens::fromCurrentTheme(" not in source:
+            errors.append(
+                f"runtime:consumer {path!r} bypasses persisted MaterialAccent resolution"
+            )
+
+
 # --------------------------------------------------------------------------------------------------
 # Top-level
 # --------------------------------------------------------------------------------------------------
@@ -308,6 +352,7 @@ def violations(registry: Mapping[str, Any], contents: Mapping[str, str]) -> list
     _validate_header(registry, contents, errors)
     _validate_apply(registry, contents, errors)
     _validate_scheme_string(registry, contents, errors)
+    _validate_runtime_resolution(registry, contents, errors)
     return errors
 
 
@@ -336,8 +381,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "Material appearance-options contract passed: the officecfg Appearance schema "
         "(MaterialAccent/MaterialDensity/MaterialReducedMotion/MaterialSurfaceStyle), the "
         "materialtheme frame widget ids, the controller weld bindings + FillItemSet commit, "
-        "the restart apply path (no Stage-3 live re-key), and the accent scheme-string "
-        "composition are intact."
+        "the restart apply path (no live re-key), the accent scheme-string composition, and "
+        "persisted-accent runtime token routing are intact."
     )
     return 0
 

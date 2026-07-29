@@ -97,6 +97,7 @@ class BackingWindow : public InterimItemWindow
     // Owns the recent-documents search field's advanced regex builder. Declared after (destroyed
     // before) the entry and button whose callbacks it manages.
     std::unique_ptr<sfx2::RegexSearchController> mxStartSearchController;
+    bool mbSyncingStartSearchMode = false;
     bool mbLocalViewInitialized;
 
     css::uno::Reference<css::datatransfer::dnd::XDropTarget> mxDropTarget;

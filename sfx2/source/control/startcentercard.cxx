@@ -257,9 +257,9 @@ bool MaterialStartCenterCards::Paint(vcl::RenderContext& rRenderContext, Thumbna
     // static install asset selected once at start-up (VCL_FILE_WIDGET_THEME), so a
     // process-lifetime cache keyed by the light/dark scheme is safe.
     static const vcl::MaterialTokens aLightTokens
-        = vcl::MaterialTokens::fromThemeDefinition(OString());
+        = vcl::MaterialTokens::fromCurrentTheme(false);
     static const vcl::MaterialTokens aDarkTokens
-        = vcl::MaterialTokens::fromThemeDefinition("dark"_ostr);
+        = vcl::MaterialTokens::fromCurrentTheme(true);
     const vcl::MaterialTokens& aTokens = bDark ? aDarkTokens : aLightTokens;
     if (!aTokens.isValid())
         return false;

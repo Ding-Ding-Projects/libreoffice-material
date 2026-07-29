@@ -50,6 +50,42 @@ class WindowsRegexSearchIntegrationsTest(unittest.TestCase):
         VALIDATOR.validate_repository(REPOSITORY)
         self.assertEqual([], self.failures())
 
+    def test_real_matcher_flag_routes_are_fail_closed(self) -> None:
+        coverage_ids = {
+            "forms.record-search",
+            "document.find-replace",
+            "writer.quick-find",
+        }
+        for entry in self.registry["integrations"]:
+            if entry["coverage_id"] not in coverage_ids:
+                continue
+            with self.subTest(coverage_id=entry["coverage_id"], mutation="registry"):
+                registry = copy.deepcopy(self.registry)
+                target = next(
+                    item
+                    for item in registry["integrations"]
+                    if item["coverage_id"] == entry["coverage_id"]
+                )
+                target["runtime_flag_markers"] = []
+                self.assertTrue(
+                    any(
+                        ":runtime-flag-markers:non-empty array required" in error
+                        for error in self.failures(registry=registry)
+                    )
+                )
+            for marker in entry["runtime_flag_markers"]:
+                with self.subTest(coverage_id=entry["coverage_id"], marker=marker):
+                    contents = dict(self.contents)
+                    source_file = entry["source_file"]
+                    contents[source_file] = contents[source_file].replace(marker, "removed", 1)
+                    self.assertTrue(
+                        any(
+                            ":runtime-flag-markers[" in error
+                            and f"missing {marker}" in error
+                            for error in self.failures(contents=contents)
+                        )
+                    )
+
     def test_shipping_inventory_link_is_required(self) -> None:
         registry = copy.deepcopy(self.registry)
         registry["integrations"] = []

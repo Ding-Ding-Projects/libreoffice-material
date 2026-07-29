@@ -56,7 +56,7 @@ const vcl::MaterialTokens* lcl_materialTokens()
     static std::optional<vcl::MaterialTokens> spDarkTokens;
     std::optional<vcl::MaterialTokens>& rCache = bDark ? spDarkTokens : spLightTokens;
     if (!rCache)
-        rCache = vcl::MaterialTokens::fromThemeDefinition(bDark ? "dark"_ostr : OString());
+        rCache = vcl::MaterialTokens::fromCurrentTheme(bDark);
     return rCache->isValid() ? &*rCache : nullptr;
 }
 }

@@ -239,27 +239,46 @@ NotificationCounts NotificationViewModel::Counts(const NotificationCenterSnapsho
 
 OString NotificationViewModel::LatestUndoableCommit(const NotificationCenterSnapshot& rSnapshot)
 {
-    OString aCommitId;
-    sal_Int64 nNewest = 0;
-    bool bFound = false;
+    std::vector<const NotificationHistoryEntry*> aNewestFirst;
+    aNewestFirst.reserve(rSnapshot.History.size());
     for (const NotificationHistoryEntry& rEntry : rSnapshot.History)
+        aNewestFirst.push_back(&rEntry);
+    std::stable_sort(aNewestFirst.begin(), aNewestFirst.end(),
+                     [](const NotificationHistoryEntry* pLeft,
+                        const NotificationHistoryEntry* pRight) {
+                         return pLeft->Timestamp > pRight->Timestamp;
+                     });
+
+    std::size_t nReversedActions = 0;
+    for (const NotificationHistoryEntry* pEntry : aNewestFirst)
     {
+        if (pEntry->CommitId.isEmpty())
+            continue;
+
+        // Undo commits are durable markers on top of the original history. Treat each as consuming
+        // one earlier user action instead of offering the Undo commit itself (which would be redo).
+        if (pEntry->Action == NotificationAction::Undo)
+        {
+            ++nReversedActions;
+            continue;
+        }
+
         // A maintenance compaction checkpoint is not undoable, and the None/Unknown sentinels are not
         // real user actions.
-        if (rEntry.Action == NotificationAction::Maintenance
-            || rEntry.Action == NotificationAction::None
-            || rEntry.Action == NotificationAction::Unknown)
+        if (pEntry->Action == NotificationAction::Maintenance
+            || pEntry->Action == NotificationAction::None
+            || pEntry->Action == NotificationAction::Unknown)
             continue;
-        if (rEntry.CommitId.isEmpty())
-            continue;
-        if (!bFound || rEntry.Timestamp > nNewest)
+
+        if (nReversedActions != 0)
         {
-            bFound = true;
-            nNewest = rEntry.Timestamp;
-            aCommitId = rEntry.CommitId;
+            --nReversedActions;
+            continue;
         }
+
+        return pEntry->CommitId;
     }
-    return aCommitId;
+    return OString();
 }
 
 std::set<OString>
@@ -287,6 +306,34 @@ NotificationViewModel::SelectionVector(const std::set<OString>& rSelection,
             aIds.push_back(rRecord.Id);
     }
     return aIds;
+}
+
+std::vector<OString> NotificationViewModel::SelectionVectorForRows(
+    const std::set<OString>& rSelection, const std::vector<NotificationDisplayRow>& rRows)
+{
+    std::vector<OString> aIds;
+    aIds.reserve(rRows.size());
+    for (const NotificationDisplayRow& rRow : rRows)
+    {
+        if (rSelection.count(rRow.Id))
+            aIds.push_back(rRow.Id);
+    }
+    return aIds;
+}
+
+OString NotificationViewModel::OldestAutoDismissibleId(
+    const std::vector<NotificationDisplayRow>& rVisibleCards)
+{
+    // VisibleCards is newest-first. Warning/error cards require a user decision, and pinned cards are
+    // explicitly retained, so only low-priority unpinned cards participate in timed archive.
+    for (auto it = rVisibleCards.rbegin(); it != rVisibleCards.rend(); ++it)
+    {
+        if (!it->Pinned
+            && (it->Severity == NotificationSeverity::Information
+                || it->Severity == NotificationSeverity::Success))
+            return it->Id;
+    }
+    return OString();
 }
 
 } // namespace sfx2

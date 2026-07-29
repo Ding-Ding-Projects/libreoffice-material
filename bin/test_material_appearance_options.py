@@ -41,6 +41,8 @@ class AppearanceOptionsContractTest(unittest.TestCase):
         self.UI = self.registry["ui_source"]
         self.CONTROLLER = self.registry["controller_source"]
         self.HEADER = self.registry["controller_header"]
+        self.TOKEN_HEADER = self.registry["token_header"]
+        self.TOKEN_SOURCE = self.registry["token_source"]
 
     def failures(
         self, *, registry: dict | None = None, contents: dict[str, str] | None = None
@@ -180,6 +182,34 @@ class AppearanceOptionsContractTest(unittest.TestCase):
         self.assertTrue(
             any("scheme_string:accent 'Violet' is not an item" in e for e in errors), errors
         )
+
+    # -- persisted runtime route -------------------------------------------
+    def test_runtime_resolver_accessor_removed_fails(self) -> None:
+        source = self.contents[self.TOKEN_SOURCE].replace(
+            "officecfg::Office::Common::Appearance::MaterialAccent::get()",
+            "sal_Int16(0)",
+            1,
+        )
+        errors = self.failures(contents=self.with_content(self.TOKEN_SOURCE, source))
+        self.assertTrue(any("token resolver marker" in e for e in errors), errors)
+
+    def test_runtime_accent_order_drift_fails(self) -> None:
+        source = self.contents[self.TOKEN_SOURCE].replace(
+            '{ "", "blue", "teal", "green", "amber", "rose" }',
+            '{ "", "teal", "blue", "green", "amber", "rose" }',
+            1,
+        )
+        errors = self.failures(contents=self.with_content(self.TOKEN_SOURCE, source))
+        self.assertTrue(any("token resolver marker" in e for e in errors), errors)
+
+    def test_runtime_consumer_bypass_fails(self) -> None:
+        consumer = self.registry["runtime_consumers"][0]
+        source = self.contents[consumer].replace(
+            "MaterialTokens::fromCurrentTheme(",
+            "MaterialTokens::fromThemeDefinition(",
+        )
+        errors = self.failures(contents=self.with_content(consumer, source))
+        self.assertTrue(any("bypasses persisted MaterialAccent" in e for e in errors), errors)
 
     # -- registry integrity ------------------------------------------------
     def test_runtime_verified_true_fails(self) -> None:

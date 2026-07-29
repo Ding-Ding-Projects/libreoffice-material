@@ -88,7 +88,7 @@ class StartCenterCardContractTest(unittest.TestCase):
         # The guarded token resolve is cached per scheme, so the call appears at
         # more than one site; the mutation must strip every occurrence to make the
         # guard marker vanish from code.
-        source = self.contents[RENDERER].replace("MaterialTokens::fromThemeDefinition", "xxx")
+        source = self.contents[RENDERER].replace("MaterialTokens::fromCurrentTheme", "xxx")
         errors = self.failures(contents=self.with_content(RENDERER, source))
         self.assertTrue(any("renderer:guard marker missing" in e for e in errors), errors)
 

@@ -22,7 +22,7 @@
       "hc_marker": "GetHighContrastMode",
       "markers": [
         "VCL_FILE_WIDGET_THEME",
-        "MaterialTokens::fromThemeDefinition",
+        "MaterialTokens::fromCurrentTheme",
         "GetHighContrastMode",
         "lcl_materialNotebookbarColor(\"surface\")"
       ],
@@ -53,7 +53,7 @@
       "hc_marker": "GetHighContrastMode",
       "markers": [
         "VCL_FILE_WIDGET_THEME",
-        "MaterialTokens::fromThemeDefinition",
+        "MaterialTokens::fromCurrentTheme",
         "GetHighContrastMode",
         "lcl_materialTabControlColor(\"primary\")",
         "lcl_materialTabControlColor(\"outline-variant\")"

@@ -87,7 +87,7 @@ std::optional<Color> lcl_materialTabControlColor(std::string_view rRole)
     static std::optional<vcl::MaterialTokens> spDarkTokens;
     std::optional<vcl::MaterialTokens>& rCache = bDark ? spDarkTokens : spLightTokens;
     if (!rCache)
-        rCache = vcl::MaterialTokens::fromThemeDefinition(bDark ? "dark"_ostr : OString());
+        rCache = vcl::MaterialTokens::fromCurrentTheme(bDark);
     if (!rCache->isValid())
         return std::nullopt;
     return rCache->findColor(rRole);

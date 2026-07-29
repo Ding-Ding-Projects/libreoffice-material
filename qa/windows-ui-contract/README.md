@@ -692,7 +692,7 @@ Find & Replace "Replace All" outcome is mirrored into the bottom-right stack via
 completed replacement (the replacement count) and **Information** for the no-match
 empty-state outcome (WIN-FBK-008, empty/no-results states). That producer also
 declares `wiring_markers` that bind **reachability**, not just existence: the
-one-shot arming assignment (`g_bMaterialReplaceAllPending = (&rBtn == m_xReplaceAllBtn.get());`
+one-shot arming assignment (`g_bMaterialReplaceAllPending = command == REPLACE_ALL`
 in `CommandHdl_Impl` before the synchronous `FID_SEARCH_NOW` dispatch), the
 consumption call in the `SetSearchLabel` outcome sink, and the
 `VCL_FILE_WIDGET_THEME` opt-in guard literal must all remain live -- so a partial

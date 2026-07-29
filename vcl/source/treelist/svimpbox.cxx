@@ -1938,6 +1938,8 @@ void SvImpLBox::MouseButtonDown( const MouseEvent& rMEvt )
             SelAllDestrAnch(false); // deselect all
         return;
     }
+    if (!IsSelectable(*pEntry))
+        return;
 
     tools::Long nY = GetEntryLine( pEntry );
     // Node-Button?
@@ -2028,7 +2030,7 @@ void SvImpLBox::MouseButtonUp( const MouseEvent& rMEvt)
         // tdf#143245 ActivateOnSingleClick only
         // if the 'up' is at the active entry
         // typically selected by the 'down'
-        if (!pEntry || pEntry != m_pCursor)
+        if (!pEntry || !IsSelectable(*pEntry) || pEntry != m_pCursor)
             return;
         m_rView.DoubleClickHdl();
     }
@@ -2571,7 +2573,7 @@ void ImpLBSelEng::DestroyAnchor() { m_rImp.m_pAnchor = nullptr; }
 void ImpLBSelEng::SetCursorAtPoint(const Point& rPoint, bool bDontSelectAtCursor)
 {
     SvTreeListEntry* pNewCursor = m_rImp.MakePointVisible(rPoint);
-    if( pNewCursor )
+    if (pNewCursor && m_rImp.IsSelectable(*pNewCursor))
     {
         // at SimpleTravel, the SetCursor is selected and the select handler is
         // called

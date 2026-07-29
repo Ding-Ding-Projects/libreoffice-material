@@ -2229,7 +2229,9 @@ bool SvTreeListBox::Select( SvTreeListEntry* pEntry, bool bSelect )
 {
     DBG_ASSERT(pEntry,"Select: Null-Ptr");
     bool bRetVal = SelectListEntry( pEntry, bSelect );
-    DBG_ASSERT(IsSelected(pEntry)==bSelect,"Select failed");
+    DBG_ASSERT(IsSelected(pEntry)
+                   == (bSelect && GetViewDataEntry(*pEntry).IsSelectable()),
+               "Select failed");
     if( bRetVal )
     {
         m_pImpl->EntrySelected(pEntry, bSelect);

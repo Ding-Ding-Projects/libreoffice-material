@@ -253,10 +253,12 @@ public:
     void set_text(int row, const OUString& rText, int col = -1);
     virtual void set_text(const TreeIter& rIter, const OUString& rStr, int col = -1) = 0;
 
-    // col index -1 sets all columns
+    // col index -1 sets all columns and the row's selectable state. Disabling a row also
+    // clears an existing selection, so insensitive rows cannot remain actionable.
     void set_sensitive(int row, bool bSensitive, int col = -1);
     virtual void set_sensitive(const TreeIter& rIter, bool bSensitive, int col = -1) = 0;
 
+    // col index -1 gets the row's selectable state
     virtual bool get_sensitive(const TreeIter& rIter, int col) const = 0;
 
     // col index -1 sets the expander toggle, enable_toggle_buttons must have been called to create that column

@@ -4106,6 +4106,23 @@ void SalInstanceTreeView::set_sensitive(SvTreeListEntry* pEntry, bool bSensitive
 {
     if (col == -1)
     {
+        SvViewDataEntry& rViewData = m_xTreeView->GetViewDataEntry(*pEntry);
+        if (!bSensitive)
+        {
+            // Row sensitivity is an interaction contract, not just a paint hint. Clear a stale
+            // selection before making the row non-selectable and move the cursor away so mouse,
+            // keyboard, programmatic and accessibility selection all agree.
+            disable_notify_events();
+            if (m_xTreeView->IsSelected(pEntry))
+                m_xTreeView->Select(pEntry, false);
+            rViewData.SetSelectable(false);
+            if (m_xTreeView->GetCurEntry() == pEntry)
+                m_xTreeView->m_pImpl->SetCursor(nullptr, true);
+            enable_notify_events();
+        }
+        else
+            rViewData.SetSelectable(true);
+
         auto nFlags = pEntry->GetFlags() & ~SvTLEntryFlags::SEMITRANSPARENT;
         if (!bSensitive)
             nFlags = nFlags | SvTLEntryFlags::SEMITRANSPARENT;
@@ -4146,6 +4163,9 @@ bool SalInstanceTreeView::do_get_sensitive(SvTreeListEntry* pEntry, int col)
 
 bool SalInstanceTreeView::get_sensitive(SvTreeListEntry* pEntry, int col) const
 {
+    if (col == -1)
+        return m_xTreeView->GetViewDataEntry(*pEntry).IsSelectable();
+
     col = to_internal_model(col);
     return do_get_sensitive(pEntry, col);
 }

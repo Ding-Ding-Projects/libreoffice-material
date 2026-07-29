@@ -305,11 +305,26 @@ int OfaAutoCorrDlg::applySearchFilter()
     if (!bEmpty && pFirstMatchList)
         pFirstMatchList->scroll_to_row(nFirstMatchRow);
 
+    // Whole-row sensitivity clears a selected row when it stops matching. Single-selection
+    // TreeViews intentionally suppress their deselection callback, so explicitly synchronize the
+    // row-dependent buttons after every filter pass.
+    if (auto* pReplacePage = static_cast<OfaAutocorrReplacePage*>(GetTabPage(u"replace")))
+        pReplacePage->SearchFilterChanged();
+    if (auto* pExceptPage = static_cast<OfaAutocorrExceptPage*>(GetTabPage(u"exceptions")))
+        pExceptPage->SearchFilterChanged();
+
     return nMatchCount;
 }
 
-static bool lcl_FindEntry(weld::TreeView& rLB, const OUString& rEntry,
-                          CollatorWrapper const & rCmpClass)
+enum class AutoCorrEntryMatch
+{
+    None,
+    Filtered,
+    Selectable
+};
+
+static AutoCorrEntryMatch lcl_FindEntry(weld::TreeView& rLB, const OUString& rEntry,
+                                        CollatorWrapper const& rCmpClass)
 {
     int nCount = rLB.n_children();
     int nSelPos = rLB.get_selected_index();
@@ -317,13 +332,19 @@ static bool lcl_FindEntry(weld::TreeView& rLB, const OUString& rEntry,
     {
         if (0 == rCmpClass.compareString(rEntry, rLB.get_text(i)))
         {
+            std::unique_ptr<weld::TreeIter> xIter = rLB.get_iterator(i);
+            if (!xIter || !rLB.get_sensitive(*xIter, -1))
+            {
+                rLB.unselect_all();
+                return AutoCorrEntryMatch::Filtered;
+            }
             rLB.select(i);
-            return true;
+            return AutoCorrEntryMatch::Selectable;
         }
     }
     if (nSelPos != -1)
         rLB.unselect(nSelPos);
-    return false;
+    return AutoCorrEntryMatch::None;
 }
 
 IMPL_LINK_NOARG(OfaAutoCorrDlg, SelectLanguageHdl, weld::ComboBox&, void)
@@ -346,6 +367,10 @@ IMPL_LINK_NOARG(OfaAutoCorrDlg, SelectLanguageHdl, weld::ComboBox&, void)
         assert(pPage);
         pPage->SetLanguage(eNewLang);
     }
+
+    // A language switch rebuilds the active page's rows, so their default-sensitive state must
+    // never bypass a query that is still present in the shared search field.
+    RefreshSearchFilter();
 }
 
 OfaAutocorrOptionsPage::OfaAutocorrOptionsPage(weld::Container* pPage, weld::DialogController* pController, const SfxItemSet& rSet)
@@ -940,6 +965,15 @@ void OfaAutocorrReplacePage::CollectSearchLists(std::vector<OfaAutoCorrSearchLis
     rLists.push_back({ m_xReplaceTLB.get(), 2 });
 }
 
+void OfaAutocorrReplacePage::SearchFilterChanged()
+{
+    // Re-evaluate both Modify/New and Delete against the rows that remain actionable. In
+    // particular, text retained from a row that just stopped matching must not turn into a stale
+    // modify/delete target.
+    ModifyHdl(*m_xShortED);
+    m_xDeleteReplacePB->set_sensitive(m_xReplaceTLB->get_selected_index() != -1);
+}
+
 DeactivateRC OfaAutocorrReplacePage::DeactivatePage( SfxItemSet*  )
 {
     return DeactivateRC::LeavePage;
@@ -1212,19 +1246,18 @@ IMPL_LINK_NOARG(OfaAutocorrReplacePage, EntrySizeAllocHdl, const Size&, void)
 bool OfaAutocorrReplacePage::NewDelHdl(const weld::Widget* pBtn)
 {
     int nEntry = m_xReplaceTLB->get_selected_index();
+    bool bChanged = false;
     if (pBtn == m_xDeleteReplacePB.get())
     {
         DBG_ASSERT( nEntry != -1, "no entry selected" );
-        if (nEntry != -1)
-        {
-            DeleteEntry(m_xReplaceTLB->get_text(nEntry, 0), m_xReplaceTLB->get_text(nEntry, 1));
-            m_xReplaceTLB->remove(nEntry);
-            ModifyHdl(*m_xShortED);
+        if (nEntry == -1)
             return true;
-        }
-    }
 
-    if (pBtn == m_xNewReplacePB.get() || m_xNewReplacePB->get_sensitive())
+        DeleteEntry(m_xReplaceTLB->get_text(nEntry, 0), m_xReplaceTLB->get_text(nEntry, 1));
+        m_xReplaceTLB->remove(nEntry);
+        bChanged = true;
+    }
+    else if (pBtn == m_xNewReplacePB.get() || m_xNewReplacePB->get_sensitive())
     {
         OUString sEntry(m_xShortED->get_text());
         if (!sEntry.isEmpty() && (!m_xReplaceED->get_text().isEmpty() ||
@@ -1267,6 +1300,7 @@ bool OfaAutocorrReplacePage::NewDelHdl(const weld::Widget* pBtn)
             {
                 m_xShortED->grab_focus();
             }
+            bChanged = true;
         }
     }
     else
@@ -1276,6 +1310,8 @@ bool OfaAutocorrReplacePage::NewDelHdl(const weld::Widget* pBtn)
         return false;
     }
     ModifyHdl(*m_xShortED);
+    if (bChanged)
+        static_cast<OfaAutoCorrDlg*>(GetDialogController())->RefreshSearchFilter();
     return true;
 }
 
@@ -1289,6 +1325,7 @@ IMPL_LINK(OfaAutocorrReplacePage, ModifyHdl, weld::TextWidget&, rEdt, void)
     const OUString rEntry = rEdt.get_text();
     const OUString rRepString = m_xReplaceED->get_text();
     OUString aWordStr(pCharClass->lowercase(rEntry));
+    bool bFilteredMatch = false;
 
     if(bShort)
     {
@@ -1298,11 +1335,16 @@ IMPL_LINK(OfaAutocorrReplacePage, ModifyHdl, weld::TextWidget&, rEdt, void)
             bool bTmpSelEntry=false;
 
             m_xReplaceTLB->all_foreach([this, &rEntry, &rRepString, &bFound,
-                                        &bTmpSelEntry, &bFirstSelIterSet,
+                                        &bFilteredMatch, &bTmpSelEntry, &bFirstSelIterSet,
                                         &xFirstSel, &aWordStr](weld::TreeIter& rIter){
                 OUString aTestStr = m_xReplaceTLB->get_text(rIter, 0);
                 if( maCompareClass.compareString(rEntry, aTestStr ) == 0 )
                 {
+                    if (!m_xReplaceTLB->get_sensitive(rIter, -1))
+                    {
+                        bFilteredMatch = true;
+                        return true;
+                    }
                     if (!rRepString.isEmpty())
                         bFirstSelect = true;
                     m_xReplaceTLB->set_cursor(rIter);
@@ -1315,7 +1357,8 @@ IMPL_LINK(OfaAutocorrReplacePage, ModifyHdl, weld::TextWidget&, rEdt, void)
                 else
                 {
                     aTestStr = pCharClass->lowercase( aTestStr );
-                    if( !bTmpSelEntry && ( aTestStr.startsWith(aWordStr)
+                    if( !bTmpSelEntry && m_xReplaceTLB->get_sensitive(rIter, -1)
+                        && ( aTestStr.startsWith(aWordStr)
                         // find also with ".*" and between :colons:
                         || aTestStr.replaceAll(".*","").replaceAll(":", "").startsWith(aWordStr) ) )
                     {
@@ -1354,6 +1397,7 @@ IMPL_LINK(OfaAutocorrReplacePage, ModifyHdl, weld::TextWidget&, rEdt, void)
     bool bEnableNew = !aShortTxt.isEmpty() &&
                         ( !rRepString.isEmpty() ||
                                 ( bHasSelectionText && bSWriter )) &&
+                        !bFilteredMatch &&
                         ( !bFirstSelIterSet || rRepString !=
                                 m_xReplaceTLB->get_text(*xFirstSel, 1) );
     if( bEnableNew )
@@ -1446,6 +1490,16 @@ void OfaAutocorrExceptPage::CollectSearchLists(std::vector<OfaAutoCorrSearchList
 {
     rLists.push_back({ m_xAbbrevLB.get(), 1 });
     rLists.push_back({ m_xDoubleCapsLB.get(), 1 });
+}
+
+void OfaAutocorrExceptPage::SearchFilterChanged()
+{
+    // lcl_FindEntry distinguishes an existing-but-filtered row from an actionable exact match, so
+    // retained editor text cannot re-enable either Delete button or create a duplicate rule.
+    ModifyHdl(*m_xAbbrevED);
+    ModifyHdl(*m_xDoubleCapsED);
+    m_xDelAbbrevPB->set_sensitive(m_xAbbrevLB->get_selected_index() != -1);
+    m_xDelDoublePB->set_sensitive(m_xDoubleCapsLB->get_selected_index() != -1);
 }
 
 DeactivateRC OfaAutocorrExceptPage::DeactivatePage( SfxItemSet* )
@@ -1662,27 +1716,38 @@ IMPL_LINK(OfaAutocorrExceptPage, NewDelActionHdl, weld::Entry&, rEdit, bool)
 
 bool OfaAutocorrExceptPage::NewDelHdl(const weld::Widget* pBtn)
 {
+    bool bChanged = false;
     if ((pBtn == m_xNewAbbrevPB.get() || pBtn == m_xAbbrevED.get())
         && !m_xAbbrevED->get_text().isEmpty() && m_xNewAbbrevPB->get_sensitive())
     {
         m_xAbbrevLB->append_text(m_xAbbrevED->get_text());
         ModifyHdl(*m_xAbbrevED);
+        bChanged = true;
     }
-    else if(pBtn == m_xDelAbbrevPB.get())
+    else if (pBtn == m_xDelAbbrevPB.get() && m_xDelAbbrevPB->get_sensitive())
     {
-        m_xAbbrevLB->remove_text(m_xAbbrevED->get_text());
+        const int nSelected = m_xAbbrevLB->get_selected_index();
+        if (nSelected == -1)
+            return true;
+        m_xAbbrevLB->remove(nSelected);
         ModifyHdl(*m_xAbbrevED);
+        bChanged = true;
     }
     else if((pBtn == m_xNewDoublePB.get() || pBtn == m_xDoubleCapsED.get() )
             && !m_xDoubleCapsED->get_text().isEmpty() && m_xNewDoublePB->get_sensitive())
     {
         m_xDoubleCapsLB->append_text(m_xDoubleCapsED->get_text());
         ModifyHdl(*m_xDoubleCapsED);
+        bChanged = true;
     }
-    else if (pBtn == m_xDelDoublePB.get())
+    else if (pBtn == m_xDelDoublePB.get() && m_xDelDoublePB->get_sensitive())
     {
-        m_xDoubleCapsLB->remove_text(m_xDoubleCapsED->get_text());
+        const int nSelected = m_xDoubleCapsLB->get_selected_index();
+        if (nSelected == -1)
+            return true;
+        m_xDoubleCapsLB->remove(nSelected);
         ModifyHdl(*m_xDoubleCapsED);
+        bChanged = true;
     }
     else
     {
@@ -1691,6 +1756,8 @@ bool OfaAutocorrExceptPage::NewDelHdl(const weld::Widget* pBtn)
         // page does
         return false;
     }
+    if (bChanged)
+        static_cast<OfaAutoCorrDlg*>(GetDialogController())->RefreshSearchFilter();
     return true;
 }
 
@@ -1716,19 +1783,24 @@ IMPL_LINK(OfaAutocorrExceptPage, ModifyHdl, weld::TextWidget&, rEdt, void)
     bool bEntryLen = !sEntry.isEmpty();
     if (&rEdt == m_xAbbrevED.get())
     {
-        bool bSame = lcl_FindEntry(*m_xAbbrevLB, sEntry, maCompareClass);
-        if(bSame && sEntry != m_xAbbrevLB->get_selected_text())
+        const AutoCorrEntryMatch eMatch = lcl_FindEntry(*m_xAbbrevLB, sEntry, maCompareClass);
+        const bool bSame = eMatch != AutoCorrEntryMatch::None;
+        const bool bSelectable = eMatch == AutoCorrEntryMatch::Selectable;
+        if(bSelectable && sEntry != m_xAbbrevLB->get_selected_text())
             rEdt.set_text(m_xAbbrevLB->get_selected_text());
         m_xNewAbbrevPB->set_sensitive(!bSame && bEntryLen);
-        m_xDelAbbrevPB->set_sensitive(bSame && bEntryLen);
+        m_xDelAbbrevPB->set_sensitive(bSelectable && bEntryLen);
     }
     else
     {
-        bool bSame = lcl_FindEntry(*m_xDoubleCapsLB, sEntry, maCompareClass);
-        if(bSame && sEntry != m_xDoubleCapsLB->get_selected_text())
+        const AutoCorrEntryMatch eMatch
+            = lcl_FindEntry(*m_xDoubleCapsLB, sEntry, maCompareClass);
+        const bool bSame = eMatch != AutoCorrEntryMatch::None;
+        const bool bSelectable = eMatch == AutoCorrEntryMatch::Selectable;
+        if(bSelectable && sEntry != m_xDoubleCapsLB->get_selected_text())
             rEdt.set_text(m_xDoubleCapsLB->get_selected_text());
         m_xNewDoublePB->set_sensitive(!bSame && bEntryLen);
-        m_xDelDoublePB->set_sensitive(bSame && bEntryLen);
+        m_xDelDoublePB->set_sensitive(bSelectable && bEntryLen);
     }
 }
 

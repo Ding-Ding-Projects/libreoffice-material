@@ -1088,6 +1088,78 @@ def _validate_controller_driven_sites(
     )
 
 
+def _validate_state_refresh_contract(
+    context: str,
+    entry: Mapping[str, Any],
+    source: str,
+    header: str,
+    errors: list[str],
+) -> None:
+    """Pin state rebuilds that must immediately re-run a registered search site.
+
+    Some search owners rebuild their result model outside the changed handler (for example after a
+    language switch or an add/replace/delete operation).  An optional registry contract names every
+    such function and the shared refresh call it must reach, preventing newly rebuilt rows from
+    silently returning in an unfiltered state.
+    """
+    raw_contract = entry.get("state_refresh_contract")
+    if raw_contract is None:
+        return
+    if not isinstance(raw_contract, dict):
+        errors.append(f"{context}:state_refresh_contract:object required")
+        return
+
+    declaration = _required_text(
+        raw_contract, "header_declaration", f"{context}:state_refresh_contract", errors
+    )
+    call_marker = _required_text(
+        raw_contract, "call_marker", f"{context}:state_refresh_contract", errors
+    )
+    if declaration and header.count(declaration) != 1:
+        errors.append(
+            f"{context}:state_refresh_contract:header declaration expected exactly 1"
+        )
+
+    raw_sites = raw_contract.get("sites")
+    if not isinstance(raw_sites, list) or not raw_sites:
+        errors.append(f"{context}:state_refresh_contract:sites non-empty array required")
+        return
+    expected_sites = raw_contract.get("expected_sites")
+    if not isinstance(expected_sites, int) or expected_sites < 1:
+        errors.append(f"{context}:state_refresh_contract:expected_sites positive integer required")
+    elif expected_sites != len(raw_sites):
+        errors.append(f"{context}:state_refresh_contract:expected_sites count drift")
+
+    seen_signatures: set[str] = set()
+    for site_index, raw_site in enumerate(raw_sites):
+        prefix = f"{context}:state_refresh_contract:site[{site_index}]"
+        if not isinstance(raw_site, dict):
+            errors.append(f"{prefix}:object required")
+            continue
+        signature = _required_text(raw_site, "signature", prefix, errors)
+        if not signature:
+            continue
+        if signature in seen_signatures:
+            errors.append(f"{prefix}:signature duplicate")
+        seen_signatures.add(signature)
+
+        body = _function_body(source, signature)
+        if body is None:
+            errors.append(f"{prefix}:function body not found for {signature}")
+            continue
+        if call_marker and body.count(call_marker) != 1:
+            errors.append(f"{prefix}:refresh call expected exactly 1")
+
+        guard_marker = raw_site.get("guard_marker")
+        if guard_marker is not None:
+            if not isinstance(guard_marker, str) or not guard_marker.strip():
+                errors.append(f"{prefix}:guard_marker non-empty text required when declared")
+            elif body.count(guard_marker) != 1:
+                errors.append(f"{prefix}:guard expected exactly 1")
+            elif call_marker and body.find(guard_marker) > body.find(call_marker):
+                errors.append(f"{prefix}:guard must precede refresh call")
+
+
 def violations(
     registry: Mapping[str, Any],
     coverage: Mapping[str, Any],
@@ -1372,6 +1444,8 @@ def violations(
                     context, entry, source, header, controller_member,
                     default_mode, body, errors,
                 )
+
+        _validate_state_refresh_contract(context, entry, source, header, errors)
 
     return errors
 

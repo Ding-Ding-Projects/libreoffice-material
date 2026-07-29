@@ -397,21 +397,16 @@ sal_Int64 SAL_CALL AccessibleListBoxEntry::getAccessibleStateSet(  )
 
     if (isAlive())
     {
-        switch(getAccessibleRole())
+        const sal_Int16 nRole = getAccessibleRole();
+        switch (nRole)
         {
             case AccessibleRole::LABEL:
                 nStateSet |= AccessibleStateType::TRANSIENT;
-                nStateSet |= AccessibleStateType::SELECTABLE;
-                nStateSet |= AccessibleStateType::ENABLED;
-                if (m_pTreeListBox->IsInplaceEditingEnabled())
-                    nStateSet |= AccessibleStateType::EDITABLE;
                 if (IsShowing_Impl())
                     nStateSet |= AccessibleStateType::SHOWING;
                 break;
             case AccessibleRole::CHECK_BOX:
                 nStateSet |= AccessibleStateType::TRANSIENT;
-                nStateSet |= AccessibleStateType::SELECTABLE;
-                nStateSet |= AccessibleStateType::ENABLED;
                 if (IsShowing_Impl())
                     nStateSet |= AccessibleStateType::SHOWING;
                 break;
@@ -434,13 +429,17 @@ sal_Int64 SAL_CALL AccessibleListBoxEntry::getAccessibleStateSet(  )
                 nStateSet |= AccessibleStateType::VISIBLE;
             if (m_pTreeListBox->IsSelected(pEntry))
                 nStateSet |= AccessibleStateType::SELECTED;
-            if (m_pTreeListBox->IsEnabled())
+            SvViewDataEntry& rViewData = m_pTreeListBox->GetViewDataEntry(*pEntry);
+            if (m_pTreeListBox->IsEnabled() && rViewData.IsSelectable())
             {
                 nStateSet |= AccessibleStateType::ENABLED;
                 nStateSet |= AccessibleStateType::FOCUSABLE;
                 nStateSet |= AccessibleStateType::SELECTABLE;
-                SvViewDataEntry& rViewDataNewCur = m_pTreeListBox->GetViewDataEntry(*pEntry);
-                if (rViewDataNewCur.HasFocus())
+                if (nRole == AccessibleRole::LABEL && m_pTreeListBox->IsInplaceEditingEnabled())
+                {
+                    nStateSet |= AccessibleStateType::EDITABLE;
+                }
+                if (rViewData.HasFocus())
                     nStateSet |= AccessibleStateType::FOCUSED;
             }
         }

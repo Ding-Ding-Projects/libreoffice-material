@@ -403,6 +403,36 @@
           "match_subject": "rRowText"
         }
       ],
+      "state_refresh_contract": {
+        "header_declaration": "void RefreshSearchFilter();",
+        "call_marker": "RefreshSearchFilter()",
+        "expected_sites": 7,
+        "sites": [
+          {
+            "signature": "void OfaAutocorrReplacePage::ActivatePage("
+          },
+          {
+            "signature": "void OfaAutocorrReplacePage::Reset("
+          },
+          {
+            "signature": "void    OfaAutocorrExceptPage::ActivatePage("
+          },
+          {
+            "signature": "void OfaAutocorrExceptPage::Reset("
+          },
+          {
+            "signature": "IMPL_LINK_NOARG(OfaAutoCorrDlg, SelectLanguageHdl"
+          },
+          {
+            "signature": "bool OfaAutocorrReplacePage::NewDelHdl(",
+            "guard_marker": "if (bChanged)"
+          },
+          {
+            "signature": "bool OfaAutocorrExceptPage::NewDelHdl(",
+            "guard_marker": "if (bChanged)"
+          }
+        ]
+      },
       "runtime_verified": false
     },
     {

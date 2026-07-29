@@ -26,6 +26,8 @@
 #include <tools/svborder.hxx>
 #include <vcl/window.hxx>
 
+class SfxDocumentTabBar;
+
 class SfxFrame_Impl : public SfxBroadcaster
 {
 public:
@@ -40,12 +42,14 @@ public:
     bool                      bReleasingComponent : 1;
     bool                      bInPlace : 1;
     SfxWorkWindow*            pWorkWin;
+    VclPtr<SfxDocumentTabBar> pDocumentTabBar;
     SvBorder                  aBorder;
     // formerly SfxTopFrame
     VclPtr<vcl::Window>       pExternalContainerWindow;
     bool                      bHidden;
     bool                      bLockResize;
     bool                      bMenuBarOn;
+    bool                      bPresentationMode;
 
     explicit SfxFrame_Impl()
         :mbHasTitle( false )
@@ -58,10 +62,12 @@ public:
         ,bReleasingComponent( false )
         ,bInPlace( false )
         ,pWorkWin( nullptr )
+        ,pDocumentTabBar( nullptr )
         ,pExternalContainerWindow( nullptr )
         ,bHidden( false )
         ,bLockResize( false )
         ,bMenuBarOn( true )
+        ,bPresentationMode( false )
     {
     }
 };

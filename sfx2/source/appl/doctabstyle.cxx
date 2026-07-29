@@ -138,7 +138,7 @@ SfxDocTabStyle::Result SfxDocTabStyle::Normalize(std::u16string_view rsKey,
         return normalizeEnum(rsRaw, 1);
     }
 
-    // --- Histories/DocumentTabStyles per-document style -------------------
+    // --- History/DocumentTabStyles per-document style ---------------------
     if (rsKey == u"CustomLabel")
     {
         // Collapse whitespace, trim, and bound the length; empty is dropped.

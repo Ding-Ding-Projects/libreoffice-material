@@ -56,7 +56,7 @@
     },
     "DocumentTabStyle": {
       "xcs_scope": "template",
-      "note": "Histories/DocumentTabStyles set node-type; one entry per document URL.",
+      "note": "History/DocumentTabStyles set node-type; one entry per document URL.",
       "properties": [
         {
           "name": "CustomLabel",

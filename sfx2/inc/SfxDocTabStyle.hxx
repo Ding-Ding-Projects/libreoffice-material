@@ -18,7 +18,7 @@
 /**
  * Clamp-on-read normalizer for all persisted Material document-tab
  * configuration (the Common.xcs Appearance/DocumentTabs group and the
- * Histories/DocumentTabStyles set, node-type DocumentTabStyle).
+ * History/DocumentTabStyles set, node-type DocumentTabStyle).
  *
  * This mirrors desktop-material's normalizeTabTitleStyle posture
  * (app/src/models/repository-tab.ts): the on-disk registry is untrusted
@@ -32,9 +32,8 @@
  * exactly one branch per officecfg property; the build-free contract
  * bin/check-doc-tab-style-schema.py cross-validates that this stays true.
  *
- * NOTE: compile-plausibility only in this stage. It is registered in
- * sfx2/Library_sfx.mk and follows sfx2 conventions but is compiled by CI, not
- * locally; no runtime behaviour is claimed.
+ * Runtime verification is tracked separately from this normalizer's source
+ * contract.
  */
 class SfxDocTabStyle
 {

@@ -414,6 +414,10 @@ public:
 
     Color           GetTabBgColor( sal_uInt16 nPageId ) const;
     void            SetTabBgColor( sal_uInt16 nPageId, const Color& aTabBgColor );
+    /** Optional page-specific label font and colour. These augment TabBar's
+        existing item model without replacing its paint/accessibility path. */
+    void            SetPageFont( sal_uInt16 nPageId, const vcl::Font& rFont );
+    void            SetPageTextColor( sal_uInt16 nPageId, const Color& rColor );
 
     void            Clear();
 

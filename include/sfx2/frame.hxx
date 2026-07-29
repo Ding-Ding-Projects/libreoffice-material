@@ -133,6 +133,10 @@ public:
     SAL_DLLPRIVATE tools::Rectangle GetTopOuterRectPixel_Impl() const;
     SAL_DLLPRIVATE void CreateWorkWindow_Impl();
     SAL_DLLPRIVATE void GrabFocusOnComponent_Impl();
+    /** Create/destroy, rebuild, and lay out this frame's opt-in document strip. */
+    SAL_DLLPRIVATE void RefreshDocumentTabBar_Impl();
+    /** Refresh every live top-level frame after document/config/title changes. */
+    SAL_DLLPRIVATE static void RefreshDocumentTabBars_Impl();
 
     SAL_DLLPRIVATE void PrepareForDoc_Impl( const SfxObjectShell& i_rDoc );
     SAL_DLLPRIVATE void LockResize_Impl( bool bLock );

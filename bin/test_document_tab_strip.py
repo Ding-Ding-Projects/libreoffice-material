@@ -8,10 +8,10 @@
 """Mutation regressions for the Material document-tab strip contract (stage 3).
 
 Each test proves an inversion of the contract fails closed: the pristine tree
-passes, and every mutation (a dropped TabBar::Paint ride, a selection-dependent
-accent, a hardcoded colour, the TabsEnabled guard removed or defaulted on, a
-topness-violating cast smuggled into the frame-raise, the reused Window-menu
-path deleted, or a missing appearance-editor id) turns the checker red.
+passes, and mutations covering production ownership/layout, lifecycle
+synchronisation, disposed-frame safety, dynamic-set creation, active-page
+selection, typography, CSS-hex decoding/round-trip, favourite behaviour, the
+paint/raise paths, and the default-off guard all turn the checker red.
 """
 
 from __future__ import annotations
@@ -42,6 +42,12 @@ class DocumentTabStripContractTest(unittest.TestCase):
         self.uimk_key = self.contract["uiconfig_mk"]
         self.xcs_key = self.contract["tabs_enabled_guard"]["schema_file"]
         self.ref_key = self.contract["reused_frame_raise_api"]["reference_source"]
+        self.frame_key = self.contract["frame_cxx"]
+        self.frame_impl_key = self.contract["frame_impl_hxx"]
+        self.frame2_key = self.contract["frame2_cxx"]
+        self.viewframe_key = self.contract["viewframe_cxx"]
+        self.viewframe2_key = self.contract["viewframe2_cxx"]
+        self.tabbar_cxx_key = self.contract["tabbar_cxx"]
 
     def failures(self, *, contract=None, contents=None) -> list[str]:
         return VALIDATOR.violations(
@@ -117,6 +123,16 @@ class DocumentTabStripContractTest(unittest.TestCase):
         )
         self.assertTrue(self.failures(contents=contents))
 
+    def test_per_page_font_not_consumed_by_tabbar_fails(self) -> None:
+        contents = self.mutated(
+            self.tabbar_cxx_key,
+            "pItem->moPageFont.value_or(bCurrent ? aFont : aLightFont)",
+            "(bCurrent ? aFont : aLightFont)",
+        )
+        self.assertTrue(
+            any("paint-path" in f for f in self.failures(contents=contents))
+        )
+
     # --- TabsEnabled guard -------------------------------------------------
 
     def test_factory_without_nullptr_guard_fails(self) -> None:
@@ -184,6 +200,172 @@ class DocumentTabStripContractTest(unittest.TestCase):
         self.assertTrue(
             any("fontsize" in f for f in self.failures(contents=contents))
         )
+
+    def test_wrong_history_path_fails(self) -> None:
+        contents = self.mutated(
+            self.cxx_key,
+            "/org.openoffice.Office.Common/History/DocumentTabStyles",
+            "/org.openoffice.Office.Common/Histories/DocumentTabStyles",
+        )
+        self.assertTrue(any("editor:cxx" in f for f in self.failures(contents=contents)))
+
+    def test_first_dynamic_style_cannot_be_created_fails(self) -> None:
+        contents = self.mutated(
+            self.cxx_key,
+            "xEntry.set(xFactory->createInstance(), uno::UNO_QUERY_THROW);",
+            "xEntry.clear();",
+        )
+        self.assertTrue(any("createInstance" in f for f in self.failures(contents=contents)))
+
+    def test_font_size_editor_reset_to_default_fails(self) -> None:
+        contents = self.mutated(
+            self.cxx_key,
+            "xFontSize->set_value(aStyle.nFontSize);",
+            "xFontSize->set_value(SfxDocTabStyle::DEFAULT_FONT_SIZE);",
+        )
+        self.assertTrue(any("roundtrip" in f for f in self.failures(contents=contents)))
+
+    def test_font_size_short_is_not_read_fails(self) -> None:
+        contents = self.mutated(
+            self.cxx_key,
+            "else if (sal_Int16 n; aAny >>= n)",
+            "else if (sal_Int64 n; aAny >>= n)",
+        )
+        self.assertTrue(any("style:cxx" in f for f in self.failures(contents=contents)))
+
+    def test_lossy_rgb_serialization_fails(self) -> None:
+        contents = self.mutated(
+            self.cxx_key,
+            "xColor->set_text(aStyle.aBackgroundColor);",
+            "xColor->set_text(aStyle.oColor->AsRGBHexString());",
+        )
+        self.assertTrue(any("lossy" in f for f in self.failures(contents=contents)))
+
+    # --- production ownership and lifecycle -------------------------------
+
+    def test_no_frame_owner_fails(self) -> None:
+        contents = self.mutated(
+            self.frame_impl_key,
+            "VclPtr<SfxDocumentTabBar> pDocumentTabBar",
+            "VclPtr<vcl::Window> pDocumentTabBar",
+        )
+        self.assertTrue(any("owner" in f for f in self.failures(contents=contents)))
+
+    def test_factory_not_called_by_frame_owner_fails(self) -> None:
+        contents = self.mutated(
+            self.frame_key,
+            "SfxDocumentTabBar::Create(&GetWindow(), GetFrameInterface())",
+            "VclPtr<SfxDocumentTabBar>()",
+        )
+        self.assertTrue(any("owner:create" in f for f in self.failures(contents=contents)))
+
+    def test_layout_does_not_reserve_strip_height_fails(self) -> None:
+        contents = self.mutated(
+            self.frame_key,
+            "aPos.AdjustY(nTabHeight);",
+            "// content overlaps strip",
+        )
+        self.assertTrue(any("owner:layout" in f for f in self.failures(contents=contents)))
+
+    def test_open_does_not_refresh_existing_strips_fails(self) -> None:
+        old = (
+            "m_pImpl->pWorkWin = new SfxWorkWindow(&pFrame->GetWindow(), *this, *pFrame);\n"
+            "    // This is the normal product frame/layout seam: once a real view and its\n"
+            "    // WorkWindow exist, every top-level frame owns and sizes its guarded strip.\n"
+            "    RefreshDocumentTabBars_Impl();"
+        )
+        contents = self.mutated(
+            self.frame_key,
+            old,
+            "m_pImpl->pWorkWin = new SfxWorkWindow(&pFrame->GetWindow(), *this, *pFrame);",
+        )
+        self.assertTrue(any("owner:workwindow" in f for f in self.failures(contents=contents)))
+
+    def test_close_does_not_dispose_owned_strip_fails(self) -> None:
+        contents = self.mutated(
+            self.frame_key,
+            "m_pImpl->pDocumentTabBar.disposeAndClear();",
+            "m_pImpl->pDocumentTabBar.clear();",
+        )
+        self.assertTrue(any("lifetime" in f for f in self.failures(contents=contents)))
+
+    # --- synchronization and disposed frames ------------------------------
+
+    def test_title_change_does_not_refresh_fails(self) -> None:
+        contents = self.mutated(
+            self.viewframe2_key,
+            "SfxFrame::RefreshDocumentTabBars_Impl();",
+            "// title change not propagated",
+        )
+        self.assertTrue(any("UpdateTitle" in f for f in self.failures(contents=contents)))
+
+    def test_current_frame_change_does_not_refresh_fails(self) -> None:
+        contents = self.mutated(
+            self.viewframe_key,
+            "pFrame->GetFrame().RefreshDocumentTabBar_Impl();",
+            "// activation not propagated",
+        )
+        self.assertTrue(any("SetViewFrame" in f for f in self.failures(contents=contents)))
+
+    def test_rebuild_keeps_disposed_frames_fails(self) -> None:
+        contents = self.mutated(
+            self.cxx_key,
+            "if (!lcl_isLiveDocumentFrame(xFrame))",
+            "if (!xFrame.is())",
+        )
+        self.assertTrue(any("Rebuild" in f for f in self.failures(contents=contents)))
+
+    def test_selection_does_not_restore_owner_fails(self) -> None:
+        old = (
+            "const sal_uInt16 nSelectedPage = GetCurPageId();\n"
+            "    RaiseFrameForPage(nSelectedPage);\n"
+            "    SelectOwnerFrame();"
+        )
+        contents = self.mutated(
+            self.cxx_key,
+            old,
+            "const sal_uInt16 nSelectedPage = GetCurPageId();\n"
+            "    RaiseFrameForPage(nSelectedPage);",
+        )
+        self.assertTrue(any("selection" in f for f in self.failures(contents=contents)))
+
+    def test_config_commit_does_not_refresh_all_strips_fails(self) -> None:
+        contents = self.mutated(
+            self.cxx_key,
+            "SfxFrame::RefreshDocumentTabBars_Impl();",
+            "// config commit not propagated",
+        )
+        self.assertTrue(any("EditTabAppearance" in f for f in self.failures(contents=contents)))
+
+    # --- CSS hex and favourite behaviour ----------------------------------
+
+    def test_short_rgb_nibbles_not_expanded_fails(self) -> None:
+        contents = self.mutated(self.cxx_key, "* 17;", "* 16;")
+        self.assertTrue(any("hex:decode" in f for f in self.failures(contents=contents)))
+
+    def test_rgba_alpha_byte_lost_fails(self) -> None:
+        contents = self.mutated(
+            self.cxx_key,
+            "lcl_hexByte(rColor, 7) : 255",
+            "lcl_hexByte(rColor, 5) : 255",
+        )
+        self.assertTrue(any("hex:decode" in f for f in self.failures(contents=contents)))
+
+    def test_favorite_sort_becomes_inert_fails(self) -> None:
+        contents = self.mutated(
+            self.cxx_key,
+            "if (a.aStyle.bFavorite != b.aStyle.bFavorite)",
+            "if (false)",
+        )
+        self.assertTrue(any("favorite" in f for f in self.failures(contents=contents)))
+
+    def test_favorite_visual_marker_removed_fails(self) -> None:
+        contents = self.mutated(
+            self.cxx_key,
+            'u"\\u2605 "_ustr + rRow.aStyle.aLabel',
+            "rRow.aStyle.aLabel",
+        )
+        self.assertTrue(any("favorite" in f for f in self.failures(contents=contents)))
 
     # --- build registration ------------------------------------------------
 

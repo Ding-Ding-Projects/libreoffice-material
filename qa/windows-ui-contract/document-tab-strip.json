@@ -5,12 +5,20 @@
   "status": "source-declared",
   "runtime_verified": false,
   "stage": "tabbed-ui-stage-3-material-tab-strip",
-  "source_note": "Fail-closed, build-free cross-check for stage 3: the Material document-tab STRIP (SfxDocumentTabBar). The strip is a svtools::TabBar subclass that rides the already-shipped Material TabBar paint path (the calc-sheet-tabs anatomy) and, on tab activation, RAISES each document's existing top-level window via the EXACT frame-activation path the Window menu uses -- it never hosts multiple documents in one window and never performs a topness-violating cast. Everything is guarded behind the stage-2 officecfg TabsEnabled property (default false): the widget cannot even be constructed when tabs are off, so the default build stays byte-identical. The checker re-derives every fact from the real tree and fails closed on drift. runtime_verified is false throughout: the C++ is compile-plausibility only and is compiled by CI, not here; no tab pixels or window switching are claimed.",
+  "source_note": "Fail-closed, build-free cross-check for the Material document-tab STRIP (SfxDocumentTabBar). Each normal top-level SfxFrame owns, sizes and disposes a guarded strip. Open/close/title/current-frame/config changes rebuild it, disposed UNO frames are skipped safely, and the owner's page remains active after a cross-window raise. The strip rides the existing TabBar paint path and renders the persisted typography/colour/favourite fields without lossy CSS-hex conversion. Everything remains guarded behind TabsEnabled=false by default. runtime_verified is false: this contract proves source wiring only, not built pixels or interaction.",
   "strip_hxx": "sfx2/inc/SfxDocumentTabBar.hxx",
   "strip_cxx": "sfx2/source/appl/documenttabbar.cxx",
   "appearance_ui": "sfx2/uiconfig/ui/documenttabappearance.ui",
   "library_mk": "sfx2/Library_sfx.mk",
   "uiconfig_mk": "sfx2/UIConfig_sfx.mk",
+  "frame_hxx": "include/sfx2/frame.hxx",
+  "frame_impl_hxx": "sfx2/source/view/impframe.hxx",
+  "frame_cxx": "sfx2/source/view/frame.cxx",
+  "frame2_cxx": "sfx2/source/view/frame2.cxx",
+  "viewframe_cxx": "sfx2/source/view/viewfrm.cxx",
+  "viewframe2_cxx": "sfx2/source/view/viewfrm2.cxx",
+  "tabbar_hxx": "include/svtools/tabbar.hxx",
+  "tabbar_cxx": "svtools/source/control/tabbar.cxx",
   "reused_frame_raise_api": {
     "note": "The load-bearing reuse. SfxDocumentTabBar::RaiseFrameForPage reuses the exact frame-activation pair the Window menu uses -- WindowListMenuController::itemSelected raises a document window with pWin->GrabFocus() then pWin->ToTop(ToTopFlags::RestoreWhenMin) after VCLUnoHelper::GetWindow(xFrame->getContainerWindow()). This raises an already-existing top-level window; it touches NO frame-topness seam and performs NO WorkWindow cast.",
     "reference_source": "framework/source/uielement/resourcemenucontroller.cxx",
@@ -68,7 +76,7 @@
     }
   },
   "style_sourced_rendering": {
-    "note": "Every rendered attribute (label, colour, pin, favorite, order) comes from the persisted stage-2 SfxDocTabStyle, passed through SfxDocTabStyle::Normalize -- no hardcoded colour or label. The strip includes the stage-2 header and consults the DocumentTabStyles set keyed by document URL.",
+    "note": "Every rendered attribute (label, background/text colour, font family/size/emphasis, pin, favourite and order) comes from the persisted SfxDocTabStyle, passed through SfxDocTabStyle::Normalize. The shared TabBar exposes narrow per-page font/text-colour setters so its native layout, selection and accessibility remain authoritative.",
     "source": "sfx2/source/appl/documenttabbar.cxx",
     "include": "<SfxDocTabStyle.hxx>",
     "markers": [
@@ -76,7 +84,18 @@
       "DocumentTabStyles",
       "CustomLabel",
       "BackgroundColor",
+      "TextColor",
+      "FontFamily",
+      "FontSize",
+      "else if (sal_Int16 n; aAny >>= n)",
+      "aStyle.nFontSize",
+      "Bold",
+      "Italic",
+      "Underline",
+      "SetPageFont",
+      "SetPageTextColor",
       "Pinned",
+      "Favorite",
       "Order"
     ],
     "must_not_contain_hardcoded": [
@@ -85,7 +104,7 @@
     ]
   },
   "tabs_enabled_guard": {
-    "note": "The fail-closed construction guard. The static Create() factory is the only way to obtain a strip and returns nullptr unless TabsEnabled is true, so the widget cannot construct when tabs are off. TabsEnabled defaults false in the stage-2 officecfg group; when off the tabs-off path is byte-identical.",
+    "note": "The fail-closed construction guard. The static Create() factory is the only way to obtain a strip and returns nullptr unless TabsEnabled is true, so the widget cannot construct and no frame layout space is reserved when tabs are off. TabsEnabled defaults false.",
     "source": "sfx2/source/appl/documenttabbar.cxx",
     "officecfg_property": "officecfg::Office::Common::DocumentTabs::TabsEnabled::get()",
     "factory_function": "SfxDocumentTabBar::Create",
@@ -99,17 +118,134 @@
     "schema_required_default": "false"
   },
   "appearance_editor": {
-    "note": "The per-tab appearance editor reachable from the strip's right-click context menu. Weld dialog over the .ui; edits CustomLabel/colour/pin/favorite/font from the stage-2 schema and persists through the configuration, each value re-validated by the normalizer before write. DocumentTabStyles is a DYNAMIC SET, which gets no generated officecfg accessor (only scalar groups do), so it is opened via ConfigurationAccess/ConfigurationUpdateAccess through theDefaultProvider -- the same pattern sfx2/source/doc/doctemplates.cxx uses -- and committed with XChangesBatch::commitChanges. gla11y-clean (0 FATALs).",
+    "note": "The per-tab appearance editor round-trips every applicable visual field. DocumentTabStyles is a dynamic set at Common/History/DocumentTabStyles; the first style is created through XSingleServiceFactory and insertByName, then committed. CSS hex spelling and alpha are preserved in the editor.",
     "cxx": "sfx2/source/appl/documenttabbar.cxx",
     "ui": "sfx2/uiconfig/ui/documenttabappearance.ui",
     "context_menu_marker": "CommandEventId::ContextMenu",
     "ui_dialog_id": "DocumentTabAppearanceDialog",
-    "ui_required_ids": ["label", "color", "pinned", "favorite", "fontsize", "ok", "cancel"],
+    "ui_required_ids": ["label", "color", "textcolor", "fontfamily", "fontsize", "bold", "italic", "underline", "pinned", "favorite", "ok", "cancel"],
     "cxx_markers": [
       "EditTabAppearance",
       "documenttabappearance.ui",
       "ConfigurationUpdateAccess",
+      "/org.openoffice.Office.Common/History/DocumentTabStyles",
+      "XSingleServiceFactory",
+      "createInstance()",
+      "insertByName(aUrl",
       "commitChanges()"
+    ],
+    "cxx_must_not_contain": [
+      "/org.openoffice.Office.Common/Histories/DocumentTabStyles",
+      "AsRGBHexString"
+    ]
+  },
+  "production_owner_and_layout": {
+    "note": "A normal SfxFrame owns the VclPtr, creates it only after the WorkWindow/view exists, disposes it before the parent window, and reserves GetPreferredHeight below the top toolspace border.",
+    "owner_markers": [
+      "VclPtr<SfxDocumentTabBar> pDocumentTabBar",
+      "pDocumentTabBar.disposeAndClear();"
+    ],
+    "create_function": "SfxFrame::RefreshDocumentTabBar_Impl",
+    "create_markers": [
+      "SfxDocumentTabBar::ShouldShow()",
+      "SfxDocumentTabBar::Create(&GetWindow(), GetFrameInterface())",
+      "m_pImpl->pDocumentTabBar->Show();"
+    ],
+    "workwindow_function": "SfxFrame::CreateWorkWindow_Impl",
+    "workwindow_markers": [
+      "m_pImpl->pWorkWin = new SfxWorkWindow",
+      "RefreshDocumentTabBars_Impl();"
+    ],
+    "layout_function": "SfxFrame::SetToolSpaceBorderPixel_Impl",
+    "layout_markers": [
+      "GetPreferredHeight()",
+      "pDocumentTabBar->SetPosSizePixel",
+      "aPos.AdjustY(nTabHeight)",
+      "rBorder.Top() + rBorder.Bottom() + nTabHeight"
+    ]
+  },
+  "synchronization_and_safety": {
+    "note": "Open/close/title/current-frame/config changes refresh strips; a live-model predicate and UNO exception guards prevent disposed-frame dereferences; each strip selects its owner after rebuild and after raising another window.",
+    "sync_markers": {
+      "frame_cxx": ["RefreshDocumentTabBars_Impl();", "RefreshDocumentTabBar_Impl()"],
+      "frame2_cxx": ["m_pFrame->RefreshDocumentTabBar_Impl();"],
+      "viewframe_cxx": ["pFrame->GetFrame().RefreshDocumentTabBar_Impl();"],
+      "viewframe2_cxx": ["SfxFrame::RefreshDocumentTabBars_Impl();"],
+      "strip_cxx": ["SfxFrame::RefreshDocumentTabBars_Impl();"]
+    },
+    "strip_markers": [
+      "lcl_isLiveDocumentFrame",
+      "catch (const uno::Exception&)",
+      "SelectOwnerFrame();",
+      "rEntry.xFrame == mxOwnerFrame"
+    ],
+    "function_markers": [
+      {
+        "source": "frame_cxx",
+        "function": "SfxFrame::~SfxFrame",
+        "markers": ["pDocumentTabBar.disposeAndClear();", "RefreshDocumentTabBars_Impl();"]
+      },
+      {
+        "source": "frame2_cxx",
+        "function": "SfxFrameWindow_Impl::DataChanged",
+        "markers": ["m_pFrame->RefreshDocumentTabBar_Impl();"]
+      },
+      {
+        "source": "viewframe_cxx",
+        "function": "SfxViewFrame::SetViewFrame",
+        "markers": ["pFrame->GetFrame().RefreshDocumentTabBar_Impl();"]
+      },
+      {
+        "source": "viewframe2_cxx",
+        "function": "SfxViewFrame::UpdateTitle",
+        "markers": ["SfxFrame::RefreshDocumentTabBars_Impl();"]
+      },
+      {
+        "source": "strip_cxx",
+        "function": "SfxDocumentTabBar::Rebuild",
+        "markers": ["SfxFrame::GetFirst()", "lcl_isLiveDocumentFrame(xFrame)", "SelectOwnerFrame();"]
+      },
+      {
+        "source": "strip_cxx",
+        "function": "SfxDocumentTabBar::RaiseFrameForPage",
+        "markers": ["catch (const uno::Exception&)", "Rebuild();"]
+      },
+      {
+        "source": "strip_cxx",
+        "function": "SfxDocumentTabBar::EditTabAppearance",
+        "markers": ["SfxFrame::RefreshDocumentTabBars_Impl();"]
+      }
+    ]
+  },
+  "hex_roundtrip": {
+    "function": "lcl_parseHexColor",
+    "must_contain": [
+      "rColor.getLength() == 4",
+      "* 17",
+      "Color(ColorAlpha, 255",
+      "rColor.getLength() == 9",
+      "lcl_hexByte(rColor, 7)",
+      "Color(ColorAlpha, nAlpha"
+    ],
+    "must_not_contain": [
+      "toUInt32(16)"
+    ],
+    "roundtrip_markers": [
+      "aStyle.aBackgroundColor",
+      "aStyle.aTextColor",
+      "xFontSize->set_value(aStyle.nFontSize)"
+    ]
+  },
+  "favorite_and_schema_honesty": {
+    "favorite_markers": [
+      "a.aStyle.bFavorite != b.aStyle.bFavorite",
+      "u\"\\u2605 \"_ustr + rRow.aStyle.aLabel"
+    ],
+    "schema_markers": [
+      "visibly marked with a star",
+      "TabCloseButtons remains reserved and explicitly inert",
+      "current one-window-per-document strip intentionally",
+      "current one-window-per-document strip does not group tabs"
     ]
   },
   "build_registration": {

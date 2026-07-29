@@ -46,6 +46,7 @@
 #include <sfx2/sfxsids.hrc>
 #include <sfx2/viewsh.hxx>
 #include <sfx2/viewfrm.hxx>
+#include <SfxDocumentTabBar.hxx>
 #include "impframe.hxx"
 #include <utility>
 #include <workwin.hxx>
@@ -80,6 +81,7 @@ void SfxFrame::Construct_Impl()
 SfxFrame::~SfxFrame()
 {
     RemoveTopFrame_Impl( this );
+    m_pImpl->pDocumentTabBar.disposeAndClear();
     m_pWindow.disposeAndClear();
 
     auto it = std::find( gaFramesArr_Impl.begin(), gaFramesArr_Impl.end(), this );
@@ -87,6 +89,10 @@ SfxFrame::~SfxFrame()
         gaFramesArr_Impl.erase( it );
 
     delete m_pImpl->pDescr;
+
+    // The desktop frame collection and every remaining strip must stop
+    // retaining the frame that has just gone away.
+    RefreshDocumentTabBars_Impl();
 }
 
 bool SfxFrame::DoClose()
@@ -570,13 +576,70 @@ void SfxFrame::SetToolSpaceBorderPixel_Impl( const SvBorder& rBorder )
     else
         aSize.setWidth( 0 );
 
-    tools::Long nDeltaY = rBorder.Top() + rBorder.Bottom();
+    tools::Long nTabHeight = 0;
+    if (m_pImpl->pDocumentTabBar && m_pImpl->pDocumentTabBar->IsVisible())
+    {
+        const tools::Long nAvailableWidth = std::max<tools::Long>(0, aSize.Width() - nDeltaX);
+        const tools::Long nAvailableHeight
+            = std::max<tools::Long>(0, aSize.Height() - rBorder.Top() - rBorder.Bottom());
+        nTabHeight
+            = std::min(m_pImpl->pDocumentTabBar->GetPreferredHeight(), nAvailableHeight);
+        m_pImpl->pDocumentTabBar->SetPosSizePixel(
+            Point(rBorder.Left(), rBorder.Top()), Size(nAvailableWidth, nTabHeight));
+        aPos.AdjustY(nTabHeight);
+    }
+
+    tools::Long nDeltaY = rBorder.Top() + rBorder.Bottom() + nTabHeight;
     if ( aSize.Height() > nDeltaY )
         aSize.AdjustHeight( -nDeltaY );
     else
         aSize.setHeight( 0 );
 
     pF->GetWindow().SetPosSizePixel( aPos, aSize );
+}
+
+void SfxFrame::RefreshDocumentTabBar_Impl()
+{
+    const bool bShouldShow = m_pWindow && GetCurrentViewFrame() && GetWorkWindow_Impl()
+                             && GetFrameInterface().is() && !IsInPlace()
+                             && !IsMarkedHidden_Impl() && !m_pImpl->bPresentationMode
+                             && SfxDocumentTabBar::ShouldShow();
+    const bool bHadBar = bool(m_pImpl->pDocumentTabBar);
+
+    if (!bShouldShow)
+    {
+        m_pImpl->pDocumentTabBar.disposeAndClear();
+        if (bHadBar && GetCurrentViewFrame())
+            Resize();
+        return;
+    }
+
+    if (!m_pImpl->pDocumentTabBar)
+    {
+        m_pImpl->pDocumentTabBar
+            = SfxDocumentTabBar::Create(&GetWindow(), GetFrameInterface());
+        if (!m_pImpl->pDocumentTabBar)
+            return;
+        m_pImpl->pDocumentTabBar->Show();
+    }
+    else
+    {
+        m_pImpl->pDocumentTabBar->Rebuild();
+    }
+
+    Resize();
+}
+
+void SfxFrame::RefreshDocumentTabBars_Impl()
+{
+    // Copying keeps iteration stable if a UNO callback closes a disposed frame
+    // while a strip is defensively rebuilding.
+    const std::vector<SfxFrame*> aFrames = gaFramesArr_Impl;
+    for (SfxFrame* pFrame : aFrames)
+    {
+        if (pFrame && !pFrame->IsClosing_Impl())
+            pFrame->RefreshDocumentTabBar_Impl();
+    }
 }
 
 tools::Rectangle SfxFrame::GetTopOuterRectPixel_Impl() const
@@ -631,6 +694,9 @@ void SfxFrame::CreateWorkWindow_Impl()
     }
 
     m_pImpl->pWorkWin = new SfxWorkWindow(&pFrame->GetWindow(), *this, *pFrame);
+    // This is the normal product frame/layout seam: once a real view and its
+    // WorkWindow exist, every top-level frame owns and sizes its guarded strip.
+    RefreshDocumentTabBars_Impl();
 }
 
 void SfxFrame::GrabFocusOnComponent_Impl()

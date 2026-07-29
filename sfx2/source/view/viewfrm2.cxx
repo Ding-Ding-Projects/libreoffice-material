@@ -142,6 +142,10 @@ void SfxViewFrame::UpdateTitle()
     SetName( aSbxName );
     GetBindings().Invalidate( SID_CURRENT_URL );
     GetBindings().Invalidate( SID_NEWDOCDIRECT );
+
+    // Titles and Save As URLs are tab labels/persistence keys. Rebuild every
+    // live strip at the same point the normal frame title becomes authoritative.
+    SfxFrame::RefreshDocumentTabBars_Impl();
 }
 
 void SfxViewFrame::Exec_Impl(SfxRequest &rReq )

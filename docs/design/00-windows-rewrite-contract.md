@@ -66,7 +66,7 @@ archive:
 
 The exhaustive dialog registry is
 [`qa/windows-ui-contract/dialog-notification-policy.csv`](../../qa/windows-ui-contract/dialog-notification-policy.csv).
-It currently assigns an explicit migration policy to all 597 discovered
+It currently assigns an explicit migration policy to all 599 discovered
 top-level dialog roots; the automatic file-association and Welcome dialogs were
 removed by the no-nag source slice. Registration is coverage, not implementation or runtime
 proof. Search-field coverage is governed by the companion registry in the same
@@ -80,9 +80,13 @@ dialog. Calc's Go to Sheet search is the first registered field integrated in
 source: its adjacent accessible builder owns the prior change callback,
 preserves exact legacy `OUString::indexOf` matching in the default literal,
 case-sensitive mode, and uses one compiled `utl::TextSearch` matcher per refresh
-for regex or explicitly case-insensitive literal searches. The
-source-integration registry proves that wiring for 1 of 26 shipping fields; the
-remaining 25 fields and build/runtime proof remain open.
+for regex or explicitly case-insensitive literal searches. The current coverage
+ledger audits 30 shipping fields: 15 are source-integrated and 15 retain
+documented architectural gaps. Forms, Find & Replace, and Writer Quick Find now
+route effective ICU patterns plus `i/g/m/s` through their real native matchers,
+with bounded live validation, explicit incompatible-mode transitions, and
+repeat-search state recovery. The source contract and 97 mutation regressions
+pass; native compilation and runtime proof remain open.
 
 The first shared native implementation seam is now present in source: after
 final VCL `InitShow` layout, Windows `Dialog` instances are positioned at the

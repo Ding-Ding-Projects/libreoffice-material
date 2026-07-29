@@ -25,7 +25,7 @@ complete, reviewable migration coverage. A separate source contract now guards
 the first shared implementation seam: Windows VCL dialogs are repositioned only
 after their final `InitShow` layout, relative to the visible owner/work area,
 with bounded Material inset and work-area clamping. That seam is geometry only.
-The current total is 598 roots (`GtkDialog` 521, `GtkMessageDialog` 76,
+The current total is 599 roots (`GtkDialog` 522, `GtkMessageDialog` 76,
 `GtkAssistant` 1) after the no-nag source slice deleted the automatic Windows
 file-association and Welcome dialogs and the shared destructive-confirmation
 dialog was added.
@@ -65,8 +65,7 @@ precedence:
    cleared and stays modal, as do all `GtkDialog`/`GtkAssistant` shells.
 
 That yields 9 `bottom-right-notification-form` acknowledgment message boxes and
-589 `native-exclusion` rows (input 459, interactive 55, destructive 27,
-decision 26, credential 14, security 8). Regenerating is idempotent; review any
+590 `native-exclusion` rows. Regenerating is idempotent; review any
 new acknowledgment message added to the notification set before closing its
 surface. The classifier is unit-tested per signal in
 `bin/test_windows_dialog_notification_contract.py`
@@ -185,7 +184,7 @@ by design, and a residual floor of non-product test/demo/example `.ui` files sta
 `unassigned` deliberately — zero-unassigned is not the honest target.
 
 The `unassigned` count is an honest ledger figure, not a silent gap: the current
-baseline is **250 of 1270** surfaces (1260 `.ui` plus 10 native), down from 434
+baseline is **250 of 1271** surfaces (1261 `.ui` plus 10 native), down from 434
 after the mega-wave assignment campaign moved 184 surfaces into owning rows via 4
 new `prefix_rules` (the `extensions` property-control/wizard/bibliography subtrees
 and `formula`) plus per-cluster `overrides` (Options → `WIN-DLG-002`, destructive
@@ -220,10 +219,9 @@ appears in the diff as an added `unassigned` row for review.
 
 `search-field-coverage.json` records the audited Windows text-query controls:
 
-- 26 existing shipping search fields, each assigned the
+- 30 existing shipping search fields, each assigned the
   `adjacent-advanced-builder` contract;
-- one planned Start Center `start_search` field, required to remain absent until
-  it moves into shipping coverage; and
+- no planned fields (the Start Center field is now shipping); and
 - 16 explicit exclusions for categorical selectors, range inputs,
   transformation parameters, object names, non-shipping QA controls, and the
   shared builder's own pattern editor.
@@ -254,15 +252,18 @@ insertion, and embedded Build/Test/Reference/Examples content. Its
 a modal or bottom-right dialog.
 
 `regex-search-integrations.json` is the separate source-implementation ledger.
-It currently records Calc Go to Sheet as 1 of 26 shipping fields. Its validator
-requires direct entry/button adjacency, translated accessible metadata,
-controller-owned change dispatch, controller-first destruction, exact legacy
-`OUString::indexOf` behavior in the literal case-sensitive default, and one
-`utl::TextSearch` construction before the item loop for non-legacy modes.
-Comment-only wiring cannot satisfy the source contract. Ten mutations prove
-those requirements fail closed. The remaining 25 shipping integrations and
-native build/runtime proof remain open; `runtime_verified: false` is intentional
-until exact-build interaction evidence exists.
+It records 15 of the 30 shipping fields as source-integrated; the other 15 have
+explicit gap categories and evidence. Its validator requires entry/button
+adjacency or the registered Start Center pill layout, translated accessible
+metadata, controller-owned change dispatch, controller-first destruction, and
+function-local routes into each real matcher. It preserves legacy literal
+behavior where required and now checks Forms, Find & Replace, and Writer Quick
+Find for effective patterns, `i/g/m/s`, invalid-pattern guards, incompatible-mode
+transitions, bounded live work, and repeat state. Ninety-seven mutations include
+raw-sink, dead-route, capability, range, metadata, and owner-message bypasses.
+Comment-only wiring cannot satisfy the source contract. Native build/runtime
+proof remains open; `runtime_verified: false` is intentional until exact-build
+interaction evidence exists.
 
 ## No unsolicited startup or promotion prompts
 

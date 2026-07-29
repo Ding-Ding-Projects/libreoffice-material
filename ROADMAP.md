@@ -15,16 +15,42 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
-**2026-07-28 milestone — CI repair + verified burn-down 73.41% → 83.24%:** the
-Phase 7.5 search-bar merge had left `main` red (gla11y FATALs, illegal
+**2026-07-29 milestone — source bug audit and evidence correction:** a
+post-pull audit closed the six product bug clusters recorded below at source
+level. Notification selection now follows visible rows, Undo skips prior Undo
+records, high-severity/pinned cards cannot auto-dismiss, and the overlay
+re-anchors on resize. Document tabs now have frame ownership, live open/close/
+title/current-frame refresh, disposed-frame pruning, robust style/config
+round-tripping, and a complete appearance dialog. Persisted Material accents
+now resolve through the runtime token consumer path after restart. Start Center
+regex-mode synchronization and Templates filtering are wired, while AutoCorrect
+search keeps section/header rows disabled and non-actionable after every
+rebuild. Forms, Find & Replace, and Writer Quick Find now route `i/g/m/s`,
+invalid-pattern guards, mode transitions, and repeat state to the real
+LibreOffice matcher; their fail-closed integration suite has 97 regressions.
+
+The rewrite evaluator itself also had a fail-closed dead end: a valid historical
+snapshot was retained after a still-conforming surface changed, so C4 rejected
+the stale markers but `--evaluate` could not refresh them. The evaluator and
+its mutation coverage now refresh such evidence. The audited headline is
+**82.45% (1048/1271), 223 pending, 0 in-progress**. This corrects ten
+previously over-credited surfaces; eleven rows now carry explicit regression
+waivers in total. All claims in this milestone are source/static/build-free
+evidence. There is no configured local LibreOffice build, so the new C++ tests,
+native compilation, headless interaction, pixels, accessibility, and
+performance remain unverified until CI/build-host evidence exists.
+
+**2026-07-28 milestone — CI repair + provisional burn-down 73.41% → 83.24%:**
+the Phase 7.5 search-bar merge had left `main` red (gla11y FATALs, illegal
 interface-level `<child>` markup, registry claims with no backing C++); commit
 `56d210c38` repaired all of it and produced verified-green runs of every
 workflow including MSI-131. An adversarially-verified Opus wave then rewrote
 127 of the 338 pending ledger surfaces (footer anatomy with C++-audited
 response repairs, real label anatomy, Material content grids) and landed the
 genuine `RegexSearchController` wiring for both Phase 7.5 search bars
-(registries truthfully at 15/15). The remaining 213 pending surfaces carry
-per-surface blocked evidence in
+(registries truthfully at 15/15). The 213-pending headline was the provisional
+wave result; the 2026-07-29 commit-auditable evaluation above corrects it to
+223. Per-surface blocked evidence remains in
 `docs/design/material-rewrite-wave-2026-07-28-evidence.json`; the wave C++ is
 source-implemented pending its first MSI compile.
 
@@ -51,16 +77,14 @@ limit; current source uses default `GITHUB_*` variables and pins that constraint
 so a successful post-change hosted MSI publisher run remains pending. See
 [`docs/build/release-channel-integrity.md`](docs/build/release-channel-integrity.md).
 
-The same 2026-07-26 source audit keeps six product bug clusters explicitly open:
-filtered notification-manager selection/focus can act on hidden records and
-sequential Undo is wrong; document tabs lack a normal-product caller and fresh
-configuration entry, retain stale frames, and have schema/render mismatches;
-`i/g/m/s` controls in Find/Replace, Forms, and Quick Find do not reach the real
-matcher; the notification overlay does not fully re-anchor on resize and can
-auto-dismiss warning, error, or pinned cards; the persisted appearance accent
-does not update the runtime token cache; and Start Center regex mode can
-desynchronize while Templates search is a no-op. These findings add work; they
-do not reduce the compile evidence above or create runtime evidence.
+The same 2026-07-26 source audit identified six product bug clusters: filtered
+notification-manager selection/focus and sequential Undo; document-tab
+ownership/configuration/stale-frame/schema mismatches; disconnected `i/g/m/s`
+paths in Find/Replace, Forms, and Quick Find; overlay re-anchoring and unsafe
+auto-dismiss; persisted accents bypassed by runtime token consumers; and Start
+Center regex/Templates desynchronization. The 2026-07-29 milestone above closes
+those findings in source and regression contracts only. It does not change the
+older compile evidence or create native/runtime proof.
 
 **2026-07-23 milestone — first genuine cross-suite capture:** the shipped
 `windows-msi-89-1-705cf7ff4b` release binary produced the first honest Material
@@ -505,7 +529,7 @@ clickable legacy brand artwork as well. This newer source has focused validator
 coverage but does not inherit the earlier `393263ad9` build or screenshot proof.
 
 After the no-nag slice removes the file-association and Welcome dialog roots,
-the exhaustive Windows dialog contract registers all 597 remaining top-level
+the exhaustive Windows dialog contract now registers all 599 top-level
 `GtkDialog`, `GtkMessageDialog`, and `GtkAssistant` roots for migration to a
 customizable bottom-right notification form. The registry validator fails on
 new, removed, duplicated, reclassified, or implicitly governed roots. Current
@@ -555,24 +579,23 @@ credential/security roots carry explicit modal exclusions. Broad producer
 migration across the remaining policy registry, customization controls, and
 all build/runtime proof remain open.
 
-The companion search contract registers 26 audited shipping text-query fields,
-one planned Start Center field, and 16 explicit non-search exclusions. It fails
+The companion search contract registers 30 audited shipping text-query fields,
+no planned fields, and 16 explicit non-search exclusions. It fails
 on missing, duplicated, stale, or newly unclassified candidates and requires an
 adjacent advanced builder policy on every shipping field. The reusable native
 foundation now supplies ICU/LibreOffice literal and regex evaluation, `i/g/m/s`,
 live syntax/error and bounded match testing, token insertion, embedded
 Build/Test/Reference/Examples guidance, and Apply/Cancel/click-away semantics in
 a `GtkPopover` anchored to the adjacent builder button. Its source contract,
-eight mutation tests, UI lint, and accessibility lint pass; twelve native
-CppUnit cases are wired but not yet compiled. Build/Test/Reference/Examples are
+mutation coverage, UI lint, and accessibility lint pass; fourteen native
+CppUnit cases are wired but not compiled in the current checkout.
+Build/Test/Reference/Examples are
 scroll-backed, close cancellation is backend-independent, and Qt placement is
-work-area clamped. Calc's Go to Sheet search is the first of the 26 shipping
-fields source-integrated with an adjacent accessible builder. Its controller
-owns the existing change callback and preserves exact legacy
-`OUString::indexOf` matching in the default literal, case-sensitive mode. Regex
-and explicitly case-insensitive literal search build one `utl::TextSearch`
-matcher before each sheet-list loop. The implementation registry, focused
-validator, and all ten mutation tests pass.
+work-area clamped. Fifteen of the 30 shipping fields are source-integrated and
+15 carry explicit architectural gap evidence. Calc Go to Sheet preserves its
+legacy `OUString::indexOf` default; Forms, Find & Replace, and Writer Quick Find
+now route effective patterns and flags into their native matcher paths. The
+implementation registry, focused validator, and 97 mutation regressions pass.
 
 By 2026-07-21 the integration contract generalized twice into a strict
 parameterized form: four matcher strategies (in-handler legacy literal,

@@ -1,4 +1,56 @@
-# Windows-only handoff — 2026-07-21
+# Windows-only handoff — 2026-07-29
+
+## 2026-07-29 source bug audit, evidence repair, and integration handoff
+
+The audit began from pulled `origin/main` at `85f94df37` and integrated the
+completed notification/accent/Start Center slice (`ed6ca33e0`), commit-auditable
+rewrite evidence (`99f257dde`), provenance correction (`f9dc74254`), document
+tabs (`817794611`), and AutoCorrect search behavior (`eef23304b`). Follow-up
+search hardening landed at `1b08e4382`; the evaluator repair and refreshed
+Document Tab Appearance snapshot landed at `baae1c416`.
+
+### Product bugs closed in source
+
+- Notification Manager selection is derived from visible rows, filtered focus
+  is reconciled, Undo skips already-reversed actions, and timed dismissal is
+  limited to low-priority unpinned cards. The overlay listens for owner/work-area
+  resize and re-anchors its visible stack.
+- Document tabs are owned by normal `SfxViewFrame` lifetimes, reserve layout
+  space, refresh for open/close/title/current-frame/config changes, prune
+  disposed frames, restore the owning frame on selection, preserve full RGB(A)
+  style values, and expose a complete resettable appearance editor.
+- Persisted Material accent selection resolves through
+  `MaterialTokens::fromCurrentTheme()` in all registered paint consumers. Apply
+  remains restart-based; no live process re-key is claimed.
+- Start Center regex mode now synchronizes both directions, and Templates uses
+  the real filtered search path. AutoCorrect replacement/exception searches
+  rebuild from an authoritative baseline while keeping group/header rows
+  disabled, non-actionable, and inaccessible as selectable rules.
+- Forms, Find & Replace, and Writer Quick Find now send `i/g/m/s` and effective
+  ICU patterns through their real engine routes. Invalid patterns fail before
+  dispatch, Wildcard/Similarity transitions are explicit, oversized live
+  previews are bounded, non-global Quick Find retains the first result across
+  body and non-body ranges, and repeat search retains an effective pattern plus
+  process-local raw/flag metadata without changing the stable UNO wire shape.
+  LibreOfficeKit continues to own its live search widget text.
+
+### QA and honesty boundary
+
+- Focused static gates pass: regex-builder foundation validator + 10 tests;
+  regex-search integration validator + 97 tests; Material rewrite ledger
+  validator + 55 tests; JSON/Python parsing; and `git diff --check`.
+- The integration validator rejects raw-engine bypasses and dead marker routes
+  hidden behind `if(false)`, `if(0)`, `if constexpr(false)`, or `#if 0`.
+- The ledger now refreshes a valid historical evidence snapshot when a
+  still-conforming surface changes. The current audited result is **82.45%
+  (1048/1271), 223 pending, 0 in-progress**; ten former credits were corrected,
+  and eleven rows carry explicit regression waivers in total. Re-running
+  `--evaluate` is byte-idempotent.
+- No `config_host.mk`, `workdir`, or `instdir` exists in this checkout. The new
+  C++ tests were therefore inspected and registered but not compiled or run
+  locally. No headless/off-screen LibreOffice interaction, screenshot,
+  accessibility, pixel, localization, or performance proof is claimed here.
+  Hosted CI is the first native compile boundary for this source.
 
 ## 2026-07-28 session handoff — CI repair + adversarially-verified burn-down wave 73.41% → 83.24%
 

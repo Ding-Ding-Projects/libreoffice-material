@@ -33,7 +33,7 @@ active Start Center query after recent-document maintenance reloads, prevents
 docked side borders from being subtracted twice from document-tab width, and
 makes notification Undo follow repository chain order across wall-clock
 rollback. The fail-closed regex integration suite now has 100 regressions, and
-the document-tab suite has 40.
+the document-tab suite has 41.
 
 The rewrite evaluator itself also had a fail-closed dead end: a valid historical
 snapshot was retained after a still-conforming surface changed, so C4 rejected
@@ -50,8 +50,13 @@ provided the first hosted compiler contact for this follow-up and failed in the
 first critical desktop-library link because the document-tab source used
 `MapUnit::MapPoint` through a forward declaration. Current source includes the
 defining `tools/mapunit.hxx` header, removes the adjacent MSVC local-shadow
-warning, and has a fail-closed regression for the include; a corrected hosted
-MSI rerun is pending, so this is not yet successful native-build proof.
+warning, and has a fail-closed regression for the include. Corrective run
+[`30427865981`](https://github.com/Ding-Ding-Projects/libreoffice-material/actions/runs/30427865981)
+compiled that translation unit, then failed compiling `frame2.cxx` because
+`impframe.hxx` owned `VclPtr<SfxDocumentTabBar>` through only a forward
+declaration. Current source makes the owning header self-contained and
+regression-pins the complete-type include; a further hosted MSI rerun is
+pending, so this is not yet successful native-build proof.
 
 **2026-07-28 milestone — CI repair + provisional burn-down 73.41% → 83.24%:**
 the Phase 7.5 search-bar merge had left `main` red (gla11y FATALs, illegal
@@ -66,8 +71,8 @@ wave result; the 2026-07-29 commit-auditable evaluation above corrects it to
 223. Per-surface blocked evidence remains in
 `docs/design/material-rewrite-wave-2026-07-28-evidence.json`; the wave C++ is
 source-implemented. Its first exact-SHA MSI compile did not clear; the
-document-tab definition-include correction is present and a corrected rerun is
-pending.
+two concrete document-tab header-completeness failures are corrected and a
+further rerun is pending.
 
 **2026-07-26 milestone — Windows-only compile closure and release-channel
 containment:** Windows-only stages 4+5 landed at `7874c6b85`, including removal

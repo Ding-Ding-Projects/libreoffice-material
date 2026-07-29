@@ -325,6 +325,11 @@ def violations(contract: dict, contents: dict[str, str]) -> list[str]:
     # --- production owner and layout --------------------------------------
     owner = contract["production_owner_and_layout"]
     owner_sources = frame_impl_hxx + "\n" + frame_cxx
+    if owner["owner_definition_include"] not in frame_impl_hxx:
+        errors.append(
+            "owner:definition -- owning header must include the complete "
+            f"SfxDocumentTabBar definition via {owner['owner_definition_include']!r}"
+        )
     for marker in owner["owner_markers"]:
         if marker not in owner_sources:
             errors.append(f"owner:lifetime -- missing marker {marker!r}")

@@ -20,13 +20,13 @@
 #ifndef INCLUDED_SFX2_SOURCE_VIEW_IMPFRAME_HXX
 #define INCLUDED_SFX2_SOURCE_VIEW_IMPFRAME_HXX
 
+#include <SfxDocumentTabBar.hxx>
+
 #include <sfx2/frame.hxx>
 #include <sfx2/viewfrm.hxx>
 
 #include <tools/svborder.hxx>
 #include <vcl/window.hxx>
-
-class SfxDocumentTabBar;
 
 class SfxFrame_Impl : public SfxBroadcaster
 {

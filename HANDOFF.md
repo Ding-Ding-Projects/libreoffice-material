@@ -43,7 +43,7 @@ Document Tab Appearance snapshot landed at `baae1c416`.
 ### QA and honesty boundary
 
 - Focused static gates pass: regex-builder foundation validator + 10 tests;
-  regex-search integration validator + 100 tests; document-tab validator + 40
+  regex-search integration validator + 100 tests; document-tab validator + 41
   tests; four notification validators + 112 build-free tests; Material rewrite
   ledger validator + 55 tests; JSON/Python parsing; and `git diff --check`.
 - The integration validator rejects raw-engine bypasses and dead marker routes
@@ -64,9 +64,15 @@ Document Tab Appearance snapshot landed at `baae1c416`.
   critical desktop library: `documenttabbar.cxx` used `MapUnit::MapPoint` with
   only the forward declaration from `vcl/mapmod.hxx`. The current correction
   includes `tools/mapunit.hxx`, removes the adjacent MSVC local-shadow warning,
-  and pins the definition include in a mutation regression. The corrected
-  hosted MSI rerun is pending; the failed run skipped its dedicated native tests
-  and final product/MSI build.
+  and pins the definition include in a mutation regression. Corrective run
+  [`30427865981`](https://github.com/Ding-Ding-Projects/libreoffice-material/actions/runs/30427865981)
+  compiled `documenttabbar.cxx` past that fault, then exposed a second
+  self-containment bug while compiling `frame2.cxx`: `impframe.hxx` owned
+  `VclPtr<SfxDocumentTabBar>` with only a forward declaration. Current source
+  includes the complete `SfxDocumentTabBar.hxx` definition in the owning header
+  and regression-pins that requirement. A further hosted MSI rerun is pending;
+  both failed runs skipped their dedicated native tests and final product/MSI
+  builds.
 
 ## 2026-07-28 session handoff — CI repair + adversarially-verified burn-down wave 73.41% → 83.24%
 

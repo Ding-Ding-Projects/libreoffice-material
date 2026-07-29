@@ -251,6 +251,16 @@ class DocumentTabStripContractTest(unittest.TestCase):
         )
         self.assertTrue(any("owner" in f for f in self.failures(contents=contents)))
 
+    def test_owner_requires_complete_document_tab_type_fails(self) -> None:
+        contents = self.mutated(
+            self.frame_impl_key,
+            "#include <SfxDocumentTabBar.hxx>\n",
+            "",
+        )
+        self.assertTrue(
+            any("owner:definition" in f for f in self.failures(contents=contents))
+        )
+
     def test_factory_not_called_by_frame_owner_fails(self) -> None:
         contents = self.mutated(
             self.frame_key,

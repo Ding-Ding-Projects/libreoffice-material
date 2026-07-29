@@ -141,6 +141,7 @@
   },
   "production_owner_and_layout": {
     "note": "A normal SfxFrame owns the VclPtr, creates it only after the WorkWindow/view exists, disposes it before the parent window, and reserves GetPreferredHeight below the top toolspace border.",
+    "owner_definition_include": "#include <SfxDocumentTabBar.hxx>",
     "owner_markers": [
       "VclPtr<SfxDocumentTabBar> pDocumentTabBar",
       "pDocumentTabBar.disposeAndClear();"

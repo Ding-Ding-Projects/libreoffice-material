@@ -126,10 +126,14 @@ verification remain pending.**
   `952090ce2`; that workflow is historical compile evidence for the restored
   Stage 3 source. The 2026-07-29 follow-up subsequently changed the strip, and
   exact-source run `30423589955` failed its first critical desktop-library link
-  because `MapUnit::MapPoint` had only a forward declaration. Current source
-  includes `tools/mapunit.hxx` and pins that requirement in the fail-closed
-  contract, but its corrected hosted rerun remains pending. Neither run proves
-  construction, painting, activation, persistence, or accessibility at runtime.
+  because `MapUnit::MapPoint` had only a forward declaration. Corrective run
+  `30427865981` compiled that translation unit, then failed compiling
+  `frame2.cxx` because `impframe.hxx` instantiated
+  `VclPtr<SfxDocumentTabBar>` with only a forward declaration. Current source
+  includes both defining headers in their owning translation unit/header and
+  pins both requirements in the fail-closed contract, but a further hosted
+  rerun remains pending. Neither run proves construction, painting, activation,
+  persistence, or accessibility at runtime.
 - **Tabs do not render until an MSI exercises them.** No tab pixels and no
   window switching are claimed here.
 - True in-window multi-document hosting is a later, CI-gated stage and is

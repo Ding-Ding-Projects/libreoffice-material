@@ -329,6 +329,20 @@ class LedgerMutationTest(unittest.TestCase):
             self.assertEqual(by_family[fam]["total"], count, fam)
         self.assertEqual(self.ledger["coverage"]["total_surfaces"], 1271)
 
+    def test_site_headline_matches_generated_coverage(self) -> None:
+        coverage = self.ledger["coverage"]
+        site = (REPOSITORY / "site/index.html").read_text(encoding="utf-8")
+        headline = (
+            f"Material rewrite ledger {coverage['coverage_pct']:.2f}% "
+            f"({coverage['rewritten_material']}/{coverage['total_surfaces']}) "
+            f"· {coverage['pending']} pending"
+        )
+        self.assertIn(headline, site)
+        self.assertIn(
+            f"Material rewrite {coverage['coverage_pct']:.2f}%",
+            site,
+        )
+
     # -- C3 status regression ---------------------------------------------
     def test_status_regression_rejected(self) -> None:
         _lg, rows = self.fresh()
@@ -511,29 +525,32 @@ class LedgerMutationTest(unittest.TestCase):
         self.assertEqual(markers["default_id"], "save")
 
     def test_screenshot_annotation_close_as_ok_default_is_rejected(self) -> None:
-        xml = (REPOSITORY / CK.SCREENSHOT_ANNOTATION_SURFACE).read_text(
-            encoding="utf-8"
+        root = CK._parse_root(REPOSITORY, CK.SCREENSHOT_ANNOTATION_SURFACE)
+        dialog = CK._find_dialog_object(root)
+        self.assertIsNotNone(dialog)
+        buttons = CK._button_index(dialog)
+        cancel = buttons["cancel"]
+        save = buttons["save"]
+        for button in (cancel, save):
+            for prop in list(button):
+                if CK._tag(prop.tag) == "property" and prop.get("name") in (
+                    "can-default",
+                    "has-default",
+                ):
+                    button.remove(prop)
+        for name in ("can-default", "has-default"):
+            prop = CK.ET.SubElement(cancel, "property", {"name": name})
+            prop.text = "True"
+        action_widgets = next(
+            node for node in dialog.iter() if CK._tag(node.tag) == "action-widgets"
         )
-        broken = xml.replace(
-            '<property name="has-focus">True</property>\n'
-            '                <property name="receives-default">True</property>',
-            '<property name="has-focus">True</property>\n'
-            '                <property name="can-default">True</property>\n'
-            '                <property name="has-default">True</property>\n'
-            '                <property name="receives-default">True</property>',
-            1,
-        ).replace(
-            '                <property name="can-default">True</property>\n'
-            '                <property name="has-default">True</property>\n',
-            "",
-            1,
-        ).replace(
-            '      <action-widget response="-6">cancel</action-widget>\n'
-            '      <action-widget response="101">save</action-widget>',
-            '      <action-widget response="-5">cancel</action-widget>',
+        action_widgets.clear()
+        action = CK.ET.SubElement(
+            action_widgets, "action-widget", {"response": str(CK.RET_OK)}
         )
-        self.assertNotEqual(broken, xml)
-        ok, why = CK.screenshot_annotation_semantics(CK.ET.fromstring(broken))
+        action.text = "cancel"
+
+        ok, why = CK.screenshot_annotation_semantics(root)
         self.assertFalse(ok, why)
         self.assertIn("RET_CANCEL", why)
 

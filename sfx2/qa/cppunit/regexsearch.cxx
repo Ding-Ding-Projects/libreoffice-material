@@ -12,6 +12,8 @@
 #include <com/sun/star/util/SearchAlgorithms2.hpp>
 #include <cppunit/TestAssert.h>
 #include <rtl/ustrbuf.hxx>
+#include <svl/memberid.h>
+#include <svl/srchitem.hxx>
 #include <test/unoapi_test.hxx>
 
 #include <chrono>
@@ -122,6 +124,76 @@ CPPUNIT_TEST_FIXTURE(RegexSearchTest, testOptionsUseLibreOfficeSearchEngine)
     CPPUNIT_ASSERT_EQUAL(sal_Int16(css::util::SearchAlgorithms2::REGEXP), aOptions.AlgorithmType2);
     CPPUNIT_ASSERT_EQUAL(u"(?ms)^value.$"_ustr, aOptions.searchString);
     CPPUNIT_ASSERT(bool(aOptions.transliterateFlags & TransliterationFlags::IGNORE_CASE));
+}
+
+CPPUNIT_TEST_FIXTURE(RegexSearchTest, testSearchItemKeepsEffectiveRepeatAndRawDialogPattern)
+{
+    SvxSearchItem aItem(1);
+    aItem.SetRegExp(true);
+    // The user's own leading (?m) remains after removing exactly one service-generated prefix.
+    aItem.SetSearchStringWithRegexMetadata(
+        u"(?ms)(?m)^value.$"_ustr, true, true, true);
+
+    CPPUNIT_ASSERT_EQUAL(u"(?ms)(?m)^value.$"_ustr, aItem.GetSearchString());
+    CPPUNIT_ASSERT_EQUAL(u"(?m)^value.$"_ustr, aItem.GetSearchStringForUser());
+    CPPUNIT_ASSERT(aItem.GetRegexMultiline());
+    CPPUNIT_ASSERT(aItem.GetRegexDotAll());
+    CPPUNIT_ASSERT(aItem.GetRegexGlobal());
+
+    std::unique_ptr<SvxSearchItem> xClone(aItem.Clone());
+    CPPUNIT_ASSERT(aItem == *xClone);
+    CPPUNIT_ASSERT_EQUAL(u"(?m)^value.$"_ustr, xClone->GetSearchStringForUser());
+
+    xClone->SetSearchStringWithRegexMetadata(
+        u"(?ms)(?m)^value.$"_ustr, true, true, false);
+    CPPUNIT_ASSERT(!(aItem == *xClone));
+    CPPUNIT_ASSERT(aItem.equalsIgnoring(
+        *xClone, /*bIgnoreReplace=*/false, /*bIgnoreCommand=*/false));
+}
+
+CPPUNIT_TEST_FIXTURE(RegexSearchTest, testSearchItemExternalSettersClearRegexMetadata)
+{
+    SvxSearchItem aItem(1);
+    aItem.SetRegExp(true);
+    aItem.SetSearchStringWithRegexMetadata(u"(?m)^value$"_ustr, true, false, true);
+
+    aItem.SetSearchString(u"(?m)^external$"_ustr);
+    CPPUNIT_ASSERT(!aItem.GetRegexMultiline());
+    CPPUNIT_ASSERT(!aItem.GetRegexDotAll());
+    CPPUNIT_ASSERT(!aItem.GetRegexGlobal());
+    CPPUNIT_ASSERT_EQUAL(u"(?m)^external$"_ustr, aItem.GetSearchStringForUser());
+
+    aItem.SetSearchStringWithRegexMetadata(u"(?s)^value$"_ustr, false, true, false);
+    css::uno::Any aSerializedSearchString;
+    CPPUNIT_ASSERT(aItem.QueryValue(aSerializedSearchString, MID_SEARCH_SEARCHSTRING));
+
+    SvxSearchItem aRoundTripped(1);
+    aRoundTripped.SetRegExp(true);
+    CPPUNIT_ASSERT(
+        aRoundTripped.PutValue(aSerializedSearchString, MID_SEARCH_SEARCHSTRING));
+    CPPUNIT_ASSERT_EQUAL(u"(?s)^value$"_ustr, aRoundTripped.GetSearchString());
+    CPPUNIT_ASSERT_EQUAL(u"(?s)^value$"_ustr,
+                         aRoundTripped.GetSearchStringForUser());
+    CPPUNIT_ASSERT(!aRoundTripped.GetRegexDotAll());
+
+    aItem.SetSearchStringWithRegexMetadata(u"(?m)^value$"_ustr, true, false, true);
+    aItem.SetWildcard(true);
+    CPPUNIT_ASSERT(!aItem.GetRegexMultiline());
+    CPPUNIT_ASSERT(!aItem.GetRegexGlobal());
+
+    aItem.SetRegExp(true);
+    aItem.SetSearchStringWithRegexMetadata(u"(?s)^value$"_ustr, false, true, true);
+    aItem.SetLevenshtein(true);
+    CPPUNIT_ASSERT(!aItem.GetRegexDotAll());
+    CPPUNIT_ASSERT(!aItem.GetRegexGlobal());
+
+    aItem.SetRegExp(true);
+    aItem.SetSearchStringWithRegexMetadata(u"(?m)^value$"_ustr, true, false, true);
+    css::uno::Any aAlgorithm;
+    aAlgorithm <<= css::util::SearchAlgorithms2::ABSOLUTE;
+    CPPUNIT_ASSERT(aItem.PutValue(aAlgorithm, MID_SEARCH_ALGORITHMTYPE2));
+    CPPUNIT_ASSERT(!aItem.GetRegexMultiline());
+    CPPUNIT_ASSERT(!aItem.GetRegexGlobal());
 }
 
 CPPUNIT_TEST_FIXTURE(RegexSearchTest, testZeroWidthMatchAndPreviewLimitTerminate)

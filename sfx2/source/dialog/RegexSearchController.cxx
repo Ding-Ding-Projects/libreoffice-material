@@ -352,7 +352,8 @@ class RegexBuilderPopover final
 
 public:
     RegexBuilderPopover(weld::Widget* pParent, const RegexSearchState& rState,
-                        bool bGlobalFlagEnabled)
+                        bool bRegularExpressionModeEnabled, bool bGlobalFlagEnabled,
+                        bool bCaseInsensitiveFlagEnabled)
         : m_pParent(pParent)
         , m_xBuilder(Application::CreateBuilder(pParent, u"sfx/ui/regexbuilder.ui"_ustr))
         , m_xPopover(m_xBuilder->weld_popover(u"RegexBuilderPopover"_ustr))
@@ -403,9 +404,14 @@ public:
         m_aInsertButtons.push_back(
             { m_xBuilder->weld_button(u"insert_escape"_ustr), u"\\Q...\\E"_ustr, 5 });
 
+        if (!bRegularExpressionModeEnabled)
+            m_aState.Mode = RegexSearchMode::Literal;
+
         m_xPatternEntry->set_text(m_aState.Pattern);
         m_xRegexMode->set_active(m_aState.Mode == RegexSearchMode::RegularExpression);
+        m_xRegexMode->set_sensitive(bRegularExpressionModeEnabled);
         m_xCaseInsensitive->set_active(m_aState.Flags.CaseInsensitive);
+        m_xCaseInsensitive->set_sensitive(bCaseInsensitiveFlagEnabled);
         m_xGlobal->set_active(m_aState.Flags.Global);
         m_xGlobal->set_visible(bGlobalFlagEnabled);
         m_xMultiline->set_active(m_aState.Flags.Multiline);
@@ -815,9 +821,22 @@ void RegexSearchController::NotifyStateChanged()
 void RegexSearchController::SetState(const RegexSearchState& rState)
 {
     m_aState = rState;
+    if (!m_bGlobalFlagEnabled)
+        m_aState.Flags.Global = false;
     SetSearchText(m_aState.Pattern);
     UpdateSearchValidity();
     NotifyStateChanged();
+}
+
+void RegexSearchController::SetStateWithoutNotify(const RegexSearchState& rState,
+                                                  bool bUpdateSearchText)
+{
+    m_aState = rState;
+    if (!m_bGlobalFlagEnabled)
+        m_aState.Flags.Global = false;
+    if (bUpdateSearchText)
+        SetSearchText(m_aState.Pattern);
+    UpdateSearchValidity();
 }
 
 void RegexSearchController::SetTestText(const OUString& rTestText)
@@ -825,11 +844,28 @@ void RegexSearchController::SetTestText(const OUString& rTestText)
     m_aState.TestText = rTestText;
 }
 
+void RegexSearchController::SyncPatternFromWidget()
+{
+    m_aState.Pattern = GetSearchText();
+    UpdateSearchValidity();
+}
+
+void RegexSearchController::SetRegularExpressionModeEnabled(bool bEnabled)
+{
+    m_bRegularExpressionModeEnabled = bEnabled;
+    UpdateSearchValidity();
+}
+
 void RegexSearchController::SetGlobalFlagEnabled(bool bEnabled)
 {
     m_bGlobalFlagEnabled = bEnabled;
     if (!bEnabled)
         m_aState.Flags.Global = false;
+}
+
+void RegexSearchController::SetCaseInsensitiveFlagEnabled(bool bEnabled)
+{
+    m_bCaseInsensitiveFlagEnabled = bEnabled;
 }
 
 void RegexSearchController::ToggleMode()
@@ -854,12 +890,18 @@ void RegexSearchController::SetMode(RegexSearchMode eMode)
 
 i18nutil::SearchOptions2 RegexSearchController::GetSearchOptions() const
 {
-    return RegexSearchService::CreateSearchOptions(m_aState);
+    RegexSearchState aEffectiveState = m_aState;
+    if (!m_bRegularExpressionModeEnabled)
+        aEffectiveState.Mode = RegexSearchMode::Literal;
+    return RegexSearchService::CreateSearchOptions(aEffectiveState);
 }
 
 RegexSearchEvaluation RegexSearchController::Evaluate(sal_Int32 nMatchLimit) const
 {
-    return RegexSearchService::Evaluate(m_aState, nMatchLimit);
+    RegexSearchState aEffectiveState = m_aState;
+    if (!m_bRegularExpressionModeEnabled)
+        aEffectiveState.Mode = RegexSearchMode::Literal;
+    return RegexSearchService::Evaluate(aEffectiveState, nMatchLimit);
 }
 
 void RegexSearchController::ShowBuilder()
@@ -873,7 +915,8 @@ void RegexSearchController::ShowBuilder()
     }
 
     m_xBuilderPopover = std::make_unique<RegexBuilderPopover>(
-        m_pBuilderParent, m_aState, m_bGlobalFlagEnabled);
+        m_pBuilderParent, m_aState, m_bRegularExpressionModeEnabled,
+        m_bGlobalFlagEnabled, m_bCaseInsensitiveFlagEnabled);
     m_xBuilderPopover->SetApplyHdl(LINK(this, RegexSearchController, BuilderApplyHdl));
     m_xBuilderPopover->SetClosedHdl(LINK(this, RegexSearchController, BuilderClosedHdl));
     m_bBuilderPopoverOpen = true;
@@ -882,7 +925,15 @@ void RegexSearchController::ShowBuilder()
 
 IMPL_LINK(RegexSearchController, BuilderApplyHdl, RegexBuilderPopover&, rPopover, void)
 {
+    const RegexSearchMode eMode = m_aState.Mode;
+    const bool bCaseInsensitive = m_aState.Flags.CaseInsensitive;
     m_aState = rPopover.GetState();
+    if (!m_bRegularExpressionModeEnabled)
+        m_aState.Mode = eMode;
+    if (!m_bGlobalFlagEnabled)
+        m_aState.Flags.Global = false;
+    if (!m_bCaseInsensitiveFlagEnabled)
+        m_aState.Flags.CaseInsensitive = bCaseInsensitive;
     SetSearchText(m_aState.Pattern);
     UpdateSearchValidity();
     rPopover.Popdown();
@@ -903,7 +954,10 @@ void RegexSearchController::UpdateSearchValidity()
         return;
     }
 
-    const RegexSearchEvaluation aEvaluation = RegexSearchService::Validate(m_aState);
+    RegexSearchState aEffectiveState = m_aState;
+    if (!m_bRegularExpressionModeEnabled)
+        aEffectiveState.Mode = RegexSearchMode::Literal;
+    const RegexSearchEvaluation aEvaluation = RegexSearchService::Validate(aEffectiveState);
     SetSearchMessageType(aEvaluation.IsValid ? weld::EntryMessageType::Normal
                                              : weld::EntryMessageType::Error);
     m_pSearchWidget->set_tooltip_text(
@@ -934,8 +988,10 @@ IMPL_LINK(RegexSearchController, ComboChangedHdl, weld::ComboBox&, rComboBox, vo
 
 IMPL_LINK(RegexSearchController, BuilderClickedHdl, weld::Button&, rButton, void)
 {
-    ShowBuilder();
+    // Give owners with mutually-exclusive native modes (Wildcard/Similarity) a chance to
+    // transition them before the popover snapshots m_aState for its preview.
     m_aOwnerBuilderClickedHdl.Call(rButton);
+    ShowBuilder();
 }
 
 } // namespace sfx2

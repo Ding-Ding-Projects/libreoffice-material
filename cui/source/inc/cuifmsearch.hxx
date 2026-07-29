@@ -169,6 +169,7 @@ private:
     DECL_LINK(OnToggledFieldRadios, weld::Toggleable&, void);
     DECL_LINK(OnClickedSearchAgain, weld::Button&, void);
     DECL_LINK(OnClickedSpecialSettings, weld::Button&, void);
+    DECL_LINK(OnRegexBuilderClicked, weld::Button&, void);
 
     DECL_LINK(OnSearchTextModified, weld::ComboBox&, void);
 

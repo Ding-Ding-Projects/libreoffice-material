@@ -115,6 +115,7 @@ SvxSearchItem::SvxSearchItem( const sal_uInt16 nId ) :
     m_bPattern        ( false ),
     m_bContent        ( false ),
     m_bAsianOptions   ( false ),
+    m_nRegexMetadata  ( 0 ),
     m_nStartPointX(0),
     m_nStartPointY(0)
 {
@@ -210,6 +211,7 @@ SvxSearchItem::SvxSearchItem( const SvxSearchItem& rItem ) :
     m_bPattern        ( rItem.m_bPattern ),
     m_bContent        ( rItem.m_bContent ),
     m_bAsianOptions   ( rItem.m_bAsianOptions ),
+    m_nRegexMetadata  ( rItem.m_nRegexMetadata ),
     m_nStartPointX(rItem.m_nStartPointX),
     m_nStartPointY(rItem.m_nStartPointY)
 {
@@ -246,7 +248,8 @@ bool SvxSearchItem::operator==( const SfxPoolItem& rItem ) const
 {
     assert(SfxPoolItem::operator==(rItem));
     const SvxSearchItem &rSItem = static_cast<const SvxSearchItem &>(rItem);
-    return equalsIgnoring(rSItem, /*bIgnoreReplace=*/false, /*bIgnoreCommand=*/false);
+    return m_nRegexMetadata == rSItem.m_nRegexMetadata
+           && equalsIgnoring(rSItem, /*bIgnoreReplace=*/false, /*bIgnoreCommand=*/false);
 }
 
 bool SvxSearchItem::equalsIgnoring(const SvxSearchItem& rSItem, bool bIgnoreReplace,
@@ -304,6 +307,34 @@ void SvxSearchItem::SetMatchFullHalfWidthForms( bool bVal )
         m_aSearchOpt.transliterateFlags &= ~TransliterationFlags::IGNORE_WIDTH;
 }
 
+OUString SvxSearchItem::GetSearchStringForUser() const
+{
+    if (!GetRegExp())
+        return m_aSearchOpt.searchString;
+
+    OUString aPrefix;
+    if (GetRegexMultiline() && GetRegexDotAll())
+        aPrefix = u"(?ms)"_ustr;
+    else if (GetRegexMultiline())
+        aPrefix = u"(?m)"_ustr;
+    else if (GetRegexDotAll())
+        aPrefix = u"(?s)"_ustr;
+
+    if (!aPrefix.isEmpty() && m_aSearchOpt.searchString.startsWith(aPrefix))
+        return m_aSearchOpt.searchString.copy(aPrefix.getLength());
+    return m_aSearchOpt.searchString;
+}
+
+void SvxSearchItem::SetSearchStringWithRegexMetadata(const OUString& rEffectiveString,
+                                                     bool bMultiline, bool bDotAll,
+                                                     bool bGlobal)
+{
+    m_aSearchOpt.searchString = rEffectiveString;
+    m_nRegexMetadata = static_cast<sal_uInt8>((bMultiline ? RegexMultiline : 0)
+                                              | (bDotAll ? RegexDotAll : 0)
+                                              | (bGlobal ? RegexGlobal : 0));
+}
+
 
 void SvxSearchItem::SetWordOnly( bool bVal )
 {
@@ -340,6 +371,7 @@ void SvxSearchItem::SetSelection( bool bVal )
 
 void SvxSearchItem::SetRegExp( bool bVal )
 {
+    const sal_Int16 nOldAlgorithm = m_aSearchOpt.AlgorithmType2;
     if ( bVal )
     {
         m_aSearchOpt.AlgorithmType2 = SearchAlgorithms2::REGEXP;
@@ -348,11 +380,14 @@ void SvxSearchItem::SetRegExp( bool bVal )
     {
         m_aSearchOpt.AlgorithmType2 = SearchAlgorithms2::ABSOLUTE;
     }
+    if (nOldAlgorithm != m_aSearchOpt.AlgorithmType2)
+        m_nRegexMetadata = 0;
 }
 
 
 void SvxSearchItem::SetWildcard( bool bVal )
 {
+    const sal_Int16 nOldAlgorithm = m_aSearchOpt.AlgorithmType2;
     if ( bVal )
     {
         m_aSearchOpt.AlgorithmType2 = SearchAlgorithms2::WILDCARD;
@@ -361,6 +396,8 @@ void SvxSearchItem::SetWildcard( bool bVal )
     {
         m_aSearchOpt.AlgorithmType2 = SearchAlgorithms2::ABSOLUTE;
     }
+    if (nOldAlgorithm != m_aSearchOpt.AlgorithmType2)
+        m_nRegexMetadata = 0;
 }
 
 
@@ -375,6 +412,7 @@ void SvxSearchItem::SetLEVRelaxed( bool bVal )
 
 void SvxSearchItem::SetLevenshtein( bool bVal )
 {
+    const sal_Int16 nOldAlgorithm = m_aSearchOpt.AlgorithmType2;
     if ( bVal )
     {
         m_aSearchOpt.AlgorithmType2 = SearchAlgorithms2::APPROXIMATE;
@@ -383,6 +421,8 @@ void SvxSearchItem::SetLevenshtein( bool bVal )
     {
         m_aSearchOpt.AlgorithmType2 = SearchAlgorithms2::ABSOLUTE;
     }
+    if (nOldAlgorithm != m_aSearchOpt.AlgorithmType2)
+        m_nRegexMetadata = 0;
 }
 
 
@@ -507,6 +547,7 @@ bool SvxSearchItem::PutValue( const css::uno::Any& rVal, sal_uInt8 nMemberId )
                     if (css::util::SearchOptions2 nTmpSearchOpt2; rProp.Value >>= nTmpSearchOpt2)
                     {
                         m_aSearchOpt = nTmpSearchOpt2;
+                        m_nRegexMetadata = 0;
                         aConvertedParams.insert(rProp.Name);
                     }
                 }
@@ -599,15 +640,27 @@ bool SvxSearchItem::PutValue( const css::uno::Any& rVal, sal_uInt8 nMemberId )
             if (SearchAlgorithms eVal; ExtractNumericAny(rVal, eVal))
             {
                 m_aSearchOpt.AlgorithmType2 = i18nutil::upgradeSearchAlgorithms(eVal);
+                m_nRegexMetadata = 0;
                 return true;
             }
             break;
         case MID_SEARCH_ALGORITHMTYPE2:
-            return (rVal >>= m_aSearchOpt.AlgorithmType2);
+            if (rVal >>= m_aSearchOpt.AlgorithmType2)
+            {
+                m_nRegexMetadata = 0;
+                return true;
+            }
+            return false;
         case MID_SEARCH_FLAGS:
             return (rVal >>= m_aSearchOpt.searchFlag);
         case MID_SEARCH_SEARCHSTRING:
-            return (rVal >>= m_aSearchOpt.searchString);
+        {
+            OUString aSearchString;
+            if (!(rVal >>= aSearchString))
+                return false;
+            SetSearchString(aSearchString);
+            return true;
+        }
         case MID_SEARCH_REPLACESTRING:
             return (rVal >>= m_aSearchOpt.replaceString);
         case MID_SEARCH_CHANGEDCHARS:

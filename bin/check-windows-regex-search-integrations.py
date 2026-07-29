@@ -62,6 +62,7 @@ FULL_FLAG_RUNTIME_COVERAGE = {
 }
 COVERAGE_PATH = "qa/windows-ui-contract/search-field-coverage.json"
 CONTROLLER_SOURCE = "sfx2/source/dialog/RegexSearchController.cxx"
+FORMS_ENGINE_SOURCE = "svx/source/form/fmsrcimp.cxx"
 
 
 # ---------------------------------------------------------------------------
@@ -323,7 +324,7 @@ def load_repository(
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, str]]:
     registry = _read_json(repo_root / REGISTRY_PATH)
     coverage = _read_json(repo_root / COVERAGE_PATH)
-    paths = {REGISTRY_PATH, COVERAGE_PATH, CONTROLLER_SOURCE}
+    paths = {REGISTRY_PATH, COVERAGE_PATH, CONTROLLER_SOURCE, FORMS_ENGINE_SOURCE}
     for raw_entry in registry.get("integrations", []):
         if not isinstance(raw_entry, dict):
             continue
@@ -675,11 +676,21 @@ def _validate_constructor(
     button_member: str,
     owner_type: str,
     handler: str,
+    builder_clicked_handler: str,
     default_mode: str,
     case_insensitive: bool | None,
     case_seed_expression: str | None,
     errors: list[str],
 ) -> None:
+    owner_builder_wiring = (
+        r"\s*,\s*LINK\s*\(\s*this\s*,\s*"
+        + re.escape(owner_type)
+        + r"\s*,\s*"
+        + re.escape(builder_clicked_handler)
+        + r"\s*\)"
+        if builder_clicked_handler
+        else ""
+    )
     controller_wiring = re.compile(
         re.escape(controller_member)
         + r"\s*=\s*std::make_unique<sfx2::RegexSearchController>\s*\(\s*"
@@ -692,7 +703,9 @@ def _validate_constructor(
         + re.escape(owner_type)
         + r"\s*,\s*"
         + re.escape(handler)
-        + r"\s*\)\s*\)\s*;"
+        + r"\s*\)"
+        + owner_builder_wiring
+        + r"\s*\)\s*;"
     )
     if controller_wiring.search(constructor) is None:
         errors.append(f"{context}:source-wiring:controller constructor mismatch")
@@ -1172,6 +1185,431 @@ def _validate_state_refresh_contract(
                 errors.append(f"{prefix}:guard must precede refresh call")
 
 
+def _require_ordered_route(
+    context: str,
+    route: str,
+    body: str | None,
+    markers: tuple[str, ...],
+    errors: list[str],
+) -> None:
+    if body is None:
+        errors.append(f"{context}:runtime-route-{route}:function body missing")
+        return
+    cursor = -1
+    for marker in markers:
+        found = body.find(marker, cursor + 1)
+        if found < 0:
+            errors.append(
+                f"{context}:runtime-route-{route}:missing or out-of-order {marker}"
+            )
+            return
+        cursor = found
+    if re.search(
+        r"\bif\s+(?:constexpr\s*)?\(\s*(?:false|0)\s*\)", body
+    ):
+        errors.append(
+            f"{context}:runtime-route-{route}:dead constant-false route forbidden"
+        )
+    if re.search(r"(?m)^\s*#\s*if\s+(?:0|false)\b", body):
+        errors.append(
+            f"{context}:runtime-route-{route}:dead preprocessor route forbidden"
+        )
+
+
+def _require_exact_route_marker(
+    context: str,
+    route: str,
+    body: str | None,
+    marker: str,
+    count: int,
+    errors: list[str],
+) -> None:
+    actual = 0 if body is None else body.count(marker)
+    if actual != count:
+        errors.append(
+            f"{context}:runtime-route-{route}:{marker} expected exactly {count}, got {actual}"
+        )
+
+
+def _validate_full_flag_runtime_route(
+    context: str,
+    coverage_id: str,
+    source_file: str,
+    contents: Mapping[str, str],
+    errors: list[str],
+) -> None:
+    """Pin full i/m/s/g routes inside the real functions for the three native consumers.
+
+    Registry markers remain useful inventory, but are intentionally not the semantic oracle:
+    these checks bind state acquisition, transformation and the actual sink in function order,
+    and inspect the separate Forms engine implementation where its case behavior lives.
+    """
+
+    source = _without_cpp_comments(contents.get(source_file, ""))
+
+    if coverage_id == "forms.record-search":
+        search = _function_body(
+            source, "IMPL_LINK_NOARG(FmSearchDialog, OnClickedSearchAgain"
+        )
+        _require_ordered_route(
+            context,
+            "forms-search",
+            search,
+            (
+                "aState.Pattern = strHistoryText;",
+                "RegexSearchService::Validate(aState)",
+                "strThisRoundText = "
+                "sfx2::RegexSearchService::GetEffectivePattern(aState);",
+                "m_pSearchEngine->StartOver(strThisRoundText);",
+                "m_pSearchEngine->SearchNext(strThisRoundText);",
+            ),
+            errors,
+        )
+        for marker in (
+            "sfx2::RegexSearchService::GetEffectivePattern(aState)",
+            "sfx2::RegexSearchService::Validate(aState)",
+            "m_pSearchEngine->StartOver(strThisRoundText)",
+            "m_pSearchEngine->SearchNext(strThisRoundText)",
+        ):
+            _require_exact_route_marker(
+                context, "forms-search", search, marker, 1, errors
+            )
+        if search and (
+            "StartOver(strHistoryText)" in search
+            or "SearchNext(strHistoryText)" in search
+        ):
+            errors.append(
+                f"{context}:runtime-route-forms-search:raw pattern reaches engine sink"
+            )
+
+        toggled = _function_body(
+            source, "IMPL_LINK(FmSearchDialog, OnCheckBoxToggled"
+        )
+        _require_ordered_route(
+            context,
+            "forms-case",
+            toggled,
+            (
+                "aState.Flags.CaseInsensitive = !bChecked;",
+                "m_xRegexSearchController->SetState(aState);",
+            ),
+            errors,
+        )
+        modified = _function_body(
+            source, "IMPL_LINK_NOARG(FmSearchDialog, OnSearchTextModified"
+        )
+        _require_ordered_route(
+            context,
+            "forms-mode-switch",
+            modified,
+            (
+                "m_pcbWildCard->set_active(false);",
+                "OnCheckBoxToggled(*m_pcbWildCard);",
+                "m_pcbRegular->set_sensitive(true);",
+                "OnCheckBoxToggled(*m_pcbRegular);",
+            ),
+            errors,
+        )
+        _require_ordered_route(
+            context,
+            "forms-invalid-pattern",
+            modified,
+            (
+                "RegexSearchService::PreviewMaxPatternCodeUnits",
+                "RegexSearchService::Validate(aState)",
+                "m_pbSearchAgain->set_sensitive(",
+            ),
+            errors,
+        )
+        builder = _function_body(
+            source, "IMPL_LINK_NOARG(FmSearchDialog, OnRegexBuilderClicked"
+        )
+        _require_ordered_route(
+            context,
+            "forms-builder-transition",
+            builder,
+            (
+                "m_pcbWildCard->get_active()",
+                "m_pcbApprox->get_active()",
+                "m_xRegexSearchController->SetMode("
+                "sfx2::RegexSearchMode::RegularExpression);",
+            ),
+            errors,
+        )
+
+        engine = _without_cpp_comments(contents.get(FORMS_ENGINE_SOURCE, ""))
+        engine_search = _function_body(engine, "void FmSearchEngine::SearchNextImpl()")
+        _require_ordered_route(
+            context,
+            "forms-engine-case",
+            engine_search,
+            (
+                "if (!GetCaseSensitive() && !m_bRegular && !m_bLevenshtein)",
+                "strSearchExpression = "
+                "m_aCharacterClassficator.lowercase(strSearchExpression);",
+                "srResult = SearchRegularApprox(strSearchExpression",
+            ),
+            errors,
+        )
+        if engine_search and "if (!GetCaseSensitive())" in engine_search:
+            errors.append(
+                f"{context}:runtime-route-forms-engine-case:"
+                "unconditional lowercasing guard present"
+            )
+        regular = _function_body(
+            engine, "FmSearchEngine::SearchResult FmSearchEngine::SearchRegularApprox"
+        )
+        _require_ordered_route(
+            context,
+            "forms-engine-regex",
+            regular,
+            (
+                "aParam.transliterateFlags = GetTransliterationFlags();",
+                "aParam.searchString = strExpression;",
+                "::utl::TextSearch aLocalEngine( aParam);",
+                "aLocalEngine.SearchForward(sCurrentCheck",
+            ),
+            errors,
+        )
+        if regular and "lowercase(" in regular:
+            errors.append(
+                f"{context}:runtime-route-forms-engine-regex:"
+                "regex expression must not be lowercased"
+            )
+        return
+
+    if coverage_id == "document.find-replace":
+        command = _function_body(
+            source, "IMPL_LINK(SvxSearchDialog, CommandHdl_Impl"
+        )
+        _require_ordered_route(
+            context,
+            "find-command",
+            command,
+            (
+                "const bool bUsesTextSearch",
+                "const bool bNativeRegex",
+                "aRegexState.Pattern = aRawSearchString;",
+                "aRegexState.Mode = bNativeRegex",
+                "RegexSearchService::Validate(aRegexState)",
+                "SetSearchStringWithRegexMetadata(",
+                "RegexSearchService::GetEffectivePattern(aRegexState)",
+                "const bool bGlobalRequested",
+                "const bool bGlobalFind",
+                "const bool bGlobalReplace",
+                "bGlobalFind ? SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND",
+                "bGlobalReplace ? SvxSearchCmd::REPLACE_ALL",
+            ),
+            errors,
+        )
+        for marker in (
+            "RegexSearchService::GetEffectivePattern(aRegexState)",
+            "bGlobalFind ? SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND",
+            "bGlobalReplace ? SvxSearchCmd::REPLACE_ALL",
+        ):
+            _require_exact_route_marker(
+                context, "find-command", command, marker, 1, errors
+            )
+        if command and "SetSearchString(aRawSearchString)" in command:
+            errors.append(
+                f"{context}:runtime-route-find-command:raw pattern reaches dispatch item"
+            )
+        for capability in (
+            "SearchOptionFlags::SEARCHALL & m_nOptions",
+            "SearchOptionFlags::REPLACE_ALL & m_nOptions",
+        ):
+            if command is None or capability not in command:
+                errors.append(
+                    f"{context}:runtime-route-find-command:missing {capability}"
+                )
+
+        save = _function_body(source, "void SvxSearchDialog::SaveToModule_Impl()")
+        _require_ordered_route(
+            context,
+            "find-repeat-metadata",
+            save,
+            (
+                "const bool bInclusive",
+                "const bool bUsesTextSearch",
+                "const bool bNativeRegex",
+                "aRegexState.Pattern = m_xSearchLB->get_active_text();",
+                "aRegexState.Mode = bNativeRegex",
+                "SetSearchStringWithRegexMetadata(",
+                "RegexSearchService::GetEffectivePattern(aRegexState)",
+                "const bool bGlobalFind",
+                "SetCommand(bGlobalFind ? SvxSearchCmd::FIND_ALL : "
+                "SvxSearchCmd::FIND);",
+            ),
+            errors,
+        )
+        dispatch_at = -1 if command is None else command.find("ExecuteSynchron(FID_SEARCH_NOW")
+        if (
+            command is not None
+            and dispatch_at >= 0
+            and "SetSearchString(" in command[dispatch_at:]
+        ):
+            errors.append(
+                f"{context}:runtime-route-find-repeat-metadata:"
+                "effective repeat pattern overwritten after dispatch"
+            )
+
+        init = _function_body(source, "void SvxSearchDialog::Init_Impl(")
+        _require_ordered_route(
+            context,
+            "find-metadata-restore",
+            init,
+            (
+                "if (!(m_nModifyFlag & ModifyFlags::Search))",
+                "const bool bLibreOfficeKitActive = comphelper::LibreOfficeKit::isActive();",
+                "if (bLibreOfficeKitActive)",
+                "aRegexState.Pattern = m_xSearchLB->get_active_text();",
+                "aRegexState.Pattern = m_pSearchItem->GetSearchStringForUser();",
+                "aRegexState.Mode = m_xRegExpBtn->get_active()",
+                "aRegexState.Flags.CaseInsensitive = "
+                "!m_xMatchCaseCB->get_active();",
+                "aRegexState.Flags.Multiline = "
+                "m_pSearchItem->GetRegexMultiline();",
+                "aRegexState.Flags.DotMatchesNewline = "
+                "m_pSearchItem->GetRegexDotAll();",
+                "aRegexState.Flags.Global = m_pSearchItem->GetRegexGlobal();",
+                "m_xSearchRegexController->SetStateWithoutNotify("
+                "aRegexState, !bLibreOfficeKitActive);",
+            ),
+            errors,
+        )
+
+        capabilities = _function_body(
+            source, "void SvxSearchDialog::UpdateRegexBuilderCapabilities_Impl()"
+        )
+        _require_ordered_route(
+            context,
+            "find-capabilities",
+            capabilities,
+            (
+                "SetRegularExpressionModeEnabled(bRegexAvailable);",
+                "SearchOptionFlags::SEARCHALL & m_nOptions",
+                "SearchOptionFlags::REPLACE_ALL & m_nOptions",
+                "!m_xNotesBtn->get_visible() || !m_xNotesBtn->get_active()",
+                "SearchOptionFlags::EXACT & m_nOptions",
+                "SetCaseInsensitiveFlagEnabled(bCaseFlagEnabled);",
+            ),
+            errors,
+        )
+        modify = _function_body(
+            source, "IMPL_LINK( SvxSearchDialog, ModifyHdl_Impl"
+        )
+        _require_ordered_route(
+            context,
+            "find-invalid-pattern",
+            modify,
+            (
+                "RegexSearchService::Validate(aState)",
+                "m_xSearchBtn->set_sensitive(false);",
+                "m_xReplaceAllBtn->set_sensitive(false);",
+            ),
+            errors,
+        )
+        set_modify = _function_body(
+            source, "void SvxSearchDialog::SetModifyFlag_Impl"
+        )
+        if set_modify is None or "SyncPatternFromWidget();" not in set_modify:
+            errors.append(
+                f"{context}:runtime-route-find-invalid-pattern:"
+                "cleared outcome must reassert validation"
+            )
+        for route, signature in (
+            (
+                "find-transliteration-sync",
+                "void SvxSearchDialog::ApplyTransliterationFlags_Impl",
+            ),
+            ("find-activation-sync", "void SvxSearchDialog::Activate()"),
+        ):
+            body = _function_body(source, signature)
+            _require_ordered_route(
+                context,
+                route,
+                body,
+                (
+                    "UpdateRegexBuilderCapabilities_Impl();",
+                    "SyncRegexControllerFromToggle();",
+                ),
+                errors,
+            )
+        return
+
+    if coverage_id == "writer.quick-find":
+        fill = _function_body(source, "void QuickFindPanel::FillSearchFindsList()")
+        _require_ordered_route(
+            context,
+            "quick-find",
+            fill,
+            (
+                "m_pWrtShell->AssureStdMode();",
+                "RegexSearchService::Validate(rRegexState)",
+                "m_xRegexSearchController->GetSearchOptions();",
+                "m_pWrtShell->SearchPattern(",
+                "runSearch(FindRanges::InSelAll);",
+                "runSearch(FindRanges::InBody);",
+                "runSearch(FindRanges::InOther | FindRanges::InSelAll);",
+                "m_vPaMs.resize(1);",
+                "m_pWrtShell->KillPams();",
+                "m_pWrtShell->SetSelection(*m_vPaMs.front());",
+            ),
+            errors,
+        )
+        case = _function_body(
+            source,
+            "IMPL_LINK_NOARG(QuickFindPanel, MatchCaseCheckButtonToggledHandler",
+        )
+        _require_ordered_route(
+            context,
+            "quick-case",
+            case,
+            (
+                "const bool bCaseInsensitive = "
+                "!m_xMatchCaseCheckButton->get_active();",
+                "aState.Flags.CaseInsensitive = bCaseInsensitive;",
+                "m_xRegexSearchController->SetState(aState);",
+            ),
+            errors,
+        )
+        changed = _function_body(
+            source, "IMPL_LINK_NOARG(QuickFindPanel, SearchComboBoxChangedHandler"
+        )
+        _require_ordered_route(
+            context,
+            "quick-live-preview-budget",
+            changed,
+            (
+                "const bool bPreviewWithinBudget",
+                "RegexSearchService::PreviewMaxPatternCodeUnits",
+                "&& bPreviewWithinBudget",
+                "FillSearchFindsList();",
+            ),
+            errors,
+        )
+        if changed and "EntryMessageType::Normal" in changed:
+            errors.append(
+                f"{context}:runtime-route-quick-invalid-pattern:"
+                "owner must not overwrite controller validation"
+            )
+        builder = _function_body(
+            source, "IMPL_LINK_NOARG(QuickFindPanel, RegexBuilderClickedHandler"
+        )
+        _require_ordered_route(
+            context,
+            "quick-builder-transition",
+            builder,
+            (
+                "m_xSimilarityCheckButton->get_active()",
+                "m_xSimilarityCheckButton->set_active(false);",
+                "m_xRegexSearchController->SetMode("
+                "sfx2::RegexSearchMode::RegularExpression);",
+            ),
+            errors,
+        )
+
+
 def violations(
     registry: Mapping[str, Any],
     coverage: Mapping[str, Any],
@@ -1250,6 +1688,21 @@ def violations(
         source_file = values["source_file"]
         owner_type = values["owner_type"]
         handler = values["owner_changed_handler"]
+        raw_builder_clicked_handler = entry.get("owner_builder_clicked_handler", "")
+        if raw_builder_clicked_handler and (
+            not isinstance(raw_builder_clicked_handler, str)
+            or not raw_builder_clicked_handler.strip()
+        ):
+            errors.append(
+                f"{context}:owner_builder_clicked_handler:non-empty text required"
+            )
+            builder_clicked_handler = ""
+        else:
+            builder_clicked_handler = (
+                raw_builder_clicked_handler
+                if isinstance(raw_builder_clicked_handler, str)
+                else ""
+            )
         entry_member = values["entry_member"]
         button_member = values["builder_member"]
         controller_member = values["controller_member"]
@@ -1369,6 +1822,10 @@ def violations(
         ):
             if marker not in header:
                 errors.append(f"{context}:header:{label} missing")
+        if builder_clicked_handler and builder_clicked_handler not in header:
+            errors.append(
+                f"{context}:header:owner builder-clicked handler declaration missing"
+            )
 
         entry_member_at = header.find(f"std::unique_ptr<{member_type}> {entry_member};")
         button_member_at = header.find(f"std::unique_ptr<weld::Button> {button_member};")
@@ -1423,6 +1880,9 @@ def violations(
                             f"{context}:runtime-flag-markers[{marker_index}]:"
                             f"missing {marker}"
                         )
+            _validate_full_flag_runtime_route(
+                context, coverage_id, source_file, contents, errors
+            )
         if f"{entry_member}->connect_changed" in source:
             errors.append(f"{context}:source-wiring:direct changed handler bypasses controller")
         if f"{button_member}->connect_clicked" in source:
@@ -1439,6 +1899,16 @@ def violations(
                 errors.append(
                     f"{context}:handler:signature must be {handler_signature}"
                 )
+        if builder_clicked_handler:
+            builder_handler_signature = (
+                f"IMPL_LINK_NOARG({owner_type}, {builder_clicked_handler}, "
+                "weld::Button&, void)"
+            )
+            if builder_handler_signature not in source:
+                errors.append(
+                    f"{context}:builder-handler:signature must be "
+                    f"{builder_handler_signature}"
+                )
 
         constructor = _function_body(source, f"{owner_type}::{owner_type}(")
         if constructor is None:
@@ -1453,6 +1923,7 @@ def violations(
                 button_member,
                 owner_type,
                 handler,
+                builder_clicked_handler,
                 default_mode,
                 case_insensitive,
                 case_seed_expression,

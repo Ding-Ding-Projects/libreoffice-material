@@ -50,6 +50,26 @@ REQUIRED = (
         "void SetGlobalFlagEnabled(bool bEnabled);",
     ),
     Rule(
+        "case-insensitive-capability-api",
+        "include/sfx2/RegexSearchController.hxx",
+        "void SetCaseInsensitiveFlagEnabled(bool bEnabled);",
+    ),
+    Rule(
+        "regex-mode-capability-api",
+        "include/sfx2/RegexSearchController.hxx",
+        "void SetRegularExpressionModeEnabled(bool bEnabled);",
+    ),
+    Rule(
+        "programmatic-pattern-sync-api",
+        "include/sfx2/RegexSearchController.hxx",
+        "void SyncPatternFromWidget();",
+    ),
+    Rule(
+        "non-notifying-initial-state-api",
+        "include/sfx2/RegexSearchController.hxx",
+        "void SetStateWithoutNotify(const RegexSearchState& rState, bool bUpdateSearchText = true);",
+    ),
+    Rule(
         "global-capability-clears-state",
         "sfx2/source/dialog/RegexSearchController.cxx",
         "m_aState.Flags.Global = false;",
@@ -58,6 +78,26 @@ REQUIRED = (
         "global-capability-hides-control",
         "sfx2/source/dialog/RegexSearchController.cxx",
         "m_xGlobal->set_visible(bGlobalFlagEnabled);",
+    ),
+    Rule(
+        "case-insensitive-capability-disables-control",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "m_xCaseInsensitive->set_sensitive(bCaseInsensitiveFlagEnabled);",
+    ),
+    Rule(
+        "case-insensitive-capability-preserves-state",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "if (!m_bCaseInsensitiveFlagEnabled)",
+    ),
+    Rule(
+        "regex-mode-capability-disables-control",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "m_xRegexMode->set_sensitive(bRegularExpressionModeEnabled);",
+    ),
+    Rule(
+        "regex-mode-capability-falls-back-to-literal",
+        "sfx2/source/dialog/RegexSearchController.cxx",
+        "aEffectiveState.Mode = RegexSearchMode::Literal;",
     ),
     Rule(
         "multiline-flag",
@@ -343,6 +383,26 @@ REQUIRED = (
         "consumer-search-separation-test",
         "sfx2/qa/cppunit/regexsearch.cxx",
         "testConsumerEvaluateDoesNotUseLivePreviewMatchCap",
+    ),
+    Rule(
+        "repeat-search-effective-pattern-metadata",
+        "include/svl/srchitem.hxx",
+        "SetSearchStringWithRegexMetadata",
+    ),
+    Rule(
+        "repeat-search-raw-pattern-recovery",
+        "svl/source/items/srchitem.cxx",
+        "OUString SvxSearchItem::GetSearchStringForUser() const",
+    ),
+    Rule(
+        "repeat-search-metadata-copy-test",
+        "sfx2/qa/cppunit/regexsearch.cxx",
+        "testSearchItemKeepsEffectiveRepeatAndRawDialogPattern",
+    ),
+    Rule(
+        "repeat-search-metadata-reset-test",
+        "sfx2/qa/cppunit/regexsearch.cxx",
+        "testSearchItemExternalSettersClearRegexMetadata",
     ),
     Rule(
         "pathological-preview-budget-test",

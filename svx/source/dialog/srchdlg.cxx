@@ -346,7 +346,8 @@ SvxSearchDialog::SvxSearchDialog(weld::Window* pParent, SfxChildWindow* pChildWi
     // which mirrors the builder's mode into the dialog's native "Regular expressions" toggle.
     m_xSearchRegexController = std::make_unique<sfx2::RegexSearchController>(
         m_xDialog.get(), *m_xSearchLB, *m_xSearchRegexBuilder,
-        LINK(this, SvxSearchDialog, SearchTermModifyHdl_Impl));
+        LINK(this, SvxSearchDialog, SearchTermModifyHdl_Impl),
+        LINK(this, SvxSearchDialog, RegexBuilderClickedHdl_Impl));
 
     // Preserve the dialog's current default: literal search (native regex toggle off) and
     // case-insensitive matching (Match case off). The mode is seeded from the live toggle so
@@ -359,6 +360,8 @@ SvxSearchDialog::SvxSearchDialog(weld::Window* pParent, SfxChildWindow* pChildWi
     // single-shot until the builder's g flag opts into those commands.
     aState.Flags.Global = false;
     m_xSearchRegexController->SetState(aState);
+    m_xSearchRegexBuilder->set_visible(IsRegexBuilderAvailable_Impl());
+    UpdateRegexBuilderCapabilities_Impl();
 }
 
 IMPL_LINK_NOARG(SvxSearchDialog, PresentTimeoutHdl_Impl, Timer*, void)
@@ -376,6 +379,8 @@ void SvxSearchDialog::Present()
 void SvxSearchDialog::SetSearchLBEntryTextAndGrabFocus(const OUString& rStr)
 {
     m_xSearchLB->set_entry_text(rStr);
+    if (m_xSearchRegexController)
+        m_xSearchRegexController->SyncPatternFromWidget();
     m_xSearchLB->grab_focus();
 }
 
@@ -612,6 +617,10 @@ void SvxSearchDialog::ApplyTransliterationFlags_Impl( TransliterationFlags nSett
     m_xMatchCaseCB->set_active( !bVal );
     bVal = bool(nSettings & TransliterationFlags::IGNORE_WIDTH);
     m_xJapMatchFullHalfWidthCB->set_active( !bVal );
+    // set_active() is silent. Keep the builder's i flag aligned with module/Japanese-option
+    // updates so a later Apply cannot restore stale case behavior.
+    UpdateRegexBuilderCapabilities_Impl();
+    SyncRegexControllerFromToggle();
 }
 
 
@@ -637,6 +646,8 @@ void SvxSearchDialog::Activate()
     {
         m_xMatchCaseCB->set_active(m_pSearchItem->GetExact());
         m_xJapMatchFullHalfWidthCB->set_active(!m_pSearchItem->IsMatchFullHalfWidthForms());
+        UpdateRegexBuilderCapabilities_Impl();
+        SyncRegexControllerFromToggle();
     }
 
     SfxModelessDialogController::Activate();
@@ -738,6 +749,9 @@ void SvxSearchDialog::ShowOptionalControls_Impl()
     m_xLayoutBtn->set_visible(!bDrawApp);
     m_xNotesBtn->set_visible(bWriterApp);
     m_xRegExpBtn->set_visible(!bDrawApp);
+    m_xSearchRegexBuilder->set_visible(
+        IsRegexBuilderAvailable_Impl() && !m_xLayoutBtn->get_active());
+    UpdateRegexBuilderCapabilities_Impl();
     m_xWildcardBtn->set_visible(bCalcApp); /* TODO:WILDCARD enable for other apps if hey handle it */
     m_xReplaceBackwardsCB->show();
     m_xSimilarityBox->show();
@@ -814,10 +828,31 @@ void SvxSearchDialog::Init_Impl( bool bSearchPattern )
         m_xSelectionBtn->set_active(m_pSearchItem->GetSelection());
     if (!(m_nModifyFlag & ModifyFlags::Regexp))
         m_xRegExpBtn->set_active(m_pSearchItem->GetRegExp());
-    // Mirror the restored "Regular expressions" state into the controller now, before the
-    // search string is pushed into the combo box below: a programmatic set_entry_text can fire
-    // the controller's changed callback, whose builder->toggle sync must already be consistent.
-    SyncRegexControllerFromToggle();
+    if (!(m_nModifyFlag & ModifyFlags::Search))
+    {
+        sfx2::RegexSearchState aRegexState = m_xSearchRegexController->GetState();
+        const bool bLibreOfficeKitActive = comphelper::LibreOfficeKit::isActive();
+        // LOK deliberately starts with an empty/client-owned entry. Restore desktop history only
+        // outside LOK; in LOK synchronize the controller to the live widget without rewriting it.
+        if (bLibreOfficeKitActive)
+            aRegexState.Pattern = m_xSearchLB->get_active_text();
+        else
+            aRegexState.Pattern = m_pSearchItem->GetSearchStringForUser();
+        aRegexState.Mode = m_xRegExpBtn->get_active()
+                               ? sfx2::RegexSearchMode::RegularExpression
+                               : sfx2::RegexSearchMode::Literal;
+        aRegexState.Flags.CaseInsensitive = !m_xMatchCaseCB->get_active();
+        aRegexState.Flags.Multiline = m_pSearchItem->GetRegexMultiline();
+        aRegexState.Flags.DotMatchesNewline = m_pSearchItem->GetRegexDotAll();
+        aRegexState.Flags.Global = m_pSearchItem->GetRegexGlobal();
+        // Restore the persisted raw/effective pair atomically. A notifying partial SetState here
+        // would invoke the owner before mode/case/text agree and could mark the term as user-edited.
+        m_xSearchRegexController->SetStateWithoutNotify(aRegexState, !bLibreOfficeKitActive);
+    }
+    else
+        // Preserve a live user-edited pattern while still honoring independently restored native
+        // mode/case controls.
+        SyncRegexControllerFromToggle();
     if (!(m_nModifyFlag & ModifyFlags::Wildcard))
         m_xWildcardBtn->set_active(m_pSearchItem->GetWildcard());
     if (!(m_nModifyFlag & ModifyFlags::Layout))
@@ -995,9 +1030,9 @@ void SvxSearchDialog::Init_Impl( bool bSearchPattern )
 
         if (!comphelper::LibreOfficeKit::isActive())
         {
-            if (!(m_pSearchItem->GetSearchString().isEmpty()) && bSetSearch)
+            if (!(m_pSearchItem->GetSearchStringForUser().isEmpty()) && bSetSearch)
             {
-                m_xSearchLB->set_entry_text(m_pSearchItem->GetSearchString());
+                m_xSearchLB->set_entry_text(m_pSearchItem->GetSearchStringForUser());
                 if (bSetReplace)
                     m_xReplaceLB->set_entry_text(m_pSearchItem->GetReplaceString());
             }
@@ -1018,9 +1053,12 @@ void SvxSearchDialog::Init_Impl( bool bSearchPattern )
                     m_xReplaceLB->set_entry_text( aReplaceTxt );
             }
         }
+        // Windows weld does not emit changed for programmatic set_entry_text(), so refresh the
+        // controller before the builder can reopen and overwrite the visible term with stale state.
+        m_xSearchRegexController->SyncPatternFromWidget();
 
         m_xSearchLB->show();
-        m_xSearchRegexBuilder->show();
+        m_xSearchRegexBuilder->set_visible(IsRegexBuilderAvailable_Impl());
 
         if (m_bConstruct)
             // Grab focus only after creating
@@ -1032,6 +1070,7 @@ void SvxSearchDialog::Init_Impl( bool bSearchPattern )
         EnableControl_Impl(*m_xRegExpBtn);
         EnableControl_Impl(*m_xWildcardBtn);
         EnableControl_Impl(*m_xMatchCaseCB);
+        UpdateRegexBuilderCapabilities_Impl();
 
         if ( m_xRegExpBtn->get_active() )
             m_xWordBtn->set_sensitive(false);
@@ -1188,6 +1227,35 @@ void SvxSearchDialog::SyncRegexControllerFromToggle()
     }
 }
 
+bool SvxSearchDialog::IsRegexBuilderAvailable_Impl() const
+{
+    return m_xRegExpBtn->get_visible()
+           && bool(SearchOptionFlags::REG_EXP & m_nOptions);
+}
+
+void SvxSearchDialog::UpdateRegexBuilderCapabilities_Impl()
+{
+    if (!m_xSearchRegexController)
+        return;
+
+    const bool bRegexAvailable = IsRegexBuilderAvailable_Impl();
+    // A persisted regex bit can survive into Draw or a module that does not expose REG_EXP.
+    // Validate and execute through Literal there without overwriting the cross-module preference.
+    m_xSearchRegexController->SetRegularExpressionModeEnabled(bRegexAvailable);
+
+    const bool bSupportsGlobal
+        = bool(SearchOptionFlags::SEARCHALL & m_nOptions)
+          || bool(SearchOptionFlags::REPLACE_ALL & m_nOptions);
+    m_xSearchRegexController->SetGlobalFlagEnabled(
+        bRegexAvailable && bSupportsGlobal
+        && (!m_xNotesBtn->get_visible() || !m_xNotesBtn->get_active()));
+
+    const bool bCaseFlagEnabled
+        = bool(SearchOptionFlags::EXACT & m_nOptions)
+          && (!m_xJapOptionsCB->get_active() || !SvtCJKOptions::IsJapaneseFindEnabled());
+    m_xSearchRegexController->SetCaseInsensitiveFlagEnabled(bCaseFlagEnabled);
+}
+
 IMPL_LINK( SvxSearchDialog, FlagHdl_Impl, weld::Toggleable&, rCtrl, void )
 {
     ClickHdl_Impl(&rCtrl);
@@ -1290,6 +1358,10 @@ void SvxSearchDialog::ClickHdl_Impl(const weld::Widget* pCtrl)
                 m_xSimilarityBox->set_active( false );
                 m_xSimilarityBox->set_sensitive(false);
                 m_xSimilarityBtn->set_sensitive(false);
+                // A builder Apply can select regex while Wildcard/Similarity has made the
+                // native regex control insensitive. Retry after clearing those modes so
+                // GetCheckBoxValue() and the real search descriptor see regex as enabled.
+                EnableControl_Impl(*m_xRegExpBtn);
             }
             else if ( m_xWildcardBtn->get_active() )
             {
@@ -1328,6 +1400,7 @@ void SvxSearchDialog::ClickHdl_Impl(const weld::Widget* pCtrl)
     // The "Regular expressions" toggle participates in mutual exclusion with Wildcards,
     // Similarity and Styles above; once its final state is settled, mirror it into the
     // regex builder's controller so a later builder->toggle sync stays consistent.
+    UpdateRegexBuilderCapabilities_Impl();
     SyncRegexControllerFromToggle();
 
     if (m_pImpl->bSaveToModule)
@@ -1385,18 +1458,25 @@ IMPL_LINK(SvxSearchDialog, CommandHdl_Impl, weld::Button&, rBtn, void)
          ( &rBtn == m_xReplaceBtn.get() )  ||
          ( &rBtn == m_xReplaceAllBtn.get() ) )
     {
-        if ( m_xLayoutBtn->get_active() && !bInclusive )
+        const bool bUsesTextSearch = !m_xLayoutBtn->get_active() || bInclusive;
+        const bool bNativeRegex
+            = bUsesTextSearch && IsRegexBuilderAvailable_Impl()
+              && GetCheckBoxValue(*m_xRegExpBtn);
+        const OUString aRawSearchString = m_xSearchLB->get_active_text();
+        sfx2::RegexSearchState aRegexState = m_xSearchRegexController->GetState();
+        aRegexState.Pattern = aRawSearchString;
+        aRegexState.Mode = bNativeRegex ? sfx2::RegexSearchMode::RegularExpression
+                                        : sfx2::RegexSearchMode::Literal;
+        if (bNativeRegex && !sfx2::RegexSearchService::Validate(aRegexState).IsValid)
+            return;
+
+        if (!bUsesTextSearch)
         {
             m_pSearchItem->SetSearchString(m_xSearchTmplLB->get_active_text());
             m_pSearchItem->SetReplaceString(m_xReplaceTmplLB->get_active_text());
         }
         else
         {
-            const OUString aRawSearchString = m_xSearchLB->get_active_text();
-            sfx2::RegexSearchState aRegexState = m_xSearchRegexController->GetState();
-            aRegexState.Pattern = aRawSearchString;
-            m_pSearchItem->SetSearchString(
-                sfx2::RegexSearchService::GetEffectivePattern(aRegexState));
             m_pSearchItem->SetReplaceString(m_xReplaceLB->get_active_text());
 
             if ( &rBtn == m_xReplaceBtn.get() )
@@ -1413,12 +1493,20 @@ IMPL_LINK(SvxSearchDialog, CommandHdl_Impl, weld::Button&, rBtn, void)
         m_pSearchItem->SetRegExp(false);
         m_pSearchItem->SetWildcard(false);
         m_pSearchItem->SetLevenshtein(false);
-        if (GetCheckBoxValue(*m_xRegExpBtn))
-            m_pSearchItem->SetRegExp(m_xRegExpBtn->get_visible());
+        if (bNativeRegex)
+            m_pSearchItem->SetRegExp(true);
         else if (GetCheckBoxValue(*m_xWildcardBtn))
             m_pSearchItem->SetWildcard(true);
         else if (GetCheckBoxValue(*m_xSimilarityBox))
             m_pSearchItem->SetLevenshtein(true);
+
+        // Algorithm setters invalidate metadata owned by the previous mode. Attach the raw/effective
+        // relationship only after the final algorithm has been selected.
+        if (bUsesTextSearch)
+            m_pSearchItem->SetSearchStringWithRegexMetadata(
+                sfx2::RegexSearchService::GetEffectivePattern(aRegexState),
+                aRegexState.Flags.Multiline, aRegexState.Flags.DotMatchesNewline,
+                aRegexState.Flags.Global);
 
         m_pSearchItem->SetWordOnly(GetCheckBoxValue(*m_xWordBtn));
 
@@ -1459,13 +1547,23 @@ IMPL_LINK(SvxSearchDialog, CommandHdl_Impl, weld::Button&, rBtn, void)
             m_pSearchItem->SetSearchFormatted(m_xSearchFormattedCB->get_active());
         }
 
-        const bool bGlobal = m_xSearchRegexController->GetState().Flags.Global;
+        const bool bGlobalRequested
+            = bUsesTextSearch && m_xSearchRegexController->GetState().Flags.Global;
+        const bool bGlobalFind
+            = bGlobalRequested && bool(SearchOptionFlags::SEARCHALL & m_nOptions)
+              && m_xSearchAllBtn->get_visible()
+                                 && m_xSearchAllBtn->get_sensitive();
+        const bool bGlobalReplace
+            = bGlobalRequested && bool(SearchOptionFlags::REPLACE_ALL & m_nOptions)
+              && m_xReplaceAllBtn->get_visible()
+                                    && m_xReplaceAllBtn->get_sensitive();
         if ((&rBtn == m_xSearchBtn.get()) || (&rBtn == m_xBackSearchBtn.get()))
-            m_pSearchItem->SetCommand(bGlobal ? SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND);
+            m_pSearchItem->SetCommand(bGlobalFind ? SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND);
         else if ( &rBtn == m_xSearchAllBtn.get() )
             m_pSearchItem->SetCommand(SvxSearchCmd::FIND_ALL);
         else if ( &rBtn == m_xReplaceBtn.get() )
-            m_pSearchItem->SetCommand(bGlobal ? SvxSearchCmd::REPLACE_ALL : SvxSearchCmd::REPLACE);
+            m_pSearchItem->SetCommand(bGlobalReplace ? SvxSearchCmd::REPLACE_ALL
+                                                     : SvxSearchCmd::REPLACE);
         else if ( &rBtn == m_xReplaceAllBtn.get() )
             m_pSearchItem->SetCommand(SvxSearchCmd::REPLACE_ALL);
 
@@ -1488,11 +1586,8 @@ IMPL_LINK(SvxSearchDialog, CommandHdl_Impl, weld::Button&, rBtn, void)
             = m_pSearchItem->GetCommand() == SvxSearchCmd::REPLACE_ALL;
         m_rBindings.ExecuteSynchron(FID_SEARCH_NOW, ppArgs);
         g_bMaterialReplaceAllPending = false;
-        // The dispatched item used the effective m/s-prefixed pattern. Keep the user's raw pattern
-        // in dialog/module state and history so reopening the builder never exposes implementation
-        // prefixes as editable text.
-        if (!m_xLayoutBtn->get_active() || bInclusive)
-            m_pSearchItem->SetSearchString(m_xSearchLB->get_active_text());
+        // The item deliberately retains the effective m/s-prefixed expression for Repeat Search.
+        // Its process-local metadata recovers the exact raw widget text when the dialog refreshes.
     }
     else if ( &rBtn == m_xCloseBtn.get() )
     {
@@ -1596,6 +1691,27 @@ IMPL_LINK( SvxSearchDialog, ModifyHdl_Impl, weld::ComboBox&, rEd, void )
         m_xReplaceBtn->set_sensitive(false);
         m_xReplaceAllBtn->set_sensitive(false);
     }
+
+    if (m_xSearchRegexController && IsRegexBuilderAvailable_Impl()
+        && GetCheckBoxValue(*m_xRegExpBtn))
+    {
+        sfx2::RegexSearchState aState = m_xSearchRegexController->GetState();
+        aState.Pattern = m_xSearchLB->get_active_text();
+        aState.Mode = sfx2::RegexSearchMode::RegularExpression;
+        if (aState.Pattern.getLength()
+                <= sfx2::RegexSearchService::PreviewMaxPatternCodeUnits
+            && !sfx2::RegexSearchService::Validate(aState).IsValid)
+        {
+            // Do not turn an ICU compile error into an ordinary no-match dispatch. The
+            // controller already decorates the field as Error; keep every command path inert.
+            m_xComponentFrame->set_sensitive(false);
+            m_xSearchBtn->set_sensitive(false);
+            m_xBackSearchBtn->set_sensitive(false);
+            m_xSearchAllBtn->set_sensitive(false);
+            m_xReplaceBtn->set_sensitive(false);
+            m_xReplaceAllBtn->set_sensitive(false);
+        }
+    }
 }
 
 IMPL_LINK_NOARG(SvxSearchDialog, SearchTermModifyHdl_Impl, weld::ComboBox&, void)
@@ -1628,6 +1744,20 @@ IMPL_LINK_NOARG(SvxSearchDialog, SearchTermModifyHdl_Impl, weld::ComboBox&, void
     // the framework has supplied the SvxSearchItem that ModifyHdl_Impl dereferences.
     if (m_pSearchItem)
         ModifyHdl_Impl(*m_xSearchLB);
+}
+
+IMPL_LINK_NOARG(SvxSearchDialog, RegexBuilderClickedHdl_Impl, weld::Button&, void)
+{
+    if (!m_xWildcardBtn->get_active() && !m_xSimilarityBox->get_active())
+        return;
+
+    // The builder cannot preview Wildcard or Similarity. Treat opening it as an explicit
+    // transition to regex so the preview and the next real command share one matcher mode.
+    if (m_xSearchRegexController->GetState().Mode
+        != sfx2::RegexSearchMode::RegularExpression)
+        m_xSearchRegexController->SetMode(sfx2::RegexSearchMode::RegularExpression);
+    else
+        SearchTermModifyHdl_Impl(*m_xSearchLB);
 }
 
 IMPL_LINK_NOARG(SvxSearchDialog, TemplateHdl_Impl, weld::Toggleable&, void)
@@ -1697,7 +1827,8 @@ IMPL_LINK_NOARG(SvxSearchDialog, TemplateHdl_Impl, weld::Toggleable&, void)
         m_rBindings.LeaveRegistrations();
 
         m_xSearchLB->show();
-        m_xSearchRegexBuilder->show();
+        m_xSearchRegexBuilder->set_visible(IsRegexBuilderAvailable_Impl());
+        UpdateRegexBuilderCapabilities_Impl();
         m_xReplaceLB->show();
         m_xSearchTmplLB->hide();
         m_xReplaceTmplLB->hide();
@@ -1807,6 +1938,7 @@ void SvxSearchDialog::EnableControls_Impl( const SearchOptionFlags nFlags )
         return;
     else
         m_nOptions = nFlags;
+    UpdateRegexBuilderCapabilities_Impl();
 
     bool bNoSearch = true;
 
@@ -2365,9 +2497,14 @@ void SvxSearchDialog::SetModifyFlag_Impl( const weld::Widget* pCtrl )
     if (m_xSearchLB.get() == pCtrl)
     {
         m_nModifyFlag |= ModifyFlags::Search;
-        m_xSearchLB->set_entry_message_type(weld::EntryMessageType::Normal);
         if (!SvxSearchDialogWrapper::GetSearchLabel().isEmpty())
+        {
             SvxSearchDialogWrapper::SetSearchLabel(u""_ustr);
+            // Clearing an old no-match label resets the entry decoration to Normal.
+            // Re-run controller validation so an edited invalid regex remains Error.
+            if (m_xSearchRegexController)
+                m_xSearchRegexController->SyncPatternFromWidget();
+        }
     }
     else if ( m_xReplaceLB.get() == pCtrl )
         m_nModifyFlag |= ModifyFlags::Replace;
@@ -2408,14 +2545,23 @@ void SvxSearchDialog::SaveToModule_Impl()
     if (!m_pSearchItem)
         return;
 
-    if ( m_xLayoutBtn->get_active() )
+    const bool bInclusive = m_xLayoutBtn->get_label() == m_sLayoutStr;
+    const bool bUsesTextSearch = !m_xLayoutBtn->get_active() || bInclusive;
+    const bool bNativeRegex
+        = bUsesTextSearch && IsRegexBuilderAvailable_Impl()
+          && GetCheckBoxValue(*m_xRegExpBtn);
+    sfx2::RegexSearchState aRegexState = m_xSearchRegexController->GetState();
+
+    if (!bUsesTextSearch)
     {
         m_pSearchItem->SetSearchString(m_xSearchTmplLB->get_active_text());
         m_pSearchItem->SetReplaceString(m_xReplaceTmplLB->get_active_text());
     }
     else
     {
-        m_pSearchItem->SetSearchString(m_xSearchLB->get_active_text());
+        aRegexState.Pattern = m_xSearchLB->get_active_text();
+        aRegexState.Mode = bNativeRegex ? sfx2::RegexSearchMode::RegularExpression
+                                        : sfx2::RegexSearchMode::Literal;
         m_pSearchItem->SetReplaceString(m_xReplaceLB->get_active_text());
         Remember_Impl(true);
     }
@@ -2431,12 +2577,18 @@ void SvxSearchDialog::SaveToModule_Impl()
     m_pSearchItem->SetRegExp(false);
     m_pSearchItem->SetWildcard(false);
     m_pSearchItem->SetLevenshtein(false);
-    if (GetCheckBoxValue(*m_xRegExpBtn))
+    if (bNativeRegex)
         m_pSearchItem->SetRegExp(true);
     else if (GetCheckBoxValue(*m_xWildcardBtn))
         m_pSearchItem->SetWildcard(true);
     else if (GetCheckBoxValue(*m_xSimilarityBox))
         m_pSearchItem->SetLevenshtein(true);
+
+    if (bUsesTextSearch)
+        m_pSearchItem->SetSearchStringWithRegexMetadata(
+            sfx2::RegexSearchService::GetEffectivePattern(aRegexState),
+            aRegexState.Flags.Multiline, aRegexState.Flags.DotMatchesNewline,
+            aRegexState.Flags.Global);
 
     m_pSearchItem->SetWordOnly(GetCheckBoxValue(*m_xWordBtn));
     m_pSearchItem->SetBackward(GetCheckBoxValue(*m_xReplaceBackwardsCB));
@@ -2472,7 +2624,11 @@ void SvxSearchDialog::SaveToModule_Impl()
         m_pSearchItem->SetSearchFormatted(m_xSearchFormattedCB->get_active());
     }
 
-    m_pSearchItem->SetCommand(SvxSearchCmd::FIND);
+    const bool bGlobalFind
+        = bUsesTextSearch && aRegexState.Flags.Global
+          && bool(SearchOptionFlags::SEARCHALL & m_nOptions)
+          && (!m_xNotesBtn->get_visible() || !m_xNotesBtn->get_active());
+    m_pSearchItem->SetCommand(bGlobalFind ? SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND);
     m_nModifyFlag = ModifyFlags::NONE;
     const SfxPoolItem* ppArgs[] = { m_pSearchItem.get(), nullptr };
     m_rBindings.GetDispatcher()->Execute(SID_SEARCH_ITEM, SfxCallMode::SLOT, ppArgs);
@@ -2508,8 +2664,8 @@ SvxSearchDialogWrapper::SvxSearchDialogWrapper( vcl::Window* _pParent, sal_uInt1
     SetController(m_dialog);
     m_dialog->Initialize( pInfo );
 
-    pBindings->Update( SID_SEARCH_ITEM );
     pBindings->Update( SID_SEARCH_OPTIONS );
+    pBindings->Update( SID_SEARCH_ITEM );
     pBindings->Update( SID_SEARCH_SEARCHSET );
     pBindings->Update( SID_SEARCH_REPLACESET );
     m_dialog->m_bConstruct = false;

@@ -256,6 +256,7 @@ private:
 
     DECL_DLLPRIVATE_LINK( ModifyHdl_Impl, weld::ComboBox&, void );
     DECL_DLLPRIVATE_LINK( SearchTermModifyHdl_Impl, weld::ComboBox&, void );
+    DECL_DLLPRIVATE_LINK(RegexBuilderClickedHdl_Impl, weld::Button&, void);
     DECL_DLLPRIVATE_LINK( FlagHdl_Impl, weld::Toggleable&, void );
     DECL_DLLPRIVATE_LINK( CommandHdl_Impl, weld::Button&, void );
     DECL_DLLPRIVATE_LINK(TemplateHdl_Impl, weld::Toggleable&, void);
@@ -270,6 +271,8 @@ private:
     // Mirror the native "Regular expressions" toggle state into the shared regex builder's
     // controller so the one-way builder->toggle sync never fights the dialog's own mode logic.
     SVX_DLLPRIVATE void SyncRegexControllerFromToggle();
+    SVX_DLLPRIVATE bool IsRegexBuilderAvailable_Impl() const;
+    SVX_DLLPRIVATE void UpdateRegexBuilderCapabilities_Impl();
 
     SVX_DLLPRIVATE void Construct_Impl();
     SVX_DLLPRIVATE void InitControls_Impl();

@@ -17,6 +17,7 @@ $(eval $(call gb_CppunitTest_use_libraries,sfx2_regexsearch, \
     cppu \
     cppuhelper \
     sal \
+    svl \
     subsequenttest \
     sfx \
     test \

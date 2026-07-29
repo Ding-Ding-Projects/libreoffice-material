@@ -147,7 +147,9 @@ class SFX2_DLLPUBLIC RegexSearchController final
     OUString m_aOriginalBuilderAccessibleDescription;
     RegexSearchState m_aState;
     std::unique_ptr<RegexBuilderPopover> m_xBuilderPopover;
+    bool m_bRegularExpressionModeEnabled = true;
     bool m_bGlobalFlagEnabled = true;
+    bool m_bCaseInsensitiveFlagEnabled = true;
     bool m_bBuilderPopoverOpen = false;
     bool m_bProgrammaticTextUpdate = false;
     Link<weld::TextWidget&, void> m_aOwnerEntryChangedHdl;
@@ -190,7 +192,22 @@ public:
 
     const RegexSearchState& GetState() const { return m_aState; }
     void SetState(const RegexSearchState& rState);
+    /** Replace state and refresh validation without invoking owner callbacks.
+
+        Intended for an owner's initialization path while it restores one atomic persisted state.
+        Pass false for bUpdateSearchText when an external client owns the live widget contents.
+     */
+    void SetStateWithoutNotify(const RegexSearchState& rState, bool bUpdateSearchText = true);
     void SetTestText(const OUString& rTestText);
+    /** Refresh only Pattern from the bound widget after its owner performs a programmatic text
+        update. This neither rewrites the widget nor notifies the owner. */
+    void SyncPatternFromWidget();
+    /** Configure whether the owner can execute regular-expression mode.
+
+        Disabling this capability does not overwrite the stored mode (which may be a preference
+        owned by another module); validation/options/evaluation use Literal until re-enabled.
+     */
+    void SetRegularExpressionModeEnabled(bool bEnabled);
     /** Configure whether the owning search surface can execute a global search.
 
         Call this before ShowBuilder(). Surfaces whose result model can only
@@ -198,6 +215,14 @@ public:
         cosmetic option. Disabling it also clears the cached Global state.
      */
     void SetGlobalFlagEnabled(bool bEnabled);
+    /** Configure whether the owning search surface can change case sensitivity.
+
+        A disabled flag remains visible in the builder but is insensitive and
+        BuilderApply preserves the owner-authoritative value. SetState remains
+        available to owners that must synchronize a new value from native
+        controls or transliteration settings.
+     */
+    void SetCaseInsensitiveFlagEnabled(bool bEnabled);
 
     /** Flip the search mode between literal and regular expression.
 

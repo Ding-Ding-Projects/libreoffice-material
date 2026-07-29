@@ -158,7 +158,8 @@ FmSearchDialog::FmSearchDialog(weld::Window* pParent, const OUString& sInitialTe
     // original callback when destroyed, so no direct connect_changed is installed above.
     m_xRegexSearchController = std::make_unique<sfx2::RegexSearchController>(
         m_xDialog.get(), *m_pcmbSearchText, *m_xRegexBuilderButton,
-        LINK(this, FmSearchDialog, OnSearchTextModified));
+        LINK(this, FmSearchDialog, OnSearchTextModified),
+        LINK(this, FmSearchDialog, OnRegexBuilderClicked));
     // Forms advances to one record at a time and has no "all results" model. Do not expose a
     // cosmetic global flag on this surface; i/m/s still feed the real matcher below.
     m_xRegexSearchController->SetGlobalFlagEnabled(false);
@@ -171,6 +172,8 @@ FmSearchDialog::FmSearchDialog(weld::Window* pParent, const OUString& sInitialTe
     aState.Flags.CaseInsensitive = !m_pcbCase->get_active();
     aState.Flags.Global = false;
     m_xRegexSearchController->SetState(aState);
+    m_xRegexSearchController->SetCaseInsensitiveFlagEnabled(
+        !m_pSoundsLikeCJK->get_active() || !SvtCJKOptions::IsJapaneseFindEnabled());
 }
 
 FmSearchDialog::~FmSearchDialog()
@@ -295,6 +298,9 @@ IMPL_LINK_NOARG(FmSearchDialog, OnClickedSearchAgain, weld::Button&, void)
         {
             sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
             aState.Pattern = strHistoryText;
+            aState.Mode = sfx2::RegexSearchMode::RegularExpression;
+            if (!sfx2::RegexSearchService::Validate(aState).IsValid)
+                return;
             strThisRoundText = sfx2::RegexSearchService::GetEffectivePattern(aState);
         }
         // to history
@@ -376,6 +382,7 @@ IMPL_LINK(FmSearchDialog, OnClickedSpecialSettings, weld::Button&, rButton, void
 
 IMPL_LINK_NOARG(FmSearchDialog, OnSearchTextModified, weld::ComboBox&, void)
 {
+    sfx2::RegexSearchState aControllerState;
     // The shared builder is the advanced entry point for switching between literal and
     // regular-expression matching. Reflect its mode in the dialog's native "Regular expression"
     // check button and drive FmSearchEngine: the engine caches its regex flag from the checkbox's
@@ -385,12 +392,33 @@ IMPL_LINK_NOARG(FmSearchDialog, OnSearchTextModified, weld::ComboBox&, void)
     // controller), keeping the checkbox, the engine and the saved setting coherent.
     if (m_xRegexSearchController && !m_bMirroringRegexOptions)
     {
-        const sfx2::RegexSearchState& rState = m_xRegexSearchController->GetState();
+        aControllerState = m_xRegexSearchController->GetState();
+        const sfx2::RegexSearchState& rState = aControllerState;
         m_bMirroringRegexOptions = true;
         if (m_pcbRegular->get_active()
             != (rState.Mode == sfx2::RegexSearchMode::RegularExpression))
         {
+            const bool bRegular
+                = rState.Mode == sfx2::RegexSearchMode::RegularExpression;
             m_pcbRegular->set_active(rState.Mode == sfx2::RegexSearchMode::RegularExpression);
+            if (bRegular)
+            {
+                // The native mutually-exclusive controls make Regular insensitive while
+                // Wildcard/Similarity is selected. A builder Apply is an authoritative mode
+                // switch, so clear those modes and restore Regular before the handler derives
+                // the engine flags from each control's active *and* sensitive state.
+                if (m_pcbWildCard->get_active())
+                {
+                    m_pcbWildCard->set_active(false);
+                    OnCheckBoxToggled(*m_pcbWildCard);
+                }
+                if (m_pcbApprox->get_active())
+                {
+                    m_pcbApprox->set_active(false);
+                    OnCheckBoxToggled(*m_pcbApprox);
+                }
+                m_pcbRegular->set_sensitive(true);
+            }
             // set_active() does not emit the toggled signal, so run the handler by hand to push
             // the new mode into FmSearchEngine and update the dependent option controls.
             OnCheckBoxToggled(*m_pcbRegular);
@@ -403,12 +431,37 @@ IMPL_LINK_NOARG(FmSearchDialog, OnSearchTextModified, weld::ComboBox&, void)
         m_bMirroringRegexOptions = false;
     }
 
-    if ((!m_pcmbSearchText->get_active_text().isEmpty()) || !m_prbSearchForText->get_active())
-        m_pbSearchAgain->set_sensitive(true);
-    else
-        m_pbSearchAgain->set_sensitive(false);
+    bool bInvalidRegex = false;
+    if (m_pcbRegular->get_active() && m_xRegexSearchController)
+    {
+        sfx2::RegexSearchState aState = aControllerState;
+        aState.Pattern = m_pcmbSearchText->get_active_text();
+        aState.Mode = sfx2::RegexSearchMode::RegularExpression;
+        bInvalidRegex
+            = aState.Pattern.getLength()
+                  <= sfx2::RegexSearchService::PreviewMaxPatternCodeUnits
+              && !sfx2::RegexSearchService::Validate(aState).IsValid;
+    }
+    m_pbSearchAgain->set_sensitive(
+        ((!m_pcmbSearchText->get_active_text().isEmpty())
+         || !m_prbSearchForText->get_active())
+        && !bInvalidRegex);
 
     m_pSearchEngine->InvalidatePreviousLoc();
+}
+
+IMPL_LINK_NOARG(FmSearchDialog, OnRegexBuilderClicked, weld::Button&, void)
+{
+    if (!m_pcbWildCard->get_active() && !m_pcbApprox->get_active())
+        return;
+
+    // The builder previews literal/regex semantics only. Opening it from Wildcard or
+    // Similarity is therefore an explicit switch to regex before the popover snapshots state.
+    if (m_xRegexSearchController->GetState().Mode
+        != sfx2::RegexSearchMode::RegularExpression)
+        m_xRegexSearchController->SetMode(sfx2::RegexSearchMode::RegularExpression);
+    else
+        OnSearchTextModified(*m_pcmbSearchText);
 }
 
 IMPL_LINK_NOARG(FmSearchDialog, OnFocusGrabbed, weld::Widget&, void)
@@ -540,6 +593,8 @@ IMPL_LINK(FmSearchDialog, OnCheckBoxToggled, weld::Toggleable&, rBox, void)
                          || !SvtCJKOptions::IsJapaneseFindEnabled();
         m_pcbCase->set_sensitive(bEnable);
         m_pHalfFullFormsCJK->set_sensitive(bEnable);
+        if (m_xRegexSearchController)
+            m_xRegexSearchController->SetCaseInsensitiveFlagEnabled(bEnable);
 
         // forward to the search engine
         m_pSearchEngine->SetTransliteration( bChecked );
@@ -634,6 +689,7 @@ void FmSearchDialog::EnableSearchForDependees(bool bEnable)
     bool bEnableRedundants = !m_pSoundsLikeCJK->get_active() || !SvtCJKOptions::IsJapaneseFindEnabled();
 
     m_pcmbSearchText->set_sensitive(bEnable);
+    m_xRegexBuilderButton->set_sensitive(bEnable);
     m_pftPosition->set_sensitive(bEnable && !m_pcbWildCard->get_active());
     m_pcbWildCard->set_sensitive(bEnable && !m_pcbRegular->get_active() && !m_pcbApprox->get_active());
     m_pcbRegular->set_sensitive(bEnable && !m_pcbWildCard->get_active() && !m_pcbApprox->get_active());
@@ -645,6 +701,8 @@ void FmSearchDialog::EnableSearchForDependees(bool bEnable)
     m_plbPosition->set_sensitive(bEnable && !m_pcbWildCard->get_active());
     m_pcbUseFormat->set_sensitive(bEnable);
     m_pcbCase->set_sensitive(bEnable && bEnableRedundants);
+    if (m_xRegexSearchController)
+        m_xRegexSearchController->SetCaseInsensitiveFlagEnabled(bEnableRedundants);
 }
 
 void FmSearchDialog::OnFound(const css::uno::Any& aCursorPos, sal_Int16 nFieldPos)

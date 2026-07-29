@@ -84,6 +84,14 @@ class SVL_DLLPUBLIC SvxSearchItem final :
     bool            m_bContent;           // search in content
     bool            m_bAsianOptions;      // use asian options?
 
+    // Process-local metadata for the shared advanced regex builder. The runtime search string
+    // remains the effective ICU expression; these bits let native dialogs recover the exact raw
+    // text and i/m/s/g state without extending the stable 13-property UNO item wire format.
+    static constexpr sal_uInt8 RegexMultiline = 0x01;
+    static constexpr sal_uInt8 RegexDotAll = 0x02;
+    static constexpr sal_uInt8 RegexGlobal = 0x04;
+    sal_uInt8 m_nRegexMetadata;
+
     // Start search at this point (absolute twips).
     sal_Int32       m_nStartPointX;
     sal_Int32       m_nStartPointY;
@@ -118,6 +126,12 @@ public:
 
     inline  const OUString& GetSearchString() const;
     inline  void            SetSearchString(const OUString& rNewString);
+    OUString GetSearchStringForUser() const;
+    void SetSearchStringWithRegexMetadata(const OUString& rEffectiveString,
+                                          bool bMultiline, bool bDotAll, bool bGlobal);
+    bool GetRegexMultiline() const { return bool(m_nRegexMetadata & RegexMultiline); }
+    bool GetRegexDotAll() const { return bool(m_nRegexMetadata & RegexDotAll); }
+    bool GetRegexGlobal() const { return bool(m_nRegexMetadata & RegexGlobal); }
 
     inline  const OUString& GetReplaceString() const;
     inline  void            SetReplaceString(const OUString& rNewString);
@@ -214,6 +228,7 @@ const OUString& SvxSearchItem::GetSearchString() const
 void SvxSearchItem::SetSearchString(const OUString& rNewString)
 {
     m_aSearchOpt.searchString = rNewString;
+    m_nRegexMetadata = 0;
 }
 
 const OUString& SvxSearchItem::GetReplaceString() const
@@ -310,6 +325,7 @@ const i18nutil::SearchOptions2 & SvxSearchItem::GetSearchOptions() const
 void SvxSearchItem::SetSearchOptions( const i18nutil::SearchOptions2 &rOpt )
 {
     m_aSearchOpt = rOpt;
+    m_nRegexMetadata = 0;
 }
 
 TransliterationFlags SvxSearchItem::GetTransliterationFlags() const

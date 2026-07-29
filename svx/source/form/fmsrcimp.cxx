@@ -771,8 +771,9 @@ void FmSearchEngine::SearchNextImpl()
 
     // the parameters of the search
     OUString strSearchExpression(m_strSearchExpression); // I need non-const
-    if (!GetCaseSensitive())
-        // norm the string
+    if (!GetCaseSensitive() && !m_bRegular && !m_bLevenshtein)
+        // WildCard matching normalizes both sides manually. TextSearch handles IGNORE_CASE itself;
+        // lowercasing a regex would corrupt case-sensitive ICU syntax such as \Q, \P and \R.
         strSearchExpression = m_aCharacterClassficator.lowercase(strSearchExpression);
 
     if (!m_bRegular && !m_bLevenshtein)

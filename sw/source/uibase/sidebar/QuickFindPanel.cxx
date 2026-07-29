@@ -74,6 +74,13 @@ short QuickFindPanel::executeSubDialog(VclAbstractDialog* dialog)
 
 IMPL_LINK_NOARG(QuickFindPanel, SimilarityCheckButtonToggledHandler, weld::Toggleable&, void)
 {
+    if (m_xSimilarityCheckButton->get_active()
+        && m_xRegularExpressionsCheckButton->get_active())
+    {
+        m_xRegularExpressionsCheckButton->set_active(false);
+        RegularExpressionsCheckButtonToggledHandler(
+            *m_xRegularExpressionsCheckButton);
+    }
     m_xSimilaritySettingsDialogButton->set_sensitive(m_xSimilarityCheckButton->get_active());
 }
 
@@ -167,7 +174,8 @@ QuickFindPanel::QuickFindPanel(weld::Widget* pParent, const uno::Reference<frame
     // connect_changed must not be installed while the controller is alive.
     m_xRegexSearchController = std::make_unique<sfx2::RegexSearchController>(
         m_xContainer.get(), *m_xSearchComboBox, *m_xRegexBuilderButton,
-        LINK(this, QuickFindPanel, SearchComboBoxChangedHandler));
+        LINK(this, QuickFindPanel, SearchComboBoxChangedHandler),
+        LINK(this, QuickFindPanel, RegexBuilderClickedHandler));
     // Preserve the panel's current default: literal matching (regular expressions off) and
     // case-insensitive search (Match case off). Regular expressions are opt-in through the builder.
     sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
@@ -275,6 +283,13 @@ IMPL_LINK_NOARG(QuickFindPanel, SearchComboBoxFocusInHandler, weld::Widget&, voi
 
 IMPL_LINK_NOARG(QuickFindPanel, RegularExpressionsCheckButtonToggledHandler, weld::Toggleable&, void)
 {
+    if (m_xRegularExpressionsCheckButton->get_active()
+        && m_xSimilarityCheckButton->get_active())
+    {
+        m_xSimilarityCheckButton->set_active(false);
+        m_xSimilaritySettingsDialogButton->set_sensitive(false);
+    }
+
     // Second half of the two-way sync: reflect a manual toggle of the panel's "Regular
     // expressions" option back into the shared builder's controller. This keeps the changed
     // handler's controller-Mode->check-button mirror idempotent instead of clobbering the user's
@@ -287,6 +302,26 @@ IMPL_LINK_NOARG(QuickFindPanel, RegularExpressionsCheckButtonToggledHandler, wel
         return;
     aState.Mode = eMode;
     m_xRegexSearchController->SetState(aState);
+}
+
+IMPL_LINK_NOARG(QuickFindPanel, RegexBuilderClickedHandler, weld::Button&, void)
+{
+    if (!m_xSimilarityCheckButton->get_active())
+        return;
+
+    // Similarity is not representable in the regex builder. Opening the builder explicitly
+    // switches to regex before the popover snapshots state, keeping preview and runtime aligned.
+    m_xSimilarityCheckButton->set_active(false);
+    m_xSimilaritySettingsDialogButton->set_sensitive(false);
+    if (m_xRegexSearchController->GetState().Mode
+        != sfx2::RegexSearchMode::RegularExpression)
+        m_xRegexSearchController->SetMode(sfx2::RegexSearchMode::RegularExpression);
+    else
+    {
+        m_xRegularExpressionsCheckButton->set_active(true);
+        RegularExpressionsCheckButtonToggledHandler(
+            *m_xRegularExpressionsCheckButton);
+    }
 }
 
 IMPL_LINK_NOARG(QuickFindPanel, MatchCaseCheckButtonToggledHandler, weld::Toggleable&, void)
@@ -307,11 +342,16 @@ IMPL_LINK_NOARG(QuickFindPanel, SearchComboBoxChangedHandler, weld::ComboBox&, v
     m_xRegularExpressionsCheckButton->set_active(rState.Mode == sfx2::RegexSearchMode::RegularExpression);
     m_xMatchCaseCheckButton->set_active(!rState.Flags.CaseInsensitive);
 
-    m_xSearchComboBox->set_entry_message_type(weld::EntryMessageType::Normal);
     m_xSearchFindsList->clear();
     m_xSearchFindFoundTimesLabel->set_label(OUString());
 
-    if (m_xSearchComboBox->get_popup_shown() && m_xSearchComboBox->get_active_text().getLength())
+    const OUString aLivePattern = m_xSearchComboBox->get_active_text();
+    const bool bPreviewWithinBudget
+        = rState.Mode != sfx2::RegexSearchMode::RegularExpression
+          || aLivePattern.getLength()
+                 <= sfx2::RegexSearchService::PreviewMaxPatternCodeUnits;
+    if (m_xSearchComboBox->get_popup_shown() && !aLivePattern.isEmpty()
+        && bPreviewWithinBudget)
         FillSearchFindsList();
 }
 
@@ -555,14 +595,19 @@ void QuickFindPanel::FillSearchFindsList()
     m_vPaMs.clear();
     m_xSearchFindsList->clear();
     m_xSearchFindFoundTimesLabel->set_label(OUString());
+    // Always collapse a prior all-results cursor ring, including when the new term is empty or
+    // invalid and this rebuild exits early.
+    m_pWrtShell->AssureStdMode();
 
     const OUString sFindEntry = m_xSearchComboBox->get_active_text();
     if (sFindEntry.isEmpty())
         return;
+    const sfx2::RegexSearchState& rRegexState = m_xRegexSearchController->GetState();
+    if (rRegexState.Mode == sfx2::RegexSearchMode::RegularExpression
+        && !sfx2::RegexSearchService::Validate(rRegexState).IsValid)
+        return;
 
     SwWait aWait(*m_pWrtShell->GetDoc()->GetDocShell(), true);
-
-    m_pWrtShell->AssureStdMode();
 
     i18nutil::SearchOptions2 aSearchOptions;
     if (m_xRegularExpressionsCheckButton->get_active())
@@ -597,17 +642,11 @@ void QuickFindPanel::FillSearchFindsList()
         nTransliterationFlags |= TransliterationFlags::IGNORE_CASE;
     aSearchOptions.transliterateFlags = nTransliterationFlags;
 
-    const FindRanges eFindRanges = m_xRegexSearchController->GetState().Flags.Global
-                                       ? FindRanges::InBody | FindRanges::InSelAll
-                                       : FindRanges::InBody;
-    m_pWrtShell->StartAllAction();
-    /*sal_Int32 nFound =*/m_pWrtShell->SearchPattern(
-        aSearchOptions, m_xCommentsCheckButton->get_active(), SwDocPositions::Start,
-        SwDocPositions::End, eFindRanges, false);
-    m_pWrtShell->EndAllAction();
-
-    if (m_pWrtShell->HasMark())
+    const bool bGlobal = m_xRegexSearchController->GetState().Flags.Global;
+    auto appendShellMatches = [this]()
     {
+        if (!m_pWrtShell->HasMark())
+            return;
         for (SwPaM& rPaM : m_pWrtShell->GetCursor()->GetRingContainer())
         {
             SwPosition* pMarkPosition = rPaM.GetMark();
@@ -615,7 +654,32 @@ void QuickFindPanel::FillSearchFindsList()
             std::unique_ptr<SwPaM> xPaM(std::make_unique<SwPaM>(*pMarkPosition, *pPointPosition));
             m_vPaMs.push_back(std::move(xPaM));
         }
+    };
+    auto runSearch = [this, &aSearchOptions, &appendShellMatches](FindRanges eFindRanges)
+    {
+        m_pWrtShell->StartAllAction();
+        /*sal_Int32 nFound =*/m_pWrtShell->SearchPattern(
+            aSearchOptions, m_xCommentsCheckButton->get_active(), SwDocPositions::Start,
+            SwDocPositions::End, eFindRanges, false);
+        m_pWrtShell->EndAllAction();
+        appendShellMatches();
+    };
 
+    if (bGlobal)
+        runSearch(FindRanges::InSelAll);
+    else
+    {
+        // FindRanges has no single-result "everywhere" value. Query the first body match plus
+        // every non-body match, whose extras-node order can differ from anchor/visual order, then
+        // use the established comparator below to retain the true document-first result. This
+        // avoids scanning every body match while preserving frames, headers, footers and notes.
+        runSearch(FindRanges::InBody);
+        m_pWrtShell->AssureStdMode();
+        runSearch(FindRanges::InOther | FindRanges::InSelAll);
+    }
+
+    if (!m_vPaMs.empty())
+    {
         // tdf#160538 sort finds in frames and footnotes in the order they occur in the document
         const SwNodeOffset nEndOfInsertsIndex
             = m_pWrtShell->GetNodes().GetEndOfInserts().GetIndex();
@@ -655,6 +719,18 @@ void QuickFindPanel::FillSearchFindsList()
                              }
                              return aPos < bPos;
                          });
+
+        if (!bGlobal)
+        {
+            if (m_vPaMs.size() > 1)
+                m_vPaMs.resize(1);
+            // The second single-range probe may have selected the non-body candidate or nothing.
+            // Collapse to the retained document-first match so the shell and sidebar agree.
+            m_pWrtShell->StartAction();
+            m_pWrtShell->KillPams();
+            m_pWrtShell->SetSelection(*m_vPaMs.front());
+            m_pWrtShell->EndAction();
+        }
 
         // fill list
         for (sal_uInt16 nPage = 0, i = 0; std::unique_ptr<SwPaM> & xPaM : m_vPaMs)

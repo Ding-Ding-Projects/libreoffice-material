@@ -7480,7 +7480,7 @@
       "rewrite_class": "dialog-anatomy",
       "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": "1b1f9b130ea9984405c56b3fdea02ecc6e14af76",
+        "commit": "99f257dde3c671241c58559202359eb656ee00c7",
         "contract": "docs/design/08-dialogs.md#8.1",
         "capture": {
           "scene": null,

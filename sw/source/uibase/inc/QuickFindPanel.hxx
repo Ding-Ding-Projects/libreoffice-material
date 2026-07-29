@@ -87,6 +87,7 @@ private:
     DECL_LINK(SearchComboBoxFocusInHandler, weld::Widget&, void);
     DECL_LINK(SearchComboBoxActivateHandler, weld::ComboBox&, bool);
     DECL_LINK(SearchComboBoxChangedHandler, weld::ComboBox&, void);
+    DECL_LINK(RegexBuilderClickedHandler, weld::Button&, void);
     DECL_LINK(SearchComboBoxKeyInputHandler, const KeyEvent&, bool);
     DECL_LINK(SearchFindsListCustomGetSizeHandler, weld::TreeView::get_size_args, Size);
     DECL_LINK(SearchFindsListRender, weld::TreeView::render_args, void);

@@ -50,7 +50,7 @@ class WindowsRegexSearchIntegrationsTest(unittest.TestCase):
         VALIDATOR.validate_repository(REPOSITORY)
         self.assertEqual([], self.failures())
 
-    def test_real_matcher_flag_routes_are_fail_closed(self) -> None:
+    def test_declared_runtime_route_markers_are_required(self) -> None:
         coverage_ids = {
             "forms.record-search",
             "document.find-replace",
@@ -77,7 +77,8 @@ class WindowsRegexSearchIntegrationsTest(unittest.TestCase):
                 with self.subTest(coverage_id=entry["coverage_id"], marker=marker):
                     contents = dict(self.contents)
                     source_file = entry["source_file"]
-                    contents[source_file] = contents[source_file].replace(marker, "removed", 1)
+                    self.assertIn(marker, contents[source_file])
+                    contents[source_file] = contents[source_file].replace(marker, "removed")
                     self.assertTrue(
                         any(
                             ":runtime-flag-markers[" in error
@@ -85,6 +86,175 @@ class WindowsRegexSearchIntegrationsTest(unittest.TestCase):
                             for error in self.failures(contents=contents)
                         )
                     )
+
+    def test_full_flag_routes_reject_adversarial_sink_and_dead_marker_mutations(self) -> None:
+        cases = (
+            (
+                "forms-raw-start-over",
+                "cui/source/dialogs/cuifmsearch.cxx",
+                "m_pSearchEngine->StartOver(strThisRoundText);",
+                "m_pSearchEngine->StartOver(strHistoryText);",
+            ),
+            (
+                "forms-regex-lowercased",
+                "svx/source/form/fmsrcimp.cxx",
+                "if (!GetCaseSensitive() && !m_bRegular && !m_bLevenshtein)",
+                "if (!GetCaseSensitive())",
+            ),
+            (
+                "find-replace-ignores-global",
+                "svx/source/dialog/srchdlg.cxx",
+                "bGlobalReplace ? SvxSearchCmd::REPLACE_ALL\n"
+                "                                                     : SvxSearchCmd::REPLACE",
+                "SvxSearchCmd::REPLACE /* bGlobalReplace ? "
+                "SvxSearchCmd::REPLACE_ALL */",
+            ),
+            (
+                "find-global-route-hidden-behind-if-zero",
+                "svx/source/dialog/srchdlg.cxx",
+                "m_pSearchItem->SetCommand(bGlobalFind ? "
+                "SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND);",
+                "if (0) { m_pSearchItem->SetCommand(bGlobalFind ? "
+                "SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND); } "
+                "else { m_pSearchItem->SetCommand(SvxSearchCmd::FIND); }",
+            ),
+            (
+                "find-global-route-hidden-behind-if-constexpr-false",
+                "svx/source/dialog/srchdlg.cxx",
+                "m_pSearchItem->SetCommand(bGlobalFind ? "
+                "SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND);",
+                "if constexpr (false) { "
+                "m_pSearchItem->SetCommand(bGlobalFind ? "
+                "SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND); } "
+                "else { m_pSearchItem->SetCommand(SvxSearchCmd::FIND); }",
+            ),
+            (
+                "find-global-route-hidden-behind-preprocessor-zero",
+                "svx/source/dialog/srchdlg.cxx",
+                "m_pSearchItem->SetCommand(bGlobalFind ? "
+                "SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND);",
+                "#if 0\nm_pSearchItem->SetCommand(bGlobalFind ? "
+                "SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND);\n#endif\n"
+                "m_pSearchItem->SetCommand(SvxSearchCmd::FIND);",
+            ),
+            (
+                "quick-g-drops-non-body-probe",
+                "sw/source/uibase/sidebar/QuickFindPanel.cxx",
+                "runSearch(FindRanges::InOther | FindRanges::InSelAll);",
+                "if (false) { runSearch(FindRanges::InOther | FindRanges::InSelAll); }",
+            ),
+            (
+                "quick-g-keeps-all-shell-cursors",
+                "sw/source/uibase/sidebar/QuickFindPanel.cxx",
+                "m_pWrtShell->KillPams();",
+                "if (false) { m_pWrtShell->KillPams(); }",
+            ),
+        )
+        for mutation, path, marker, replacement in cases:
+            with self.subTest(mutation=mutation):
+                contents = dict(self.contents)
+                self.assertIn(marker, contents[path])
+                contents[path] = contents[path].replace(marker, replacement, 1)
+                self.assertTrue(
+                    any(
+                        ":runtime-route-" in error
+                        for error in self.failures(contents=contents)
+                    ),
+                    self.failures(contents=contents),
+                )
+
+    def test_owner_message_reset_cannot_hide_an_invalid_quick_find_pattern(self) -> None:
+        path = "sw/source/uibase/sidebar/QuickFindPanel.cxx"
+        contents = dict(self.contents)
+        marker = (
+            "IMPL_LINK_NOARG(QuickFindPanel, SearchComboBoxChangedHandler, "
+            "weld::ComboBox&, void)\n{"
+        )
+        self.assertIn(marker, contents[path])
+        contents[path] = contents[path].replace(
+            marker,
+            marker
+            + "\n    m_xSearchComboBox->set_entry_message_type("
+            "weld::EntryMessageType::Normal);",
+            1,
+        )
+        self.assertTrue(
+            any(
+                "runtime-route-quick-invalid-pattern" in error
+                for error in self.failures(contents=contents)
+            )
+        )
+
+    def test_quick_find_live_regex_preview_is_pattern_bounded(self) -> None:
+        path = "sw/source/uibase/sidebar/QuickFindPanel.cxx"
+        contents = dict(self.contents)
+        marker = "sfx2::RegexSearchService::PreviewMaxPatternCodeUnits"
+        self.assertIn(marker, contents[path])
+        contents[path] = contents[path].replace(marker, "SAL_MAX_INT32", 1)
+        self.assertTrue(
+            any(
+                "runtime-route-quick-live-preview-budget" in error
+                for error in self.failures(contents=contents)
+            )
+        )
+
+    def test_find_repeat_keeps_effective_pattern_and_silent_raw_restore(self) -> None:
+        path = "svx/source/dialog/srchdlg.cxx"
+
+        contents = dict(self.contents)
+        source = contents[path]
+        save_at = source.index("void SvxSearchDialog::SaveToModule_Impl()")
+        before, save = source[:save_at], source[save_at:]
+        marker = "sfx2::RegexSearchService::GetEffectivePattern(aRegexState)"
+        self.assertIn(marker, save)
+        contents[path] = before + save.replace(marker, "aRegexState.Pattern", 1)
+        self.assertTrue(
+            any(
+                "runtime-route-find-repeat-metadata" in error
+                for error in self.failures(contents=contents)
+            )
+        )
+
+        contents = dict(self.contents)
+        marker = (
+            "m_xSearchRegexController->SetStateWithoutNotify("
+            "aRegexState, !bLibreOfficeKitActive);"
+        )
+        self.assertIn(marker, contents[path])
+        contents[path] = contents[path].replace(
+            marker, "m_xSearchRegexController->SetState(aRegexState);", 1
+        )
+        self.assertTrue(
+            any(
+                "runtime-route-find-metadata-restore" in error
+                for error in self.failures(contents=contents)
+            )
+        )
+
+    def test_forms_invalid_regex_has_live_and_click_time_guards(self) -> None:
+        path = "cui/source/dialogs/cuifmsearch.cxx"
+        contents = dict(self.contents)
+        source = contents[path]
+        click_at = source.index(
+            "IMPL_LINK_NOARG(FmSearchDialog, OnClickedSearchAgain"
+        )
+        modified_at = source.index(
+            "IMPL_LINK_NOARG(FmSearchDialog, OnSearchTextModified"
+        )
+        click = source[click_at:modified_at]
+        marker = "if (!sfx2::RegexSearchService::Validate(aState).IsValid)"
+        self.assertIn(marker, click)
+        contents[path] = (
+            source[:click_at]
+            + click.replace(marker, "if (false)", 1)
+            + source[modified_at:]
+        )
+        self.assertTrue(
+            any(
+                "runtime-route-forms-search" in error
+                for error in self.failures(contents=contents)
+            )
+        )
 
     def test_shipping_inventory_link_is_required(self) -> None:
         registry = copy.deepcopy(self.registry)

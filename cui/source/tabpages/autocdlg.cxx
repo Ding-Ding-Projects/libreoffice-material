@@ -91,6 +91,9 @@ OfaAutoCorrDlg::OfaAutoCorrDlg(weld::Window* pParent, const SfxItemSet* _pSet )
     m_xRegexSearchController = std::make_unique<sfx2::RegexSearchController>(
         m_xDialog.get(), *m_xSearchEdit, *m_xRegexBuilderButton,
         LINK(this, OfaAutoCorrDlg, SearchUpdateHdl));
+    // Filtering is a boolean predicate over every rules row, so Global would be a cosmetic
+    // control with no first-versus-all result behavior on this surface.
+    m_xRegexSearchController->SetGlobalFlagEnabled(false);
     // Seed the field's default: a case-insensitive literal ("contains") match over the rule text,
     // until the user opts into regular expressions or other options through the builder.
     sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();

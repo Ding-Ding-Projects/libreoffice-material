@@ -85,6 +85,7 @@ public:
     void testReconcileSelectionDropsVanished();
     void testLatestUndoableCommitSkipsMaintenance();
     void testLatestUndoableCommitSkipsReversedActions();
+    void testLatestUndoableCommitUsesHistoryOrder();
     void testAutoDismissProtectsPinnedAndHighSeverity();
     void testMakeRowRedaction();
     void testDistinctSources();
@@ -100,6 +101,7 @@ public:
     CPPUNIT_TEST(testReconcileSelectionDropsVanished);
     CPPUNIT_TEST(testLatestUndoableCommitSkipsMaintenance);
     CPPUNIT_TEST(testLatestUndoableCommitSkipsReversedActions);
+    CPPUNIT_TEST(testLatestUndoableCommitUsesHistoryOrder);
     CPPUNIT_TEST(testAutoDismissProtectsPinnedAndHighSeverity);
     CPPUNIT_TEST(testMakeRowRedaction);
     CPPUNIT_TEST(testDistinctSources);
@@ -265,9 +267,9 @@ void NotificationViewModelTest::testLatestUndoableCommitSkipsMaintenance()
     NotificationCenterSnapshotRef xSnapshot = makeSnapshot(
         {},
         {
-            makeHistory("c1", NotificationAction::Add, 100),
             makeHistory("c2", NotificationAction::Maintenance, 300),
             makeHistory("c3", NotificationAction::Delete, 200),
+            makeHistory("c1", NotificationAction::Add, 100),
         });
     CPPUNIT_ASSERT_EQUAL(OString("c3"),
                          NotificationViewModel::LatestUndoableCommit(*xSnapshot));
@@ -284,9 +286,9 @@ void NotificationViewModelTest::testLatestUndoableCommitSkipsReversedActions()
     NotificationCenterSnapshotRef xOneUndo = makeSnapshot(
         {},
         {
-            makeHistory("c1", NotificationAction::Add, 100),
             makeHistory("undo-c2", NotificationAction::Undo, 300),
             makeHistory("c2", NotificationAction::Delete, 200),
+            makeHistory("c1", NotificationAction::Add, 100),
         });
     CPPUNIT_ASSERT_EQUAL(OString("c1"),
                          NotificationViewModel::LatestUndoableCommit(*xOneUndo));
@@ -295,10 +297,10 @@ void NotificationViewModelTest::testLatestUndoableCommitSkipsReversedActions()
     NotificationCenterSnapshotRef xNewAction = makeSnapshot(
         {},
         {
-            makeHistory("c1", NotificationAction::Add, 100),
-            makeHistory("c2", NotificationAction::Delete, 200),
-            makeHistory("undo-c2", NotificationAction::Undo, 300),
             makeHistory("c3", NotificationAction::Pin, 400),
+            makeHistory("undo-c2", NotificationAction::Undo, 300),
+            makeHistory("c2", NotificationAction::Delete, 200),
+            makeHistory("c1", NotificationAction::Add, 100),
         });
     CPPUNIT_ASSERT_EQUAL(OString("c3"),
                          NotificationViewModel::LatestUndoableCommit(*xNewAction));
@@ -306,12 +308,38 @@ void NotificationViewModelTest::testLatestUndoableCommitSkipsReversedActions()
     NotificationCenterSnapshotRef xExhausted = makeSnapshot(
         {},
         {
-            makeHistory("c1", NotificationAction::Add, 100),
-            makeHistory("c2", NotificationAction::Delete, 200),
-            makeHistory("undo-c2", NotificationAction::Undo, 300),
             makeHistory("undo-c1", NotificationAction::Undo, 400),
+            makeHistory("undo-c2", NotificationAction::Undo, 300),
+            makeHistory("c2", NotificationAction::Delete, 200),
+            makeHistory("c1", NotificationAction::Add, 100),
         });
     CPPUNIT_ASSERT(NotificationViewModel::LatestUndoableCommit(*xExhausted).isEmpty());
+}
+
+void NotificationViewModelTest::testLatestUndoableCommitUsesHistoryOrder()
+{
+    // History is already newest-first from the repository chain. A wall-clock rollback must not
+    // reorder later commits behind older ones.
+    NotificationCenterSnapshotRef xClockRollback = makeSnapshot(
+        {},
+        {
+            makeHistory("c2", NotificationAction::Delete, 100),
+            makeHistory("c1", NotificationAction::Add, 200),
+        });
+    CPPUNIT_ASSERT_EQUAL(OString("c2"),
+                         NotificationViewModel::LatestUndoableCommit(*xClockRollback));
+
+    // The same chain ordering governs Undo markers: even with a regressed timestamp, the marker
+    // consumes the immediately preceding user action and exposes the next LIFO target.
+    NotificationCenterSnapshotRef xUndoAfterRollback = makeSnapshot(
+        {},
+        {
+            makeHistory("undo-c2", NotificationAction::Undo, 50),
+            makeHistory("c2", NotificationAction::Delete, 100),
+            makeHistory("c1", NotificationAction::Add, 200),
+        });
+    CPPUNIT_ASSERT_EQUAL(OString("c1"),
+                         NotificationViewModel::LatestUndoableCommit(*xUndoAfterRollback));
 }
 
 void NotificationViewModelTest::testAutoDismissProtectsPinnedAndHighSeverity()

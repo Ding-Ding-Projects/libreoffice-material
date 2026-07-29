@@ -60,6 +60,15 @@ FULL_FLAG_RUNTIME_COVERAGE = {
     "document.find-replace",
     "writer.quick-find",
 }
+GLOBAL_FLAG_DISABLED_COVERAGE = {
+    "start-center.document-search",
+    "options.autocorrect-rules",
+}
+GLOBAL_FLAG_DISABLED_POLICY = "disabled-boolean-filter"
+STATE_REFRESH_REQUIRED_COVERAGE = {
+    "start-center.document-search",
+    "options.autocorrect-rules",
+}
 COVERAGE_PATH = "qa/windows-ui-contract/search-field-coverage.json"
 CONTROLLER_SOURCE = "sfx2/source/dialog/RegexSearchController.cxx"
 FORMS_ENGINE_SOURCE = "svx/source/form/fmsrcimp.cxx"
@@ -680,6 +689,7 @@ def _validate_constructor(
     default_mode: str,
     case_insensitive: bool | None,
     case_seed_expression: str | None,
+    global_flag_disabled: bool,
     errors: list[str],
 ) -> None:
     owner_builder_wiring = (
@@ -707,8 +717,19 @@ def _validate_constructor(
         + owner_builder_wiring
         + r"\s*\)\s*;"
     )
-    if controller_wiring.search(constructor) is None:
+    controller_match = controller_wiring.search(constructor)
+    if controller_match is None:
         errors.append(f"{context}:source-wiring:controller constructor mismatch")
+    elif global_flag_disabled:
+        marker = f"{controller_member}->SetGlobalFlagEnabled(false);"
+        tail = constructor[controller_match.end():]
+        if constructor.count(marker) != 1 or re.match(
+            r"\s*" + re.escape(marker), tail
+        ) is None:
+            errors.append(
+                f"{context}:global-flag-capability:{marker} must immediately follow "
+                "controller construction exactly once"
+            )
 
     required = [f"{controller_member}->SetState(aState);"]
     if default_mode in MODE_REQUIRES_LITERAL_SEED:
@@ -1172,8 +1193,33 @@ def _validate_state_refresh_contract(
         if body is None:
             errors.append(f"{prefix}:function body not found for {signature}")
             continue
-        if call_marker and body.count(call_marker) != 1:
-            errors.append(f"{prefix}:refresh call expected exactly 1")
+        expected_calls = raw_site.get("expected_calls", 1)
+        if (
+            not isinstance(expected_calls, int)
+            or isinstance(expected_calls, bool)
+            or expected_calls < 1
+        ):
+            errors.append(f"{prefix}:expected_calls positive integer required")
+            expected_calls = 1
+        if call_marker and body.count(call_marker) != expected_calls:
+            errors.append(f"{prefix}:refresh call expected exactly {expected_calls}")
+
+        ordered_markers = raw_site.get("ordered_markers")
+        if ordered_markers is not None:
+            if not isinstance(ordered_markers, list) or not ordered_markers:
+                errors.append(f"{prefix}:ordered_markers non-empty array required")
+            elif not all(
+                isinstance(marker, str) and marker.strip() for marker in ordered_markers
+            ):
+                errors.append(f"{prefix}:ordered_markers non-empty text required")
+            else:
+                _require_ordered_route(
+                    prefix,
+                    "state-refresh",
+                    body,
+                    tuple(ordered_markers),
+                    errors,
+                )
 
         guard_marker = raw_site.get("guard_marker")
         if guard_marker is not None:
@@ -1754,6 +1800,18 @@ def violations(
             errors.append(f"{context}:status:must be source-integrated")
         if not isinstance(entry.get("runtime_verified"), bool):
             errors.append(f"{context}:runtime_verified:boolean required")
+        global_flag_disabled = coverage_id in GLOBAL_FLAG_DISABLED_COVERAGE
+        global_flag_policy = entry.get("global_flag_capability")
+        if global_flag_disabled:
+            if global_flag_policy != GLOBAL_FLAG_DISABLED_POLICY:
+                errors.append(
+                    f"{context}:global-flag-capability:must be "
+                    f"{GLOBAL_FLAG_DISABLED_POLICY}"
+                )
+        elif global_flag_policy is not None:
+            errors.append(
+                f"{context}:global-flag-capability:unexpected policy for this surface"
+            )
 
         # -- Parameter vocabulary and (strategy, default_mode) compatibility ----
         if widget_kind and widget_kind not in WIDGET_KINDS:
@@ -1927,6 +1985,7 @@ def violations(
                 default_mode,
                 case_insensitive,
                 case_seed_expression,
+                global_flag_disabled,
                 errors,
             )
 
@@ -1953,6 +2012,11 @@ def violations(
                     default_mode, body, errors,
                 )
 
+        if (
+            coverage_id in STATE_REFRESH_REQUIRED_COVERAGE
+            and entry.get("state_refresh_contract") is None
+        ):
+            errors.append(f"{context}:state_refresh_contract:required for rebuilt results")
         _validate_state_refresh_contract(context, entry, source, header, errors)
 
     return errors

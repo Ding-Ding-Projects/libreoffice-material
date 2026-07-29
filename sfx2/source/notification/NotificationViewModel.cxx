@@ -239,25 +239,18 @@ NotificationCounts NotificationViewModel::Counts(const NotificationCenterSnapsho
 
 OString NotificationViewModel::LatestUndoableCommit(const NotificationCenterSnapshot& rSnapshot)
 {
-    std::vector<const NotificationHistoryEntry*> aNewestFirst;
-    aNewestFirst.reserve(rSnapshot.History.size());
-    for (const NotificationHistoryEntry& rEntry : rSnapshot.History)
-        aNewestFirst.push_back(&rEntry);
-    std::stable_sort(aNewestFirst.begin(), aNewestFirst.end(),
-                     [](const NotificationHistoryEntry* pLeft,
-                        const NotificationHistoryEntry* pRight) {
-                         return pLeft->Timestamp > pRight->Timestamp;
-                     });
-
+    // NotificationStore builds History by following the repository's head-to-parent chain, so its
+    // vector order is authoritative. Wall-clock timestamps are display metadata and can move
+    // backwards; sorting by them could offer an older commit before the actual history head.
     std::size_t nReversedActions = 0;
-    for (const NotificationHistoryEntry* pEntry : aNewestFirst)
+    for (const NotificationHistoryEntry& rEntry : rSnapshot.History)
     {
-        if (pEntry->CommitId.isEmpty())
+        if (rEntry.CommitId.isEmpty())
             continue;
 
         // Undo commits are durable markers on top of the original history. Treat each as consuming
         // one earlier user action instead of offering the Undo commit itself (which would be redo).
-        if (pEntry->Action == NotificationAction::Undo)
+        if (rEntry.Action == NotificationAction::Undo)
         {
             ++nReversedActions;
             continue;
@@ -265,9 +258,9 @@ OString NotificationViewModel::LatestUndoableCommit(const NotificationCenterSnap
 
         // A maintenance compaction checkpoint is not undoable, and the None/Unknown sentinels are not
         // real user actions.
-        if (pEntry->Action == NotificationAction::Maintenance
-            || pEntry->Action == NotificationAction::None
-            || pEntry->Action == NotificationAction::Unknown)
+        if (rEntry.Action == NotificationAction::Maintenance
+            || rEntry.Action == NotificationAction::None
+            || rEntry.Action == NotificationAction::Unknown)
             continue;
 
         if (nReversedActions != 0)
@@ -276,7 +269,7 @@ OString NotificationViewModel::LatestUndoableCommit(const NotificationCenterSnap
             continue;
         }
 
-        return pEntry->CommitId;
+        return rEntry.CommitId;
     }
     return OString();
 }

@@ -27,7 +27,13 @@ regex-mode synchronization and Templates filtering are wired, while AutoCorrect
 search keeps section/header rows disabled and non-actionable after every
 rebuild. Forms, Find & Replace, and Writer Quick Find now route `i/g/m/s`,
 invalid-pattern guards, mode transitions, and repeat state to the real
-LibreOffice matcher; their fail-closed integration suite has 97 regressions.
+LibreOffice matcher. A final adversarial pass also removed cosmetic Global
+controls from the Start Center and AutoCorrect boolean filters, reapplies an
+active Start Center query after recent-document maintenance reloads, prevents
+docked side borders from being subtracted twice from document-tab width, and
+makes notification Undo follow repository chain order across wall-clock
+rollback. The fail-closed regex integration suite now has 100 regressions, and
+the document-tab suite has 39.
 
 The rewrite evaluator itself also had a fail-closed dead end: a valid historical
 snapshot was retained after a still-conforming surface changed, so C4 rejected

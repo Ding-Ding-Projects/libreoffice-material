@@ -159,9 +159,13 @@
     "layout_function": "SfxFrame::SetToolSpaceBorderPixel_Impl",
     "layout_markers": [
       "GetPreferredHeight()",
+      "const tools::Long nAvailableWidth = std::max<tools::Long>(0, aSize.Width());",
       "pDocumentTabBar->SetPosSizePixel",
       "aPos.AdjustY(nTabHeight)",
       "rBorder.Top() + rBorder.Bottom() + nTabHeight"
+    ],
+    "layout_must_not_contain": [
+      "std::max<tools::Long>(0, aSize.Width() - nDeltaX)"
     ]
   },
   "synchronization_and_safety": {

@@ -44,6 +44,7 @@
       "matcher_strategy": "legacy-literal-or-compiled-once-utl-textsearch",
       "default_mode": "literal-case-sensitive-indexof-compatible",
       "match_subject": "rTitle",
+      "global_flag_capability": "disabled-boolean-filter",
       "mode_toggle_id": "start_search_regex_mode",
       "ui_layout": {
         "kind": "material-search-pill",
@@ -73,6 +74,23 @@
             "id": "start_search_regex_builder",
             "class": "GtkButton",
             "role": "builder"
+          }
+        ]
+      },
+      "state_refresh_contract": {
+        "header_declaration": "DECL_LINK(SearchModifyHdl, weld::TextWidget&, void);",
+        "call_marker": "SearchModifyHdl(*mxStartSearch);",
+        "expected_sites": 1,
+        "sites": [
+          {
+            "signature": "IMPL_LINK (BackingWindow, MenuSelectHdl",
+            "expected_calls": 2,
+            "ordered_markers": [
+              "mxAllRecentThumbnails->Reload();",
+              "SearchModifyHdl(*mxStartSearch);",
+              "mxAllRecentThumbnails->clearUnavailableFiles();",
+              "SearchModifyHdl(*mxStartSearch);"
+            ]
           }
         ]
       },
@@ -427,6 +445,7 @@
       "widget_kind": "entry",
       "matcher_strategy": "controller-driven-search-sites",
       "default_mode": "literal-case-insensitive-contains-compatible",
+      "global_flag_capability": "disabled-boolean-filter",
       "changed_handler_role": "debounce-timer-start",
       "changed_handler_trigger": "m_aSearchUpdateTimer.Start()",
       "search_sites": [

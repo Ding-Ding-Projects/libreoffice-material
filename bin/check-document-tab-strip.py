@@ -351,6 +351,9 @@ def violations(contract: dict, contents: dict[str, str]) -> list[str]:
         for marker in owner["layout_markers"]:
             if marker not in layout_body:
                 errors.append(f"owner:layout -- missing marker {marker!r}")
+        for marker in owner.get("layout_must_not_contain", []):
+            if marker in layout_body:
+                errors.append(f"owner:layout -- forbidden marker {marker!r}")
     for marker in (
         "RefreshDocumentTabBar_Impl",
         "RefreshDocumentTabBars_Impl",

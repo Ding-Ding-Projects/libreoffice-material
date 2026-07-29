@@ -537,6 +537,73 @@ class WindowsRegexSearchIntegrationsTest(unittest.TestCase):
             )
         )
 
+    def test_boolean_filter_surfaces_disable_the_global_capability(self) -> None:
+        coverage_ids = {
+            "start-center.document-search",
+            "options.autocorrect-rules",
+        }
+        entries = [
+            entry
+            for entry in self.registry["integrations"]
+            if entry["coverage_id"] in coverage_ids
+        ]
+        self.assertEqual(coverage_ids, {entry["coverage_id"] for entry in entries})
+
+        for entry in entries:
+            coverage_id = entry["coverage_id"]
+            controller_member = entry["controller_member"]
+            marker = f"{controller_member}->SetGlobalFlagEnabled(false);"
+            with self.subTest(coverage_id=coverage_id, mutation="registry-missing"):
+                registry = copy.deepcopy(self.registry)
+                target = next(
+                    item
+                    for item in registry["integrations"]
+                    if item["coverage_id"] == coverage_id
+                )
+                target.pop("global_flag_capability")
+                self.assertTrue(
+                    any(
+                        ":global-flag-capability:must be disabled-boolean-filter" in error
+                        for error in self.failures(registry=registry)
+                    )
+                )
+
+            with self.subTest(coverage_id=coverage_id, mutation="registry-enabled"):
+                registry = copy.deepcopy(self.registry)
+                target = next(
+                    item
+                    for item in registry["integrations"]
+                    if item["coverage_id"] == coverage_id
+                )
+                target["global_flag_capability"] = "enabled"
+                self.assertTrue(
+                    any(
+                        ":global-flag-capability:must be disabled-boolean-filter" in error
+                        for error in self.failures(registry=registry)
+                    )
+                )
+
+            for mutation, replacement in (
+                ("source-enabled", f"{controller_member}->SetGlobalFlagEnabled(true);"),
+                ("source-dead", f"if (false) {{ {marker} }}"),
+                ("source-removed", ""),
+            ):
+                with self.subTest(coverage_id=coverage_id, mutation=mutation):
+                    contents = dict(self.contents)
+                    source_file = entry["source_file"]
+                    self.assertIn(marker, contents[source_file])
+                    contents[source_file] = contents[source_file].replace(
+                        marker, replacement, 1
+                    )
+                    self.assertTrue(
+                        any(
+                            ":global-flag-capability:" in error
+                            and "must immediately follow" in error
+                            for error in self.failures(contents=contents)
+                        ),
+                        self.failures(contents=contents),
+                    )
+
 
 # ---------------------------------------------------------------------------
 # Synthetic fixtures for the parameterized branches.  Only the Calc and Start
@@ -2169,6 +2236,57 @@ class MaterialSearchPillTest(unittest.TestCase):
             ],
         )
         self.assertEqual([], self.failures())
+
+    def test_maintenance_reloads_reapply_the_active_search(self) -> None:
+        contract = self.entry["state_refresh_contract"]
+        self.assertEqual(1, contract["expected_sites"])
+        self.assertEqual(2, contract["sites"][0]["expected_calls"])
+        self.assertEqual([], self.failures())
+
+        contents = dict(self.contents)
+        source_file = self.entry["source_file"]
+        source = contents[source_file]
+        signature = contract["sites"][0]["signature"]
+        start = source.index(signature)
+        opening = source.index("{", start + len(signature))
+        depth = 0
+        end = -1
+        for index in range(opening, len(source)):
+            if source[index] == "{":
+                depth += 1
+            elif source[index] == "}":
+                depth -= 1
+                if depth == 0:
+                    end = index + 1
+                    break
+        self.assertNotEqual(-1, end)
+        function = source[start:end]
+        call_marker = contract["call_marker"]
+        self.assertEqual(2, function.count(call_marker))
+        function = function.replace(call_marker, "SearchFilterRefreshRemoved();", 1)
+        contents[source_file] = source[:start] + function + source[end:]
+        self.assertTrue(
+            any(
+                "state_refresh_contract:site[0]:refresh call expected exactly 2" in error
+                or "runtime-route-state-refresh" in error
+                for error in self.failures(contents=contents)
+            )
+        )
+
+    def test_start_center_refresh_contract_is_required(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        target = next(
+            item
+            for item in registry["integrations"]
+            if item.get("coverage_id") == "start-center.document-search"
+        )
+        target.pop("state_refresh_contract")
+        self.assertTrue(
+            any(
+                ":state_refresh_contract:required for rebuilt results" in error
+                for error in self.failures(registry=registry)
+            )
+        )
 
     def test_stock_integration_keeps_the_stock_layout(self) -> None:
         # The Calc field (integrations[0]) declares no ui_layout and is still

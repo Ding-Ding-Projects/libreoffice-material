@@ -215,7 +215,7 @@
     "ui_file": "sfx2/uiconfig/ui/templatedlg.ui",
     "field": "search_filter",
     "builder": "search_filter_regex_builder",
-    "note": "The Template Manager search field and its adjacent regex builder are one of the 12 source-integrated regex-search fields, owned and validated by regex-search-integrations.json / check-windows-regex-search-integrations.py. This contract pins the .ui adjacency so a re-composition cannot silently drop it, but does NOT re-register the field."
+    "note": "The Template Manager search field and its adjacent regex builder are one of the 15 source-integrated regex-search fields, owned and validated by regex-search-integrations.json / check-windows-regex-search-integrations.py. This contract pins the .ui adjacency so a re-composition cannot silently drop it, but does NOT re-register the field."
   },
   "destructive_confirmations": {
     "status": "owned-by-dialog-anatomy",

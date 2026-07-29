@@ -579,7 +579,8 @@ void SfxFrame::SetToolSpaceBorderPixel_Impl( const SvBorder& rBorder )
     tools::Long nTabHeight = 0;
     if (m_pImpl->pDocumentTabBar && m_pImpl->pDocumentTabBar->IsVisible())
     {
-        const tools::Long nAvailableWidth = std::max<tools::Long>(0, aSize.Width() - nDeltaX);
+        // aSize has already had the left/right tool-space border removed above.
+        const tools::Long nAvailableWidth = std::max<tools::Long>(0, aSize.Width());
         const tools::Long nAvailableHeight
             = std::max<tools::Long>(0, aSize.Height() - rBorder.Top() - rBorder.Bottom());
         nTabHeight

@@ -267,6 +267,15 @@ class DocumentTabStripContractTest(unittest.TestCase):
         )
         self.assertTrue(any("owner:layout" in f for f in self.failures(contents=contents)))
 
+    def test_layout_does_not_subtract_horizontal_border_twice(self) -> None:
+        contents = self.mutated(
+            self.frame_key,
+            "const tools::Long nAvailableWidth = std::max<tools::Long>(0, aSize.Width());",
+            "const tools::Long nAvailableWidth"
+            " = std::max<tools::Long>(0, aSize.Width() - nDeltaX);",
+        )
+        self.assertTrue(any("owner:layout" in f for f in self.failures(contents=contents)))
+
     def test_open_does_not_refresh_existing_strips_fails(self) -> None:
         old = (
             "m_pImpl->pWorkWin = new SfxWorkWindow(&pFrame->GetWindow(), *this, *pFrame);\n"

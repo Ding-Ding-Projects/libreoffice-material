@@ -151,6 +151,9 @@ BackingWindow::BackingWindow(vcl::Window* i_pParent)
     mxStartSearchController = std::make_unique<sfx2::RegexSearchController>(
         m_xContainer.get(), *mxStartSearch, *mxStartSearchRegexBuilder,
         LINK(this, BackingWindow, SearchModifyHdl));
+    // Filtering is a boolean predicate over each recent-document title, so there is no
+    // first-versus-all result model for the builder's Global flag to control.
+    mxStartSearchController->SetGlobalFlagEnabled(false);
     sfx2::RegexSearchState aState = mxStartSearchController->GetState();
     aState.Mode = sfx2::RegexSearchMode::Literal;
     aState.Flags.CaseInsensitive = false;
@@ -676,12 +679,14 @@ IMPL_LINK (BackingWindow, MenuSelectHdl, const OUString&, rId, void)
         {
             SvtHistoryOptions::Clear(EHistoryType::PickList, false);
             mxAllRecentThumbnails->Reload();
+            SearchModifyHdl(*mxStartSearch);
         }
         return;
     }
     else if(rId == "clear_unavailable")
     {
         mxAllRecentThumbnails->clearUnavailableFiles();
+        SearchModifyHdl(*mxStartSearch);
     }
 }
 

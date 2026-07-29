@@ -14,18 +14,24 @@ Document Tab Appearance snapshot landed at `baae1c416`.
 - Notification Manager selection is derived from visible rows, filtered focus
   is reconciled, Undo skips already-reversed actions, and timed dismissal is
   limited to low-priority unpinned cards. The overlay listens for owner/work-area
-  resize and re-anchors its visible stack.
+  resize and re-anchors its visible stack. Undo now follows the repository's
+  authoritative head-to-parent history order instead of sorting by wall-clock
+  timestamps, so clock rollback cannot select the wrong commit.
 - Document tabs are owned by normal `SfxViewFrame` lifetimes, reserve layout
   space, refresh for open/close/title/current-frame/config changes, prune
   disposed frames, restore the owning frame on selection, preserve full RGB(A)
-  style values, and expose a complete resettable appearance editor.
+  style values, and expose a complete resettable appearance editor. Their
+  available width now subtracts docked left/right tool space exactly once.
 - Persisted Material accent selection resolves through
   `MaterialTokens::fromCurrentTheme()` in all registered paint consumers. Apply
   remains restart-based; no live process re-key is claimed.
 - Start Center regex mode now synchronizes both directions, and Templates uses
   the real filtered search path. AutoCorrect replacement/exception searches
   rebuild from an authoritative baseline while keeping group/header rows
-  disabled, non-actionable, and inaccessible as selectable rules.
+  disabled, non-actionable, and inaccessible as selectable rules. Start Center
+  maintenance reloads immediately reapply the still-visible query, and the
+  Start Center/AutoCorrect boolean filters no longer expose a cosmetic Global
+  option that their result models cannot execute.
 - Forms, Find & Replace, and Writer Quick Find now send `i/g/m/s` and effective
   ICU patterns through their real engine routes. Invalid patterns fail before
   dispatch, Wildcard/Similarity transitions are explicit, oversized live
@@ -37,8 +43,9 @@ Document Tab Appearance snapshot landed at `baae1c416`.
 ### QA and honesty boundary
 
 - Focused static gates pass: regex-builder foundation validator + 10 tests;
-  regex-search integration validator + 97 tests; Material rewrite ledger
-  validator + 55 tests; JSON/Python parsing; and `git diff --check`.
+  regex-search integration validator + 100 tests; document-tab validator + 39
+  tests; four notification validators + 112 build-free tests; Material rewrite
+  ledger validator + 55 tests; JSON/Python parsing; and `git diff --check`.
 - The integration validator rejects raw-engine bypasses and dead marker routes
   hidden behind `if(false)`, `if(0)`, `if constexpr(false)`, or `#if 0`.
 - The ledger now refreshes a valid historical evidence snapshot when a

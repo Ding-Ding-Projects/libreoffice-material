@@ -7,8 +7,8 @@
     "shipping_fields": 30,
     "planned_fields": 0,
     "excluded_candidates": 16,
-    "source_integrated_fields": 13,
-    "gap_fields": 17
+    "source_integrated_fields": 15,
+    "gap_fields": 15
   },
   "gap_taxonomy": {
     "note": "Every shipping field carries an integration_status. A 'source-integrated' field is bound to the shared controller-driven regex builder and MUST have a matching entry in regex-search-integrations.json (the checker reconciles the two registries and fails closed on drift). A 'gap' field is an honest, still-unintegrated surface; it MUST carry a gap_category from the fixed enum below plus non-empty gap_evidence citing a real file:symbol anchor for the architectural reason it cannot yet reuse the builder. Existing upstream (non-Material-guarded) source never satisfies the integration gate, so gap_evidence documents WHY, it is not a passing integration.",
@@ -341,22 +341,18 @@
       "surface": "AutoCorrect dialog rules search",
       "ui_file": "cui/uiconfig/ui/autocorrectdialog.ui",
       "widget_id": "searchEntry",
-      "query_scope": "AutoCorrect replacement rules",
+      "query_scope": "AutoCorrect replacement rules and exception lists",
       "regex_builder": "adjacent-advanced-builder",
-      "integration_status": "gap",
-      "gap_category": "stub surface",
-      "gap_evidence": "cui/source/tabpages/autocdlg.cxx: OfaAutoCorrDlg never welds searchEntry or searchEntry_regex_builder; the Phase 7.5 search bar landed in the .ui with no controller, changed-handler, or matcher behind it, so there is nothing bound to filter yet."
+      "integration_status": "source-integrated"
     },
     {
       "coverage_id": "options.general-page",
       "surface": "Options General page search",
       "ui_file": "cui/uiconfig/ui/optgeneralpage.ui",
       "widget_id": "searchEntry",
-      "query_scope": "General settings options",
+      "query_scope": "General settings option sections",
       "regex_builder": "adjacent-advanced-builder",
-      "integration_status": "gap",
-      "gap_category": "stub surface",
-      "gap_evidence": "cui/source/options/optgdlg.cxx: OfaMiscTabPage never welds searchEntry or searchEntry_regex_builder; the Phase 7.5 search bar landed in the .ui with no controller, changed-handler, or matcher behind it, so there is nothing bound to filter yet."
+      "integration_status": "source-integrated"
     }
   ],
   "planned_fields": [],

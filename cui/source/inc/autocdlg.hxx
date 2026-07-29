@@ -21,21 +21,40 @@
 #include <sfx2/tabdlg.hxx>
 #include <svx/langbox.hxx>
 #include <unotools/collatorwrapper.hxx>
+#include <vcl/timer.hxx>
 #include <vcl/weld/Button.hxx>
 #include <vcl/weld/CheckButton.hxx>
 #include <vcl/weld/Entry.hxx>
 #include <vcl/weld/Label.hxx>
 #include <vcl/weld/SpinButton.hxx>
 #include <vcl/weld/TreeIter.hxx>
+// OfaAutoCorrSearchList names weld::TreeView by value, so the declaration must not depend on the
+// including translation unit having pulled TreeView.hxx in first.
+#include <vcl/weld/TreeView.hxx>
 
+#include <cstddef>
 #include <map>
 #include <set>
 #include <utility>
+#include <vector>
 
 class CharClass;
 class SmartTagMgr;
 
 namespace editeng { class SortedAutoCompleteStrings; }
+
+namespace sfx2 { class RegexSearchController; }
+
+/** One list a tab page contributes to the AutoCorrect dialog's rules search.
+
+    @c nTextColumns is the number of leading text columns whose contents together form a row's
+    search subject, so the dialog never reads a column a given list does not have.
+ */
+struct OfaAutoCorrSearchList
+{
+    weld::TreeView* pList;
+    int nTextColumns;
+};
 
 // class OfaAutoCorrDlg --------------------------------------------------
 
@@ -43,14 +62,30 @@ class OfaAutoCorrDlg : public SfxTabDialogController
 {
     std::unique_ptr<weld::Widget> m_xLanguageBox;
     std::unique_ptr<SvxLanguageBox> m_xLanguageLB;
+    std::unique_ptr<weld::Entry> m_xSearchEdit;
+    // The builder button and the controller are declared after the search entry on purpose: the
+    // controller re-installs the entry's changed callback and restores the button's tooltip and
+    // accessible name in its destructor, so both widgets must still be alive when it runs.
+    std::unique_ptr<weld::Button> m_xRegexBuilderButton;
+    std::unique_ptr<sfx2::RegexSearchController> m_xRegexSearchController;
+    // Declared last so it is destroyed first and can never fire into a half-torn-down dialog.
+    Timer m_aSearchUpdateTimer;
 
     DECL_LINK(SelectLanguageHdl, weld::ComboBox&, void);
+    DECL_LINK(SearchUpdateHdl, weld::TextWidget&, void);
+    DECL_LINK(SearchTimeoutHdl, Timer*, void);
+
+    void collectSearchLists(std::vector<OfaAutoCorrSearchList>& rLists);
+    int applySearchFilter();
+
 public:
 
     OfaAutoCorrDlg(weld::Window* pParent, const SfxItemSet *pSet);
     virtual ~OfaAutoCorrDlg() override;
 
     void EnableLanguage(bool bEnable);
+    /// Re-applies the current rules query, e.g. after a tab page was built or refilled.
+    void RefreshSearchFilter();
 };
 
 // class OfaAutocorrOptionsPage ------------------------------------------
@@ -219,6 +254,8 @@ public:
     void    SetLanguage(LanguageType eSet);
     void    DeleteEntry(const OUString& sShort, const OUString& sLong);
     void    NewEntry(const OUString& sShort, const OUString& sLong, bool bKeepSourceFormatting);
+    /// Contributes the replacement table to the dialog's rules search.
+    void    CollectSearchLists(std::vector<OfaAutoCorrSearchList>& rLists);
 };
 
 // class OfaAutocorrExceptPage ---------------------------------------------
@@ -272,6 +309,8 @@ public:
     virtual void        ActivatePage( const SfxItemSet& ) override;
     virtual DeactivateRC DeactivatePage( SfxItemSet* pSet ) override;
     void                SetLanguage(LanguageType eSet);
+    /// Contributes the abbreviation and double-capital exception lists to the dialog's rules search.
+    void                CollectSearchLists(std::vector<OfaAutoCorrSearchList>& rLists);
 
 };
 

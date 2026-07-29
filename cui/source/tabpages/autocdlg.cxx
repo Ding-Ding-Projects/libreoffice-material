@@ -34,9 +34,11 @@
 #include <sfx2/app.hxx>
 #include <sfx2/objsh.hxx>
 #include <sfx2/viewsh.hxx>
+#include <sfx2/RegexSearchController.hxx>
 #include <unotools/charclass.hxx>
 #include <unotools/collatorwrapper.hxx>
 #include <unotools/fontdefs.hxx>
+#include <unotools/textsearch.hxx>
 #include <comphelper/processfactory.hxx>
 #include <vcl/svapp.hxx>
 #include <sfx2/module.hxx>
@@ -65,11 +67,40 @@ static LanguageType eLastDialogLanguage = LANGUAGE_SYSTEM;
 
 using namespace ::com::sun::star;
 
+namespace
+{
+// The replacement table holds several thousand rules, so debounce the rules search: a fast typist
+// filters the visible lists once, not once per keystroke.
+constexpr sal_uInt64 nAutoCorrectSearchUpdateTimeout = 500;
+}
+
 OfaAutoCorrDlg::OfaAutoCorrDlg(weld::Window* pParent, const SfxItemSet* _pSet )
     : SfxTabDialogController(pParent, u"cui/ui/autocorrectdialog.ui"_ustr, u"AutoCorrectDialog"_ustr, _pSet)
     , m_xLanguageBox(m_xBuilder->weld_widget(u"langbox"_ustr))
     , m_xLanguageLB(new SvxLanguageBox(m_xBuilder->weld_combo_box(u"lang"_ustr)))
+    , m_xSearchEdit(m_xBuilder->weld_entry(u"searchEntry"_ustr))
+    , m_xRegexBuilderButton(m_xBuilder->weld_button(u"searchEntry_regex_builder"_ustr))
+    , m_aSearchUpdateTimer("OfaAutoCorrDlg SearchUpdateTimer")
 {
+    m_aSearchUpdateTimer.SetInvokeHandler(LINK(this, OfaAutoCorrDlg, SearchTimeoutHdl));
+    m_aSearchUpdateTimer.SetTimeout(nAutoCorrectSearchUpdateTimeout);
+
+    // Bind the rules search entry to the shared advanced regex builder. The controller owns the
+    // entry's changed callback and forwards it to SearchUpdateHdl, so the debounced filter runs from
+    // one place, and the adjacent ".*" button opens the regular-expression builder popover.
+    m_xRegexSearchController = std::make_unique<sfx2::RegexSearchController>(
+        m_xDialog.get(), *m_xSearchEdit, *m_xRegexBuilderButton,
+        LINK(this, OfaAutoCorrDlg, SearchUpdateHdl));
+    // Seed the field's default: a case-insensitive literal ("contains") match over the rule text,
+    // until the user opts into regular expressions or other options through the builder.
+    sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+    aState.Mode = sfx2::RegexSearchMode::Literal;
+    aState.Flags.CaseInsensitive = true;
+    m_xRegexSearchController->SetState(aState);
+    // Seeding notifies the owner (SearchUpdateHdl), which arms the debounce timer; the query is
+    // empty on open, so cancel that pending tick and leave the freshly built lists untouched.
+    m_aSearchUpdateTimer.Stop();
+
     bool bShowSWOptions = false;
     bool bOpenSmartTagOptions = false;
     bool bActivateOptions = false;
@@ -162,6 +193,119 @@ OfaAutoCorrDlg::~OfaAutoCorrDlg()
 void OfaAutoCorrDlg::EnableLanguage(bool bEnable)
 {
     m_xLanguageBox->set_sensitive(bEnable);
+}
+
+void OfaAutoCorrDlg::RefreshSearchFilter()
+{
+    applySearchFilter();
+}
+
+IMPL_LINK_NOARG(OfaAutoCorrDlg, SearchUpdateHdl, weld::TextWidget&, void)
+{
+    m_aSearchUpdateTimer.Start();
+}
+
+IMPL_LINK_NOARG(OfaAutoCorrDlg, SearchTimeoutHdl, Timer*, void)
+{
+    applySearchFilter();
+}
+
+void OfaAutoCorrDlg::collectSearchLists(std::vector<OfaAutoCorrSearchList>& rLists)
+{
+    rLists.clear();
+
+    // Only the two rule-collection pages carry a searchable list; the remaining pages are option
+    // check boxes. Both are asked whenever they exist, so switching tabs shows an already filtered
+    // list instead of waiting for the next keystroke.
+    if (auto* pReplacePage = static_cast<OfaAutocorrReplacePage*>(GetTabPage(u"replace")))
+        pReplacePage->CollectSearchLists(rLists);
+    if (auto* pExceptPage = static_cast<OfaAutocorrExceptPage*>(GetTabPage(u"exceptions")))
+        pExceptPage->CollectSearchLists(rLists);
+}
+
+int OfaAutoCorrDlg::applySearchFilter()
+{
+    // The controller is destroyed before the search entry and the timer, so a late debounce tick
+    // must never dereference it.
+    if (!m_xRegexSearchController)
+        return -1;
+
+    // The shared regex-search controller owns the query state; rState.Pattern mirrors the search
+    // entry's text, and the builder can additionally opt into regular-expression or option matching.
+    const sfx2::RegexSearchState& rState = m_xRegexSearchController->GetState();
+    const bool bEmpty = rState.Pattern.isEmpty();
+
+    // Compile the controller's matcher once, before any row is inspected. The seeded default is a
+    // case-insensitive literal ("contains") match, so bLegacyCompatibleLiteral is false and the
+    // compiled ABSOLUTE + IGNORE_CASE utl::TextSearch performs the match; the indexOf fast path
+    // applies only to a case-sensitive literal default, and regular expressions or other options
+    // arrive solely through the builder.
+    const bool bValid = bEmpty || sfx2::RegexSearchService::Validate(rState).IsValid;
+    const bool bLegacyCompatibleLiteral
+        = rState.Mode == sfx2::RegexSearchMode::Literal && !rState.Flags.CaseInsensitive;
+    std::unique_ptr<utl::TextSearch> xSearch;
+    if (bValid && !bEmpty && !bLegacyCompatibleLiteral)
+        xSearch = std::make_unique<utl::TextSearch>(m_xRegexSearchController->GetSearchOptions());
+
+    // Assemble one subject per row of the lists the rule pages expose, keeping a parallel
+    // (list, row) locator so the decision below is applied back to the exact row.
+    std::vector<OfaAutoCorrSearchList> aLists;
+    collectSearchLists(aLists);
+
+    std::vector<OUString> aRowTexts;
+    std::vector<std::pair<weld::TreeView*, int>> aRowLocators;
+    for (const OfaAutoCorrSearchList& rList : aLists)
+    {
+        const int nRowCount = rList.pList->n_children();
+        for (int nRow = 0; nRow < nRowCount; ++nRow)
+        {
+            OUString aSubject;
+            for (int nColumn = 0; nColumn < rList.nTextColumns; ++nColumn)
+            {
+                if (nColumn)
+                    aSubject += " ";
+                aSubject += rList.pList->get_text(nRow, nColumn);
+            }
+            aRowTexts.push_back(aSubject);
+            aRowLocators.emplace_back(rList.pList, nRow);
+        }
+    }
+
+    int nMatchCount = 0;
+    weld::TreeView* pFirstMatchList = nullptr;
+    int nFirstMatchRow = -1;
+    std::size_t nSubjectIndex = 0;
+    for (const OUString& rRowText : aRowTexts)
+    {
+        const std::pair<weld::TreeView*, int>& rLocator = aRowLocators[nSubjectIndex++];
+
+        // Preserve a plain case-insensitive "contains" match by default, and let the builder opt
+        // into regular expressions or other options through the controller-compiled matcher.
+        const bool bMatches
+            = bEmpty || (bLegacyCompatibleLiteral && rRowText.indexOf(rState.Pattern) >= 0)
+              || (xSearch && xSearch->searchForward(rRowText));
+
+        // Filtering is fully reversible and never touches the rules themselves: a non-matching row
+        // is greyed out (and therefore not selectable), a matching row is emphasised.
+        rLocator.first->set_sensitive(rLocator.second, bMatches, -1);
+        rLocator.first->set_text_emphasis(rLocator.second, bMatches && !bEmpty, -1);
+        if (!bMatches)
+            continue;
+
+        ++nMatchCount;
+        if (!pFirstMatchList)
+        {
+            pFirstMatchList = rLocator.first;
+            nFirstMatchRow = rLocator.second;
+        }
+    }
+
+    // Reveal the first surviving rule so a narrow query does not leave the user staring at a
+    // scrolled-away list.
+    if (!bEmpty && pFirstMatchList)
+        pFirstMatchList->scroll_to_row(nFirstMatchRow);
+
+    return nMatchCount;
 }
 
 static bool lcl_FindEntry(weld::TreeView& rLB, const OUString& rEntry,
@@ -783,7 +927,17 @@ void OfaAutocorrReplacePage::ActivatePage( const SfxItemSet& )
 {
     if(eLang != eLastDialogLanguage)
         SetLanguage(eLastDialogLanguage);
-    static_cast<OfaAutoCorrDlg*>(GetDialogController())->EnableLanguage(true);
+    OfaAutoCorrDlg* pDialog = static_cast<OfaAutoCorrDlg*>(GetDialogController());
+    pDialog->EnableLanguage(true);
+    // The table is (re)built by the language switch above, which resets every row's filter state,
+    // so re-apply the dialog's current rules query to what is now on screen.
+    pDialog->RefreshSearchFilter();
+}
+
+void OfaAutocorrReplacePage::CollectSearchLists(std::vector<OfaAutoCorrSearchList>& rLists)
+{
+    // Both columns -- the abbreviation and its replacement -- make up a rule's search subject.
+    rLists.push_back({ m_xReplaceTLB.get(), 2 });
 }
 
 DeactivateRC OfaAutocorrReplacePage::DeactivatePage( SfxItemSet*  )
@@ -940,6 +1094,9 @@ void OfaAutocorrReplacePage::RefillReplaceBox(bool bFromReset,
 void OfaAutocorrReplacePage::Reset( const SfxItemSet* )
 {
     RefillReplaceBox(true, eLang, eLang);
+    // Refilling rebuilds every row, which clears the per-row filter state, so re-apply the query
+    // still standing in the dialog's search bar.
+    static_cast<OfaAutoCorrDlg*>(GetDialogController())->RefreshSearchFilter();
     m_xShortED->grab_focus();
 }
 
@@ -1278,7 +1435,17 @@ void    OfaAutocorrExceptPage::ActivatePage( const SfxItemSet& )
 {
     if(eLang != eLastDialogLanguage)
         SetLanguage(eLastDialogLanguage);
-    static_cast<OfaAutoCorrDlg*>(GetDialogController())->EnableLanguage(true);
+    OfaAutoCorrDlg* pDialog = static_cast<OfaAutoCorrDlg*>(GetDialogController());
+    pDialog->EnableLanguage(true);
+    // The lists are (re)built by the language switch above, which resets every row's filter state,
+    // so re-apply the dialog's current rules query to what is now on screen.
+    pDialog->RefreshSearchFilter();
+}
+
+void OfaAutocorrExceptPage::CollectSearchLists(std::vector<OfaAutoCorrSearchList>& rLists)
+{
+    rLists.push_back({ m_xAbbrevLB.get(), 1 });
+    rLists.push_back({ m_xDoubleCapsLB.get(), 1 });
 }
 
 DeactivateRC OfaAutocorrExceptPage::DeactivatePage( SfxItemSet* )
@@ -1478,6 +1645,9 @@ void OfaAutocorrExceptPage::Reset( const SfxItemSet* )
     m_xAutoCapsCB->set_active(pAutoCorrect->IsAutoCorrFlag( ACFlags::SaveWordWordStartLst));
     m_xAutoAbbrevCB->save_state();
     m_xAutoCapsCB->save_state();
+    // Refilling rebuilds every row, which clears the per-row filter state, so re-apply the query
+    // still standing in the dialog's search bar.
+    static_cast<OfaAutoCorrDlg*>(GetDialogController())->RefreshSearchFilter();
 }
 
 IMPL_LINK(OfaAutocorrExceptPage, NewDelButtonHdl, weld::Button&, rBtn, void)

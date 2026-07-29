@@ -319,10 +319,12 @@ class SearchFieldCoverageTests(unittest.TestCase):
         self.assertSetEqual(EXPECTED_SHIPPING_CONTROLS, actual_shipping)
         self.assertSetEqual(set(), actual_planned)
 
-    def test_repository_integration_split_is_thirteen_and_seventeen(self) -> None:
+    def test_repository_integration_split_is_fifteen_and_fifteen(self) -> None:
+        # Phase 7.5 wired the AutoCorrect rules search and the General options page search to the
+        # shared controller, moving both from the honest gap ledger into the integration registry.
         _, stats = validator.validate_registry(REPO_ROOT, REGISTRY_PATH)
-        self.assertEqual(13, stats.source_integrated_fields)
-        self.assertEqual(17, stats.gap_fields)
+        self.assertEqual(15, stats.source_integrated_fields)
+        self.assertEqual(15, stats.gap_fields)
 
 
 class IntegrationLedgerTests(unittest.TestCase):

@@ -18,6 +18,10 @@
  */
 
 #include <config_features.h>
+
+#include <cstddef>
+#include <utility>
+
 #include <o3tl/untaint.hxx>
 #include <svl/numformat.hxx>
 #include <svl/zforlist.hxx>
@@ -50,7 +54,9 @@
 #include <svl/intitem.hxx>
 #include <svl/voiditem.hxx>
 #include <GraphicsTestsDialog.hxx>
+#include <sfx2/RegexSearchController.hxx>
 #include <unotools/searchopt.hxx>
+#include <unotools/textsearch.hxx>
 #include <sal/log.hxx>
 #include <officecfg/Office/Canvas.hxx>
 #include <officecfg/Office/Common.hxx>
@@ -175,6 +181,8 @@ OfaMiscTabPage::OfaMiscTabPage(weld::Container* pPage, weld::DialogController* p
     , m_xFileAssocFrame(m_xBuilder->weld_widget("fileassoc"))
     , m_xFileAssocBtn(m_xBuilder->weld_button("assocfiles"))
 #endif
+    , m_xSearchEdit(m_xBuilder->weld_entry(u"searchEntry"_ustr))
+    , m_xRegexBuilderButton(m_xBuilder->weld_button(u"searchEntry_regex_builder"_ustr))
 {
 #if defined(_WIN32)
     // Store-packaged apps (located under the protected Program Files\WindowsApps) can't use normal
@@ -189,7 +197,142 @@ OfaMiscTabPage::OfaMiscTabPage(weld::Container* pPage, weld::DialogController* p
     m_aStrDateInfo = m_xToYearFT->get_label();
     m_xYearValueField->connect_value_changed( LINK( this, OfaMiscTabPage, TwoFigureHdl ) );
 
+    collectSearchRows();
+
+    // Bind the page's search entry to the shared advanced regex builder. The controller owns the
+    // entry's changed callback and forwards it to SearchUpdateHdl, so the section filter runs from
+    // one place, and the adjacent ".*" button opens the regular-expression builder popover.
+    m_xRegexSearchController = std::make_unique<sfx2::RegexSearchController>(
+        GetFrameWeld(), *m_xSearchEdit, *m_xRegexBuilderButton,
+        LINK(this, OfaMiscTabPage, SearchUpdateHdl));
+    // Seed the field's default: a case-insensitive literal ("contains") match over the section
+    // headings and option labels, until the user opts into regular expressions or other matching
+    // options through the builder.
+    sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+    aState.Mode = sfx2::RegexSearchMode::Literal;
+    aState.Flags.CaseInsensitive = true;
+    m_xRegexSearchController->SetState(aState);
+
     SetExchangeSupport();
+}
+
+void OfaMiscTabPage::collectSearchRows()
+{
+    // One searchable row per option section: the section heading plus the labels of the controls it
+    // contains, with the mnemonic underscores stripped so a user typing a visible word matches.
+    auto aLabelOf = [this](const OUString& rId) -> OUString {
+        std::unique_ptr<weld::Label> xLabel = m_xBuilder->weld_label(rId);
+        return xLabel ? xLabel->get_label() : OUString();
+    };
+    auto aAddRow = [this](std::unique_ptr<weld::Widget> xRow, const OUString& rText) {
+        if (!xRow)
+            return;
+        m_aSearchRowWidgets.push_back(std::move(xRow));
+        m_aSearchRowTexts.push_back(rText.replaceAll("_", ""));
+    };
+
+    aAddRow(m_xBuilder->weld_widget(u"frame1"_ustr),
+            aLabelOf(u"label1"_ustr) + " " + m_xExtHelpCB->get_label() + " "
+                + m_xPopUpNoHelpCB->get_label());
+    aAddRow(m_xBuilder->weld_widget(u"customdialogsframe"_ustr),
+            aLabelOf(u"label2"_ustr) + " " + m_xFileDlgCB->get_label() + " "
+                + m_xColorDlgCB->get_label());
+    aAddRow(m_xBuilder->weld_widget(u"frame4"_ustr),
+            aLabelOf(u"label4"_ustr) + " " + m_xDocStatusCB->get_label());
+    aAddRow(m_xBuilder->weld_widget(u"yearframe"_ustr),
+            aLabelOf(u"label5"_ustr) + " " + m_xYearLabel->get_label());
+#if defined(_WIN32)
+    aAddRow(m_xBuilder->weld_widget(u"quickstarter"_ustr),
+            aLabelOf(u"label8"_ustr) + " " + m_xQuickLaunchCB->get_label());
+    aAddRow(m_xBuilder->weld_widget(u"fileassoc"_ustr),
+            aLabelOf(u"label9"_ustr) + " " + m_xFileAssocBtn->get_label());
+#endif
+}
+
+void OfaMiscTabPage::restoreSearchRows()
+{
+    if (!m_bSearchRowBaselineValid)
+        return;
+
+    const std::size_t nRows = m_aSearchRowWidgets.size() < m_aSearchRowBaseline.size()
+                                  ? m_aSearchRowWidgets.size()
+                                  : m_aSearchRowBaseline.size();
+    for (std::size_t nRow = 0; nRow < nRows; ++nRow)
+        m_aSearchRowWidgets[nRow]->set_visible(m_aSearchRowBaseline[nRow]);
+
+    m_aSearchRowBaseline.clear();
+    m_bSearchRowBaselineValid = false;
+}
+
+void OfaMiscTabPage::captureSearchRowBaseline()
+{
+    if (m_bSearchRowBaselineValid)
+        return;
+
+    m_aSearchRowBaseline.clear();
+    m_aSearchRowBaseline.reserve(m_aSearchRowWidgets.size());
+    for (const std::unique_ptr<weld::Widget>& rxRow : m_aSearchRowWidgets)
+        m_aSearchRowBaseline.push_back(rxRow->get_visible());
+    m_bSearchRowBaselineValid = true;
+}
+
+int OfaMiscTabPage::applySearchFilter()
+{
+    // The controller is destroyed before the search entry, so a late notification must never
+    // dereference it.
+    if (!m_xRegexSearchController)
+        return -1;
+
+    // The shared regex-search controller owns the query state; rState.Pattern mirrors the search
+    // entry's text, and the builder can additionally opt into regular-expression or option matching.
+    const sfx2::RegexSearchState& rState = m_xRegexSearchController->GetState();
+    const bool bEmpty = rState.Pattern.isEmpty();
+
+    // Nothing has ever been hidden, so an empty query has nothing to restore. Returning here also
+    // keeps the controller's initial state seeding from touching the page's configured layout.
+    if (bEmpty && !m_bSearchRowBaselineValid)
+        return -1;
+
+    captureSearchRowBaseline();
+
+    // Compile the controller's matcher once, before any row is inspected. The seeded default is a
+    // case-insensitive literal ("contains") match, so bLegacyCompatibleLiteral is false and the
+    // compiled ABSOLUTE + IGNORE_CASE utl::TextSearch performs the match; the indexOf fast path
+    // applies only to a case-sensitive literal default, and regular expressions or other options
+    // arrive solely through the builder.
+    const bool bValid = bEmpty || sfx2::RegexSearchService::Validate(rState).IsValid;
+    const bool bLegacyCompatibleLiteral
+        = rState.Mode == sfx2::RegexSearchMode::Literal && !rState.Flags.CaseInsensitive;
+    std::unique_ptr<utl::TextSearch> xSearch;
+    if (bValid && !bEmpty && !bLegacyCompatibleLiteral)
+        xSearch = std::make_unique<utl::TextSearch>(m_xRegexSearchController->GetSearchOptions());
+
+    int nMatchCount = 0;
+    std::size_t nRowIndex = 0;
+    for (const OUString& rRowText : m_aSearchRowTexts)
+    {
+        const std::size_t nRow = nRowIndex++;
+        if (nRow >= m_aSearchRowWidgets.size() || nRow >= m_aSearchRowBaseline.size())
+            break;
+
+        const bool bMatches
+            = bEmpty || (bLegacyCompatibleLiteral && rRowText.indexOf(rState.Pattern) >= 0)
+              || (xSearch && xSearch->searchForward(rRowText));
+        const bool bShow = m_aSearchRowBaseline[nRow] && bMatches;
+        m_aSearchRowWidgets[nRow]->set_visible(bShow);
+        if (bShow)
+            ++nMatchCount;
+    }
+
+    // The query is gone and every section is back to the visibility this build configured, so the
+    // next query re-reads that baseline instead of a filtered snapshot.
+    if (bEmpty)
+    {
+        m_aSearchRowBaseline.clear();
+        m_bSearchRowBaselineValid = false;
+    }
+
+    return nMatchCount;
 }
 
 OfaMiscTabPage::~OfaMiscTabPage()
@@ -280,6 +423,12 @@ bool OfaMiscTabPage::FillItemSet( SfxItemSet* rSet )
 
 void OfaMiscTabPage::Reset( const SfxItemSet* rSet )
 {
+    // Reset decides afresh which sections this configuration shows (the Quickstarter section is
+    // hidden below when quickstart is not installed), so lift any active search filter first: the
+    // visibility Reset is about to set has to be the unfiltered one, and the query is re-applied to
+    // the reconfigured page at the end.
+    restoreSearchRows();
+
     bool bEnable = !officecfg::Office::Common::Help::ExtendedTip::isReadOnly();
     m_xExtHelpCB->set_active( officecfg::Office::Common::Help::Tip::get() &&
             officecfg::Office::Common::Help::ExtendedTip::get() );
@@ -343,6 +492,15 @@ void OfaMiscTabPage::Reset( const SfxItemSet* rSet )
     m_xQuickLaunchCB->save_state();
 
 #endif
+
+    // The sections are back to what this configuration actually ships, so re-narrow them to the
+    // query still standing in the search bar (a no-op when it is empty).
+    applySearchFilter();
+}
+
+IMPL_LINK_NOARG(OfaMiscTabPage, SearchUpdateHdl, weld::TextWidget&, void)
+{
+    applySearchFilter();
 }
 
 IMPL_LINK_NOARG( OfaMiscTabPage, TwoFigureHdl, weld::SpinButton&, void )

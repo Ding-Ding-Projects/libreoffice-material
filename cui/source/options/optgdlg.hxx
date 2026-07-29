@@ -18,6 +18,7 @@
  */
 #pragma once
 #include <memory>
+#include <vector>
 #include <sfx2/tabdlg.hxx>
 #include <svx/langbox.hxx>
 #include <vcl/weld/Button.hxx>
@@ -28,6 +29,11 @@
 #include <vcl/weld/SpinButton.hxx>
 
 class CanvasSettings;
+
+namespace sfx2
+{
+class RegexSearchController;
+}
 
 class OfaMiscTabPage : public SfxTabPage
 {
@@ -57,10 +63,34 @@ private:
     std::unique_ptr<weld::Button> m_xFileAssocBtn;
 #endif
 
+    std::unique_ptr<weld::Entry> m_xSearchEdit;
+    // The builder button and the controller are declared after the search entry on purpose: the
+    // controller re-installs the entry's changed callback and restores the button's tooltip and
+    // accessible name in its destructor, so both widgets must still be alive when it runs.
+    std::unique_ptr<weld::Button> m_xRegexBuilderButton;
+    std::unique_ptr<sfx2::RegexSearchController> m_xRegexSearchController;
+
+    // The option sections the search bar filters, in page order, each paired with the label text
+    // that makes up its search subject.
+    std::vector<std::unique_ptr<weld::Widget>> m_aSearchRowWidgets;
+    std::vector<OUString> m_aSearchRowTexts;
+    // Every row's visibility as the page was configured before a query first narrowed it. It is
+    // captured lazily (a section such as the Quickstarter is hidden by Reset on some builds and
+    // must never be revealed by the filter) and dropped again when the query is cleared.
+    std::vector<bool> m_aSearchRowBaseline;
+    bool m_bSearchRowBaselineValid = false;
+
     DECL_LINK(TwoFigureHdl, weld::SpinButton&, void);
+    DECL_LINK(SearchUpdateHdl, weld::TextWidget&, void);
 #if defined(_WIN32)
     DECL_DLLPRIVATE_STATIC_LINK(OfaMiscTabPage, FileAssocClick, weld::Button&, void);
 #endif
+
+    void collectSearchRows();
+    void restoreSearchRows();
+    void captureSearchRowBaseline();
+    int applySearchFilter();
+
 protected:
     virtual DeactivateRC   DeactivatePage( SfxItemSet* pSet ) override;
 

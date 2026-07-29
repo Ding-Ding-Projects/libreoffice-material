@@ -184,6 +184,7 @@ private:
 
 class ScSolverProgressDialog : public weld::GenericDialogController
 {
+    std::unique_ptr<weld::Label> m_xFtTimeLabel;
     std::unique_ptr<weld::Label> m_xFtTime;
 
 public:

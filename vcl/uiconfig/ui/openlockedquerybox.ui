@@ -20,11 +20,11 @@
             <property name="can-focus">False</property>
             <property name="layout-style">end</property>
             <child>
-              <object class="GtkButton" id="open">
-                <property name="label" translatable="yes" context="openlockedquerybox|open">_Open</property>
+              <object class="GtkButton" id="cancel">
+                <property name="label" translatable="yes" context="openlockedquerybox|cancel">_Cancel</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
-                <property name="receives-default">False</property>
+                <property name="receives-default">True</property>
                 <property name="use-underline">True</property>
               </object>
               <packing>
@@ -34,10 +34,12 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="cancel">
-                <property name="label" translatable="yes" context="openlockedquerybox|cancel">_Cancel</property>
+              <object class="GtkButton" id="open">
+                <property name="label" translatable="yes" context="openlockedquerybox|open">_Open</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives-default">True</property>
                 <property name="use-underline">True</property>
               </object>
@@ -122,6 +124,7 @@
                     <property name="valign">start</property>
                     <property name="label" translatable="yes" context="openlockedquerybox|ReadOnlyMessage">You can open it read only  and
 receive a notification if ready.</property>
+                    <property name="mnemonic-widget">readonly</property>
                     <property name="ellipsize">end</property>
                     <property name="xalign">0</property>
                     <child internal-child="accessible">
@@ -182,6 +185,7 @@ receive a notification if ready.</property>
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes" context="openlockedquerybox|OpenCopyMessage">You can open a copy on your
 local system.</property>
+                    <property name="mnemonic-widget">opencopy</property>
                     <property name="ellipsize">end</property>
                     <property name="xalign">0</property>
                     <child internal-child="accessible">
@@ -261,6 +265,10 @@ local system.</property>
         </child>
       </object>
     </child>
+    <action-widgets>
+      <action-widget response="-6">cancel</action-widget>
+      <action-widget response="-5">open</action-widget>
+    </action-widgets>
     <child internal-child="accessible">
       <object class="AtkObject" id="OpenLockedQueryBox-atkobject">
         <property name="AtkObject::accessible-description" translatable="yes" context="openlockedquerybox|OpenLockedQueryBox">Displays information about locked files and further steps to take when opening a locked file.</property>

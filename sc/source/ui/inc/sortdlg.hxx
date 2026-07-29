@@ -36,11 +36,8 @@ class ScSortWarningDlg : public weld::GenericDialogController
 public:
     ScSortWarningDlg(weld::Window* pParent, std::u16string_view rExtendText, std::u16string_view rCurrentText);
     virtual ~ScSortWarningDlg() override;
-    DECL_LINK(BtnHdl, weld::Button&, void);
 private:
     std::unique_ptr<weld::Label> m_xFtText;
-    std::unique_ptr<weld::Button> m_xBtnExtSort;
-    std::unique_ptr<weld::Button> m_xBtnCurSort;
 };
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

@@ -33,24 +33,6 @@
             <property name="hexpand">True</property>
             <property name="layout-style">end</property>
             <child>
-              <object class="GtkCheckButton" id="cbShow">
-                <property name="label" translatable="yes" context="searchresults|ShowBox">_Show this dialog</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">False</property>
-                <property name="tooltip-text" translatable="yes" context="searchresults|ShowBox_Tooltip">Enable the dialog again at Tools - Options - %PRODUCTNAME Calc - View</property>
-                <property name="use-underline">True</property>
-                <property name="active">True</property>
-                <property name="draw-indicator">True</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-                <property name="secondary">True</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkButton" id="close">
                 <property name="label" translatable="yes" context="stock">_Close</property>
                 <property name="visible">True</property>
@@ -63,7 +45,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="position">0</property>
               </packing>
             </child>
           </object>
@@ -75,68 +57,118 @@
           </packing>
         </child>
         <child>
-          <object class="GtkScrolledWindow">
+          <!-- n-columns=1 n-rows=3 -->
+          <object class="GtkGrid" id="searchresults-content-grid">
             <property name="visible">True</property>
-            <property name="can-focus">True</property>
+            <property name="can-focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <property name="shadow-type">in</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
             <child>
-              <object class="GtkTreeView" id="results">
+              <object class="GtkScrolledWindow">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
                 <property name="hexpand">True</property>
                 <property name="vexpand">True</property>
-                <property name="model">liststore3</property>
-                <property name="search-column">0</property>
-                <property name="show-expanders">False</property>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection" id="versions-selection2"/>
-                </child>
+                <property name="shadow-type">in</property>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn1">
-                    <property name="resizable">True</property>
-                    <property name="spacing">6</property>
-                    <property name="title" translatable="yes" context="searchresults|sheet">Sheet</property>
-                    <property name="clickable">True</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderer1"/>
-                      <attributes>
-                        <attribute name="text">0</attribute>
-                      </attributes>
+                  <object class="GtkTreeView" id="results">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <property name="model">liststore3</property>
+                    <property name="search-column">0</property>
+                    <property name="show-expanders">False</property>
+                    <child internal-child="selection">
+                      <object class="GtkTreeSelection" id="versions-selection2"/>
                     </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn2">
-                    <property name="resizable">True</property>
-                    <property name="spacing">6</property>
-                    <property name="title" translatable="yes" context="searchresults|cell">Cell</property>
-                    <property name="clickable">True</property>
                     <child>
-                      <object class="GtkCellRendererText" id="cellrenderer2"/>
-                      <attributes>
-                        <attribute name="text">1</attribute>
-                      </attributes>
+                      <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                        <property name="resizable">True</property>
+                        <property name="spacing">6</property>
+                        <property name="title" translatable="yes" context="searchresults|sheet">Sheet</property>
+                        <property name="clickable">True</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderer1"/>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
+                        </child>
+                      </object>
                     </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn3">
-                    <property name="resizable">True</property>
-                    <property name="spacing">6</property>
-                    <property name="title" translatable="yes" context="searchresults|content">Content</property>
-                    <property name="clickable">True</property>
                     <child>
-                      <object class="GtkCellRendererText" id="cellrenderer3"/>
-                      <attributes>
-                        <attribute name="text">2</attribute>
-                      </attributes>
+                      <object class="GtkTreeViewColumn" id="treeviewcolumn2">
+                        <property name="resizable">True</property>
+                        <property name="spacing">6</property>
+                        <property name="title" translatable="yes" context="searchresults|cell">Cell</property>
+                        <property name="clickable">True</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderer2"/>
+                          <attributes>
+                            <attribute name="text">1</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="treeviewcolumn3">
+                        <property name="resizable">True</property>
+                        <property name="spacing">6</property>
+                        <property name="title" translatable="yes" context="searchresults|content">Content</property>
+                        <property name="clickable">True</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderer3"/>
+                          <attributes>
+                            <attribute name="text">2</attribute>
+                          </attributes>
+                        </child>
+                      </object>
                     </child>
                   </object>
                 </child>
               </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="lbSearchResults">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="hexpand">True</property>
+                <property name="halign">start</property>
+                <property name="xalign">0</property>
+                <property name="ellipsize">end</property>
+                <property name="mnemonic-widget">results</property>
+              </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="cbShow">
+                <property name="label" translatable="yes" context="searchresults|ShowBox">_Show this dialog</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">False</property>
+                <property name="tooltip-text" translatable="yes" context="searchresults|ShowBox_Tooltip">Enable the dialog again at Tools - Options - %PRODUCTNAME Calc - View</property>
+                <property name="use-underline">True</property>
+                <property name="active">True</property>
+                <property name="draw-indicator">True</property>
+              </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">2</property>
+              </packing>
             </child>
           </object>
           <packing>
@@ -145,23 +177,10 @@
             <property name="position">1</property>
           </packing>
         </child>
-        <child>
-          <object class="GtkLabel" id="lbSearchResults">
-            <property name="visible">True</property>
-            <property name="can-focus">False</property>
-            <property name="halign">start</property>
-            <property name="ellipsize">end</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">3</property>
-          </packing>
-        </child>
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-7">close</action-widget>
+      <action-widget response="-5">close</action-widget>
     </action-widgets>
   </object>
 </interface>

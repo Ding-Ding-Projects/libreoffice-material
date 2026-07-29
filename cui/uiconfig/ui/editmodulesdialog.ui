@@ -48,7 +48,7 @@
         <property name="spacing">12</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="dialog-action_area1">
-            <property name="spacing">10</property>
+            <property name="spacing">12</property>
             <property name="can-focus">False</property>
             <property name="layout-style">end</property>
             <child>
@@ -104,10 +104,13 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="margin-start">12</property>
-                <property name="margin-top">6</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
                 <property name="hexpand">True</property>
                 <property name="vexpand">True</property>
                 <property name="row-spacing">12</property>
+                <property name="column-spacing">12</property>
                 <child>
                   <object class="GtkLinkButton" id="moredictslink">
                     <property name="label" translatable="yes" context="editmodulesdialog|moredictslink">Get more dictionaries online...</property>
@@ -344,7 +347,7 @@
     </child>
     <action-widgets>
       <action-widget response="-11">help</action-widget>
-      <action-widget response="-7">close</action-widget>
+      <action-widget response="-5">close</action-widget>
     </action-widgets>
   </object>
 </interface>

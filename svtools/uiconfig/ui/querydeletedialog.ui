@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.40.0 -->
+<!-- Material dialog anatomy (docs/design/08-dialogs.md 8.1): footer Help | spacer | safe | primary; -->
+<!-- the primary carries the destructive-action role and a verb label, the safe action holds the Enter -->
+<!-- default so Enter-mashing cannot delete. "Delete All" is a bulk escalation, not a footer response: -->
+<!-- it reports QUERYDELETE_ALL from svtools/source/contnr/querydelete.cxx instead of a custom -->
+<!-- action-widget code, so the footer carries standard responses only. -->
 <interface domain="svt">
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkMessageDialog" id="QueryDeleteDialog">
@@ -21,18 +26,21 @@
           <object class="GtkButtonBox" id="messagedialog-action_area">
             <property name="can-focus">False</property>
             <property name="spacing">12</property>
+            <property name="layout-style">end</property>
             <child>
-              <object class="GtkButton" id="yes">
-                <property name="label" translatable="yes" context="querydeletedialog|yes">_Delete</property>
+              <object class="GtkButton" id="all">
+                <property name="label" translatable="yes" context="querydeletedialog|all">Delete _All</property>
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can-focus">True</property>
-                <property name="can-default">True</property>
-                <property name="has-default">True</property>
                 <property name="receives-default">True</property>
                 <property name="use-underline">True</property>
+                <style>
+                  <class name="destructive-action"/>
+                </style>
                 <child internal-child="accessible">
-                  <object class="AtkObject" id="yes-atkobject">
-                    <property name="AtkObject::accessible-description" translatable="yes" context="querydeletedialog|extended_tip|yes">Click to delete the file with the name shown in this dialog.</property>
+                  <object class="AtkObject" id="all-atkobject">
+                    <property name="AtkObject::accessible-description" translatable="yes" context="querydeletedialog|extended_tip|all">Click to delete all selected files.</property>
                   </object>
                 </child>
               </object>
@@ -43,30 +51,12 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="all">
-                <property name="label" translatable="yes" context="querydeletedialog|all">Delete _All</property>
-                <property name="visible">True</property>
-                <property name="sensitive">False</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
-                <property name="use-underline">True</property>
-                <child internal-child="accessible">
-                  <object class="AtkObject" id="all-atkobject">
-                    <property name="AtkObject::accessible-description" translatable="yes" context="querydeletedialog|extended_tip|all">Click to delete all selected files.</property>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkButton" id="no">
                 <property name="label" translatable="yes" context="querydeletedialog|no">Do _Not Delete</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives-default">True</property>
                 <property name="use-underline">True</property>
                 <child internal-child="accessible">
@@ -78,7 +68,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">2</property>
+                <property name="position">1</property>
               </packing>
             </child>
             <child>
@@ -88,6 +78,28 @@
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
                 <property name="use-underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="yes">
+                <property name="label" translatable="yes" context="querydeletedialog|yes">_Delete</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-underline">True</property>
+                <style>
+                  <class name="destructive-action"/>
+                </style>
+                <child internal-child="accessible">
+                  <object class="AtkObject" id="yes-atkobject">
+                    <property name="AtkObject::accessible-description" translatable="yes" context="querydeletedialog|extended_tip|yes">Click to delete the file with the name shown in this dialog.</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -106,7 +118,6 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="101">all</action-widget>
       <action-widget response="-9">no</action-widget>
       <action-widget response="-6">cancel</action-widget>
       <action-widget response="-8">yes</action-widget>

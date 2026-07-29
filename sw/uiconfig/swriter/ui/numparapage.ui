@@ -14,29 +14,33 @@
     <property name="step-increment">1</property>
     <property name="page-increment">10</property>
   </object>
-  <object class="GtkBox" id="NumParaPage">
+  <object class="GtkGrid" id="NumParaPage">
+    <property name="valign">start</property>
+    <property name="hexpand">True</property>
+    <property name="row-spacing">6</property>
+    <property name="column-spacing">12</property>
     <property name="visible">True</property>
     <property name="can-focus">False</property>
     <property name="margin-start">6</property>
     <property name="margin-end">6</property>
     <property name="margin-top">6</property>
     <property name="margin-bottom">6</property>
-    <property name="orientation">vertical</property>
-    <property name="spacing">6</property>
     <child>
       <object class="GtkFrame" id="frameFL_OUTLINE_START">
+        <property name="hexpand">True</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="label-xalign">0</property>
         <property name="shadow-type">none</property>
         <child>
-          <object class="GtkBox" id="boxOUTLINE">
+          <object class="GtkGrid" id="boxOUTLINE">
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="halign">start</property>
             <property name="margin-start">12</property>
             <property name="margin-top">6</property>
-            <property name="spacing">6</property>
             <child>
               <object class="GtkLabel" id="labelFT_OUTLINE_LEVEL">
                 <property name="visible">True</property>
@@ -49,9 +53,8 @@
                 <property name="xalign">0</property>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
               </packing>
             </child>
             <child>
@@ -79,9 +82,8 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
+                <property name="left-attach">1</property>
+                <property name="top-attach">0</property>
               </packing>
             </child>
           </object>
@@ -98,31 +100,32 @@
         </child>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">0</property>
+        <property name="left-attach">0</property>
+        <property name="top-attach">0</property>
       </packing>
     </child>
     <child>
       <object class="GtkFrame" id="frameFL_NEW_START">
+        <property name="hexpand">True</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="label-xalign">0</property>
         <property name="shadow-type">none</property>
         <child>
-          <object class="GtkBox" id="box2">
+          <object class="GtkGrid" id="box2">
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="margin-start">12</property>
             <property name="margin-top">6</property>
-            <property name="orientation">vertical</property>
-            <property name="spacing">6</property>
             <child>
-              <object class="GtkBox" id="boxNUMBER_STYLE">
+              <object class="GtkGrid" id="boxNUMBER_STYLE">
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="halign">start</property>
-                <property name="spacing">6</property>
                 <child>
                   <object class="GtkLabel" id="labelFT_NUMBER_STYLE">
                     <property name="visible">True</property>
@@ -134,16 +137,16 @@
                     <property name="xalign">0</property>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">0</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkBox" id="boxSubNumber_Style">
+                  <object class="GtkGrid" id="boxSubNumber_Style">
+                    <property name="row-spacing">6</property>
+                    <property name="column-spacing">6</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="spacing">6</property>
                     <child>
                       <object class="GtkComboBoxText" id="comboLB_NUMBER_STYLE">
                         <property name="visible">True</property>
@@ -159,9 +162,8 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">0</property>
                       </packing>
                     </child>
                     <child>
@@ -177,27 +179,26 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">0</property>
                       </packing>
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">1</property>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">0</property>
                   </packing>
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
               </packing>
             </child>
             <child>
-              <object class="GtkBox" id="boxLIST_LEVEL">
+              <object class="GtkGrid" id="boxLIST_LEVEL">
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="halign">start</property>
@@ -212,9 +213,8 @@
                     </accessibility>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">0</property>
                   </packing>
                 </child>
                 <child>
@@ -245,17 +245,14 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="padding">6</property>
-                    <property name="position">1</property>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">0</property>
                   </packing>
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">1</property>
               </packing>
             </child>
             <child>
@@ -276,18 +273,20 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">3</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">2</property>
               </packing>
             </child>
             <child>
-              <object class="GtkBox" id="boxNEW_START">
+              <object class="GtkGrid" id="boxNEW_START">
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <property name="can-focus">False</property>
                 <property name="halign">start</property>
-                <property name="spacing">6</property>
                 <child>
-                  <object class="GtkBox" id="box4">
+                  <object class="GtkGrid" id="box4">
+                    <property name="row-spacing">6</property>
+                    <property name="column-spacing">12</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="halign">start</property>
@@ -312,16 +311,14 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">0</property>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">0</property>
                       </packing>
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">0</property>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">0</property>
                   </packing>
                 </child>
                 <child>
@@ -338,16 +335,14 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">0</property>
                   </packing>
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">4</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">3</property>
               </packing>
             </child>
           </object>
@@ -364,25 +359,25 @@
         </child>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">2</property>
+        <property name="left-attach">0</property>
+        <property name="top-attach">1</property>
       </packing>
     </child>
     <child>
       <object class="GtkFrame" id="frameFL_COUNT_PARA">
+        <property name="hexpand">True</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="label-xalign">0</property>
         <property name="shadow-type">none</property>
         <child>
-          <object class="GtkBox" id="box1">
+          <object class="GtkGrid" id="box1">
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="margin-start">12</property>
             <property name="margin-top">6</property>
-            <property name="orientation">vertical</property>
-            <property name="spacing">6</property>
             <child>
               <object class="GtkCheckButton" id="checkCB_COUNT_PARA">
                 <property name="label" translatable="yes" context="numparapage|checkCB_COUNT_PARA">_Include this paragraph in line numbering</property>
@@ -400,9 +395,8 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
               </packing>
             </child>
             <child>
@@ -422,23 +416,24 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">1</property>
               </packing>
             </child>
             <child>
-              <object class="GtkBox" id="boxRESTART_NO">
+              <object class="GtkGrid" id="boxRESTART_NO">
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
                 <property name="can-focus">False</property>
                 <property name="halign">start</property>
-                <property name="spacing">6</property>
                 <child>
-                  <object class="GtkBox" id="box3">
+                  <object class="GtkGrid" id="box3">
+                    <property name="row-spacing">6</property>
+                    <property name="column-spacing">12</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="orientation">vertical</property>
                     <child>
                       <object class="GtkLabel" id="labelFT_RESTART_NO">
                         <property name="visible">True</property>
@@ -451,16 +446,14 @@
                         <property name="xalign">0</property>
                       </object>
                       <packing>
-                        <property name="expand">True</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">0</property>
                       </packing>
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">0</property>
                   </packing>
                 </child>
                 <child>
@@ -477,16 +470,14 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">0</property>
                   </packing>
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">2</property>
               </packing>
             </child>
           </object>
@@ -503,9 +494,8 @@
         </child>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">3</property>
+        <property name="left-attach">0</property>
+        <property name="top-attach">2</property>
       </packing>
     </child>
     <child internal-child="accessible">

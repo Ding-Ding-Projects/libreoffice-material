@@ -29,7 +29,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">6</property>
+                <property name="position">0</property>
                 <property name="secondary">True</property>
               </packing>
             </child>
@@ -44,7 +44,23 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">7</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="new">
+                <property name="label" translatable="yes" context="dataform|new">_New</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
@@ -144,6 +160,7 @@
                 <child>
                   <object class="GtkLabel" id="label">
                     <property name="ellipsize">end</property>
+                    <property name="mnemonic-widget">scrollbar</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes" context="dataform|label">New Record</property>
@@ -153,22 +170,6 @@
                     <property name="expand">False</property>
                     <property name="fill">True</property>
                     <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="new">
-                    <property name="label" translatable="yes" context="dataform|new">_New</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="can-default">True</property>
-                    <property name="has-default">True</property>
-                    <property name="receives-default">True</property>
-                    <property name="use-underline">True</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
@@ -182,7 +183,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">2</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
@@ -196,7 +197,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">3</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
                 <child>
@@ -210,7 +211,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">4</property>
+                    <property name="position">3</property>
                     <property name="secondary">True</property>
                   </packing>
                 </child>
@@ -225,7 +226,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">5</property>
+                    <property name="position">4</property>
                     <property name="secondary">True</property>
                   </packing>
                 </child>
@@ -247,6 +248,7 @@
     <action-widgets>
       <action-widget response="-11">help</action-widget>
       <action-widget response="-7">close</action-widget>
+      <action-widget response="-5">new</action-widget>
     </action-widgets>
     <child internal-child="accessible">
       <object class="AtkObject" id="DataFormDialog-atkobject">
@@ -257,7 +259,6 @@
   <object class="GtkSizeGroup" id="sizegroup">
     <widgets>
       <widget name="label"/>
-      <widget name="new"/>
       <widget name="delete"/>
       <widget name="restore"/>
       <widget name="prev"/>

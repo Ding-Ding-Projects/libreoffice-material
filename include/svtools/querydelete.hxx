@@ -41,6 +41,12 @@ class UNLESS_MERGELIBS_MORE(SVT_DLLPUBLIC) QueryDeleteDlg_Impl final
 private:
     std::unique_ptr<weld::Button> m_xAllButton;
 
+    // "Delete All" is a bulk escalation of the primary action, not one of the
+    // standard footer responses the Material dialog anatomy declares
+    // (docs/design/08-dialogs.md 8.1), so it is not an .ui <action-widget>:
+    // it reports QUERYDELETE_ALL from its own click handler instead.
+    DECL_LINK(AllHdl, weld::Button&, void);
+
 public:
     QueryDeleteDlg_Impl(weld::Widget* pParent, std::u16string_view rName);
     virtual ~QueryDeleteDlg_Impl() override;

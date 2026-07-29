@@ -57,7 +57,7 @@
           </packing>
         </child>
         <child>
-          <!-- n-columns=1 n-rows=2 -->
+          <!-- n-columns=2 n-rows=2 -->
           <object class="GtkGrid" id="grid">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
@@ -68,10 +68,27 @@
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
             <property name="row-spacing">12</property>
+            <property name="column-spacing">12</property>
+            <child>
+              <object class="GtkLabel" id="labelActions">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="valign">center</property>
+                <property name="label" translatable="yes" context="chartdatadialog|labelActions">Data actions</property>
+                <property name="mnemonic-widget">toolbar</property>
+                <property name="ellipsize">end</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
+              </packing>
+            </child>
             <child>
               <object class="GtkToolbar" id="toolbar">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
+                <property name="hexpand">True</property>
                 <child>
                   <object class="GtkToolButton" id="InsertRow">
                     <property name="visible">True</property>
@@ -237,7 +254,7 @@
                 </child>
               </object>
               <packing>
-                <property name="left-attach">0</property>
+                <property name="left-attach">1</property>
                 <property name="top-attach">0</property>
               </packing>
             </child>
@@ -340,6 +357,7 @@
               <packing>
                 <property name="left-attach">0</property>
                 <property name="top-attach">1</property>
+                <property name="width">2</property>
               </packing>
             </child>
           </object>
@@ -353,7 +371,7 @@
     </child>
     <action-widgets>
       <action-widget response="-11">help</action-widget>
-      <action-widget response="-7">close</action-widget>
+      <action-widget response="-5">close</action-widget>
     </action-widgets>
     <child internal-child="accessible">
       <object class="AtkObject" id="ChartDataDialog-atkobject">

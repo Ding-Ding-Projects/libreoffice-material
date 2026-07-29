@@ -737,7 +737,8 @@ IMPL_LINK_NOARG(AdditionsDialog, CloseButtonHdl, weld::Button&, void)
 {
     if (m_pSearchThread.is())
         m_pSearchThread->StopExecution();
-    response(RET_CLOSE);
+    // Material footer primary: the Close button is the dialog OK (additionsdialog.ui).
+    response(RET_OK);
 }
 
 IMPL_LINK_NOARG(AdditionsDialog, ShowMoreHdl, weld::Button&, void)

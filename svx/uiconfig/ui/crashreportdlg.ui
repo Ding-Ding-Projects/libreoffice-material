@@ -4,7 +4,6 @@
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="CrashReportDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="crashreportdlg|CrashReportDialog">Crash Report</property>
     <property name="modal">True</property>
     <property name="default-width">0</property>
@@ -21,17 +20,13 @@
             <property name="spacing">12</property>
             <property name="layout-style">end</property>
             <child>
-              <object class="GtkButton" id="btn_send">
-                <property name="label" translatable="yes" context="crashreportdlg|btn_send">_Send Crash Report</property>
-                <property name="visible">True</property>
+              <object class="GtkButton" id="btn_close">
+                <property name="label" translatable="yes" context="crashreportdlg|btn_close">Close</property>
                 <property name="can-focus">True</property>
-                <property name="can-default">True</property>
-                <property name="has-default">True</property>
                 <property name="receives-default">True</property>
-                <property name="use-underline">True</property>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">0</property>
               </packing>
@@ -45,19 +40,23 @@
                 <property name="use-underline">True</property>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="btn_close">
-                <property name="label" translatable="yes" context="crashreportdlg|btn_close">Close</property>
+              <object class="GtkButton" id="btn_send">
+                <property name="label" translatable="yes" context="crashreportdlg|btn_send">_Send Crash Report</property>
+                <property name="visible">True</property>
                 <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
                 <property name="receives-default">True</property>
+                <property name="use-underline">True</property>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">2</property>
               </packing>
@@ -73,6 +72,10 @@
           <object class="GtkBox">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="margin-start">6</property>
+            <property name="margin-end">6</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
             <property name="orientation">vertical</property>
             <property name="spacing">12</property>
             <child>
@@ -98,7 +101,10 @@ You can help us to fix this issue by sending an anonymous crash report to the %P
               <object class="GtkGrid">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="row-spacing">3</property>
+                <property name="margin-top">6</property>
+                <property name="margin-bottom">6</property>
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <child>
                   <object class="GtkLinkButton" id="linkbutton">
                     <property name="label" translatable="no">https://crashreport.libreoffice.org/stats/crash_details/%CRASHID</property>
@@ -124,6 +130,7 @@ You can help us to fix this issue by sending an anonymous crash report to the %P
                     <property name="use-underline">True</property>
                     <property name="wrap">True</property>
                     <property name="mnemonic-widget">linkbutton</property>
+                    <property name="ellipsize">end</property>
                     <property name="max-width-chars">80</property>
                     <property name="xalign">0</property>
                   </object>
@@ -196,5 +203,10 @@ Thank you for your help in improving %PRODUCTNAME.</property>
         </child>
       </object>
     </child>
+    <action-widgets>
+      <action-widget response="-7">btn_close</action-widget>
+      <action-widget response="-6">btn_cancel</action-widget>
+      <action-widget response="-5">btn_send</action-widget>
+    </action-widgets>
   </object>
 </interface>

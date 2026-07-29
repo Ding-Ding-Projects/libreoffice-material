@@ -53,7 +53,8 @@ class solver(UITestCase):
 
                 with self.ui_test.execute_blocking_action(xOKBtn.executeAction, args=('CLICK', ())) as xWarnDialog:
                     self.assertEqual("Solving successfully finished.", get_state_as_dict(xWarnDialog.getChild("label2"))["Text"])
-                    self.assertEqual("Result: 1000", get_state_as_dict(xWarnDialog.getChild("result"))["Text"])
+                    self.assertEqual("Result:", get_state_as_dict(xWarnDialog.getChild("result"))["Text"])
+                    self.assertEqual("1000", get_state_as_dict(xWarnDialog.getChild("resultvalue"))["Text"])
 
             #verify
             self.assertEqual(get_cell_by_position(calc_doc, 0, 1, 1).getValue(), 400)

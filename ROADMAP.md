@@ -15,6 +15,19 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-28 milestone — CI repair + verified burn-down 73.41% → 83.24%:** the
+Phase 7.5 search-bar merge had left `main` red (gla11y FATALs, illegal
+interface-level `<child>` markup, registry claims with no backing C++); commit
+`56d210c38` repaired all of it and produced verified-green runs of every
+workflow including MSI-131. An adversarially-verified Opus wave then rewrote
+127 of the 338 pending ledger surfaces (footer anatomy with C++-audited
+response repairs, real label anatomy, Material content grids) and landed the
+genuine `RegexSearchController` wiring for both Phase 7.5 search bars
+(registries truthfully at 15/15). The remaining 213 pending surfaces carry
+per-surface blocked evidence in
+`docs/design/material-rewrite-wave-2026-07-28-evidence.json`; the wave C++ is
+source-implemented pending its first MSI compile.
+
 **2026-07-26 milestone — Windows-only compile closure and release-channel
 containment:** Windows-only stages 4+5 landed at `7874c6b85`, including removal
 of the Linux installer workflow, and the resulting tree compiled in successful

@@ -14,13 +14,15 @@
         <property name="label-xalign">0</property>
         <property name="shadow-type">none</property>
         <child>
-          <object class="GtkBox" id="box2">
+          <object class="GtkGrid" id="box2">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
             <property name="margin-top">6</property>
-            <property name="orientation">vertical</property>
-            <property name="spacing">6</property>
+            <property name="margin-bottom">6</property>
             <child>
               <object class="GtkCheckButton" id="pagebackground">
                 <property name="label" translatable="yes" context="printeroptions|pagebackground">Page background</property>
@@ -36,9 +38,9 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
+                <property name="width">2</property>
               </packing>
             </child>
             <child>
@@ -56,9 +58,9 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">1</property>
+                <property name="width">2</property>
               </packing>
             </child>
             <child>
@@ -76,9 +78,9 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">2</property>
+                <property name="width">2</property>
               </packing>
             </child>
             <child>
@@ -96,9 +98,9 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">3</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">3</property>
+                <property name="width">2</property>
               </packing>
             </child>
             <child>
@@ -116,53 +118,40 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">4</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">4</property>
+                <property name="width">2</property>
               </packing>
             </child>
             <child>
-              <object class="GtkBox" id="box3">
+              <object class="GtkLabel" id="label1">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="spacing">6</property>
-                <child>
-                  <object class="GtkLabel" id="label1">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="margin-start">5</property>
-                    <property name="label" translatable="yes" context="printeroptions|formcontrols">Comments:</property>
-                    <property name="use-underline">True</property>
-                    <property name="mnemonic-widget">writercomments</property>
-                    <property name="ellipsize">end</property>
+                <property name="label" translatable="yes" context="printeroptions|formcontrols">Comments:</property>
+                <property name="use-underline">True</property>
+                <property name="mnemonic-widget">writercomments</property>
+                <property name="ellipsize">end</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">5</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkComboBoxText" id="writercomments">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">start</property>
+                <child internal-child="accessible">
+                  <object class="AtkObject" id="writercomments-atkobject">
+                    <property name="AtkObject::accessible-description" translatable="yes" context="printeroptions|extended_tip|writercomments">Specify where to print comments (if any).</property>
                   </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkComboBoxText" id="writercomments">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <child internal-child="accessible">
-                      <object class="AtkObject" id="writercomments-atkobject">
-                        <property name="AtkObject::accessible-description" translatable="yes" context="printeroptions|extended_tip|writercomments">Specify where to print comments (if any).</property>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">2</property>
-                  </packing>
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">5</property>
+                <property name="left-attach">1</property>
+                <property name="top-attach">5</property>
               </packing>
             </child>
           </object>
@@ -172,6 +161,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="printeroptions|label4">Contents</property>
+            <property name="ellipsize">end</property>
             <attributes>
               <attribute name="weight" value="bold"/>
             </attributes>
@@ -191,19 +181,33 @@
         <property name="label-xalign">0</property>
         <property name="shadow-type">none</property>
         <child>
-          <object class="GtkCheckButton" id="textinblack">
-            <property name="label" translatable="yes" context="printeroptions|textinblack">Print text in black</property>
+          <object class="GtkGrid" id="colorgrid">
             <property name="visible">True</property>
-            <property name="can-focus">True</property>
-            <property name="receives-default">False</property>
+            <property name="can-focus">False</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
             <property name="margin-top">6</property>
-            <property name="use-underline">True</property>
-            <property name="draw-indicator">True</property>
-            <child internal-child="accessible">
-              <object class="AtkObject" id="textinblack-atkobject">
-                <property name="AtkObject::accessible-description" translatable="yes" context="printeroptions|extended_tip|textinblack">Specifies whether to always print text in black.</property>
+            <property name="margin-bottom">6</property>
+            <child>
+              <object class="GtkCheckButton" id="textinblack">
+                <property name="label" translatable="yes" context="printeroptions|textinblack">Print text in black</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">False</property>
+                <property name="use-underline">True</property>
+                <property name="draw-indicator">True</property>
+                <child internal-child="accessible">
+                  <object class="AtkObject" id="textinblack-atkobject">
+                    <property name="AtkObject::accessible-description" translatable="yes" context="printeroptions|extended_tip|textinblack">Specifies whether to always print text in black.</property>
+                  </object>
+                </child>
               </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
+              </packing>
             </child>
           </object>
         </child>
@@ -212,6 +216,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="printeroptions|label5">Color</property>
+            <property name="ellipsize">end</property>
             <attributes>
               <attribute name="weight" value="bold"/>
             </attributes>
@@ -231,19 +236,33 @@
         <property name="label-xalign">0</property>
         <property name="shadow-type">none</property>
         <child>
-          <object class="GtkCheckButton" id="autoblankpages">
-            <property name="label" translatable="yes" context="printeroptions|autoblankpages">Print automatically inserted blank pages</property>
+          <object class="GtkGrid" id="pagesgrid">
             <property name="visible">True</property>
-            <property name="can-focus">True</property>
-            <property name="receives-default">False</property>
+            <property name="can-focus">False</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
             <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
             <property name="margin-top">6</property>
-            <property name="use-underline">True</property>
-            <property name="draw-indicator">True</property>
-            <child internal-child="accessible">
-              <object class="AtkObject" id="autoblankpages-atkobject">
-                <property name="AtkObject::accessible-description" translatable="yes" context="printeroptions|extended_tip|autoblankpages">If this option is enabled automatically inserted blank pages are printed. This is best if you are printing double-sided. For example, in a book, a "chapter" paragraph style has been set to always start with an odd numbered page. If the previous chapter ends on an odd page, Writer inserts an even numbered blank page. This option controls whether to print that even numbered page.</property>
+            <property name="margin-bottom">6</property>
+            <child>
+              <object class="GtkCheckButton" id="autoblankpages">
+                <property name="label" translatable="yes" context="printeroptions|autoblankpages">Print automatically inserted blank pages</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">False</property>
+                <property name="use-underline">True</property>
+                <property name="draw-indicator">True</property>
+                <child internal-child="accessible">
+                  <object class="AtkObject" id="autoblankpages-atkobject">
+                    <property name="AtkObject::accessible-description" translatable="yes" context="printeroptions|extended_tip|autoblankpages">If this option is enabled automatically inserted blank pages are printed. This is best if you are printing double-sided. For example, in a book, a "chapter" paragraph style has been set to always start with an odd numbered page. If the previous chapter ends on an odd page, Writer inserts an even numbered blank page. This option controls whether to print that even numbered page.</property>
+                  </object>
+                </child>
               </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
+              </packing>
             </child>
           </object>
         </child>
@@ -252,6 +271,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes" context="printeroptions|label6">Pages</property>
+            <property name="ellipsize">end</property>
             <attributes>
               <attribute name="weight" value="bold"/>
             </attributes>

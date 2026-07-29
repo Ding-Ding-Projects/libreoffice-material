@@ -53,32 +53,15 @@ ScSortWarningDlg::ScSortWarningDlg(weld::Window* pParent,
     std::u16string_view rExtendText, std::u16string_view rCurrentText)
     : GenericDialogController(pParent, u"modules/scalc/ui/sortwarning.ui"_ustr, u"SortWarning"_ustr)
     , m_xFtText(m_xBuilder->weld_label(u"sorttext"_ustr))
-    , m_xBtnExtSort(m_xBuilder->weld_button(u"extend"_ustr))
-    , m_xBtnCurSort(m_xBuilder->weld_button(u"current"_ustr))
 {
     OUString sTextName = m_xFtText->get_label();
     sTextName = sTextName.replaceFirst("%1", rExtendText);
     sTextName = sTextName.replaceFirst("%2", rCurrentText);
     m_xFtText->set_label(sTextName);
-
-    m_xBtnExtSort->connect_clicked( LINK( this, ScSortWarningDlg, BtnHdl ) );
-    m_xBtnCurSort->connect_clicked( LINK( this, ScSortWarningDlg, BtnHdl ) );
 }
 
 ScSortWarningDlg::~ScSortWarningDlg()
 {
-}
-
-IMPL_LINK(ScSortWarningDlg, BtnHdl, weld::Button&, rBtn, void)
-{
-    if (&rBtn == m_xBtnExtSort.get())
-    {
-        m_xDialog->response(BTN_EXTEND_RANGE);
-    }
-    else if(&rBtn == m_xBtnCurSort.get())
-    {
-        m_xDialog->response(BTN_CURRENT_SELECTION);
-    }
 }
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

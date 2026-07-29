@@ -97,6 +97,23 @@
             <property name="margin-top">6</property>
             <property name="margin-bottom">6</property>
             <child>
+              <object class="GtkLabel" id="tabsheading">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">start</property>
+                <property name="hexpand">True</property>
+                <property name="label" translatable="yes" context="drawchardialog|tabsheading">Character _formatting categories</property>
+                <property name="use-underline">True</property>
+                <property name="mnemonic-widget">tabcontrol</property>
+                <property name="ellipsize">end</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkNotebook" id="tabcontrol">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -108,7 +125,7 @@
               </object>
               <packing>
                 <property name="left-attach">0</property>
-                <property name="top-attach">0</property>
+                <property name="top-attach">1</property>
               </packing>
             </child>
           </object>

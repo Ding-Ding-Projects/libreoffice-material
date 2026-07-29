@@ -53,7 +53,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="position">2</property>
               </packing>
             </child>
             <child>
@@ -67,7 +67,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">2</property>
+                <property name="position">1</property>
               </packing>
             </child>
           </object>
@@ -90,6 +90,11 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">6</property>
+                <property name="margin-bottom">6</property>
                 <child>
                   <object class="GtkLabel" id="label2">
                     <property name="ellipsize">end</property>
@@ -355,8 +360,8 @@
     </child>
     <action-widgets>
       <action-widget response="-11">help</action-widget>
-      <action-widget response="101">add</action-widget>
       <action-widget response="-6">cancel</action-widget>
+      <action-widget response="-5">add</action-widget>
     </action-widgets>
     <child internal-child="accessible">
       <object class="AtkObject" id="DefineNameDialog-atkobject">

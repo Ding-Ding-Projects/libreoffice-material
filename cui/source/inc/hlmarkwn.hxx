@@ -40,6 +40,7 @@ private:
     std::unique_ptr<weld::Button> mxBtApply;
     std::unique_ptr<weld::Button> mxBtClose;
     std::unique_ptr<weld::TreeView> mxLbTree;
+    std::unique_ptr<weld::Label> mxMarkLabel;
     std::unique_ptr<weld::Label> mxError;
 
     OUString            maSelectedMark;

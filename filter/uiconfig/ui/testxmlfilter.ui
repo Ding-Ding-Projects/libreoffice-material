@@ -98,7 +98,9 @@
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="hexpand">True</property>
-                        <property name="label" translatable="yes" context="testxmlfilter|label4">Transform document</property>
+                        <property name="label" translatable="yes" context="testxmlfilter|label4">_Transform document</property>
+                        <property name="use-underline">True</property>
+                        <property name="mnemonic-widget">exportbrowse</property>
                         <property name="xalign">0</property>
                       </object>
                       <packing>
@@ -144,6 +146,7 @@
                       <object class="GtkLabel" id="exportxsltfile">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="ellipsize">end</property>
                         <property name="xalign">0</property>
                         <child internal-child="accessible">
                           <object class="AtkObject" id="exportxsltfile-atkobject">
@@ -161,6 +164,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="width-chars">52</property>
+                        <property name="ellipsize">end</property>
                         <property name="xalign">1</property>
                         <child internal-child="accessible">
                           <object class="AtkObject" id="currentfilename-atkobject">
@@ -275,6 +279,7 @@
                       <object class="GtkLabel" id="importxsltfile">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="ellipsize">end</property>
                         <property name="xalign">0</property>
                         <child internal-child="accessible">
                           <object class="AtkObject" id="importxsltfile-atkobject">
@@ -311,7 +316,9 @@
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="hexpand">True</property>
-                        <property name="label" translatable="yes" context="testxmlfilter|label6">Transform file</property>
+                        <property name="label" translatable="yes" context="testxmlfilter|label6">Transform _file</property>
+                        <property name="use-underline">True</property>
+                        <property name="mnemonic-widget">importbrowse</property>
                         <property name="xalign">0</property>
                       </object>
                       <packing>
@@ -323,6 +330,7 @@
                       <object class="GtkLabel" id="importxslttemplate">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="ellipsize">end</property>
                         <property name="xalign">0</property>
                         <child internal-child="accessible">
                           <object class="AtkObject" id="importxslttemplate-atkobject">
@@ -340,6 +348,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="width-chars">52</property>
+                        <property name="ellipsize">end</property>
                         <property name="xalign">1</property>
                         <child internal-child="accessible">
                           <object class="AtkObject" id="recentfilename-atkobject">
@@ -389,7 +398,7 @@
     </child>
     <action-widgets>
       <action-widget response="-11">help</action-widget>
-      <action-widget response="-7">close</action-widget>
+      <action-widget response="-5">close</action-widget>
     </action-widgets>
     <child internal-child="accessible">
       <object class="AtkObject" id="TestXMLFilterDialog-atkobject">

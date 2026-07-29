@@ -187,9 +187,9 @@ static bool lcl_GetSortParam( const ScViewData& rData, const ScSortParam& rSortP
 
         ScopedVclPtr<AbstractScSortWarningDlg> pWarningDlg(pFact->CreateScSortWarningDlg(pTabViewShell->GetFrameWeld(), aExtendStr, aCurrentStr));
         short bResult = pWarningDlg->Execute();
-        if( bResult == BTN_EXTEND_RANGE || bResult == BTN_CURRENT_SELECTION )
+        if( bResult == RET_YES || bResult == RET_NO )
         {
-            if( bResult == BTN_EXTEND_RANGE )
+            if( bResult == RET_YES )
             {
                 pTabViewShell->MarkRange( aExternalRange, false );
                 pDBData->SetArea( nTab, aExternalRange.aStart.Col(), aExternalRange.aStart.Row(), aExternalRange.aEnd.Col(), aExternalRange.aEnd.Row() );

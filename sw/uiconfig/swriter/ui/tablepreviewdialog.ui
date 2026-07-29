@@ -45,26 +45,36 @@
           </packing>
         </child>
         <child>
-          <object class="GtkBox">
+          <!-- n-columns=1 n-rows=2 -->
+          <object class="GtkGrid" id="content-grid">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="orientation">vertical</property>
-            <property name="spacing">6</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
             <child>
               <object class="GtkLabel" id="description">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="halign">start</property>
+                <property name="hexpand">True</property>
                 <property name="label" translatable="yes" context="tablepreviewdialog|description">The list below shows the contents of: %1</property>
+                <property name="ellipsize">end</property>
+                <property name="mnemonic-widget">previewlist</property>
+                <property name="xalign">0</property>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
               </packing>
             </child>
             <child>
-              <object class="GtkScrolledWindow">
+              <object class="GtkScrolledWindow" id="previewlist">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="hexpand">True</property>
@@ -90,9 +100,8 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="left-attach">0</property>
+                <property name="top-attach">1</property>
               </packing>
             </child>
           </object>
@@ -105,7 +114,7 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-7">close</action-widget>
+      <action-widget response="-5">close</action-widget>
     </action-widgets>
   </object>
 </interface>

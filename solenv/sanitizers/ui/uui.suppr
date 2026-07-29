@@ -17,4 +17,3 @@ uui/uiconfig/ui/macrowarnmedium.ui://GtkLabel[@id='certNoLongerValidLabel'] orph
 uui/uiconfig/ui/setmasterpassworddlg.ui://GtkLabel[@id='label1'] orphan-label
 uui/uiconfig/ui/setmasterpassworddlg.ui://GtkLabel[@id='label4'] orphan-label
 uui/uiconfig/ui/simplenameclash.ui://GtkLabel[@id='warning'] orphan-label
-uui/uiconfig/ui/simplenameclash.ui://GtkEntry[@id='newname'] no-labelled-by

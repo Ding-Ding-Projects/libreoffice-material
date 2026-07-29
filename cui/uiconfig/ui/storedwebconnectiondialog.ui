@@ -15,7 +15,6 @@
   <object class="GtkDialog" id="StoredWebConnectionDialog">
     <property name="modal">True</property>
     <property name="can_focus">False</property>
-    <property name="border_width">6</property>
     <property name="title" translatable="yes" context="storedwebconnectiondialog|StoredWebConnectionDialog">Stored Web Connection Information</property>
     <property name="resizable">False</property>
     <property name="type_hint">dialog</property>
@@ -74,7 +73,7 @@
         <child>
           <!-- n-columns=1 n-rows=1 -->
           <object class="GtkGrid" id="grid2">
-            <property name="row-spacing">12</property>
+            <property name="row-spacing">6</property>
             <property name="column-spacing">12</property>
             <property name="margin-start">12</property>
             <property name="margin-end">12</property>
@@ -84,10 +83,10 @@
             <property name="can_focus">False</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <property name="row_spacing">6</property>
             <child>
               <object class="GtkLabel" id="label1">
                 <property name="ellipsize">end</property>
+                <property name="mnemonic-widget">logins</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes" context="storedwebconnectiondialog|label1">Web login information (passwords are never shown)</property>
@@ -219,7 +218,7 @@
     </child>
     <action-widgets>
       <action-widget response="-11">help</action-widget>
-      <action-widget response="-7">close</action-widget>
+      <action-widget response="-5">close</action-widget>
     </action-widgets>
   </object>
 </interface>

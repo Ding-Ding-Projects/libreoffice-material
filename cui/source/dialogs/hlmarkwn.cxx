@@ -79,6 +79,7 @@ SvxHlinkDlgMarkWnd::SvxHlinkDlgMarkWnd(weld::Window* pParentDialog)
     mxBtApply = m_xBuilder->weld_button(u"ok"_ustr);
     mxBtClose = m_xBuilder->weld_button(u"close"_ustr);
     mxLbTree = m_xBuilder->weld_tree_view(u"TreeListBox"_ustr);
+    mxMarkLabel = m_xBuilder->weld_label(u"marklabel"_ustr);
     mxError = m_xBuilder->weld_label(u"error"_ustr);
 
     mxLbTree->set_size_request(mxLbTree->get_approximate_digit_width() * 25,
@@ -109,6 +110,9 @@ void SvxHlinkDlgMarkWnd::ErrorChanged()
         mxError->set_label(aStrMessage);
         mxError->show();
         mxLbTree->hide();
+        // the target list is the only thing "Select a target" names, so the
+        // heading goes away with it rather than titling an error message
+        mxMarkLabel->hide();
     }
     else if (mnError == LERR_DOCNOTOPEN)
     {
@@ -116,10 +120,12 @@ void SvxHlinkDlgMarkWnd::ErrorChanged()
         mxError->set_label(aStrMessage);
         mxError->show();
         mxLbTree->hide();
+        mxMarkLabel->hide();
     }
     else
     {
         mxLbTree->show();
+        mxMarkLabel->show();
         mxError->hide();
     }
 }

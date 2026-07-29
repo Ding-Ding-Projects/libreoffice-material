@@ -105,16 +105,16 @@
   },
   "coverage": {
     "total_surfaces": 1271,
-    "pending": 338,
+    "pending": 213,
     "in_progress": 0,
-    "rewritten_material": 933,
-    "coverage_pct": 73.41,
+    "rewritten_material": 1058,
+    "coverage_pct": 83.24,
     "by_family": {
       "dialog": {
         "total": 522,
-        "pending": 191,
+        "pending": 78,
         "in-progress": 0,
-        "rewritten-material": 331
+        "rewritten-material": 444
       },
       "menu": {
         "total": 70,
@@ -124,9 +124,9 @@
       },
       "message-dialog": {
         "total": 76,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 75
+        "rewritten-material": 76
       },
       "native-shell": {
         "total": 10,
@@ -142,9 +142,9 @@
       },
       "panel-fragment": {
         "total": 451,
-        "pending": 138,
+        "pending": 127,
         "in-progress": 0,
-        "rewritten-material": 313
+        "rewritten-material": 324
       },
       "popover": {
         "total": 47,
@@ -168,27 +168,27 @@
     "by_owner": {
       "basctl": {
         "total": 22,
-        "pending": 4,
+        "pending": 3,
         "in-progress": 0,
-        "rewritten-material": 18
+        "rewritten-material": 19
       },
       "chart2": {
         "total": 46,
-        "pending": 9,
+        "pending": 8,
         "in-progress": 0,
-        "rewritten-material": 37
+        "rewritten-material": 38
       },
       "cui": {
         "total": 207,
-        "pending": 44,
+        "pending": 20,
         "in-progress": 0,
-        "rewritten-material": 163
+        "rewritten-material": 187
       },
       "dbaccess": {
         "total": 82,
-        "pending": 23,
+        "pending": 18,
         "in-progress": 0,
-        "rewritten-material": 59
+        "rewritten-material": 64
       },
       "desktop": {
         "total": 9,
@@ -210,9 +210,9 @@
       },
       "filter": {
         "total": 13,
-        "pending": 4,
+        "pending": 2,
         "in-progress": 0,
-        "rewritten-material": 9
+        "rewritten-material": 11
       },
       "formula": {
         "total": 4,
@@ -222,9 +222,9 @@
       },
       "fpicker": {
         "total": 4,
-        "pending": 2,
+        "pending": 1,
         "in-progress": 0,
-        "rewritten-material": 2
+        "rewritten-material": 3
       },
       "instsetoo_native": {
         "total": 1,
@@ -240,27 +240,27 @@
       },
       "reportdesign": {
         "total": 12,
-        "pending": 7,
+        "pending": 3,
         "in-progress": 0,
-        "rewritten-material": 5
+        "rewritten-material": 9
       },
       "sc": {
         "total": 189,
-        "pending": 43,
+        "pending": 11,
         "in-progress": 0,
-        "rewritten-material": 146
+        "rewritten-material": 178
       },
       "sd": {
         "total": 91,
-        "pending": 24,
+        "pending": 17,
         "in-progress": 0,
-        "rewritten-material": 67
+        "rewritten-material": 74
       },
       "sfx2": {
         "total": 76,
-        "pending": 23,
+        "pending": 17,
         "in-progress": 0,
-        "rewritten-material": 53
+        "rewritten-material": 59
       },
       "starmath": {
         "total": 16,
@@ -270,33 +270,33 @@
       },
       "svtools": {
         "total": 29,
-        "pending": 12,
+        "pending": 11,
         "in-progress": 0,
-        "rewritten-material": 17
+        "rewritten-material": 18
       },
       "svx": {
         "total": 144,
-        "pending": 28,
+        "pending": 23,
         "in-progress": 0,
-        "rewritten-material": 116
+        "rewritten-material": 121
       },
       "sw": {
         "total": 233,
-        "pending": 77,
+        "pending": 44,
         "in-progress": 0,
-        "rewritten-material": 156
+        "rewritten-material": 189
       },
       "uui": {
         "total": 10,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 9
+        "rewritten-material": 10
       },
       "vcl": {
         "total": 22,
-        "pending": 11,
+        "pending": 10,
         "in-progress": 0,
-        "rewritten-material": 11
+        "rewritten-material": 12
       },
       "writerperfect": {
         "total": 2,
@@ -306,29 +306,29 @@
       },
       "xmlsecurity": {
         "total": 9,
-        "pending": 3,
+        "pending": 2,
         "in-progress": 0,
-        "rewritten-material": 6
+        "rewritten-material": 7
       }
     },
     "by_inventory_id": {
       "WIN-BA-001": {
         "total": 90,
-        "pending": 24,
+        "pending": 19,
         "in-progress": 0,
-        "rewritten-material": 66
+        "rewritten-material": 71
       },
       "WIN-BA-002": {
         "total": 62,
-        "pending": 25,
+        "pending": 21,
         "in-progress": 0,
-        "rewritten-material": 37
+        "rewritten-material": 41
       },
       "WIN-CA-001": {
         "total": 188,
-        "pending": 43,
+        "pending": 11,
         "in-progress": 0,
-        "rewritten-material": 145
+        "rewritten-material": 177
       },
       "WIN-CA-002": {
         "total": 4,
@@ -344,9 +344,9 @@
       },
       "WIN-CH-001": {
         "total": 46,
-        "pending": 9,
+        "pending": 8,
         "in-progress": 0,
-        "rewritten-material": 37
+        "rewritten-material": 38
       },
       "WIN-CON-007": {
         "total": 18,
@@ -356,9 +356,9 @@
       },
       "WIN-DLG-001": {
         "total": 26,
-        "pending": 2,
+        "pending": 1,
         "in-progress": 0,
-        "rewritten-material": 24
+        "rewritten-material": 25
       },
       "WIN-DLG-002": {
         "total": 28,
@@ -368,9 +368,9 @@
       },
       "WIN-DLG-003": {
         "total": 4,
-        "pending": 2,
+        "pending": 1,
         "in-progress": 0,
-        "rewritten-material": 2
+        "rewritten-material": 3
       },
       "WIN-DLG-004": {
         "total": 7,
@@ -386,15 +386,15 @@
       },
       "WIN-DR-001": {
         "total": 23,
-        "pending": 8,
+        "pending": 4,
         "in-progress": 0,
-        "rewritten-material": 15
+        "rewritten-material": 19
       },
       "WIN-IM-001": {
         "total": 67,
-        "pending": 16,
+        "pending": 13,
         "in-progress": 0,
-        "rewritten-material": 51
+        "rewritten-material": 54
       },
       "WIN-IM-003": {
         "total": 1,
@@ -428,9 +428,9 @@
       },
       "WIN-SC-001": {
         "total": 1,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 0
+        "rewritten-material": 1
       },
       "WIN-SC-005": {
         "total": 1,
@@ -440,9 +440,9 @@
       },
       "WIN-SHL-001": {
         "total": 68,
-        "pending": 20,
+        "pending": 15,
         "in-progress": 0,
-        "rewritten-material": 48
+        "rewritten-material": 53
       },
       "WIN-SHL-003": {
         "total": 4,
@@ -452,9 +452,9 @@
       },
       "WIN-SYS-002": {
         "total": 16,
-        "pending": 4,
+        "pending": 2,
         "in-progress": 0,
-        "rewritten-material": 12
+        "rewritten-material": 14
       },
       "WIN-SYS-003": {
         "total": 1,
@@ -470,33 +470,33 @@
       },
       "WIN-SYS-005": {
         "total": 8,
-        "pending": 3,
+        "pending": 2,
         "in-progress": 0,
-        "rewritten-material": 5
+        "rewritten-material": 6
       },
       "WIN-SYS-006": {
         "total": 22,
-        "pending": 4,
+        "pending": 3,
         "in-progress": 0,
-        "rewritten-material": 18
+        "rewritten-material": 19
       },
       "WIN-SYS-007": {
         "total": 15,
-        "pending": 5,
+        "pending": 2,
         "in-progress": 0,
-        "rewritten-material": 10
+        "rewritten-material": 13
       },
       "WIN-SYS-009": {
         "total": 6,
-        "pending": 3,
+        "pending": 2,
         "in-progress": 0,
-        "rewritten-material": 3
+        "rewritten-material": 4
       },
       "WIN-SYS-011": {
         "total": 13,
-        "pending": 2,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 11
+        "rewritten-material": 13
       },
       "WIN-SYS-012": {
         "total": 4,
@@ -512,15 +512,15 @@
       },
       "WIN-SYS-015": {
         "total": 16,
-        "pending": 6,
+        "pending": 3,
         "in-progress": 0,
-        "rewritten-material": 10
+        "rewritten-material": 13
       },
       "WIN-WR-001": {
         "total": 232,
-        "pending": 76,
+        "pending": 43,
         "in-progress": 0,
-        "rewritten-material": 156
+        "rewritten-material": 189
       },
       "WIN-WR-002": {
         "total": 1,
@@ -536,9 +536,9 @@
       },
       "unassigned": {
         "total": 250,
-        "pending": 67,
+        "pending": 45,
         "in-progress": 0,
-        "rewritten-material": 183
+        "rewritten-material": 205
       }
     }
   },
@@ -1063,12 +1063,39 @@
       "inventory_id": "WIN-SYS-006",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -1266,12 +1293,39 @@
       "inventory_id": "WIN-CH-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -2504,12 +2558,38 @@
       "inventory_id": "WIN-SYS-005",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "buttonClose",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "buttonClose",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 2,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -2796,12 +2876,39 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -2958,16 +3065,21 @@
       "inventory_id": "unassigned",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
-      },
-      "regression_waiver": {
-        "reason": "mnemonic-widget removed: the surface carried both mnemonic-widget and mnemonic_widget for the same target, which gla11y reports as multiple mnemonic_widgets (FATAL ERROR) and which broke the Windows MSI build.",
-        "commit": "bbb5848c67ac3c87ab851d6583f52c3f08d7f90c"
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/06-panels.md#6.7",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "content_grid_material": true,
+          "ellipsize_count": 5,
+          "mnemonic_content_labels": 5,
+          "has_own_action_widgets": false
+        }
       }
     },
     {
@@ -3398,12 +3510,39 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -6,
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "btnOk",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "btnOk",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 2,
+          "mnemonic_content_labels": 2,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -3435,12 +3574,39 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 4,
+          "mnemonic_content_labels": 4,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -3449,12 +3615,39 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -3609,12 +3802,40 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -7,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "pbSearchAgain",
+          "primary_response": -5,
+          "primary_label": "search",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "pbSearchAgain",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 2,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -3790,12 +4011,40 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -3924,12 +4173,38 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 3,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -4045,12 +4320,39 @@
       "inventory_id": "WIN-SYS-015",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -4207,12 +4509,39 @@
       "inventory_id": "WIN-SYS-015",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -6,
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "apply",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -4244,12 +4573,40 @@
       "inventory_id": "WIN-SYS-015",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "hyphenate",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -4364,12 +4721,38 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -4611,12 +4994,40 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -4773,12 +5184,40 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "run",
+          "primary_response": -5,
+          "primary_label": "run",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "run",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -6256,12 +6695,40 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -7035,12 +7502,38 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "cancel",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "cancel",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 2,
+          "mnemonic_content_labels": 2,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -7091,12 +7584,40 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -7105,12 +7626,40 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -7565,12 +8114,39 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 3,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -7649,12 +8225,39 @@
       "inventory_id": "WIN-SYS-007",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -7755,12 +8358,40 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -7894,12 +8525,40 @@
       "inventory_id": "WIN-SYS-007",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -7931,12 +8590,40 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -8116,12 +8803,40 @@
       "inventory_id": "WIN-BA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -8241,12 +8956,40 @@
       "inventory_id": "WIN-BA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -8691,12 +9434,39 @@
       "inventory_id": "WIN-BA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 5,
+          "mnemonic_content_labels": 2,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -8756,12 +9526,40 @@
       "inventory_id": "WIN-BA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 2,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -8885,12 +9683,39 @@
       "inventory_id": "WIN-BA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 3,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -11717,12 +12542,39 @@
       "inventory_id": "WIN-SYS-002",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 5,
+          "mnemonic_content_labels": 2,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -11772,12 +12624,39 @@
       "inventory_id": "WIN-SYS-002",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -11971,12 +12850,39 @@
       "inventory_id": "WIN-DLG-003",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "open",
+          "primary_response": -5,
+          "primary_label": "open",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "open",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 3,
+          "mnemonic_content_labels": 3,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -12267,12 +13173,40 @@
       "inventory_id": "WIN-BA-002",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -12281,12 +13215,40 @@
       "inventory_id": "WIN-BA-002",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -12295,12 +13257,40 @@
       "inventory_id": "WIN-BA-002",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -12458,12 +13448,40 @@
       "inventory_id": "WIN-BA-002",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -12579,12 +13597,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -12763,12 +13809,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -13479,12 +14553,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -7,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "new",
+          "primary_response": -5,
+          "primary_label": "new",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "new",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -13656,12 +14758,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "add",
+          "primary_response": -5,
+          "primary_label": "add",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "add",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 5,
+          "mnemonic_content_labels": 3,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -13924,12 +15054,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -14293,12 +15451,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -14307,12 +15493,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -14636,12 +15850,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -14673,12 +15915,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -14827,12 +16097,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -7,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "paste",
+          "primary_response": -5,
+          "primary_label": "paste",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "paste",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -14924,12 +16222,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -14938,12 +16264,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -15691,12 +17045,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -15705,12 +17087,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -15719,12 +17129,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -16360,12 +17798,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -16374,12 +17840,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -16558,12 +18052,38 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -16740,12 +18260,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -16754,12 +18302,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -16768,12 +18344,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -16782,12 +18386,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -16796,12 +18428,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -16810,12 +18470,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -17279,12 +18967,38 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 3,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -17293,12 +19007,39 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -6,
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "keep result",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 3,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -17330,12 +19071,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -17413,12 +19182,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -6,
+            -9,
+            -8
+          ],
+          "help_first": false,
+          "primary_id": "extend",
+          "primary_response": -8,
+          "primary_label": "extend selection",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "extend",
+          "default_response": -8,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -17599,12 +19396,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -17682,12 +19507,39 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -6,
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -17696,12 +19548,21 @@
       "inventory_id": "WIN-CA-001",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/06-panels.md#6.7",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_own_action_widgets": false
+        }
       }
     },
     {
@@ -17946,12 +19807,40 @@
       "inventory_id": "WIN-CA-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -18313,12 +20202,40 @@
       "inventory_id": "WIN-DR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -18327,12 +20244,40 @@
       "inventory_id": "WIN-DR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -18341,12 +20286,40 @@
       "inventory_id": "WIN-DR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -18378,12 +20351,40 @@
       "inventory_id": "WIN-DR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -18988,12 +20989,39 @@
       "inventory_id": "WIN-IM-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -19231,12 +21259,40 @@
       "inventory_id": "WIN-IM-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "apply_all",
+          "primary_response": -5,
+          "primary_label": "apply to all",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "apply_all",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 3,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -20286,12 +22342,40 @@
       "inventory_id": "WIN-IM-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -20557,12 +22641,21 @@
       "inventory_id": "WIN-SHL-001",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/06-panels.md#6.7",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_own_action_widgets": false
+        }
       }
     },
     {
@@ -20791,12 +22884,39 @@
       "inventory_id": "WIN-SHL-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -6,
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "gtk-ok",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 3,
+          "mnemonic_content_labels": 3,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -20979,12 +23099,21 @@
       "inventory_id": "WIN-SHL-001",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/06-panels.md#6.7",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_own_action_widgets": false
+        }
       }
     },
     {
@@ -21182,12 +23311,39 @@
       "inventory_id": "WIN-SHL-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -7,
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "show license",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -21635,12 +23791,21 @@
       "inventory_id": "WIN-SHL-001",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/06-panels.md#6.7",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_own_action_widgets": false
+        }
       }
     },
     {
@@ -21877,12 +24042,21 @@
       "inventory_id": "WIN-SC-001",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/06-panels.md#6.7",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "content_grid_material": true,
+          "ellipsize_count": 3,
+          "mnemonic_content_labels": 1,
+          "has_own_action_widgets": false
+        }
       }
     },
     {
@@ -23171,12 +25345,40 @@
       "inventory_id": "WIN-DLG-001",
       "family": "message-dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": true,
+          "message_type": "question",
+          "action_order": [
+            -9,
+            -6,
+            -8
+          ],
+          "help_first": false,
+          "primary_id": "yes",
+          "primary_response": -8,
+          "primary_label": "delete",
+          "primary_is_verb": true,
+          "primary_can_default": false,
+          "default_id": "no",
+          "default_response": -9,
+          "destructive_class": true,
+          "footer_spacing": 12,
+          "content_grid_material": false,
+          "ellipsize_count": 0,
+          "mnemonic_content_labels": 0,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -24125,12 +26327,40 @@
       "inventory_id": "WIN-SYS-009",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -7,
+            -6,
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "btn_send",
+          "primary_response": -5,
+          "primary_label": "send crash report",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "btn_send",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -25609,12 +27839,21 @@
       "inventory_id": "unassigned",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/06-panels.md#6.7",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_own_action_widgets": false
+        }
       }
     },
     {
@@ -26831,12 +29070,40 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 16,
+          "mnemonic_content_labels": 16,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -26893,12 +29160,40 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -26907,12 +29202,40 @@
       "inventory_id": "unassigned",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -27325,12 +29648,21 @@
       "inventory_id": "WIN-WR-001",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/06-panels.md#6.7",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "content_grid_material": true,
+          "ellipsize_count": 3,
+          "mnemonic_content_labels": 1,
+          "has_own_action_widgets": false
+        }
       }
     },
     {
@@ -27646,12 +29978,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -7,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "insert",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 2,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -27683,12 +30043,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -7,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "insert",
+          "primary_response": -5,
+          "primary_label": "insert",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "insert",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -27718,12 +30106,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -28374,12 +30790,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "copy",
+          "primary_response": -5,
+          "primary_label": "copy",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "copy",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -28430,12 +30874,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -28606,12 +31078,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -28676,12 +31176,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 3,
+          "mnemonic_content_labels": 3,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -28690,12 +31218,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -28704,12 +31260,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 4,
+          "mnemonic_content_labels": 4,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -29190,12 +31774,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -29523,12 +32135,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -7,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "insert",
+          "primary_response": -5,
+          "primary_label": "insert",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "insert",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 3,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -29537,12 +32177,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 3,
+          "mnemonic_content_labels": 2,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -29719,12 +32387,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "insert",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -29789,12 +32485,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "new document",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -30716,12 +33440,21 @@
       "inventory_id": "WIN-WR-001",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/06-panels.md#6.7",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 3,
+          "has_own_action_widgets": false
+        }
       }
     },
     {
@@ -30730,12 +33463,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -30965,12 +33726,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -31136,12 +33925,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 4,
+          "mnemonic_content_labels": 4,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -31382,12 +34199,21 @@
       "inventory_id": "WIN-WR-001",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/06-panels.md#6.7",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "content_grid_material": true,
+          "ellipsize_count": 4,
+          "mnemonic_content_labels": 1,
+          "has_own_action_widgets": false
+        }
       }
     },
     {
@@ -31724,12 +34550,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -31780,12 +34634,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -31956,12 +34838,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -32012,12 +34922,39 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -6,
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -32026,12 +34963,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -32378,12 +35343,38 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "close",
+          "primary_response": -5,
+          "primary_label": "close",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "close",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -32429,12 +35420,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -32443,12 +35462,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -32457,12 +35504,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -32471,12 +35546,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -32485,12 +35588,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -32499,12 +35630,39 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "cancel",
+          "primary_response": -5,
+          "primary_label": "cancel",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "cancel",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 6,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -32578,12 +35736,40 @@
       "inventory_id": "WIN-WR-001",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "ok",
+          "primary_response": -5,
+          "primary_label": "ok",
+          "primary_is_verb": false,
+          "primary_can_default": true,
+          "default_id": "ok",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -33262,12 +36448,40 @@
       "inventory_id": "WIN-SYS-011",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -11,
+            -6,
+            -5
+          ],
+          "help_first": true,
+          "primary_id": "rename",
+          "primary_response": -5,
+          "primary_label": "rename",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "rename",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -33608,12 +36822,39 @@
       "inventory_id": "WIN-SYS-011",
       "family": "dialog",
       "rewrite_class": "dialog-anatomy",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/08-dialogs.md#8.1",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "is_message_dialog": false,
+          "message_type": null,
+          "action_order": [
+            -6,
+            -5
+          ],
+          "help_first": false,
+          "primary_id": "open",
+          "primary_response": -5,
+          "primary_label": "open",
+          "primary_is_verb": true,
+          "primary_can_default": true,
+          "default_id": "open",
+          "default_response": -5,
+          "destructive_class": false,
+          "footer_spacing": 12,
+          "content_grid_material": true,
+          "ellipsize_count": 4,
+          "mnemonic_content_labels": 2,
+          "has_legacy_border": false,
+          "title_present": true,
+          "modal": true
+        }
       }
     },
     {
@@ -33938,12 +37179,21 @@
       "inventory_id": "WIN-SYS-007",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "56d210c3847af3ae8ff7985bce56b8e7677a8165",
+        "contract": "docs/design/06-panels.md#6.7",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "content_grid_material": true,
+          "ellipsize_count": 2,
+          "mnemonic_content_labels": 2,
+          "has_own_action_widgets": false
+        }
       }
     },
     {

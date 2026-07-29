@@ -634,7 +634,7 @@ IMPL_LINK(XMLFilterTestDialog, ClickHdl_Impl, weld::Button&, rButton, void )
     }
     else if (m_xPBClose.get() == &rButton)
     {
-        m_xDialog->response(RET_CLOSE);
+        m_xDialog->response(RET_OK);
     }
 }
 

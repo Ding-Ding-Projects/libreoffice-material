@@ -28,8 +28,19 @@ QueryDeleteDlg_Impl::QueryDeleteDlg_Impl(weld::Widget* pParent, std::u16string_v
                               u"QueryDeleteDialog"_ustr)
     , m_xAllButton(m_xBuilder->weld_button(u"all"_ustr))
 {
+    // "Delete All" keeps returning QUERYDELETE_ALL, but it does so from here
+    // rather than from a custom <action-widget response="101"> in the .ui: the
+    // Material footer anatomy (docs/design/08-dialogs.md 8.1) declares standard
+    // responses only. Callers still compare the run() result against
+    // QUERYDELETE_ALL exactly as before.
+    m_xAllButton->connect_clicked(LINK(this, QueryDeleteDlg_Impl, AllHdl));
     // display specified texts
     m_xDialog->set_secondary_text(m_xDialog->get_secondary_text().replaceFirst("%s", rName));
+}
+
+IMPL_LINK_NOARG(QueryDeleteDlg_Impl, AllHdl, weld::Button&, void)
+{
+    m_xDialog->response(QUERYDELETE_ALL);
 }
 
 QueryDeleteDlg_Impl::~QueryDeleteDlg_Impl() {}

@@ -140,8 +140,9 @@ void DataEditor::SetReadOnly( bool bReadOnly )
 IMPL_LINK_NOARG(DataEditor, CloseHdl, weld::Button&, void)
 {
     bool bApplied = m_xBrwData->EndEditing(); // apply changes to model
+    // Material footer primary: the Close button is the dialog OK (chartdatadialog.ui).
     if (bApplied)
-        m_xDialog->response(RET_CLOSE);
+        m_xDialog->response(RET_OK);
 }
 
 } // namespace chart

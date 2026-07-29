@@ -39,7 +39,6 @@
                 <property name="margin-bottom">6</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="column_spacing">6</property>
                 <property name="column_homogeneous">True</property>
                 <child>
                   <object class="GtkButton" id="prev">
@@ -168,9 +167,12 @@
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
                 <property name="vexpand">True</property>
-                <property name="row_spacing">6</property>
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
                 <property name="margin-top">6</property>
+                <property name="margin-bottom">6</property>
                 <child>
                   <object class="GtkScrolledWindow">
                     <property name="visible">True</property>
@@ -216,7 +218,9 @@
               <object class="GtkLabel" id="label1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes" context="dropdownfielddialog|label1">Edit</property>
+                <property name="label" translatable="yes" context="dropdownfielddialog|label1">_Items</property>
+                <property name="use-underline">True</property>
+                <property name="mnemonic-widget">list</property>
                 <property name="ellipsize">end</property>
                 <attributes>
                   <attribute name="weight" value="bold"/>
@@ -234,7 +238,6 @@
     </child>
     <action-widgets>
       <action-widget response="-11">help</action-widget>
-      <action-widget response="101">edit</action-widget>
       <action-widget response="-6">cancel</action-widget>
       <action-widget response="-5">ok</action-widget>
     </action-widgets>

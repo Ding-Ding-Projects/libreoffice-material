@@ -39,8 +39,6 @@
             <property name="spacing">12</property>
             <child>
               <object class="GtkButton" id="close">
-                <property name="can-default">True</property>
-                <property name="has-default">True</property>
                 <property name="label" translatable="yes" context="stock">Close</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -52,6 +50,22 @@
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="run">
+                <property name="label" translatable="yes" context="macromanagerdialog|run">Run</property>
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="can-focus">True</property>
+                <property name="can-default">True</property>
+                <property name="has-default">True</property>
+                <property name="receives-default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
               </packing>
             </child>
             <child>
@@ -84,14 +98,17 @@
             <property name="orientation">vertical</property>
             <property name="spacing">12</property>
             <child>
-              <object class="GtkBox" id="box2">
+              <object class="GtkGrid" id="box2">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
                 <property name="margin-start">6</property>
                 <property name="margin-end">6</property>
                 <property name="margin-top">6</property>
                 <property name="margin-bottom">6</property>
-                <property name="spacing">6</property>
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">12</property>
                 <child>
                   <object class="GtkFrame" id="frame2">
                     <property name="visible">True</property>
@@ -349,9 +366,8 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">0</property>
                   </packing>
                 </child>
                 <child>
@@ -414,20 +430,6 @@
                             <property name="orientation">vertical</property>
                             <property name="layout-style">start</property>
                             <child>
-                              <object class="GtkButton" id="run">
-                                <property name="label" translatable="yes" context="macromanagerdialog|run">Run</property>
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="can-focus">True</property>
-                                <property name="receives-default">True</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">True</property>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
                               <object class="GtkButton" id="assign">
                                 <property name="label" translatable="yes" context="macromanagerdialog|assign">Assign...</property>
                                 <property name="visible">True</property>
@@ -438,7 +440,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">True</property>
-                                <property name="position">1</property>
+                                <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
@@ -452,7 +454,7 @@
                               <packing>
                                 <property name="expand">True</property>
                                 <property name="fill">True</property>
-                                <property name="position">2</property>
+                                <property name="position">1</property>
                               </packing>
                             </child>
                             <child>
@@ -466,7 +468,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">True</property>
-                                <property name="position">3</property>
+                                <property name="position">2</property>
                               </packing>
                             </child>
                             <child>
@@ -480,7 +482,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">True</property>
-                                <property name="position">4</property>
+                                <property name="position">3</property>
                               </packing>
                             </child>
                             <child>
@@ -494,7 +496,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">True</property>
-                                <property name="position">5</property>
+                                <property name="position">4</property>
                               </packing>
                             </child>
                           </object>
@@ -519,9 +521,8 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">0</property>
                   </packing>
                 </child>
               </object>
@@ -549,7 +550,7 @@
                     <child>
                       <object class="GtkTextView" id="description">
                         <property name="visible">True</property>
-                        <property name="can-focus">False</property>
+                        <property name="can-focus">True</property>
                         <property name="editable">False</property>
                         <property name="wrap-mode">word</property>
                         <property name="cursor-visible">False</property>
@@ -564,6 +565,7 @@
                     <property name="margin-bottom">6</property>
                     <property name="label" translatable="yes" context="macromanagerdialog|label1">_Description</property>
                     <property name="use-underline">True</property>
+                    <property name="mnemonic-widget">description</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>
                     </attributes>
@@ -588,6 +590,7 @@
     <action-widgets>
       <action-widget response="-11">help</action-widget>
       <action-widget response="-6">close</action-widget>
+      <action-widget response="-5">run</action-widget>
     </action-widgets>
   </object>
 </interface>

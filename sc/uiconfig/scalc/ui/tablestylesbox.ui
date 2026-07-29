@@ -8,12 +8,17 @@
     <property name="valign">center</property>
     <property name="spacing">6</property>
     <child>
-      <!-- n-columns=4 n-rows=2 -->
+      <!-- n-columns=5 n-rows=2 -->
       <object class="GtkGrid" id="grid1">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="valign">center</property>
-        <property name="column-spacing">4</property>
+        <property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+        <property name="margin-top">3</property>
+        <property name="margin-bottom">3</property>
+        <property name="row-spacing">6</property>
+        <property name="column-spacing">6</property>
         <child>
           <object class="GtkCheckButton" id="chk_header_row2">
             <property name="label" translatable="yes" context="tablestylebox|chk_header_row">Header Row</property>
@@ -115,7 +120,8 @@
         <child>
           <object class="GtkComboBoxText" id="tablestyles_cb2">
             <property name="visible">True</property>
-            <property name="can-focus">False</property>
+            <property name="can-focus">True</property>
+            <property name="hexpand">True</property>
             <property name="active">0</property>
             <items>
               <item id="none" translatable="yes" context="tablestylebox|none">None</item>
@@ -187,8 +193,25 @@
             </child>
           </object>
           <packing>
-            <property name="left-attach">3</property>
+            <property name="left-attach">4</property>
             <property name="top-attach">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="tablestyles_label">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">start</property>
+            <property name="valign">center</property>
+            <property name="label" translatable="yes" context="tablestylesbox|tablestyles_label">Table _style</property>
+            <property name="use-underline">True</property>
+            <property name="mnemonic-widget">tablestyles_cb2</property>
+            <property name="ellipsize">end</property>
+            <property name="xalign">0</property>
+          </object>
+          <packing>
+            <property name="left-attach">4</property>
+            <property name="top-attach">0</property>
           </packing>
         </child>
       </object>

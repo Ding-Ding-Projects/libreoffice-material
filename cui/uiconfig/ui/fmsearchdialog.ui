@@ -4,7 +4,6 @@
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkDialog" id="RecordSearchDialog">
     <property name="can-focus">False</property>
-    <property name="border-width">6</property>
     <property name="title" translatable="yes" context="fmsearchdialog|RecordSearchDialog">Record Search</property>
     <property name="modal">True</property>
     <property name="default-width">0</property>
@@ -21,6 +20,25 @@
             <property name="spacing">12</property>
             <property name="layout-style">end</property>
             <child>
+              <object class="GtkButton" id="close">
+                <property name="label" translatable="yes" context="stock">_Close</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-underline">True</property>
+                <child internal-child="accessible">
+                  <object class="AtkObject" id="close-atkobject">
+                    <property name="AtkObject::accessible-description" translatable="yes" context="fmsearchdialog|extended_tip|close">Closes the dialog. The settings of the last search will be saved until you quit the office suite.</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkButton" id="pbSearchAgain">
                 <property name="label" translatable="yes" context="fmsearchdialog|pbSearchAgain">S_earch</property>
                 <property name="visible">True</property>
@@ -32,25 +50,6 @@
                 <child internal-child="accessible">
                   <object class="AtkObject" id="pbSearchAgain-atkobject">
                     <property name="AtkObject::accessible-description" translatable="yes" context="fmsearchdialog|extended_tip|pbSearchAgain">Starts or cancels the search.</property>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="close">
-                <property name="label" translatable="yes" context="stock">_Close</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
-                <property name="use-underline">True</property>
-                <child internal-child="accessible">
-                  <object class="AtkObject" id="close-atkobject">
-                    <property name="AtkObject::accessible-description" translatable="yes" context="fmsearchdialog|extended_tip|close">Closes the dialog. The settings of the last search will be saved until you quit the office suite.</property>
                   </object>
                 </child>
               </object>
@@ -831,7 +830,10 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="margin-start">12</property>
+                    <property name="margin-end">12</property>
                     <property name="margin-top">6</property>
+                    <property name="margin-bottom">6</property>
+                    <property name="row-spacing">6</property>
                     <property name="column-spacing">12</property>
                     <child>
                       <object class="GtkLabel" id="ftRecordLabel">
@@ -861,6 +863,8 @@
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="hexpand">True</property>
+                        <property name="ellipsize">end</property>
+                        <property name="xalign">0</property>
                       </object>
                       <packing>
                         <property name="left-attach">2</property>
@@ -898,6 +902,7 @@
     <action-widgets>
       <action-widget response="-11">help</action-widget>
       <action-widget response="-7">close</action-widget>
+      <action-widget response="-5">pbSearchAgain</action-widget>
     </action-widgets>
     <child internal-child="accessible">
       <object class="AtkObject" id="RecordSearchDialog-atkobject">

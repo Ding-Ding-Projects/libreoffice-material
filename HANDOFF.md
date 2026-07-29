@@ -1,5 +1,74 @@
 # Windows-only handoff — 2026-07-21
 
+## 2026-07-28 session handoff — CI repair + adversarially-verified burn-down wave 73.41% → 83.24%
+
+**Tip at handoff:** see the wave commit on `main` (this section is committed with
+it). Everything below is source-implemented; the only runtime claims are the CI
+run verdicts, each linked from Discussions #31/#32.
+
+### CI repair (pushed first as `56d210c38`, all three workflows verified green)
+
+The Phase 7.5 settings-search-bars merge (`afd338da4`) had broken `main`: two
+gla11y FATALs (icon-only `searchBuilderBtn`, no label/tooltip/AtkObject),
+`optgeneralpage.ui` carrying its search bar `<child>` at *interface level*
+(illegal GtkBuilder markup, never rendered), a doubled `<child>` orphaning
+`langbox` in `autocorrectdialog.ui`, registries claiming `source-integrated`
+wiring that did not exist anywhere in C++, and `test_search_field_coverage.py`
+calling `assertIn()` with five positional arguments. gla11y failed FIRST in CI,
+masking the registry/test breakage behind it. All repaired; registries were made
+honest (`gap`/"stub surface") rather than deleted. Full build-free gate at that
+tip: 171/0. CI on `56d210c38`: Windows UI contract ✅, source installer ✅
+(release `source-installer-25-1`), **Windows MSI ✅ (release
+`windows-msi-131-1-56d210c384`)** — first green MSI of the cycle, verified not
+predicted.
+
+### Opus burn-down wave (workflow `wf_a0d44735-fa9`, 72 agents, ~3 h)
+
+36 batches over all 338 pending surfaces + the Phase 7.5 wiring; every rewrite
+agent was followed by an adversarial verifier with revert authority (probe
+re-runs, genuineness adjudication, C++ audit re-checks, LF + gla11y sweeps).
+Verified outcome, by bucket:
+
+- **grid** (166 no-GtkGrid surfaces): 25 genuinely re-laid onto Material
+  content grids; **141 blocked-confirmed** — C++-composed tab-dialog shells
+  (runtime `append_page`, a static page would render as an empty tab),
+  pixel-pinned fragments (DataBrowser series headers, caret-anchored popups,
+  toolbar item windows), dead files with no loader.
+- **footer** (99 dialogs): 60 rewritten with C++-audited reorders /
+  response-code repairs; 38 blocked (custom response codes consumed by
+  `run()` branches, Close-only semantics that C++ distinguishes); 1 reverted.
+- **labels** (50): 35 rewritten (real ellipsize/mnemonic anatomy); 15 blocked
+  (zero-label shells whose canon prescribes no static text).
+- **nofooter** (15): 5 genuine dialogs given real Material footers; 10
+  confirmed floating/docking tool windows that must not get fake footers.
+- **special** (8): all blocked-confirmed — the two "sidebar-panel" surfaces are
+  misclassified (table-designer child window / toolbox popup, per HANDOFF
+  2026-07-25, independently re-verified), the five native shells need real
+  composition work, and `vcl/uiconfig/ui/wizard.ui`'s roadmap footer cannot
+  reorder without breaking the shared assistant contract.
+- **phase75** (2): REAL `sfx2::RegexSearchController` wiring landed for
+  `autocorrectdialog.ui` (OfaAutoCorrDlg, filters the replacement/exception
+  pages) and `optgeneralpage.ui` (OfaMiscTabPage, per-section row filter with
+  baseline capture/restore); registries flipped to `source-integrated`
+  truthfully (15/15 split). NOT compile-verified locally — the next MSI run is
+  the compile check.
+
+**Ledger after `--evaluate`: 83.24% (1058/1271), 213 pending, 0 in-progress.**
+message-dialog and options-page families are now complete. The full per-surface
+disposition registry (verifier verdicts + file:symbol blocked evidence) is
+committed at `docs/design/material-rewrite-wave-2026-07-28-evidence.json`.
+
+### Honest limits at this tip
+
+- The 213 still-pending surfaces carry adversarially-confirmed structural
+  blockers; crediting them would mean weakening a predicate or inventing UI.
+  Genuine paths exist for some (C++ notebook restructures, composition
+  contracts for native shells) and are follow-up-sized, not wave-sized.
+- The wave's C++ (footer response repairs + Phase 7.5 wiring) is
+  source-implemented only until the next MSI compiles it.
+- gla11y: 0 FATALs repo-wide after the wave; per-batch verifier sweeps all
+  reported 0.
+
 ## 2026-07-26 session handoff — release-channel integrity and compiled Windows-only follow-through
 
 This section supersedes the 2026-07-25 "held for an MSI baseline" status below.

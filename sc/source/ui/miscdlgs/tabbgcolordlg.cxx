@@ -60,7 +60,6 @@ IMPL_LINK_NOARG(ScTabBgColorDlg, ColorSelectedHdl, ColorListBox&, void)
 {
     Color aColor = m_xColorListBox->GetSelectEntryColor();
     m_aTabBgColor = aColor == COL_NONE_COLOR ? COL_AUTO : aColor;
-    m_xDialog->response(RET_OK);
 }
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

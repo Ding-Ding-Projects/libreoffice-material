@@ -234,7 +234,7 @@
     <action-widgets>
       <action-widget response="-11">help</action-widget>
       <action-widget response="-6">cancel</action-widget>
-      <action-widget response="101">find</action-widget>
+      <action-widget response="-5">find</action-widget>
     </action-widgets>
     <child internal-child="accessible">
       <object class="AtkObject" id="FindEntryDialog-atkobject">

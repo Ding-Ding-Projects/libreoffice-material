@@ -54,6 +54,7 @@ using namespace com::sun::star;
 ScSolverProgressDialog::ScSolverProgressDialog(weld::Window* pParent)
     : GenericDialogController(pParent, u"modules/scalc/ui/solverprogressdialog.ui"_ustr,
                               u"SolverProgressDialog"_ustr)
+    , m_xFtTimeLabel(m_xBuilder->weld_label(u"timelimitft"_ustr))
     , m_xFtTime(m_xBuilder->weld_label(u"progress"_ustr))
 {
 }
@@ -64,6 +65,7 @@ ScSolverProgressDialog::~ScSolverProgressDialog()
 
 void ScSolverProgressDialog::HideTimeLimit()
 {
+    m_xFtTimeLabel->hide();
     m_xFtTime->hide();
 }
 
@@ -87,14 +89,13 @@ ScSolverNoSolutionDialog::~ScSolverNoSolutionDialog()
 
 ScSolverSuccessDialog::ScSolverSuccessDialog(weld::Window* pParent, std::u16string_view rSolution)
     : GenericDialogController(pParent, u"modules/scalc/ui/solversuccessdialog.ui"_ustr, u"SolverSuccessDialog"_ustr)
-    , m_xFtResult(m_xBuilder->weld_label(u"result"_ustr))
+    , m_xFtResult(m_xBuilder->weld_label(u"resultvalue"_ustr))
     , m_xBtnOk(m_xBuilder->weld_button(u"ok"_ustr))
     , m_xBtnCancel(m_xBuilder->weld_button(u"cancel"_ustr))
 {
     m_xBtnOk->connect_clicked(LINK(this, ScSolverSuccessDialog, ClickHdl));
     m_xBtnCancel->connect_clicked(LINK(this, ScSolverSuccessDialog, ClickHdl));
-    OUString aMessage = m_xFtResult->get_label() + " " + rSolution;
-    m_xFtResult->set_label(aMessage);
+    m_xFtResult->set_label(OUString(rSolution));
 }
 
 ScSolverSuccessDialog::~ScSolverSuccessDialog()

@@ -149,7 +149,7 @@ IMPL_LINK(XMLFilterSettingsDialog, ClickHdl_Impl, weld::Button&, rButton, void)
     decBusy();
 
     if (m_xPBClose.get() == &rButton)
-        m_xDialog->response(RET_CLOSE);
+        m_xDialog->response(RET_OK);
 }
 
 IMPL_LINK_NOARG(XMLFilterSettingsDialog, SelectionChangedHdl_Impl, weld::ItemView&, void)

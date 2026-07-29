@@ -339,6 +339,7 @@
                     <property name="no-show-all">True</property>
                     <property name="label" translatable="yes" context="startcenter|althelplabel">He_lp</property>
                     <property name="use-underline">True</property>
+                    <property name="mnemonic-widget">help</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -426,22 +427,24 @@
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
             <property name="orientation">vertical</property>
-            <property name="margin-start">24</property>
-            <property name="margin-end">24</property>
-            <property name="margin-top">24</property>
-            <property name="margin-bottom">24</property>
+            <property name="margin-start">28</property>
+            <property name="margin-end">28</property>
+            <property name="margin-top">26</property>
+            <property name="margin-bottom">26</property>
             <property name="spacing">12</property>
             <child>
-              <object class="GtkBox" id="welcome_header">
+              <object class="GtkGrid" id="welcome_header">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="orientation">vertical</property>
-                <property name="spacing">4</property>
+                <property name="margin-bottom">8</property>
+                <property name="row-spacing">4</property>
+                <property name="column-spacing">12</property>
                 <child>
                   <object class="GtkLabel" id="welcome_title">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="halign">start</property>
+                    <property name="hexpand">True</property>
                     <property name="label" translatable="yes" context="startcenter|welcome_title">Home</property>
                     <property name="ellipsize">end</property>
                     <attributes>
@@ -450,9 +453,8 @@
                     </attributes>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">0</property>
                   </packing>
                 </child>
                 <child>
@@ -460,14 +462,14 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="halign">start</property>
+                    <property name="hexpand">True</property>
                     <property name="label" translatable="yes" context="startcenter|welcome_subtitle">Open recent work, explore templates, or create a new document.</property>
                     <property name="wrap">True</property>
                     <property name="ellipsize">end</property>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">1</property>
                   </packing>
                 </child>
               </object>
@@ -481,8 +483,7 @@
               <object class="GtkBox" id="actions">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="margin-top">4</property>
-                <property name="margin-bottom">4</property>
+                <property name="margin-bottom">8</property>
                 <property name="spacing">12</property>
                 <child>
                   <object class="GtkBox" id="start_search_box">

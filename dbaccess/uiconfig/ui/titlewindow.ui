@@ -45,6 +45,8 @@
                         <property name="margin-top">6</property>
                         <property name="margin-bottom">6</property>
                         <property name="ellipsize">end</property>
+                        <!-- The Material surface title names the content pane below it. -->
+                        <property name="mnemonic-widget">box</property>
                         <attributes>
                           <attribute name="weight" value="bold"/>
                         </attributes>

@@ -105,10 +105,10 @@
   },
   "coverage": {
     "total_surfaces": 1271,
-    "pending": 223,
+    "pending": 221,
     "in_progress": 0,
-    "rewritten_material": 1048,
-    "coverage_pct": 82.45,
+    "rewritten_material": 1050,
+    "coverage_pct": 82.61,
     "by_family": {
       "dialog": {
         "total": 522,
@@ -142,9 +142,9 @@
       },
       "panel-fragment": {
         "total": 451,
-        "pending": 130,
+        "pending": 128,
         "in-progress": 0,
-        "rewritten-material": 321
+        "rewritten-material": 323
       },
       "popover": {
         "total": 47,
@@ -186,9 +186,9 @@
       },
       "dbaccess": {
         "total": 82,
-        "pending": 19,
+        "pending": 18,
         "in-progress": 0,
-        "rewritten-material": 63
+        "rewritten-material": 64
       },
       "desktop": {
         "total": 9,
@@ -258,9 +258,9 @@
       },
       "sfx2": {
         "total": 76,
-        "pending": 20,
+        "pending": 19,
         "in-progress": 0,
-        "rewritten-material": 56
+        "rewritten-material": 57
       },
       "starmath": {
         "total": 16,
@@ -314,9 +314,9 @@
     "by_inventory_id": {
       "WIN-BA-001": {
         "total": 90,
-        "pending": 20,
+        "pending": 19,
         "in-progress": 0,
-        "rewritten-material": 70
+        "rewritten-material": 71
       },
       "WIN-BA-002": {
         "total": 62,
@@ -446,9 +446,9 @@
       },
       "WIN-SHL-003": {
         "total": 4,
-        "pending": 2,
+        "pending": 1,
         "in-progress": 0,
-        "rewritten-material": 2
+        "rewritten-material": 3
       },
       "WIN-SYS-002": {
         "total": 16,
@@ -10799,16 +10799,21 @@
       "inventory_id": "WIN-BA-001",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
-      },
-      "regression_waiver": {
-        "reason": "mnemonic-widget and a one-sided label-for relation removed: the mnemonic targeted a GtkBox, which cannot take focus, and gla11y reports the unreciprocated label-for as a FATAL ERROR that broke the Windows MSI build.",
-        "commit": "bbb5848c67ac3c87ab851d6583f52c3f08d7f90c"
+        "commit": "f9d4d2f1df510380ea899f5e1ed6c48696749f0e",
+        "contract": "docs/design/06-panels.md#6.7",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_own_action_widgets": false
+        }
       }
     },
     {
@@ -23502,16 +23507,21 @@
       "inventory_id": "WIN-SHL-003",
       "family": "panel-fragment",
       "rewrite_class": "surface-body",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
-      },
-      "regression_waiver": {
-        "reason": "static acceptance audit correction: the live surface no longer satisfies the hardened predicate",
-        "commit": "1b1f9b130ea9984405c56b3fdea02ecc6e14af76"
+        "commit": "f9d4d2f1df510380ea899f5e1ed6c48696749f0e",
+        "contract": "docs/design/06-panels.md#6.7",
+        "capture": {
+          "scene": null,
+          "sample_batch": "static-anatomy-evaluation",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "content_grid_material": true,
+          "ellipsize_count": 1,
+          "mnemonic_content_labels": 1,
+          "has_own_action_widgets": false
+        }
       }
     },
     {

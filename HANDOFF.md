@@ -2,23 +2,26 @@
 
 ## 2026-07-31 follow-up — runtime-composed dialog shells credited
 
-Eighteen deliberately empty runtime notebooks now use 12 px Material content grids
-with scrollable left tabs: Chart 3D View, Character, and Paragraph; shared Area,
-Border/Area/Transparency, Border/Background, Callout, Customize, and Format Cells;
-Writer Envelope, Footnote/Endnote, and Format Section; plus PDF Export, Document
-Properties, and four Writer format dialogs.
+Twenty-one deliberately empty runtime notebooks now use 12 px Material content
+grids with scrollable left tabs: Chart 3D View, Object Attributes, Character,
+and Paragraph; shared Area, Border/Area/Transparency, Border/Background, Callout,
+Customize, Format Cells, and Hyperlink; Writer Envelope, Fields,
+Footnote/Endnote, and Format Section; plus PDF Export, Document Properties, and
+four Writer format dialogs.
 Commits `88bde01c0c674b7d00eebfb34094fed067440e64` and
 `9920f81c607d52619bcc0456af9b1e64ebd19f37`, followed by
 `47978d3d534224856c3f16458a49151648576dfe` and
-`3b5848f6b7d326e43e0bd584d78234dd5f1c3d64`, add and expand the explicit
+`3b5848f6b7d326e43e0bd584d78234dd5f1c3d64`, and
+`d843eab2ebf0fc0cff58c2a82e9cfd03281bc6c7`, add and expand the explicit
 `runtime-dialog-shell`/`dialog-composition` family and its fail-closed contract,
-which checks each static shell, its exact footer/default, the eighteen-surface
-allow-list, ordered or bounded C++ page hosts, and specialized composition
-dependencies. Twenty mutation tests, the 56-test
+which checks each static shell, its declared modality and static/runtime title
+source, exact footer/default, the twenty-one-surface allow-list, ordered or
+bounded C++ page hosts, the Chart conditional occurrence map, and specialized
+composition dependencies. Twenty-three mutation tests, the 56-test
 rewrite-ledger suite, dialog anatomy, XML, accessibility-fatals (0 across 1,258
-UI files), and build-free workflow coverage (175/175) pass. The two evidence
-waves now cite their preceding committed contracts, moving the honest source
-headline to **84.03% (1068/1271), 203 pending**. `runtime_verified` remains false: no native
+UI files), and build-free workflow coverage (175/175) pass. The evidence waves
+now cite their preceding committed contracts, moving the honest source
+headline to **84.26% (1071/1271), 200 pending**. `runtime_verified` remains false: no native
 dialog pixels, keyboard trace, scale matrix, localization capture, or
 screen-reader run is claimed.
 

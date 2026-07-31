@@ -115,10 +115,10 @@
   },
   "coverage": {
     "total_surfaces": 1271,
-    "pending": 203,
+    "pending": 200,
     "in_progress": 0,
-    "rewritten_material": 1068,
-    "coverage_pct": 84.03,
+    "rewritten_material": 1071,
+    "coverage_pct": 84.26,
     "by_family": {
       "dialog": {
         "total": 501,
@@ -164,9 +164,9 @@
       },
       "runtime-dialog-shell": {
         "total": 21,
-        "pending": 3,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 18
+        "rewritten-material": 21
       },
       "sidebar-panel": {
         "total": 52,
@@ -190,15 +190,15 @@
       },
       "chart2": {
         "total": 46,
-        "pending": 6,
+        "pending": 5,
         "in-progress": 0,
-        "rewritten-material": 40
+        "rewritten-material": 41
       },
       "cui": {
         "total": 207,
-        "pending": 14,
+        "pending": 13,
         "in-progress": 0,
-        "rewritten-material": 193
+        "rewritten-material": 194
       },
       "dbaccess": {
         "total": 82,
@@ -298,9 +298,9 @@
       },
       "sw": {
         "total": 233,
-        "pending": 37,
+        "pending": 36,
         "in-progress": 0,
-        "rewritten-material": 196
+        "rewritten-material": 197
       },
       "uui": {
         "total": 10,
@@ -360,9 +360,9 @@
       },
       "WIN-CH-001": {
         "total": 46,
-        "pending": 6,
+        "pending": 5,
         "in-progress": 0,
-        "rewritten-material": 40
+        "rewritten-material": 41
       },
       "WIN-CON-007": {
         "total": 18,
@@ -528,15 +528,15 @@
       },
       "WIN-SYS-015": {
         "total": 16,
-        "pending": 3,
+        "pending": 2,
         "in-progress": 0,
-        "rewritten-material": 13
+        "rewritten-material": 14
       },
       "WIN-WR-001": {
         "total": 232,
-        "pending": 36,
+        "pending": 35,
         "in-progress": 0,
-        "rewritten-material": 196
+        "rewritten-material": 197
       },
       "WIN-WR-002": {
         "total": 1,
@@ -1266,12 +1266,21 @@
       "inventory_id": "WIN-CH-001",
       "family": "runtime-dialog-shell",
       "rewrite_class": "dialog-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "d843eab2ebf0fc0cff58c2a82e9cfd03281bc6c7",
+        "contract": "qa/windows-ui-contract/runtime-dialog-shell-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "runtime-dialog-shell-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-runtime-dialog-shell-composition",
+          "evidence_kind": "composition-code",
+          "material_content_grid": "attributedialog-content-grid",
+          "runtime_page_host": "chart2/source/controller/dialogs/dlg_ObjectProperties.cxx"
+        }
       }
     },
     {
@@ -4499,12 +4508,21 @@
       "inventory_id": "WIN-SYS-015",
       "family": "runtime-dialog-shell",
       "rewrite_class": "dialog-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "d843eab2ebf0fc0cff58c2a82e9cfd03281bc6c7",
+        "contract": "qa/windows-ui-contract/runtime-dialog-shell-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "runtime-dialog-shell-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-runtime-dialog-shell-composition",
+          "evidence_kind": "composition-code",
+          "material_content_grid": "hyperlinkdialog-content-grid",
+          "runtime_page_host": "cui/source/dialogs/hyperlinkdlg.cxx"
+        }
       }
     },
     {
@@ -31459,12 +31477,21 @@
       "inventory_id": "WIN-WR-001",
       "family": "runtime-dialog-shell",
       "rewrite_class": "dialog-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "d843eab2ebf0fc0cff58c2a82e9cfd03281bc6c7",
+        "contract": "qa/windows-ui-contract/runtime-dialog-shell-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "runtime-dialog-shell-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-runtime-dialog-shell-composition",
+          "evidence_kind": "composition-code",
+          "material_content_grid": "fielddialog-content-grid",
+          "runtime_page_host": "sw/source/ui/fldui/fldtdlg.cxx"
+        }
       }
     },
     {

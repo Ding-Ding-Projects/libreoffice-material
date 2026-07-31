@@ -528,6 +528,12 @@ jobs:
       - name: Run notification overlay mutation regressions
         run: python3 bin/test_notification_overlay_contract.py
 
+      - name: Validate pending native and wizard ownership
+        run: python3 bin/check-pending-native-surface-ownership.py
+
+      - name: Run pending native and wizard ownership regressions
+        run: python3 bin/test_pending_native_surface_ownership.py
+
       - name: Validate notebookbar UI conformance
         run: python3 bin/check-windows-notebookbar-ui-conformance.py
 

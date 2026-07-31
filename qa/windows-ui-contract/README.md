@@ -1581,3 +1581,14 @@ legend "existing upstream UI source does not satisfy `M`", it proves the substra
 is present and unregressed and must **not** flip `M`, which stays `·`. The three
 Material differentiators stay `status: specified`. 17 mutation tests;
 `runtime_verified: false`.
+
+### Pending native/wizard ownership
+
+`pending-native-surface-ownership.json` (contract
+`material-pending-native-surface-ownership`) closes the contract-ownership gap
+for five native-shell rows and the shared wizard shell. It pins the real source
+owner and stable markers for Find toolbar, MSI lifecycle, updater lifecycle,
+Windows title bars, Writer canvas, and `wizard.ui`; it also requires every row
+to remain `pending` with empty implementation evidence. The contract is a
+fail-closed planning boundary, not Material rewrite credit. Three mutation/
+baseline tests; `runtime_verified: false`.

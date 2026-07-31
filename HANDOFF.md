@@ -1,5 +1,15 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — missing native/wizard ownership contract
+
+The six previously ownerless pending rows now have a fail-closed contract at
+`qa/windows-ui-contract/pending-native-surface-ownership.json`. Its checker
+pins each real source owner and marker, cross-references the existing titlebar
+contract, and requires the rewrite ledger to keep all six rows pending with
+empty implementation evidence until a real Material implementation contract
+exists. The checker, three tests, rewrite ledger, and titlebar contract pass;
+coverage remains **82.61% (1050/1271), 221 pending**.
+
 ## 2026-07-31 follow-up — blocked-surface Material proposal
 
 The native/wizard audit found no safe static source edit for the six remaining

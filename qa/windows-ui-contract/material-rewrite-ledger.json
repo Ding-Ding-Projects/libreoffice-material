@@ -126,10 +126,10 @@
   },
   "coverage": {
     "total_surfaces": 1271,
-    "pending": 3,
+    "pending": 2,
     "in_progress": 0,
-    "rewritten_material": 1268,
-    "coverage_pct": 99.76,
+    "rewritten_material": 1269,
+    "coverage_pct": 99.84,
     "by_family": {
       "dialog": {
         "total": 437,
@@ -157,9 +157,9 @@
       },
       "native-shell": {
         "total": 10,
-        "pending": 3,
+        "pending": 2,
         "in-progress": 0,
-        "rewritten-material": 7
+        "rewritten-material": 8
       },
       "options-page": {
         "total": 40,
@@ -327,9 +327,9 @@
       },
       "vcl": {
         "total": 22,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 21
+        "rewritten-material": 22
       },
       "writerperfect": {
         "total": 2,
@@ -455,9 +455,9 @@
       },
       "WIN-NAV-007": {
         "total": 1,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 0
+        "rewritten-material": 1
       },
       "WIN-SC-001": {
         "total": 1,
@@ -13828,12 +13828,24 @@
       "inventory_id": "WIN-NAV-007",
       "family": "native-shell",
       "rewrite_class": "shell-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "1b3b5f41ef54e6b0e9a3c659e955d4ef0f364366",
+        "contract": "qa/windows-ui-contract/titlebar-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "titlebar-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-titlebar-composition",
+          "evidence_kind": "composition-code",
+          "vcl_owner": "ImplStdBorderWindowView::DrawWindow",
+          "dwm_owner": "UpdateMaterialTitleBarColors",
+          "activation": "WM_NCACTIVATE",
+          "forced_colors": "DWMWA_COLOR_DEFAULT",
+          "os_frame_behavior": "preserved"
+        }
       }
     },
     {

@@ -59,7 +59,9 @@ high-contrast reset, and absence of client-side non-client hit testing.
 
 `runtime_verified` remains `false`. A Windows build plus focused active/inactive
 captures of both a top-level frame and a VCL floating title are still required
-before rendered behavior is claimed.
+before rendered behavior is claimed. Immutable source commit
+`1b3b5f41ef54e6b0e9a3c659e955d4ef0f364366` carries the implementation and its
+native-shell ledger credit.
 
 ## Suggested articles
 

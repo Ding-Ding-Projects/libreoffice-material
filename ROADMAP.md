@@ -21,9 +21,10 @@ select slot-derived fill, text, border, and caption-symbol colors; Windows
 top-level frames pass those colors to DWM and refresh on `WM_NCACTIVATE`.
 High contrast resets all DWM colors to system defaults, and no client-side frame
 or hit-testing replacement is introduced. The focused checker and 19 tests (18
-mutations plus the production contract) pass. The native row awaits immutable
-source commit credit, so the headline remains **99.76% (1268/1271), 3
-pending**; native compilation and runtime pixels remain unverified.
+mutations plus the production contract) pass. Commit
+`1b3b5f41ef54e6b0e9a3c659e955d4ef0f364366` supplies immutable source evidence,
+so the headline is now **99.84% (1269/1271), 2 pending**. Native compilation and
+runtime pixels remain unverified.
 
 **2026-07-31 MSI lifecycle composition:** the installer now bundles three
 deterministic 24-bit branding assets generated from the local Material token

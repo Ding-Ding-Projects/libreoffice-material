@@ -11,11 +11,11 @@ three attributes to `DWMWA_COLOR_DEFAULT`; DWM still owns frame geometry,
 caption buttons, hit testing, snapping, DPI, system commands, and accessibility.
 
 The focused checker and 19 tests (18 mutations plus the production contract)
-pass. The pending-native ownership set is now limited to updater lifecycle and
-Writer canvas. This title-bar row remains
-ledger-pending only until the source slice has an immutable commit; the honest
-headline therefore remains **99.76% (1268/1271), 3 pending**. Native compilation
-and active/inactive runtime captures are not yet claimed.
+pass. Commit `1b3b5f41ef54e6b0e9a3c659e955d4ef0f364366` supplies immutable source
+evidence, so the title-bar row is credited and the headline is now **99.84%
+(1269/1271), 2 pending**. The pending-native ownership set is limited to updater
+lifecycle and Writer canvas. Native compilation and active/inactive runtime
+captures are not yet claimed.
 
 ## 2026-07-31 follow-up — MSI lifecycle composition source-complete
 

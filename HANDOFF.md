@@ -13,6 +13,22 @@ or interaction-latency measurement has been captured from an installed MSI;
 compilation and packaging prove deliverability, not measured user-perceived
 speed. No new runtime performance claim is made here.
 
+## 2026-07-31 design-conformance audit
+
+The 100% Material-UI target is governed by the operator-supplied `Libre
+Office.zip` archive, whose SHA-256 is pinned in
+[`docs/design/00-windows-rewrite-contract.md`](docs/design/00-windows-rewrite-contract.md),
+not by the prototype alone. The current fail-closed audit reports **82.61%
+(1050/1271)** rewritten-material and **221 pending**. The remaining rows are
+not silently treated as complete: they include modeless or runtime-composed
+dialog shells where adding archive-shaped labels would change behavior, parked
+surfaces with no native owner, and source-only surfaces awaiting local Windows
+build, headless interaction, accessibility, visual, localization, performance,
+or compatibility evidence. Therefore the repository does **not** yet claim
+100% design conformance. Reaching that target requires closing those rows with
+real source changes where behavior permits and the corresponding build/runtime
+evidence; registry or prototype coverage alone is insufficient.
+
 ## 2026-07-29 source bug audit, evidence repair, and integration handoff
 
 The audit began from pulled `origin/main` at `85f94df37` and integrated the

@@ -139,12 +139,14 @@ interaction.
 ### Runtime-composed dialog shells
 
 `runtime-dialog-shell-composition.json` owns the explicit exception to static
-dialog-body evidence for Chart **3D View** and **Customize**. Both `.ui` files
-contain deliberately empty notebooks whose real pages are added by C++.
+dialog-body evidence for eight deliberately empty notebooks: Chart **3D View**,
+**Character**, and **Paragraph**, plus shared **Area**,
+**Border/Area/Transparency**, **Border/Background**, **Callout**, and
+**Customize**. Their real pages are added by C++.
 `bin/check-runtime-dialog-shell-composition.py` requires the modal titled shell,
 the 12 px Material inset grid, a scrollable empty left-tab notebook, exact
 Help/Cancel/OK footer responses and default, and ordered page-construction
-markers in `dlg_View3D.cxx` / `cfg.cxx`. It also parity-locks the two ledger rows
+markers in the owning controller sources. It also parity-locks all eight ledger rows
 to `family: runtime-dialog-shell`, `rewrite_class: dialog-composition`, and this
 contract marker once credited. The ordinary static-dialog predicate is not
 relaxed.
@@ -154,7 +156,7 @@ python bin/check-runtime-dialog-shell-composition.py
 python bin/test_runtime_dialog_shell_composition.py
 ```
 
-The 13 mutation tests reject allow-list drift, invented static pages, lost
+The 17 mutation tests reject allow-list drift, invented static pages, lost
 margins or scrolling, footer/default drift, missing auxiliary Reset, missing or
 reordered host markers, ledger-family drift, and false runtime claims. This is
 source-composition evidence only; `runtime_verified` remains false.

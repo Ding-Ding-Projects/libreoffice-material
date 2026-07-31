@@ -59,6 +59,288 @@
       }
     },
     {
+      "surface": "chart2/uiconfig/ui/chardialog.ui",
+      "owner": "chart2",
+      "inventory_id": "WIN-CH-001",
+      "dialog": {
+        "id": "CharDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "chardialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["reset"]
+      },
+      "host": {
+        "source": "chart2/source/controller/dialogs/dlg_ShapeFont.cxx",
+        "ordered_markers": [
+          "SfxTabDialogController(pParent, u\"modules/schart/ui/chardialog.ui\"_ustr, u\"CharDialog\"_ustr, pAttr)",
+          "AddTabPage(u\"fontname\"_ustr, TabResId(RID_TAB_FONT.aLabel), RID_SVXPAGE_CHAR_NAME, RID_L + RID_TAB_FONT.sIconName);",
+          "AddTabPage(u\"effects\"_ustr, TabResId(RID_TAB_FONTEFFECTS.aLabel), RID_SVXPAGE_CHAR_EFFECTS, RID_L + RID_TAB_FONTEFFECTS.sIconName);",
+          "AddTabPage(u\"position\"_ustr, TabResId(RID_TAB_POSITION.aLabel), RID_SVXPAGE_CHAR_POSITION, RID_L + RID_TAB_POSITION.sIconName);"
+        ],
+        "page_ids": ["fontname", "effects", "position"]
+      }
+    },
+    {
+      "surface": "chart2/uiconfig/ui/paradialog.ui",
+      "owner": "chart2",
+      "inventory_id": "WIN-CH-001",
+      "dialog": {
+        "id": "ParagraphDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "paradialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["reset"]
+      },
+      "host": {
+        "source": "chart2/source/controller/dialogs/dlg_ShapeParagraph.cxx",
+        "ordered_markers": [
+          "SfxTabDialogController(pParent, u\"modules/schart/ui/paradialog.ui\"_ustr, u\"ParagraphDialog\"_ustr, pAttr)",
+          "AddTabPage(u\"indents\"_ustr, TabResId(RID_TAB_INDENTS.aLabel), RID_SVXPAGE_STD_PARAGRAPH, RID_L + RID_TAB_INDENTS.sIconName );",
+          "AddTabPage(u\"alignment\"_ustr, TabResId(RID_TAB_ALIGNMENT.aLabel), RID_SVXPAGE_ALIGN_PARAGRAPH, RID_L + RID_TAB_ALIGNMENT.sIconName );",
+          "AddTabPage(u\"asian\"_ustr, TabResId(RID_TAB_ASIANTYPO.aLabel), RID_SVXPAGE_PARA_ASIAN, RID_L + RID_TAB_ASIANTYPO.sIconName);",
+          "AddTabPage(u\"tabs\"_ustr, TabResId(RID_TAB_TABS.aLabel), RID_SVXPAGE_TABULATOR, RID_L + RID_TAB_TABS.sIconName);"
+        ],
+        "page_ids": ["indents", "alignment", "asian", "tabs"],
+        "conditional_pages": ["asian"]
+      }
+    },
+    {
+      "surface": "cui/uiconfig/ui/areadialog.ui",
+      "owner": "cui",
+      "inventory_id": "unassigned",
+      "dialog": {
+        "id": "AreaDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "areadialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["reset"]
+      },
+      "host": {
+        "source": "cui/source/tabpages/tabarea.cxx",
+        "ordered_markers": [
+          "SfxTabDialogController(pParent, u\"cui/ui/areadialog.ui\"_ustr, u\"AreaDialog\"_ustr, pAttr)",
+          "AddTabPage(u\"RID_SVXPAGE_AREA\"_ustr, TabResId(RID_TAB_AREA.aLabel), SvxAreaTabPage::CreateWithSlideBackground, RID_L + RID_TAB_AREA.sIconName);",
+          "AddTabPage(u\"RID_SVXPAGE_AREA\"_ustr, TabResId(RID_TAB_AREA.aLabel), SvxAreaTabPage::Create, RID_L + RID_TAB_AREA.sIconName);",
+          "AddTabPage(u\"RID_SVXPAGE_SHADOW\"_ustr, TabResId(RID_TAB_SHADOW.aLabel), SvxShadowTabPage::Create, RID_L + RID_TAB_SHADOW.sIconName);",
+          "AddTabPage(u\"RID_SVXPAGE_TRANSPARENCE\"_ustr, TabResId(RID_TAB_TRANSPARENCE.aLabel), SvxTransparenceTabPage::Create, RID_L + RID_TAB_TRANSPARENCE.sIconName);"
+        ],
+        "page_ids": ["RID_SVXPAGE_AREA", "RID_SVXPAGE_SHADOW", "RID_SVXPAGE_TRANSPARENCE"],
+        "conditional_pages": ["RID_SVXPAGE_SHADOW"]
+      }
+    },
+    {
+      "surface": "cui/uiconfig/ui/borderareatransparencydialog.ui",
+      "owner": "cui",
+      "inventory_id": "unassigned",
+      "dialog": {
+        "id": "BorderAreaTransparencyDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "borderareatransparencydialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["reset"]
+      },
+      "host": {
+        "source": "cui/source/tabpages/bbdlg.cxx",
+        "ordered_markers": [
+          "u\"cui/ui/borderareatransparencydialog.ui\"_ustr",
+          "u\"BorderAreaTransparencyDialog\"_ustr",
+          "AddTabPage(u\"borders\"_ustr, TabResId(RID_TAB_BORDER.aLabel), SvxBorderTabPage::Create, RID_L + RID_TAB_BORDER.sIconName);",
+          "AddTabPage(u\"area\"_ustr, TabResId(RID_TAB_AREA.aLabel), SvxAreaTabPage::Create, RID_L + RID_TAB_AREA.sIconName);",
+          "AddTabPage(u\"transparence\"_ustr, TabResId(RID_TAB_TRANSPARENCE.aLabel), SvxTransparenceTabPage::Create, RID_L + RID_TAB_TRANSPARENCE.sIconName);"
+        ],
+        "page_ids": ["borders", "area", "transparence"]
+      }
+    },
+    {
+      "surface": "cui/uiconfig/ui/borderbackgrounddialog.ui",
+      "owner": "cui",
+      "inventory_id": "unassigned",
+      "dialog": {
+        "id": "BorderBackgroundDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "borderbackgrounddialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["reset"]
+      },
+      "host": {
+        "source": "cui/source/tabpages/bbdlg.cxx",
+        "ordered_markers": [
+          "u\"cui/ui/borderbackgrounddialog.ui\"_ustr",
+          "u\"BorderBackgroundDialog\"_ustr",
+          "AddTabPage(u\"borders\"_ustr, TabResId(RID_TAB_BORDER.aLabel), SvxBorderTabPage::Create, RID_L + RID_TAB_BORDER.sIconName);",
+          "AddTabPage(u\"background\"_ustr, TabResId(RID_TAB_BACKGROUND.aLabel), SvxBkgTabPage::Create, RID_L + RID_TAB_BACKGROUND.sIconName);"
+        ],
+        "page_ids": ["borders", "background"]
+      }
+    },
+    {
+      "surface": "cui/uiconfig/ui/calloutdialog.ui",
+      "owner": "cui",
+      "inventory_id": "unassigned",
+      "dialog": {
+        "id": "CalloutDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "calloutdialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["reset"]
+      },
+      "host": {
+        "source": "cui/source/tabpages/labdlg.cxx",
+        "ordered_markers": [
+          "SfxTabDialogController(pParent, u\"cui/ui/calloutdialog.ui\"_ustr, u\"CalloutDialog\"_ustr)",
+          "AddTabPage(u\"RID_SVXPAGE_SWPOSSIZE\"_ustr, TabResId(RID_TAB_POSSIZE.aLabel), SvxSwPosSizeTabPage::Create, SvxSwPosSizeTabPage::GetRanges, RID_L + RID_TAB_POSSIZE.sIconName);",
+          "AddTabPage(u\"RID_SVXPAGE_POSITION_SIZE\"_ustr, TabResId(RID_TAB_POSSIZE.aLabel), SvxPositionSizeTabPage::Create, SvxPositionSizeTabPage::GetRanges, RID_L + RID_TAB_POSSIZE.sIconName);",
+          "AddTabPage(u\"RID_SVXPAGE_CAPTION\"_ustr, TabResId(RID_TAB_CALLOUT.aLabel), SvxCaptionTabPage::Create, SvxCaptionTabPage::GetRanges, RID_L + RID_TAB_CALLOUT.sIconName);"
+        ],
+        "page_ids": ["RID_SVXPAGE_SWPOSSIZE", "RID_SVXPAGE_POSITION_SIZE", "RID_SVXPAGE_CAPTION"],
+        "conditional_pages": ["RID_SVXPAGE_SWPOSSIZE", "RID_SVXPAGE_POSITION_SIZE"]
+      }
+    },
+    {
       "surface": "cui/uiconfig/ui/customizedialog.ui",
       "owner": "cui",
       "inventory_id": "unassigned",

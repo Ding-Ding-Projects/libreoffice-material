@@ -311,6 +311,12 @@ MENU_TOPLEVEL_CLASSES = frozenset({"GtkMenu", "GtkPopoverMenu"})
 RUNTIME_DIALOG_SHELL_SURFACES = frozenset(
     {
         "chart2/uiconfig/ui/3dviewdialog.ui",
+        "chart2/uiconfig/ui/chardialog.ui",
+        "chart2/uiconfig/ui/paradialog.ui",
+        "cui/uiconfig/ui/areadialog.ui",
+        "cui/uiconfig/ui/borderareatransparencydialog.ui",
+        "cui/uiconfig/ui/borderbackgrounddialog.ui",
+        "cui/uiconfig/ui/calloutdialog.ui",
         "cui/uiconfig/ui/customizedialog.ui",
     }
 )

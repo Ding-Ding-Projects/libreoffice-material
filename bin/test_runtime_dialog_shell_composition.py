@@ -27,7 +27,11 @@ SPEC.loader.exec_module(VALIDATOR)
 
 VIEW3D = "chart2/uiconfig/ui/3dviewdialog.ui"
 CUSTOMIZE = "cui/uiconfig/ui/customizedialog.ui"
+SHAPE_PARAGRAPH = "chart2/uiconfig/ui/paradialog.ui"
+BORDER_AREA = "cui/uiconfig/ui/borderareatransparencydialog.ui"
 VIEW3D_HOST = "chart2/source/controller/dialogs/dlg_View3D.cxx"
+SHAPE_PARAGRAPH_HOST = "chart2/source/controller/dialogs/dlg_ShapeParagraph.cxx"
+BORDER_HOST = "cui/source/tabpages/bbdlg.cxx"
 
 
 class RuntimeDialogShellCompositionTest(unittest.TestCase):
@@ -64,6 +68,11 @@ class RuntimeDialogShellCompositionTest(unittest.TestCase):
         VALIDATOR.validate_repository(REPOSITORY)
         self.assertEqual([], self.failures())
 
+    def test_every_expected_surface_has_one_contract_row(self) -> None:
+        surfaces = [item["surface"] for item in self.registry["shells"]]
+        self.assertEqual(len(surfaces), len(set(surfaces)))
+        self.assertEqual(set(surfaces), set(VALIDATOR.EXPECTED_SURFACES))
+
     def test_runtime_claim_fails(self) -> None:
         registry = copy.deepcopy(self.registry)
         registry["runtime_verified"] = True
@@ -82,6 +91,15 @@ class RuntimeDialogShellCompositionTest(unittest.TestCase):
         )
         errors = self.failures(contents=contents)
         self.assertTrue(any("margin-start" in item and "expected 12" in item for item in errors), errors)
+
+    def test_expanded_shell_vertical_margin_drift_fails(self) -> None:
+        contents = self.replace_once(
+            SHAPE_PARAGRAPH,
+            '<property name="margin-top">12</property>',
+            '<property name="margin-top">6</property>',
+        )
+        errors = self.failures(contents=contents)
+        self.assertTrue(any("margin-top" in item and "expected 12" in item for item in errors), errors)
 
     def test_scrollable_notebook_regression_fails(self) -> None:
         contents = self.replace_once(
@@ -124,6 +142,24 @@ class RuntimeDialogShellCompositionTest(unittest.TestCase):
         )
         errors = self.failures(contents=contents)
         self.assertTrue(any("host marker occurs 0 times" in item for item in errors), errors)
+
+    def test_conditional_page_host_marker_removed_fails(self) -> None:
+        contents = self.replace_once(
+            SHAPE_PARAGRAPH_HOST,
+            'AddTabPage(u"asian"_ustr',
+            'AddTabPage(u"asian-removed"_ustr',
+        )
+        errors = self.failures(contents=contents)
+        self.assertTrue(any(SHAPE_PARAGRAPH in item and "host marker occurs 0 times" in item for item in errors), errors)
+
+    def test_shared_branch_host_marker_removed_fails(self) -> None:
+        contents = self.replace_once(
+            BORDER_HOST,
+            'u"BorderAreaTransparencyDialog"_ustr',
+            'u"BorderAreaTransparencyDialogRemoved"_ustr',
+        )
+        errors = self.failures(contents=contents)
+        self.assertTrue(any(BORDER_AREA in item and "host marker occurs 0 times" in item for item in errors), errors)
 
     def test_runtime_host_marker_order_drift_fails(self) -> None:
         registry = copy.deepcopy(self.registry)

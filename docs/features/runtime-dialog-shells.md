@@ -2,14 +2,15 @@
 
 ## Behavior
 
-Chart **3D View** and **Customize** are modal notebook dialogs whose page labels
-and page bodies are created by C++ after the `.ui` shell loads. Their shell now
-places the empty, scrollable left-tab notebook inside a Material content grid:
-12 px on every edge, 6 px row spacing, and 12 px column spacing. Titles, welded
-IDs, page factories, button responses, Enter default, and cancellation behavior
-are unchanged.
+Eight modal notebook dialogs create their page labels and page bodies in C++
+after the `.ui` shell loads: Chart **3D View**, **Character**, and **Paragraph**;
+plus shared **Area**, **Border/Area/Transparency**, **Border/Background**,
+**Callout**, and **Customize**. Each shell places its empty, scrollable left-tab
+notebook inside a Material content grid: 12 px on every edge, 6 px row spacing,
+and 12 px column spacing. Titles, welded IDs, page factories, button responses,
+Enter default, and cancellation behavior are unchanged.
 
-The burn-down ledger classifies these two resources as
+The burn-down ledger classifies these eight resources as
 `runtime-dialog-shell`/`dialog-composition`. That family does not weaken the
 ordinary static-dialog predicate; a surface joins only through the explicit
 allow-list and a contract proving both its `.ui` shell and its C++ page host.
@@ -22,6 +23,12 @@ runtime controllers contribute the pages. The feature is scoped to:
 
 - `chart2/uiconfig/ui/3dviewdialog.ui` with
   `chart2/source/controller/dialogs/dlg_View3D.cxx`;
+- `chart2/uiconfig/ui/chardialog.ui` and `paradialog.ui` with their
+  `dlg_ShapeFont.cxx` and `dlg_ShapeParagraph.cxx` controllers;
+- `cui/uiconfig/ui/areadialog.ui` with `cui/source/tabpages/tabarea.cxx`;
+- `cui/uiconfig/ui/borderareatransparencydialog.ui` and
+  `borderbackgrounddialog.ui` with `cui/source/tabpages/bbdlg.cxx`;
+- `cui/uiconfig/ui/calloutdialog.ui` with `cui/source/tabpages/labdlg.cxx`;
 - `cui/uiconfig/ui/customizedialog.ui` with
   `cui/source/customize/cfg.cxx`.
 
@@ -43,7 +50,7 @@ empty notebook alone is never sufficient.
 
 ## Security considerations
 
-Both dialogs remain modal and retain their existing OK/Cancel response semantics.
+All eight dialogs remain modal and retain their existing OK/Cancel response semantics.
 No data source, persistence path, privilege boundary, network request, or page
 factory changes. The checker strips C++ comments before locating host markers,
 so a commented-out page constructor cannot masquerade as live implementation.
@@ -59,7 +66,7 @@ python bin/check-material-rewrite-ledger.py
 python -m unittest bin/test_material_rewrite_ledger.py
 ```
 
-The contract and 13 mutation tests prove source composition only.
+The contract and 17 mutation tests prove source composition only.
 `runtime_verified` is `false`; no new native dialog capture, keyboard trace,
 screen-reader transcript, or scale matrix is claimed.
 

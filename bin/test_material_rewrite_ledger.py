@@ -322,7 +322,7 @@ class LedgerMutationTest(unittest.TestCase):
     def test_production_family_counts(self) -> None:
         by_family = self.ledger["coverage"]["by_family"]
         expected = {
-            "dialog": 520, "runtime-dialog-shell": 2,
+            "dialog": 514, "runtime-dialog-shell": 8,
             "message-dialog": 76, "options-page": 40,
             "panel-fragment": 453, "menu": 70, "popover": 47,
             "sidebar-panel": 52, "wizard-assistant": 1, "native-shell": 10,

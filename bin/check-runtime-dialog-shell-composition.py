@@ -40,6 +40,12 @@ LEDGER_PATH = "qa/windows-ui-contract/material-rewrite-ledger.json"
 CONTRACT = "material-runtime-dialog-shell-composition"
 EXPECTED_SURFACES = {
     "chart2/uiconfig/ui/3dviewdialog.ui": ("chart2", "WIN-CH-001"),
+    "chart2/uiconfig/ui/chardialog.ui": ("chart2", "WIN-CH-001"),
+    "chart2/uiconfig/ui/paradialog.ui": ("chart2", "WIN-CH-001"),
+    "cui/uiconfig/ui/areadialog.ui": ("cui", "unassigned"),
+    "cui/uiconfig/ui/borderareatransparencydialog.ui": ("cui", "unassigned"),
+    "cui/uiconfig/ui/borderbackgrounddialog.ui": ("cui", "unassigned"),
+    "cui/uiconfig/ui/calloutdialog.ui": ("cui", "unassigned"),
     "cui/uiconfig/ui/customizedialog.ui": ("cui", "unassigned"),
 }
 
@@ -502,8 +508,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Runtime dialog shell composition failed:\n{error}", file=sys.stderr)
         return 1
     print(
-        "Runtime dialog shell composition passed: 2 explicit empty-notebook shells retain "
-        "Material inset grids, safe footers, and ordered C++ page hosts; runtime_verified=false."
+        f"Runtime dialog shell composition passed: {len(EXPECTED_SURFACES)} explicit "
+        "empty-notebook shells retain Material inset grids, safe footers, and ordered "
+        "C++ page hosts; runtime_verified=false."
     )
     return 0
 

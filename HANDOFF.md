@@ -1,5 +1,20 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — runtime-composed dialog shells credited
+
+Chart **3D View** and **Customize** now wrap their intentionally empty runtime
+notebooks in 12 px Material content grids with scrollable left tabs. Commit
+`88bde01c0c674b7d00eebfb34094fed067440e64` adds the explicit
+`runtime-dialog-shell`/`dialog-composition` family and a fail-closed contract
+that checks the static shell, Help/Cancel/OK footer/default, exact two-surface
+allow-list, and ordered C++ page hosts. Thirteen mutation tests, the 56-test
+rewrite-ledger suite, dialog anatomy, XML, accessibility-fatals (0 across 1,258
+UI files), and build-free workflow coverage (175/175) pass. The two evidence
+rows now cite that committed contract, moving the honest source headline to
+**82.77% (1052/1271), 219 pending**. `runtime_verified` remains false: no native
+dialog pixels, keyboard trace, scale matrix, localization capture, or
+screen-reader run is claimed.
+
 ## 2026-07-31 follow-up — missing native/wizard ownership contract
 
 The six previously ownerless pending rows now have a fail-closed contract at

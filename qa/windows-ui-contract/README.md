@@ -166,6 +166,24 @@ reordered host markers, modality/title-source drift, page-occurrence drift,
 ledger-family drift, and false runtime claims. This is
 source-composition evidence only; `runtime_verified` remains false.
 
+### Runtime-composed wizard shell
+
+`runtime-wizard-composition.json` owns the shared `GtkAssistant` shell whose
+pages and Help/Previous/Next/Finish/Cancel actions are created in VCL C++. Its
+checker pins modal and runtime-title semantics, removal of the legacy shell
+border, token-derived `space-list-entry` spacing on every generated page, the
+Material/high-contrast activation guards, and exactly Next plus Finish as the
+primary forward actions. The ledger classifies this one surface as
+`dialog-composition`; no static label or duplicate footer is invented.
+
+```sh
+python bin/check-runtime-wizard-composition.py
+python bin/test_runtime_wizard_composition.py
+```
+
+Six mutations reject border, margin, action, token, and runtime-claim drift.
+This is source-composition evidence only; `runtime_verified` remains false.
+
 ### Host-composed Material surfaces
 
 `host-composed-surfaces.json` owns the explicit 194-resource bridge for static
@@ -1641,13 +1659,13 @@ is present and unregressed and must **not** flip `M`, which stays `·`. The thre
 Material differentiators stay `status: specified`. 17 mutation tests;
 `runtime_verified: false`.
 
-### Pending native/wizard ownership
+### Pending native ownership
 
 `pending-native-surface-ownership.json` (contract
 `material-pending-native-surface-ownership`) closes the contract-ownership gap
-for five native-shell rows and the shared wizard shell. It pins the real source
-owner and stable markers for Find toolbar, MSI lifecycle, updater lifecycle,
-Windows title bars, Writer canvas, and `wizard.ui`; it also requires every row
+for five native-shell rows. It pins the real source owner and stable markers
+for Find toolbar, MSI lifecycle, updater lifecycle, Windows title bars, and
+Writer canvas; it also requires every row
 to remain `pending` with empty implementation evidence. The contract is a
 fail-closed planning boundary, not Material rewrite credit. Three mutation/
 baseline tests; `runtime_verified: false`.

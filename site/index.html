@@ -132,7 +132,7 @@
             </div>
             <div>
               <dt>Whole-suite UI</dt>
-              <dd><span class="state state-progress">Material rewrite 99.53%</span></dd>
+              <dd><span class="state state-progress">Material rewrite 99.61%</span></dd>
             </div>
             <div>
               <dt>Verified captures</dt>
@@ -157,7 +157,7 @@
         </div>
         <div>
           <strong>Whole-suite status</strong>
-          <span>Material rewrite ledger 99.53% (1265/1271) · 6 pending · all static and composition-backed .ui families complete</span>
+          <span>Material rewrite ledger 99.61% (1266/1271) · 5 pending · every .ui-backed family complete</span>
         </div>
         <div>
           <strong>LibreOffice captures</strong>
@@ -220,6 +220,23 @@
           </div>
           <pre aria-label="Material theme environment variables"><code>VCL_DRAW_WIDGETS_FROM_FILE=1
 VCL_FILE_WIDGET_THEME=material</code></pre>
+        </div>
+        <div class="activation-card">
+          <div>
+            <p class="card-kicker">Runtime-composed wizard</p>
+            <h3>Generated pages now share one Material rhythm.</h3>
+            <p>
+              The common wizard shell creates its pages and forward actions in
+              VCL rather than in the static UI file. Material mode now applies
+              the token-derived 12 px page grid at that runtime owner and marks
+              exactly Next and Finish as primary forward actions. Modal,
+              response, page-order, keyboard, and forced-colors semantics are
+              preserved. The source contract and six mutations pass; installed-
+              build pixels and interaction remain unverified. Read the
+              <a href="https://github.com/Ding-Ding-Projects/libreoffice-material/blob/main/docs/features/runtime-wizard-shell.md">feature article</a>.
+            </p>
+          </div>
+          <span class="state state-progress">Source verified · runtime pending</span>
         </div>
         <div class="activation-card">
           <div>

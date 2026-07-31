@@ -126,10 +126,10 @@
   },
   "coverage": {
     "total_surfaces": 1271,
-    "pending": 6,
+    "pending": 5,
     "in_progress": 0,
-    "rewritten_material": 1265,
-    "coverage_pct": 99.53,
+    "rewritten_material": 1266,
+    "coverage_pct": 99.61,
     "by_family": {
       "dialog": {
         "total": 437,
@@ -193,9 +193,9 @@
       },
       "wizard-assistant": {
         "total": 1,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 0
+        "rewritten-material": 1
       }
     },
     "by_owner": {
@@ -327,9 +327,9 @@
       },
       "vcl": {
         "total": 22,
-        "pending": 2,
+        "pending": 1,
         "in-progress": 0,
-        "rewritten-material": 20
+        "rewritten-material": 21
       },
       "writerperfect": {
         "total": 2,
@@ -569,9 +569,9 @@
       },
       "unassigned": {
         "total": 250,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 249
+        "rewritten-material": 250
       }
     }
   },
@@ -39035,12 +39035,21 @@
       "inventory_id": "unassigned",
       "family": "wizard-assistant",
       "rewrite_class": "dialog-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "686980e7eca0436edc78c34a4296b319faad8079",
+        "contract": "qa/windows-ui-contract/runtime-wizard-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "runtime-wizard-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-runtime-wizard-composition",
+          "evidence_kind": "composition-code",
+          "material_content_grid": "SalInstanceAssistant::append_page",
+          "runtime_forward_actions": "RoadmapWizard::implConstruct next+finish"
+        }
       }
     },
     {

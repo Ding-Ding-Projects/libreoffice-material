@@ -1,5 +1,22 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — runtime wizard credited
+
+Commit `686980e7eca0436edc78c34a4296b319faad8079` implements the shared
+runtime wizard composition without fabricating static controls. Every page
+created by `SalInstanceAssistant::append_page` consumes the Material
+`space-list-entry` metric on both spacing axes and all four margins;
+`RoadmapWizard::implConstruct` marks exactly Next and Finish as primary actions
+under the Material theme. Forced colors retain precedence, the shell remains
+modal and runtime-titled, and response/page/navigation semantics are unchanged.
+
+The source contract and six mutations pass, as do 57 ledger tests, 179/179
+build-free workflow coverage, and the VCL accessibility gate (19 `.ui` files,
+0 FATALs). The immutable wizard evidence raises the honest source headline to
+**99.61% (1266/1271), 5 pending**. Every `.ui`-backed family is complete; the
+remaining rows are the five native shells. Runtime UI remains unverified, and
+the branch CI run is still being monitored in the background.
+
 ## 2026-07-31 follow-up — host-composed static blockers credited
 
 The remaining 194 static blockers were a family-classification defect, not 194
@@ -16,8 +33,8 @@ The contract carries 184 prior adversarial `blocked-confirmed` dispositions and
 10 current-source re-audits. Its generator check, checker, and 12 mutations pass;
 the rewrite-ledger suite passes 57 tests and build-free workflow closure is
 177/177. All 194 ledger rows cite the immutable contract commit, raising the
-honest source headline to **99.53% (1265/1271), 6 pending**. The remaining rows
-are one wizard and five native shells. `runtime_verified` remains false; no
+honest source headline at that checkpoint to **99.53% (1265/1271), 6 pending**.
+The remaining rows then were one wizard and five native shells. `runtime_verified` remains false; no
 native pixels, interaction, scale, localization, accessibility, or performance
 result is claimed by this source-composition credit.
 

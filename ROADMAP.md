@@ -15,6 +15,15 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-31 runtime-wizard composition milestone:** the shared assistant now
+uses token-derived 12 px spacing on every C++-generated page and marks exactly
+Next and Finish as Material primary forward actions, without inventing static
+widgets or changing response semantics. The six-mutation composition contract,
+VCL accessibility gate (19 files, 0 FATALs), 57 ledger tests, and 179/179
+build-free workflow closure pass. The source headline is now **99.61%
+(1266/1271), 5 pending**; all `.ui`-backed families are complete and only five
+native shells remain. Runtime UI remains unverified.
+
 **2026-07-31 host-composed classification correction:** the 194 remaining
 static blockers are now an explicit `host-composed-surface` family rather than
 being forced through a complete-form predicate they cannot structurally own.
@@ -24,7 +33,7 @@ failure, root identity, marker snapshot, owner/inventory attribution, audit
 provenance, and shared Material renderer dependencies. It preserves 184 prior
 `blocked-confirmed` audits and 10 current-source re-audits; 12 contract
 mutations, 57 ledger tests, and the 177/177 build-free workflow closure pass.
-The source headline advances to **99.53% (1265/1271), 6 pending**. This is
+At that checkpoint the source headline advanced to **99.53% (1265/1271), 6 pending**. This is
 source-composition evidence only; runtime UI remains unverified.
 
 **2026-07-31 runtime-dialog composition milestone:** twenty-one empty-notebook
@@ -39,9 +48,9 @@ headline advanced to **84.26% (1071/1271), 200 pending**; native runtime and pix
 open.
 
 **2026-07-31 native/wizard ownership contract:** five native shells and the
-shared wizard shell now have a fail-closed owner/marker contract. It closes the
-governance gap while deliberately retaining `pending` status until their
-Material implementation and runtime evidence exist.
+shared wizard shell initially received a fail-closed owner/marker contract. The
+wizard has since moved to its implemented runtime-composition contract; the
+ownership boundary now retains only the five pending native shells.
 
 **2026-07-31 blocked-surface design proposal:** the six non-static pending
 surfaces now have a concrete Material token/anatomy proposal in

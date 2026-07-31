@@ -115,10 +115,10 @@
   },
   "coverage": {
     "total_surfaces": 1271,
-    "pending": 219,
+    "pending": 213,
     "in_progress": 0,
-    "rewritten_material": 1052,
-    "coverage_pct": 82.77,
+    "rewritten_material": 1058,
+    "coverage_pct": 83.24,
     "by_family": {
       "dialog": {
         "total": 514,
@@ -164,9 +164,9 @@
       },
       "runtime-dialog-shell": {
         "total": 8,
-        "pending": 6,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 2
+        "rewritten-material": 8
       },
       "sidebar-panel": {
         "total": 52,
@@ -190,15 +190,15 @@
       },
       "chart2": {
         "total": 46,
-        "pending": 8,
+        "pending": 6,
         "in-progress": 0,
-        "rewritten-material": 38
+        "rewritten-material": 40
       },
       "cui": {
         "total": 207,
-        "pending": 19,
+        "pending": 15,
         "in-progress": 0,
-        "rewritten-material": 188
+        "rewritten-material": 192
       },
       "dbaccess": {
         "total": 82,
@@ -360,9 +360,9 @@
       },
       "WIN-CH-001": {
         "total": 46,
-        "pending": 8,
+        "pending": 6,
         "in-progress": 0,
-        "rewritten-material": 38
+        "rewritten-material": 40
       },
       "WIN-CON-007": {
         "total": 18,
@@ -552,9 +552,9 @@
       },
       "unassigned": {
         "total": 250,
-        "pending": 44,
+        "pending": 40,
         "in-progress": 0,
-        "rewritten-material": 206
+        "rewritten-material": 210
       }
     }
   },
@@ -1280,12 +1280,21 @@
       "inventory_id": "WIN-CH-001",
       "family": "runtime-dialog-shell",
       "rewrite_class": "dialog-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "9920f81c607d52619bcc0456af9b1e64ebd19f37",
+        "contract": "qa/windows-ui-contract/runtime-dialog-shell-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "runtime-dialog-shell-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-runtime-dialog-shell-composition",
+          "evidence_kind": "composition-code",
+          "material_content_grid": "chardialog-content-grid",
+          "runtime_page_host": "chart2/source/controller/dialogs/dlg_ShapeFont.cxx"
+        }
       }
     },
     {
@@ -1727,12 +1736,21 @@
       "inventory_id": "WIN-CH-001",
       "family": "runtime-dialog-shell",
       "rewrite_class": "dialog-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "9920f81c607d52619bcc0456af9b1e64ebd19f37",
+        "contract": "qa/windows-ui-contract/runtime-dialog-shell-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "runtime-dialog-shell-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-runtime-dialog-shell-composition",
+          "evidence_kind": "composition-code",
+          "material_content_grid": "paradialog-content-grid",
+          "runtime_page_host": "chart2/source/controller/dialogs/dlg_ShapeParagraph.cxx"
+        }
       }
     },
     {
@@ -2733,12 +2751,21 @@
       "inventory_id": "unassigned",
       "family": "runtime-dialog-shell",
       "rewrite_class": "dialog-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "9920f81c607d52619bcc0456af9b1e64ebd19f37",
+        "contract": "qa/windows-ui-contract/runtime-dialog-shell-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "runtime-dialog-shell-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-runtime-dialog-shell-composition",
+          "evidence_kind": "composition-code",
+          "material_content_grid": "areadialog-content-grid",
+          "runtime_page_host": "cui/source/tabpages/tabarea.cxx"
+        }
       }
     },
     {
@@ -2918,12 +2945,21 @@
       "inventory_id": "unassigned",
       "family": "runtime-dialog-shell",
       "rewrite_class": "dialog-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "9920f81c607d52619bcc0456af9b1e64ebd19f37",
+        "contract": "qa/windows-ui-contract/runtime-dialog-shell-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "runtime-dialog-shell-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-runtime-dialog-shell-composition",
+          "evidence_kind": "composition-code",
+          "material_content_grid": "borderareatransparencydialog-content-grid",
+          "runtime_page_host": "cui/source/tabpages/bbdlg.cxx"
+        }
       }
     },
     {
@@ -2932,12 +2968,21 @@
       "inventory_id": "unassigned",
       "family": "runtime-dialog-shell",
       "rewrite_class": "dialog-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "9920f81c607d52619bcc0456af9b1e64ebd19f37",
+        "contract": "qa/windows-ui-contract/runtime-dialog-shell-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "runtime-dialog-shell-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-runtime-dialog-shell-composition",
+          "evidence_kind": "composition-code",
+          "material_content_grid": "borderbackgrounddialog-content-grid",
+          "runtime_page_host": "cui/source/tabpages/bbdlg.cxx"
+        }
       }
     },
     {
@@ -3052,12 +3097,21 @@
       "inventory_id": "unassigned",
       "family": "runtime-dialog-shell",
       "rewrite_class": "dialog-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "9920f81c607d52619bcc0456af9b1e64ebd19f37",
+        "contract": "qa/windows-ui-contract/runtime-dialog-shell-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "runtime-dialog-shell-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-runtime-dialog-shell-composition",
+          "evidence_kind": "composition-code",
+          "material_content_grid": "calloutdialog-content-grid",
+          "runtime_page_host": "cui/source/tabpages/labdlg.cxx"
+        }
       }
     },
     {

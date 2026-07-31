@@ -2,16 +2,18 @@
 
 ## 2026-07-31 follow-up — runtime-composed dialog shells credited
 
-Chart **3D View** and **Customize** now wrap their intentionally empty runtime
-notebooks in 12 px Material content grids with scrollable left tabs. Commit
-`88bde01c0c674b7d00eebfb34094fed067440e64` adds the explicit
-`runtime-dialog-shell`/`dialog-composition` family and a fail-closed contract
-that checks the static shell, Help/Cancel/OK footer/default, exact two-surface
-allow-list, and ordered C++ page hosts. Thirteen mutation tests, the 56-test
+Eight deliberately empty runtime notebooks now use 12 px Material content grids
+with scrollable left tabs: Chart 3D View, Character, and Paragraph, plus shared
+Area, Border/Area/Transparency, Border/Background, Callout, and Customize.
+Commits `88bde01c0c674b7d00eebfb34094fed067440e64` and
+`9920f81c607d52619bcc0456af9b1e64ebd19f37` add and expand the explicit
+`runtime-dialog-shell`/`dialog-composition` family and its fail-closed contract,
+which checks each static shell, Help/Cancel/OK footer/default, exact eight-surface
+allow-list, and ordered C++ page hosts. Seventeen mutation tests, the 56-test
 rewrite-ledger suite, dialog anatomy, XML, accessibility-fatals (0 across 1,258
 UI files), and build-free workflow coverage (175/175) pass. The two evidence
-rows now cite that committed contract, moving the honest source headline to
-**82.77% (1052/1271), 219 pending**. `runtime_verified` remains false: no native
+waves now cite their preceding committed contracts, moving the honest source
+headline to **83.24% (1058/1271), 213 pending**. `runtime_verified` remains false: no native
 dialog pixels, keyboard trace, scale matrix, localization capture, or
 screen-reader run is claimed.
 

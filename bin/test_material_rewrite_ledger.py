@@ -279,6 +279,13 @@ class LedgerMutationTest(unittest.TestCase):
                 return row["surface"]
         raise AssertionError("no rewritten composition-code row")
 
+    def demote_to_pending(self, rows):
+        """Create a pending mutation even when the production ledger is fully credited."""
+        surface = self.rewritten_composition_surface()
+        rows[surface]["rewrite_status"] = CK.PENDING
+        rows[surface]["rewrite_evidence"] = CK._null_evidence()
+        return surface
+
     def write_temp(self, ledger) -> Path:
         tmp = Path(tempfile.mkdtemp(prefix="mrl_")) / "material-rewrite-ledger.json"
         with tmp.open("w", encoding="utf-8", newline="\n") as fh:
@@ -349,7 +356,7 @@ class LedgerMutationTest(unittest.TestCase):
     # -- C3 status regression ---------------------------------------------
     def test_status_regression_rejected(self) -> None:
         _lg, rows = self.fresh()
-        pending_surface = self.a_row(status=CK.PENDING)
+        pending_surface = self.demote_to_pending(rows)
         baseline = {"surfaces": [{"surface": pending_surface, "rewrite_status": CK.REWRITTEN}]}
         failures, warnings = [], []
         CK._validate_status_regression(rows, baseline, failures, warnings)
@@ -357,7 +364,7 @@ class LedgerMutationTest(unittest.TestCase):
 
     def test_status_regression_waiver_downgrades_to_warning(self) -> None:
         lg, rows = self.fresh()
-        pending_surface = self.a_row(status=CK.PENDING)
+        pending_surface = self.demote_to_pending(rows)
         rows[pending_surface]["regression_waiver"] = {"reason": "surface deleted upstream", "commit": "a" * 40}
         baseline = {"surfaces": [{"surface": pending_surface, "rewrite_status": CK.REWRITTEN}]}
         failures, warnings = [], []
@@ -440,7 +447,7 @@ class LedgerMutationTest(unittest.TestCase):
 
     def test_dropped_row_rejected(self) -> None:
         _lg, rows = self.fresh()
-        dropped = self.a_row(status=CK.PENDING)
+        dropped = self.a_row()
         del rows[dropped]
         failures = []
         CK._validate_closure_parity(rows, self.attribution, failures)
@@ -449,7 +456,7 @@ class LedgerMutationTest(unittest.TestCase):
     # -- C2 attribution ----------------------------------------------------
     def test_attribution_drift_rejected(self) -> None:
         _lg, rows = self.fresh()
-        surface = self.a_row(status=CK.PENDING)
+        surface = self.a_row()
         rows[surface]["owner"] = "not-the-owner"
         failures = []
         CK._validate_attribution(rows, self.attribution, failures)
@@ -576,7 +583,7 @@ class LedgerMutationTest(unittest.TestCase):
 
     # -- C5 evidence shape -------------------------------------------------
     def test_pending_with_evidence_rejected(self) -> None:
-        surface = self.a_row(status=CK.PENDING)
+        surface = self.a_row()
         row = {"surface": surface, "rewrite_status": CK.PENDING,
                "rewrite_evidence": {"commit": "b" * 40, "contract": None, "capture": None, "anatomy_markers": {}}}
         failures = []

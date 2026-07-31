@@ -87,7 +87,10 @@ the `sfx` link, default-No consent, prelaunch verification, protected staging,
 interactive command vector, and restart suppression.
 
 The shared producer registry now covers nine producers across four modules and
-passes forty tests. `runtime_verified` remains `false`; an exact-source Windows
+passes forty tests. Immutable source commit
+`cef0eefaca69dd0771b4b773ec157fcb291ded95` supplies this surface's final
+source-ledger evidence; the generated ledger is 100.0% (1271/1271) with zero
+pending rows. `runtime_verified` remains `false`; an exact-source Windows
 build and a real check/download/pause/retry/consent/installer walkthrough are
 still required.
 

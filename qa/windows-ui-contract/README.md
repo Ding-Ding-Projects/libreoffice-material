@@ -1761,4 +1761,6 @@ pass. This is source evidence only; `runtime_verified` remains false.
 native-shell row has a dedicated implementation contract, so its governed set
 is empty. It remains fail-closed against a reintroduced owner-only row and is
 not itself Material rewrite evidence. Three mutation/baseline tests;
-`runtime_verified: false`.
+`runtime_verified: false`. The updater's immutable source evidence is credited
+separately in `material-rewrite-ledger.json`, whose generated source headline is
+now 100.0% (1271/1271) with zero pending rows.

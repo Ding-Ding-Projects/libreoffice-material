@@ -15,6 +15,16 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-31 source-ledger closure:** immutable updater source commit
+`cef0eefaca69dd0771b4b773ec157fcb291ded95` credits the last native-shell row.
+The generated headline is now **100.0% (1271/1271), 0 pending, 0 in progress**;
+native shells are 10/10, `extensions` is 48/48, and `WIN-SYS-012` is 4/4. The
+ledger checker and 57 mutations pass alongside updater 22/22, producer 40/40,
+pending-ownership 3/3, and build-free workflow coverage 187/187. This closes
+the source/contract burn-down only. No phase is promoted to verified because
+native build, updater runtime/captures, accessibility/localization, complete MSI
+lifecycle, and installed-MSI performance proof remain open.
+
 **2026-07-31 updater lifecycle source implementation:** the updater now maps all
 eleven states and routes eligible actionable/error exact-version status through
 the shared Material notification stack instead of a private legacy bubble.
@@ -30,7 +40,7 @@ restart suppression remain pinned. The focused checker and 22 tests (21
 mutations plus production) pass; the expanded nine-producer notification suite
 passes 40 tests. Native runtime remains unverified. This implementation is
 being committed before separate immutable ledger credit, so the last credited
-headline remains **99.92% (1270/1271), 1 pending** at this source checkpoint.
+headline remained **99.92% (1270/1271), 1 pending** at that source checkpoint.
 
 **2026-07-31 Writer canvas source implementation:** the custom Writer workspace
 now resolves `surface-container-low` from the bundled light/dark Material
@@ -41,8 +51,8 @@ preview, print, tile, zoom, selection, and input paths remain owned. The focused
 checker and 13 tests (12 mutations plus production) pass. Native compilation
 and light/dark/high-contrast captures remain unverified. Immutable source
 commit `d48a2a57d90910174ad3c364af713d862c61a00e` supplies the evidence, so the
-headline is now **99.92% (1270/1271), 1 pending**; updater lifecycle is the sole
-remaining row.
+headline at that Writer checkpoint was **99.92% (1270/1271), 1 pending**;
+updater lifecycle was the sole remaining row.
 
 **2026-07-31 Material title-bar composition:** both rendering owners now consume
 the declared active/deactive frame slots. VCL normal/small/tear-off title bands

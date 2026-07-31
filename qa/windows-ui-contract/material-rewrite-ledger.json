@@ -126,10 +126,10 @@
   },
   "coverage": {
     "total_surfaces": 1271,
-    "pending": 1,
+    "pending": 0,
     "in_progress": 0,
-    "rewritten_material": 1270,
-    "coverage_pct": 99.92,
+    "rewritten_material": 1271,
+    "coverage_pct": 100.0,
     "by_family": {
       "dialog": {
         "total": 437,
@@ -157,9 +157,9 @@
       },
       "native-shell": {
         "total": 10,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 9
+        "rewritten-material": 10
       },
       "options-page": {
         "total": 40,
@@ -237,9 +237,9 @@
       },
       "extensions": {
         "total": 48,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 47
+        "rewritten-material": 48
       },
       "filter": {
         "total": 13,
@@ -533,9 +533,9 @@
       },
       "WIN-SYS-012": {
         "total": 4,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 3
+        "rewritten-material": 4
       },
       "WIN-SYS-013": {
         "total": 2,
@@ -13814,12 +13814,24 @@
       "inventory_id": "WIN-SYS-012",
       "family": "native-shell",
       "rewrite_class": "shell-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "cef0eefaca69dd0771b4b773ec157fcb291ded95",
+        "contract": "qa/windows-ui-contract/updater-lifecycle-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "updater-lifecycle-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-updater-lifecycle-composition",
+          "evidence_kind": "composition-code",
+          "stable_states": 11,
+          "notification_route": "libreoffice.update",
+          "main_thread_handoff": "Application::PostUserEvent",
+          "legacy_bubble": "suppressed",
+          "install_consent": "modal-default-No"
+        }
       }
     },
     {

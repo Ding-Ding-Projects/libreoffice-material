@@ -1,5 +1,22 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — source rewrite ledger closed at 100%
+
+The immutable updater implementation commit
+`cef0eefaca69dd0771b4b773ec157fcb291ded95` now supplies the final native-shell
+evidence. `native:updater-lifecycle-ui` cites its dedicated composition contract
+and records no capture, so the generated source ledger reaches **100.0%
+(1271/1271), 0 pending, 0 in progress** without claiming pixels that were not
+captured. Native shells are 10/10, `extensions` is 48/48, and `WIN-SYS-012` is
+4/4. The pending-native ownership contract remains an empty closure sentinel.
+
+The ledger checker and all 57 mutations pass against the updater source SHA;
+the updater 22-test suite, 40 producer tests, 3 closure-sentinel tests, and
+187/187 build-free workflow coverage also pass. This is complete **source and
+contract coverage**, not complete product verification: exact-source native
+compilation, updater interaction/captures, accessibility/localization, full MSI
+lifecycle proof, and issue #12's installed-MSI performance timings remain open.
+
 ## 2026-07-31 follow-up — updater lifecycle source implemented
 
 The old dedicated updater bubble has been replaced as a status transport by the
@@ -20,8 +37,8 @@ modal consent, immediate file verification, protected staging and retained
 lock, interactive `/i`, and both restart-suppression properties remain pinned.
 Native compilation and a real lifecycle walkthrough are not claimed. This
 source checkpoint intentionally precedes its immutable ledger credit, so the
-last credited headline remains **99.92% (1270/1271), 1 pending** until that
-follow-up records the implementation commit.
+credited headline was **99.92% (1270/1271), 1 pending** until the follow-up above
+recorded the immutable implementation commit.
 
 ## 2026-07-31 follow-up — Writer canvas source implemented
 
@@ -35,8 +52,9 @@ coordinates retain their existing owners.
 
 The composition checker and 13 tests (12 mutations plus production) pass.
 Immutable source commit `d48a2a57d90910174ad3c364af713d862c61a00e`
-supplies the evidence. The ledger is now **99.92% (1270/1271), 1 pending**;
-updater lifecycle is the sole remaining row. Native compilation and focused
+supplies the evidence. At that Writer checkpoint the ledger was **99.92%
+(1270/1271), 1 pending**, with updater lifecycle as the sole remaining row.
+Native compilation and focused
 light/dark/high-contrast captures are not yet claimed.
 
 ## 2026-07-31 follow-up — Material title-bar consumption source-complete

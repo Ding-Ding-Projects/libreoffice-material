@@ -7,11 +7,10 @@
 
 """Mutation regressions for the Material title-bar composition contract (WIN-NAV-007).
 
-Each mutation weakens one guarantee -- a drifted title metric, a remapped title-height
-setting, a drifted frame-activation style slot, a dropped palette role, a missing generic
-StyleSettings owner marker, a promoted (no-longer-'not-wired') consumption status, or an
-absence marker that has appeared in real brdwin.cxx / salframe.cxx code -- and asserts the
-checker fails closed on it. A green baseline proves the production tree currently passes.
+Each mutation weakens one guarantee -- a title metric, setting, style slot, palette role,
+generic StyleSettings owner marker, VCL floating-band consumer, DWM consumer, activation
+hook, forced-color fallback, or OS-ownership boundary -- and asserts the checker fails
+closed on it. A green baseline proves the production tree currently passes.
 """
 
 from __future__ import annotations
@@ -147,42 +146,63 @@ class TitleBarCompositionContractTest(unittest.TestCase):
             any("owner:marker missing in code (SetTitleHeight()" in e for e in errors), errors
         )
 
-    # -- consumption (the honest not-wired half) ---------------------------
-    def test_consumption_status_promoted_fails(self) -> None:
+    # -- active/deactive consumption ---------------------------------------
+    def test_consumption_status_demoted_fails(self) -> None:
         registry = copy.deepcopy(self.registry)
-        registry["consumption"]["status"] = "wired"
+        registry["consumption"]["status"] = "not-wired"
         errors = self.failures(registry=registry)
         self.assertTrue(any("consumption:status" in e for e in errors), errors)
 
-    def test_brdwin_absence_marker_appearing_fails(self) -> None:
-        # A future commit that reads GetActiveColor() in brdwin.cxx (genuinely wiring the
-        # active/inactive title-bar path) must fail this contract closed.
-        source = self.contents[BRDWIN] + (
-            "\nColor lcl_probe(const StyleSettings& r) { return r.GetActiveColor(); }\n"
+    def test_brdwin_active_color_consumer_removed_fails(self) -> None:
+        source = self.contents[BRDWIN].replace(
+            "rStyleSettings.GetActiveColor()", "rStyleSettings.GetFaceColor()", 1
         )
         errors = self.failures(contents=self.with_content(BRDWIN, source))
         self.assertTrue(
-            any("consumption:absent-guard" in e and "GetActiveColor(" in e for e in errors),
+            any("consumption:renderer" in e and "GetActiveColor()" in e for e in errors),
             errors,
         )
 
-    def test_salframe_dwm_caption_colour_appearing_fails(self) -> None:
-        source = self.contents[SALFRAME] + (
-            "\nvoid lcl_probe(HWND h, COLORREF c)"
-            " { DwmSetWindowAttribute(h, DWMWA_CAPTION_COLOR, &c, sizeof(c)); }\n"
+    def test_salframe_dwm_caption_colour_removed_fails(self) -> None:
+        source = self.contents[SALFRAME].replace(
+            "DwmSetWindowAttribute(hWnd, DWMWA_CAPTION_COLOR, &nCaptionColor,",
+            "DwmSetWindowAttribute(hWnd, 999, &nCaptionColor,",
+            1,
         )
         errors = self.failures(contents=self.with_content(SALFRAME, source))
         self.assertTrue(
-            any("consumption:absent-guard" in e and "DWMWA_CAPTION_COLOR" in e for e in errors),
+            any("consumption:renderer" in e and "DWMWA_CAPTION_COLOR" in e for e in errors),
             errors,
         )
 
-    def test_brdwin_absence_marker_in_comment_still_passes(self) -> None:
-        # A comment mentioning GetActiveColor must NOT trip the absence guard (only real
-        # code counts), so the not-wired fact survives incidental documentation.
-        source = self.contents[BRDWIN] + "\n// TODO: someday consume GetActiveColor() here\n"
-        errors = self.failures(contents=self.with_content(BRDWIN, source))
-        self.assertFalse(any("consumption:absent-guard" in e for e in errors), errors)
+    def test_required_marker_in_comment_only_fails(self) -> None:
+        source = self.contents[SALFRAME].replace(
+            "case WM_NCACTIVATE:", "// case WM_NCACTIVATE:", 1
+        )
+        errors = self.failures(contents=self.with_content(SALFRAME, source))
+        self.assertTrue(
+            any("consumption:renderer" in e and "case WM_NCACTIVATE:" in e for e in errors),
+            errors,
+        )
+
+    def test_custom_nonclient_hit_test_fails(self) -> None:
+        source = self.contents[SALFRAME] + "\nvoid lcl_probe() { case WM_NCHITTEST:; }\n"
+        errors = self.failures(contents=self.with_content(SALFRAME, source))
+        self.assertTrue(
+            any("forbidden marker" in e and "WM_NCHITTEST" in e for e in errors), errors
+        )
+
+    def test_high_contrast_policy_drift_fails(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        registry["consumption"]["high_contrast_policy"] = "application-owned"
+        errors = self.failures(registry=registry)
+        self.assertTrue(any("high_contrast_policy" in e for e in errors), errors)
+
+    def test_activation_source_drift_fails(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        registry["consumption"]["activation_source"] = "WM_PAINT"
+        errors = self.failures(registry=registry)
+        self.assertTrue(any("activation_source" in e for e in errors), errors)
 
     # -- registry integrity ------------------------------------------------
     def test_runtime_verified_true_fails(self) -> None:

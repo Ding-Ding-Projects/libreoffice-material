@@ -15,6 +15,16 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-31 Material title-bar composition:** both rendering owners now consume
+the declared active/deactive frame slots. VCL normal/small/tear-off title bands
+select slot-derived fill, text, border, and caption-symbol colors; Windows
+top-level frames pass those colors to DWM and refresh on `WM_NCACTIVATE`.
+High contrast resets all DWM colors to system defaults, and no client-side frame
+or hit-testing replacement is introduced. The focused checker and 19 tests (18
+mutations plus the production contract) pass. The native row awaits immutable
+source commit credit, so the headline remains **99.76% (1268/1271), 3
+pending**; native compilation and runtime pixels remain unverified.
+
 **2026-07-31 MSI lifecycle composition:** the installer now bundles three
 deterministic 24-bit branding assets generated from the local Material token
 palette. A fail-closed contract follows them through Binary/Control/Dialog

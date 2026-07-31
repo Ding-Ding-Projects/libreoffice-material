@@ -6,9 +6,9 @@
   "chapter": "docs/design/05-navigation.md",
   "chapter_section": "7",
   "theme_flag": "VCL_FILE_WIDGET_THEME",
-  "status": "source-declared",
+  "status": "source-implemented",
   "runtime_verified": false,
-  "notes": "WIN-NAV-007. Pins exactly what the row's compiled-but-unverified gates already claim and no more: (a) definition.xml carries the two title-bar metrics height-window-title=18 / height-floating-title=14 and the <settings> mapping titleHeight -> @height-window-title / floatTitleHeight -> @height-floating-title; (b) the six frame-activation style slots (activeColor/activeBorderColor -> @primary, activeTextColor -> @on-primary, deactiveColor -> @disabled-container, deactiveTextColor -> @outline, deactiveBorderColor -> @outline-variant) per docs/design/05-navigation.md 7.1; (c) FileDefinitionWidgetDraw.cxx pushes these into StyleSettings generically (SetTitleHeight/SetFloatTitleHeight and the Set{Active,Deactive}{,Text,Border}Color setters) -- this is SHARED cross-control, cross-platform plumbing, NOT title-bar-specific Material source, so it proves the same generic behaviour on every platform, not something Windows-specific. The consumption half is deliberately pinned as an ABSENCE fact: nothing consumes these slots for an active/inactive visual distinction. brdwin.cxx (the only native drawer of a VCL-rendered floating/tearoff title bar) never calls GetActiveColor/GetDeactiveColor/GetActiveTextColor/GetDeactiveTextColor, and vcl/win/window/salframe.cxx never sets a DWM caption/border/text colour (only DWMWA_USE_IMMERSIVE_DARK_MODE), so Material never reaches the real OS-drawn top-level chrome either. consumption.status is 'not-wired' and those markers MUST stay absent: the day someone genuinely wires active/inactive rendering (a real, build-verifiable improvement) this checker fails closed and forces a coordinated registry+row update rather than a silent drift to a claimed pass. Source evidence only: no native build, title-bar pixels, or runtime active/inactive capture are claimed (runtime_verified false).",
+  "notes": "WIN-NAV-007. Material title metrics and active/deactive slots are now consumed by both title-bar owners. VCL-rendered normal, small, and tear-off title bands select active/deactive fill, text, border, and caption-symbol colors from StyleSettings. Windows top-level frames pass those same colors to DWM through caption, border, and text attributes and refresh them on non-client activation. The Material guard is exact, high contrast resets all three DWM attributes to DWMWA_COLOR_DEFAULT, and DWM retains frame geometry, caption buttons, hit testing, DPI, snapping, system menus, close-hover signaling, and accessibility. Source evidence only: native compilation and active/inactive runtime captures remain separate gates.",
   "metrics": [
     {"name": "height-window-title", "value": "18"},
     {"name": "height-floating-title", "value": "14"}
@@ -34,7 +34,7 @@
   ],
   "owner": {
     "source": "vcl/source/gdi/FileDefinitionWidgetDraw.cxx",
-    "note": "Shared cross-control, cross-platform StyleSettings plumbing (not title-bar-specific and not Windows-specific). Pinning it proves the generic metric/colour push exists; it is not evidence of a title-bar-specific Material render.",
+    "note": "The shared file-theme loader pushes Material metrics and frame-activation colors into StyleSettings before either rendering owner consumes them.",
     "markers": [
       "SetTitleHeight(",
       "SetFloatTitleHeight(",
@@ -47,26 +47,68 @@
     ]
   },
   "consumption": {
-    "status": "not-wired",
-    "note": "docs/design/05-navigation.md 7.1/7.2/7.7. brdwin.cxx's ImplStdBorderWindowView::DrawWindow draws VCL floating/tearoff title bars from GetFaceColor()/GetButtonTextColor() only; mbDisplayActive triggers a repaint but is never read to select between active/deactive slot colours. The real top-level window chrome is DWM-owned and salframe.cxx sets no caption/border/text colour. So the frame-activation slots exist and are pushed into StyleSettings but nothing consumes them for an active/inactive visual distinction -- the absence markers below MUST stay absent from comment-stripped code so the row cannot silently drift to a claimed pass without a deliberate registry+row update the day it is actually wired.",
-    "absent_markers": [
+    "status": "source-implemented",
+    "material_guard": "VCL_FILE_WIDGET_THEME=material",
+    "high_contrast_policy": "system-owned",
+    "activation_source": "WM_NCACTIVATE",
+    "renderers": [
       {
+        "name": "vcl-floating-title-bands",
         "source": "vcl/source/window/brdwin.cxx",
-        "markers": [
-          "GetActiveColor(",
-          "GetDeactiveColor(",
-          "GetActiveTextColor(",
-          "GetDeactiveTextColor("
+        "required_markers": [
+          "IsMaterialTitleBarTheme()",
+          "!rStyleSettings.GetHighContrastMode()",
+          "BorderWindowTitleType::Normal",
+          "BorderWindowTitleType::Small",
+          "BorderWindowTitleType::Tearoff",
+          "pBorderWindow->mbDisplayActive",
+          "rStyleSettings.GetActiveColor()",
+          "rStyleSettings.GetDeactiveColor()",
+          "rStyleSettings.GetActiveTextColor()",
+          "rStyleSettings.GetDeactiveTextColor()",
+          "rStyleSettings.GetActiveBorderColor()",
+          "rStyleSettings.GetDeactiveBorderColor()",
+          "aTitleTextColor"
         ]
       },
       {
+        "name": "windows-dwm-top-level-chrome",
         "source": "vcl/win/window/salframe.cxx",
-        "markers": [
+        "required_markers": [
+          "UpdateMaterialTitleBarColors(HWND hWnd, bool bActive)",
+          "IsMaterialTitleBarTheme()",
+          "rStyleSettings.GetHighContrastMode()",
+          "DWMWA_COLOR_DEFAULT",
           "DWMWA_CAPTION_COLOR",
           "DWMWA_BORDER_COLOR",
-          "DWMWA_TEXT_COLOR"
+          "DWMWA_TEXT_COLOR",
+          "DwmSetWindowAttribute(hWnd, DWMWA_CAPTION_COLOR, &nDefaultColor,",
+          "DwmSetWindowAttribute(hWnd, DWMWA_BORDER_COLOR, &nDefaultColor,",
+          "DwmSetWindowAttribute(hWnd, DWMWA_TEXT_COLOR, &nDefaultColor,",
+          "DwmSetWindowAttribute(hWnd, DWMWA_CAPTION_COLOR, &nCaptionColor,",
+          "DwmSetWindowAttribute(hWnd, DWMWA_BORDER_COLOR, &nBorderColor,",
+          "DwmSetWindowAttribute(hWnd, DWMWA_TEXT_COLOR, &nTextColor,",
+          "rStyleSettings.GetActiveColor()",
+          "rStyleSettings.GetDeactiveColor()",
+          "rStyleSettings.GetActiveTextColor()",
+          "rStyleSettings.GetDeactiveTextColor()",
+          "rStyleSettings.GetActiveBorderColor()",
+          "rStyleSettings.GetDeactiveBorderColor()",
+          "case WM_NCACTIVATE:",
+          "UpdateMaterialTitleBarColors(hWnd, wParam != FALSE)"
+        ],
+        "forbidden_markers": [
+          "case WM_NCHITTEST:",
+          "DwmExtendFrameIntoClientArea("
         ]
       }
+    ],
+    "os_owned": [
+      "non-client frame geometry",
+      "caption buttons and close-hover signal",
+      "hit testing and drag/snap gestures",
+      "Alt+Space and Alt+F4 behavior",
+      "DPI and accessibility semantics"
     ]
   }
 }

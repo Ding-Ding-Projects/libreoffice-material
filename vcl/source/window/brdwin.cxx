@@ -37,10 +37,22 @@
 #include <vcl/toolbox.hxx>
 #include <vcl/ptrstyle.hxx>
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace ::com::sun::star::uno;
 
 // useful caption height for title bar buttons
 #define MIN_CAPTION_HEIGHT 18
+
+namespace
+{
+bool IsMaterialTitleBarTheme()
+{
+    const char* pThemeName = std::getenv("VCL_FILE_WIDGET_THEME");
+    return pThemeName && std::strcmp(pThemeName, "material") == 0;
+}
+}
 
 namespace vcl {
 
@@ -65,19 +77,20 @@ void Window::ImplCalcSymbolRect( tools::Rectangle& rRect )
 } /* namespace vcl */
 
 static void ImplDrawBrdWinSymbol( vcl::RenderContext& rRenderContext,
-                                  const tools::Rectangle& rRect, SymbolType eSymbol )
+                                  const tools::Rectangle& rRect, SymbolType eSymbol,
+                                  const Color& rSymbolColor )
 {
     // we leave 5% room between the symbol and the button border
     DecorationView  aDecoView( &rRenderContext );
     tools::Rectangle       aTempRect = rRect;
     vcl::Window::ImplCalcSymbolRect( aTempRect );
-    aDecoView.DrawSymbol( aTempRect, eSymbol,
-                          rRenderContext.GetSettings().GetStyleSettings().GetButtonTextColor() );
+    aDecoView.DrawSymbol(aTempRect, eSymbol, rSymbolColor);
 }
 
 static void ImplDrawBrdWinSymbolButton( vcl::RenderContext& rRenderContext,
                                         const tools::Rectangle& rRect,
-                                        SymbolType eSymbol, DrawButtonFlags nState )
+                                        SymbolType eSymbol, DrawButtonFlags nState,
+                                        const Color& rSymbolColor )
 {
     bool bMouseOver(nState & DrawButtonFlags::Highlight);
     nState &= ~DrawButtonFlags::Highlight;
@@ -107,7 +120,7 @@ static void ImplDrawBrdWinSymbolButton( vcl::RenderContext& rRenderContext,
         DecorationView aDecoView( &rRenderContext );
         aTempRect = aDecoView.DrawButton( rRect, nState|DrawButtonFlags::Flat );
     }
-    ImplDrawBrdWinSymbol( rRenderContext, aTempRect, eSymbol );
+    ImplDrawBrdWinSymbol(rRenderContext, aTempRect, eSymbol, rSymbolColor);
 }
 
 
@@ -1371,9 +1384,27 @@ void ImplStdBorderWindowView::DrawWindow(vcl::RenderContext& rRenderContext, con
     tools::Rectangle aInRect( aTmpPoint, Size( pData->mnWidth, pData->mnHeight ) );
     const StyleSettings& rStyleSettings = rRenderContext.GetSettings().GetStyleSettings();
     Color aFaceColor(rStyleSettings.GetFaceColor());
-    Color aFrameColor(aFaceColor);
+    const bool bMaterialTitle
+        = IsMaterialTitleBarTheme() && !rStyleSettings.GetHighContrastMode()
+          && (pData->mnTitleType == BorderWindowTitleType::Normal
+              || pData->mnTitleType == BorderWindowTitleType::Small
+              || pData->mnTitleType == BorderWindowTitleType::Tearoff);
+    const Color aTitleColor(
+        pBorderWindow->mbDisplayActive ? rStyleSettings.GetActiveColor()
+                                       : rStyleSettings.GetDeactiveColor());
+    const Color aTitleTextColor(
+        bMaterialTitle
+            ? (pBorderWindow->mbDisplayActive ? rStyleSettings.GetActiveTextColor()
+                                              : rStyleSettings.GetDeactiveTextColor())
+            : rStyleSettings.GetButtonTextColor());
+    Color aFrameColor(
+        bMaterialTitle
+            ? (pBorderWindow->mbDisplayActive ? rStyleSettings.GetActiveBorderColor()
+                                              : rStyleSettings.GetDeactiveBorderColor())
+            : aFaceColor);
 
-    aFrameColor.DecreaseContrast(sal_uInt8(0.5 * 255));
+    if (!bMaterialTitle)
+        aFrameColor.DecreaseContrast(sal_uInt8(0.5 * 255));
 
     // Draw Frame
     vcl::Region oldClipRgn(rRenderContext.GetClipRegion());
@@ -1430,15 +1461,19 @@ void ImplStdBorderWindowView::DrawWindow(vcl::RenderContext& rRenderContext, con
     {
         aInRect = pData->maTitleRect;
 
-        // use no gradient anymore, just a static titlecolor
-        if (pData->mnTitleType == BorderWindowTitleType::Tearoff)
+        // Material consumes the active/deactive StyleSettings slots for every
+        // VCL-rendered movable title band. Other themes retain their existing
+        // native-compatible title treatment.
+        if (bMaterialTitle)
+            rRenderContext.SetFillColor(aTitleColor);
+        else if (pData->mnTitleType == BorderWindowTitleType::Tearoff)
             rRenderContext.SetFillColor(rStyleSettings.GetFaceGradientColor());
         else if (pData->mnTitleType == BorderWindowTitleType::Popup)
             rRenderContext.SetFillColor(aFaceColor);
         else
             rRenderContext.SetFillColor(aFrameColor);
 
-        rRenderContext.SetTextColor(rStyleSettings.GetButtonTextColor());
+        rRenderContext.SetTextColor(aTitleTextColor);
         tools::Rectangle aTitleRect(pData->maTitleRect);
         if(pOffset)
             aTitleRect.Move(pOffset->X(), pOffset->Y());
@@ -1484,28 +1519,32 @@ void ImplStdBorderWindowView::DrawWindow(vcl::RenderContext& rRenderContext, con
         tools::Rectangle aSymbolRect(pData->maCloseRect);
         if (pOffset)
             aSymbolRect.Move(pOffset->X(), pOffset->Y());
-        ImplDrawBrdWinSymbolButton(rRenderContext, aSymbolRect, SymbolType::CLOSE, pData->mnCloseState);
+        ImplDrawBrdWinSymbolButton(rRenderContext, aSymbolRect, SymbolType::CLOSE,
+                                   pData->mnCloseState, aTitleTextColor);
     }
     if (!pData->maDockRect.IsEmpty())
     {
         tools::Rectangle aSymbolRect(pData->maDockRect);
         if (pOffset)
             aSymbolRect.Move(pOffset->X(), pOffset->Y());
-        ImplDrawBrdWinSymbolButton(rRenderContext, aSymbolRect, SymbolType::DOCK, pData->mnDockState);
+        ImplDrawBrdWinSymbolButton(rRenderContext, aSymbolRect, SymbolType::DOCK,
+                                   pData->mnDockState, aTitleTextColor);
     }
     if (!pData->maMenuRect.IsEmpty())
     {
         tools::Rectangle aSymbolRect(pData->maMenuRect);
         if (pOffset)
             aSymbolRect.Move(pOffset->X(), pOffset->Y());
-        ImplDrawBrdWinSymbolButton(rRenderContext, aSymbolRect, SymbolType::MENU, pData->mnMenuState);
+        ImplDrawBrdWinSymbolButton(rRenderContext, aSymbolRect, SymbolType::MENU,
+                                   pData->mnMenuState, aTitleTextColor);
     }
     if (!pData->maHideRect.IsEmpty())
     {
         tools::Rectangle aSymbolRect(pData->maHideRect);
         if (pOffset)
             aSymbolRect.Move(pOffset->X(), pOffset->Y());
-        ImplDrawBrdWinSymbolButton(rRenderContext, aSymbolRect, SymbolType::HIDE, pData->mnHideState);
+        ImplDrawBrdWinSymbolButton(rRenderContext, aSymbolRect, SymbolType::HIDE,
+                                   pData->mnHideState, aTitleTextColor);
     }
 
     if (!pData->maHelpRect.IsEmpty())
@@ -1513,7 +1552,8 @@ void ImplStdBorderWindowView::DrawWindow(vcl::RenderContext& rRenderContext, con
         tools::Rectangle aSymbolRect(pData->maHelpRect);
         if (pOffset)
             aSymbolRect.Move(pOffset->X(), pOffset->Y());
-        ImplDrawBrdWinSymbolButton(rRenderContext, aSymbolRect, SymbolType::HELP, pData->mnHelpState);
+        ImplDrawBrdWinSymbolButton(rRenderContext, aSymbolRect, SymbolType::HELP,
+                                   pData->mnHelpState, aTitleTextColor);
     }
 }
 

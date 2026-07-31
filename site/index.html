@@ -276,6 +276,26 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
         </div>
         <div class="activation-card">
           <div>
+            <p class="card-kicker">Window and floating title bars</p>
+            <h3>Active and inactive colors now reach both real frame owners.</h3>
+            <p>
+              VCL-rendered normal, small, and tear-off title bands consume the
+              Material active/deactive fill, text, border, and caption-symbol
+              slots. Windows top-level frames pass the same colors to DWM and
+              refresh them on non-client activation. High contrast returns all
+              three DWM color attributes to system defaults; Windows retains
+              caption buttons, close-hover signaling, hit testing, snapping,
+              system commands, DPI, and accessibility. The source contract and
+              nineteen focused tests (eighteen mutations plus production) pass;
+              native compilation and active/inactive
+              captures remain unverified. Read the
+              <a href="https://github.com/Ding-Ding-Projects/libreoffice-material/blob/main/docs/features/material-title-bars.md">feature article</a>.
+            </p>
+          </div>
+          <span class="state state-progress">Source verified · runtime pending</span>
+        </div>
+        <div class="activation-card">
+          <div>
             <p class="card-kicker">Windows updater source</p>
             <h3>Strict release metadata, protected staging, explicit consent.</h3>
             <p>

@@ -76,6 +76,8 @@
 #include <sallayout.hxx>
 
 #include <vector>
+#include <cstdlib>
+#include <cstring>
 
 #include <com/sun/star/uno/Exception.hpp>
 
@@ -258,8 +260,74 @@ enum PreferredAppMode
 #define DWMWA_USE_IMMERSIVE_DARK_MODE 20
 #endif
 
+#ifndef DWMWA_BORDER_COLOR
+#define DWMWA_BORDER_COLOR 34
+#endif
+
+#ifndef DWMWA_CAPTION_COLOR
+#define DWMWA_CAPTION_COLOR 35
+#endif
+
+#ifndef DWMWA_TEXT_COLOR
+#define DWMWA_TEXT_COLOR 36
+#endif
+
+#ifndef DWMWA_COLOR_DEFAULT
+#define DWMWA_COLOR_DEFAULT 0xFFFFFFFF
+#endif
+
+static bool IsMaterialTitleBarTheme()
+{
+    const char* pThemeName = std::getenv("VCL_FILE_WIDGET_THEME");
+    return pThemeName && std::strcmp(pThemeName, "material") == 0;
+}
+
+static COLORREF ToDwmColor(const Color& rColor)
+{
+    return RGB(rColor.GetRed(), rColor.GetGreen(), rColor.GetBlue());
+}
+
+static void UpdateMaterialTitleBarColors(HWND hWnd, bool bActive)
+{
+    const StyleSettings& rStyleSettings = Application::GetSettings().GetStyleSettings();
+    if (!IsMaterialTitleBarTheme() || rStyleSettings.GetHighContrastMode())
+    {
+        // Relinquish all three values to DWM. In particular, Windows forced
+        // colors remain authoritative rather than being covered by a stale
+        // application palette.
+        const COLORREF nDefaultColor = DWMWA_COLOR_DEFAULT;
+        DwmSetWindowAttribute(hWnd, DWMWA_CAPTION_COLOR, &nDefaultColor,
+                              sizeof(nDefaultColor));
+        DwmSetWindowAttribute(hWnd, DWMWA_BORDER_COLOR, &nDefaultColor,
+                              sizeof(nDefaultColor));
+        DwmSetWindowAttribute(hWnd, DWMWA_TEXT_COLOR, &nDefaultColor,
+                              sizeof(nDefaultColor));
+        return;
+    }
+
+    const COLORREF nCaptionColor
+        = ToDwmColor(bActive ? rStyleSettings.GetActiveColor()
+                             : rStyleSettings.GetDeactiveColor());
+    const COLORREF nBorderColor
+        = ToDwmColor(bActive ? rStyleSettings.GetActiveBorderColor()
+                             : rStyleSettings.GetDeactiveBorderColor());
+    const COLORREF nTextColor
+        = ToDwmColor(bActive ? rStyleSettings.GetActiveTextColor()
+                             : rStyleSettings.GetDeactiveTextColor());
+
+    // DWM continues to own the non-client frame, caption buttons, hit testing,
+    // DPI, snapping and accessibility. LibreOffice supplies colors only.
+    DwmSetWindowAttribute(hWnd, DWMWA_CAPTION_COLOR, &nCaptionColor,
+                          sizeof(nCaptionColor));
+    DwmSetWindowAttribute(hWnd, DWMWA_BORDER_COLOR, &nBorderColor,
+                          sizeof(nBorderColor));
+    DwmSetWindowAttribute(hWnd, DWMWA_TEXT_COLOR, &nTextColor, sizeof(nTextColor));
+}
+
 static void UpdateDarkMode(HWND hWnd)
 {
+    UpdateMaterialTitleBarColors(hWnd, GetForegroundWindow() == hWnd);
+
     static bool bOSSupportsDarkMode = OSSupportsDarkMode();
     if (!bOSSupportsDarkMode)
         return;
@@ -6031,6 +6099,10 @@ static LRESULT CALLBACK SalFrameWndProc( HWND hWnd, UINT nMsg, WPARAM wParam, LP
         case WM_THEMECHANGED:
             UpdateDarkMode(hWnd);
             GetSalData()->mbThemeChanged = true;
+            break;
+
+        case WM_NCACTIVATE:
+            UpdateMaterialTitleBarColors(hWnd, wParam != FALSE);
             break;
 
         case SAL_MSG_USEREVENT:

@@ -15,7 +15,6 @@ DESIGN_PATH = Path("docs/design/blocked-surface-material-proposal.md")
 
 EXPECTED = {
     "native:updater-lifecycle-ui": ("native-shell", "extensions", "WIN-SYS-012"),
-    "native:window-title-bars": ("native-shell", "vcl", "WIN-NAV-007"),
     "native:writer-document-canvas": ("native-shell", "sw", "WIN-WR-002"),
 }
 
@@ -111,7 +110,7 @@ def main() -> int:
     except (OSError, json.JSONDecodeError, ValidationError) as error:
         print(f"Pending native-surface ownership contract failed:\n{error}")
         return 1
-    print("Pending native-surface ownership contract passed: 3 native shells are owner-pinned, design-specified, runtime-unverified, and ledger-pending.")
+    print("Pending native-surface ownership contract passed: 2 native shells are owner-pinned, design-specified, runtime-unverified, and ledger-pending.")
     return 0
 
 

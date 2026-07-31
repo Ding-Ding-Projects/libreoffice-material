@@ -1,5 +1,22 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — Material title-bar consumption source-complete
+
+The previously declared frame slots now reach both real rendering owners.
+`ImplStdBorderWindowView::DrawWindow` selects active/deactive fill, text,
+border, and caption-symbol colors for normal, small, and tear-off title bands.
+`salframe.cxx` supplies the same slots to DWM caption, border, and text color
+attributes and refreshes them on `WM_NCACTIVATE`. High contrast resets all
+three attributes to `DWMWA_COLOR_DEFAULT`; DWM still owns frame geometry,
+caption buttons, hit testing, snapping, DPI, system commands, and accessibility.
+
+The focused checker and 19 tests (18 mutations plus the production contract)
+pass. The pending-native ownership set is now limited to updater lifecycle and
+Writer canvas. This title-bar row remains
+ledger-pending only until the source slice has an immutable commit; the honest
+headline therefore remains **99.76% (1268/1271), 3 pending**. Native compilation
+and active/inactive runtime captures are not yet claimed.
+
 ## 2026-07-31 follow-up — MSI lifecycle composition source-complete
 
 The Windows Installer templates now carry deterministic 24-bit Material

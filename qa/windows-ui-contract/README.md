@@ -1436,11 +1436,13 @@ subset. 12 mutation tests; `runtime_verified: false`.
 `titlebar-composition.json` (contract `material-titlebar-composition`) pins the
 compiled title-bar metrics (window 18 / floating 14) and the active/deactive
 style-slot token wiring in `definition.xml` and the generic `StyleSettings` push
-in `FileDefinitionWidgetDraw.cxx`, **plus a fail-closed absence guard**: no
-`GetActiveColor()`/`GetDeactiveColor()` consumption and no `DWMWA_CAPTION_COLOR`/
-`DWMWA_BORDER_COLOR` call may appear in `brdwin.cxx`/`salframe.cxx` —
-`consumption.status` must stay `not-wired`, the mirror of the statusbar contract's
-"specified" pattern for a fact that is currently false. 16 mutation tests;
+in `FileDefinitionWidgetDraw.cxx`. It then pins both consumers: VCL-rendered
+normal/small/tear-off bands select active/deactive fill, text, border, and
+caption-symbol colors in `brdwin.cxx`; Windows top-level frames set DWM caption,
+border, and text colors in `salframe.cxx` and refresh on `WM_NCACTIVATE`.
+High contrast resets all three DWM attributes to `DWMWA_COLOR_DEFAULT`, while
+forbidden client-side frame-extension and non-client hit-test markers keep OS
+ownership explicit. 19 focused tests (18 mutations plus production);
 `runtime_verified: false`.
 
 ### Notification overlay shell (WIN-SHL-003)
@@ -1695,8 +1697,8 @@ install/repair/upgrade/uninstall/restart result is claimed and
 
 `pending-native-surface-ownership.json` (contract
 `material-pending-native-surface-ownership`) closes the contract-ownership gap
-for three native-shell rows. It pins the real source owner and stable markers
-for updater lifecycle, Windows title bars, and Writer canvas;
+for two native-shell rows. It pins the real source owner and stable markers
+for updater lifecycle and Writer canvas;
 it also requires every row
 to remain `pending` with empty implementation evidence. The contract is a
 fail-closed planning boundary, not Material rewrite credit. Three mutation/

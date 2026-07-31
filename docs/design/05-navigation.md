@@ -523,7 +523,7 @@ does not require.
 
 | State | Tokens |
 | --- | --- |
-| Active window | `@surface-container` bar, `@on-surface` title |
+| Active window | `active*` slots: `@primary` fill/border, `@on-primary` title |
 | Inactive window | `deactive*` slots: `@disabled-container` / `@outline` / `@outline-variant` |
 | Caption hover (min/max) | `@outline-variant` fill |
 | Close hover | system signal red with white glyph — a deliberate Windows convention, kept as a platform literal rather than a palette role |
@@ -556,8 +556,9 @@ the middle so both the document extension and application remain visible
 ### 7.7 Platform notes
 
 Windows-first: DWM owns the frame; Material supplies colours through the
-active/deactive style slots only. The close-hover red is intentionally *not* a
-Material palette role.
+active/deactive style slots only and refreshes them on non-client activation.
+High contrast returns the DWM color attributes to system defaults. The
+close-hover red is intentionally *not* a Material palette role.
 
 ### 7.8 Verification hooks
 

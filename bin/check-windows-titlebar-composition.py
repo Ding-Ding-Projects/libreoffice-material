@@ -5,11 +5,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Fail-closed source contract for the Material window/floating title bars (WIN-NAV-007).
+"""Fail-closed source contract for Material window/floating title bars (WIN-NAV-007).
 
-``qa/windows-ui-contract/titlebar-composition.json`` pins exactly what the row's
-compiled-but-unverified gates already claim -- and, crucially, an ABSENCE fact that keeps
-the row honest. This checker cross-validates all of it against the real tree:
+``qa/windows-ui-contract/titlebar-composition.json`` pins the complete source
+composition and cross-validates it against the real tree:
 
 * ``metrics`` -- definition.xml must carry ``height-window-title`` = 18 and
   ``height-floating-title`` = 14 with the exact values (metric drift fails closed);
@@ -20,17 +19,12 @@ the row honest. This checker cross-validates all of it against the real tree:
   ``@disabled-container`` / ``@outline`` / ``@outline-variant``), and every referenced
   palette role must exist in *both* the light and dark palettes;
 * ``owner`` -- FileDefinitionWidgetDraw.cxx must carry the generic StyleSettings push
-  markers in *code* (comments stripped), proving the metrics/colours are wired into
-  ``StyleSettings`` -- shared cross-control, cross-platform plumbing, not a title-bar
-  render; and
-* ``consumption`` -- the honest half. ``status`` must stay ``"not-wired"`` and the
-  declared markers (``GetActiveColor``/``GetDeactiveColor``/... in brdwin.cxx and the DWM
-  caption/border/text-colour attributes in salframe.cxx) must stay **absent** from
-  comment-stripped code. These absence markers are intentionally fragile: the day a
-  future commit genuinely wires an active/inactive visual distinction (a real,
-  build-verifiable improvement) this checker fails closed and demands a coordinated
-  registry + inventory-row update, rather than letting the row drift silently to a
-  claimed pass.
+  markers in comment-stripped code; and
+* ``consumption`` -- brdwin.cxx must consume all six active/deactive slots for
+  VCL-rendered normal/small/tear-off bands, while salframe.cxx must supply those slots to
+  DWM caption/border/text attributes, reset to DWM defaults in high contrast, and refresh
+  on ``WM_NCACTIVATE``. Forbidden client-side frame/hit-test markers stay absent so DWM
+  ownership cannot silently erode.
 
 It is source evidence only: ``runtime_verified`` is false throughout -- no native build,
 title-bar pixels, or runtime active/inactive capture are claimed.
@@ -78,7 +72,7 @@ def load_repository(repo_root: Path = REPOSITORY) -> tuple[dict[str, Any], dict[
         paths.add(owner["source"])
     consumption = registry.get("consumption")
     if isinstance(consumption, dict):
-        for entry in consumption.get("absent_markers", []) or []:
+        for entry in consumption.get("renderers", []) or []:
             if isinstance(entry, dict) and isinstance(entry.get("source"), str):
                 paths.add(entry["source"])
     contents: dict[str, str] = {}
@@ -210,36 +204,53 @@ def _validate_owner(
 def _validate_consumption(
     consumption: Mapping[str, Any], contents: Mapping[str, str], errors: list[str]
 ) -> None:
-    # Honest guard: the frame-activation slots are pushed into StyleSettings but nothing
-    # consumes them for an active/inactive distinction. This fact must NOT be promoted to
-    # a claimed wiring.
-    if consumption.get("status") != "not-wired":
-        errors.append(
-            "consumption:status:must stay 'not-wired' (nothing consumes the active/deactive "
-            "slots for a visual distinction -- brdwin.cxx and the DWM chrome are unwired; "
-            "see docs/design/05-navigation.md 7.1/7.7)"
-        )
-    entries = consumption.get("absent_markers")
-    if not isinstance(entries, list) or not entries:
-        errors.append("consumption:absent_markers:non-empty array required")
+    if consumption.get("status") != "source-implemented":
+        errors.append("consumption:status:must be 'source-implemented'")
+    if consumption.get("material_guard") != "VCL_FILE_WIDGET_THEME=material":
+        errors.append("consumption:material_guard:exact Material opt-in required")
+    if consumption.get("high_contrast_policy") != "system-owned":
+        errors.append("consumption:high_contrast_policy:must be system-owned")
+    if consumption.get("activation_source") != "WM_NCACTIVATE":
+        errors.append("consumption:activation_source:must be WM_NCACTIVATE")
+
+    entries = consumption.get("renderers")
+    if not isinstance(entries, list) or len(entries) != 2:
+        errors.append("consumption:renderers:exactly two renderer contracts required")
         return
+    names = {entry.get("name") for entry in entries if isinstance(entry, dict)}
+    if names != {"vcl-floating-title-bands", "windows-dwm-top-level-chrome"}:
+        errors.append("consumption:renderers:unexpected renderer names")
     for entry in entries:
         if not isinstance(entry, dict):
-            errors.append("consumption:absent_markers:object required")
+            errors.append("consumption:renderers:object required")
             continue
         source_path = entry.get("source")
         source = contents.get(source_path) if isinstance(source_path, str) else None
         if source is None:
-            errors.append(f"consumption:absent-guard:source {source_path} missing")
+            errors.append(f"consumption:renderer:source {source_path} missing")
             continue
         code = _without_cpp_comments(source)
-        for marker in entry.get("markers", []) or []:
+        required = entry.get("required_markers")
+        if not isinstance(required, list) or not required:
+            errors.append(f"consumption:renderer:{source_path}:required_markers missing")
+            continue
+        for marker in required:
+            if isinstance(marker, str) and marker not in code:
+                errors.append(f"consumption:renderer:{source_path}:missing marker {marker!r}")
+        for marker in entry.get("forbidden_markers", []) or []:
             if isinstance(marker, str) and marker in code:
-                errors.append(
-                    f"consumption:absent-guard:{source_path} now contains {marker!r} in code "
-                    "-- the active/inactive title-bar path is being wired; promote "
-                    "consumption.status and update the inventory row in the same change"
-                )
+                errors.append(f"consumption:renderer:{source_path}:forbidden marker {marker!r}")
+
+    expected_os_owned = {
+        "non-client frame geometry",
+        "caption buttons and close-hover signal",
+        "hit testing and drag/snap gestures",
+        "Alt+Space and Alt+F4 behavior",
+        "DPI and accessibility semantics",
+    }
+    actual_os_owned = consumption.get("os_owned")
+    if not isinstance(actual_os_owned, list) or set(actual_os_owned) != expected_os_owned:
+        errors.append("consumption:os_owned:complete DWM/platform ownership set required")
 
 
 # --------------------------------------------------------------------------------------------------
@@ -258,8 +269,8 @@ def violations(registry: Mapping[str, Any], contents: Mapping[str, str]) -> list
         errors.append("registry:definition_file:unexpected path")
     if registry.get("theme_flag") != "VCL_FILE_WIDGET_THEME":
         errors.append("registry:theme_flag:must be VCL_FILE_WIDGET_THEME")
-    if registry.get("status") != "source-declared":
-        errors.append("registry:status:must be source-declared")
+    if registry.get("status") != "source-implemented":
+        errors.append("registry:status:must be source-implemented")
     if not isinstance(registry.get("runtime_verified"), bool):
         errors.append("registry:runtime_verified:boolean required")
     elif registry["runtime_verified"]:
@@ -312,9 +323,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(
         "Material title-bar composition contract passed: the 18/14 title metrics, the "
         "titleHeight/floatTitleHeight settings and the six frame-activation style slots are "
-        "wired generically into StyleSettings by FileDefinitionWidgetDraw.cxx, and the "
-        "active/inactive consumption path stays honestly not-wired (brdwin.cxx and the DWM "
-        "caption chrome carry none of the absence markers)."
+        "consumed by VCL floating title bands and Windows DWM top-level chrome; high contrast "
+        "returns all DWM colors to system defaults and OS frame behavior remains owned."
     )
     return 0
 

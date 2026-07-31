@@ -1795,7 +1795,7 @@ public:
 
     virtual void set_sort_column(int nColumn) override;
 
-    SvTabListBox& getTreeView();
+    SvTabListBox& getTreeView() { return *m_xTreeView; }
 
     virtual std::unique_ptr<weld::TreeIter> get_dest_row_at_pos(const Point& rPos, bool bDnDMode,
                                                                 bool bAutoScroll = true) override;

@@ -4714,8 +4714,6 @@ void SalInstanceTreeView::set_sort_column(int nColumn)
     }
 }
 
-SvTabListBox& SalInstanceTreeView::getTreeView() { return *m_xTreeView; }
-
 std::unique_ptr<weld::TreeIter>
 SalInstanceTreeView::get_dest_row_at_pos(const Point& rPos, bool bDnDMode, bool bAutoScroll)
 {

@@ -1,5 +1,14 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — notification view-model fixture verification
+
+The isolated Windows native run initially reported one failure in
+`CppunitTest_sfx2_notificationstore`: the auto-dismiss test expected the
+oldest of four records while the default `MaxVisible=3` correctly hid that
+record. The fixture now explicitly sets `MaxVisible=5`; the rerun is **OK
+(35)** with no failures or errors. This is a test-only correction and does not
+claim a full product build or installed-MSI runtime result.
+
 ## 2026-07-31 follow-up — behavior-safe UI conformance slice
 
 The source-only slice updates `sfx2/uiconfig/ui/searchdialog.ui` to use the

@@ -344,6 +344,8 @@ void NotificationViewModelTest::testLatestUndoableCommitUsesHistoryOrder()
 
 void NotificationViewModelTest::testAutoDismissProtectsPinnedAndHighSeverity()
 {
+    NotificationPreferences aPreferences;
+    aPreferences.MaxVisible = 5;
     NotificationCenterSnapshotRef xSnapshot = makeSnapshot({
         makeRecord("old-info", NotificationFolder::Inbox, false, 10,
                    NotificationSeverity::Information),
@@ -353,7 +355,7 @@ void NotificationViewModelTest::testAutoDismissProtectsPinnedAndHighSeverity()
                    NotificationSeverity::Warning),
         makeRecord("new-success", NotificationFolder::Inbox, false, 40,
                    NotificationSeverity::Success),
-    });
+    }, {}, aPreferences);
     const std::vector<NotificationDisplayRow> aRows
         = NotificationViewModel::VisibleCards(*xSnapshot, xSnapshot->Preferences);
     CPPUNIT_ASSERT_EQUAL(OString("old-info"),

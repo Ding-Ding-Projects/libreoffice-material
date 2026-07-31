@@ -138,6 +138,7 @@ FAMILY_NATIVE = "native-shell"
 # deck; keep the filename heuristic from assigning it the wrong contract.
 PANEL_FRAGMENT_EXCEPTIONS = {
     "dbaccess/uiconfig/ui/fielddescpanel.ui",
+    "svx/uiconfig/ui/themeselectorpanel.ui",
 }
 
 ALL_FAMILIES = (

@@ -141,8 +141,8 @@
         "rewritten-material": 40
       },
       "panel-fragment": {
-        "total": 452,
-        "pending": 129,
+        "total": 453,
+        "pending": 130,
         "in-progress": 0,
         "rewritten-material": 323
       },
@@ -153,8 +153,8 @@
         "rewritten-material": 47
       },
       "sidebar-panel": {
-        "total": 53,
-        "pending": 1,
+        "total": 52,
+        "pending": 0,
         "in-progress": 0,
         "rewritten-material": 52
       },
@@ -29226,8 +29226,8 @@
       "surface": "svx/uiconfig/ui/themeselectorpanel.ui",
       "owner": "svx",
       "inventory_id": "WIN-CON-007",
-      "family": "sidebar-panel",
-      "rewrite_class": "panel-composition",
+      "family": "panel-fragment",
+      "rewrite_class": "surface-body",
       "rewrite_status": "pending",
       "rewrite_evidence": {
         "commit": null,

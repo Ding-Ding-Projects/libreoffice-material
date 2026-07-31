@@ -1,5 +1,16 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — second non-sidebar classification correction
+
+The ledger now also classifies `svx/uiconfig/ui/themeselectorpanel.ui` as a
+panel fragment. Its runtime host is the `.uno:ThemeSelectorPanel` toolbar
+dropdown (`ThemeColorsPaneWrapper : InterimItemWindow`), not the sfx2 sidebar
+deck; the sidebar contract deliberately excludes toolbox popups. Regeneration,
+the 55-test ledger suite, and the sidebar contract validator pass. Overall
+coverage remains **82.61% (1050/1271), 221 pending**; the correction removes the
+last false sidebar assignment without claiming the label-less fragment is
+rewritten.
+
 ## 2026-07-31 follow-up — ledger host classification correction
 
 The fail-closed ledger now classifies

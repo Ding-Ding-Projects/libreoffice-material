@@ -323,8 +323,8 @@ class LedgerMutationTest(unittest.TestCase):
         by_family = self.ledger["coverage"]["by_family"]
         expected = {
             "dialog": 522, "message-dialog": 76, "options-page": 40,
-            "panel-fragment": 452, "menu": 70, "popover": 47,
-            "sidebar-panel": 53, "wizard-assistant": 1, "native-shell": 10,
+            "panel-fragment": 453, "menu": 70, "popover": 47,
+            "sidebar-panel": 52, "wizard-assistant": 1, "native-shell": 10,
         }
         for fam, count in expected.items():
             self.assertEqual(by_family[fam]["total"], count, fam)

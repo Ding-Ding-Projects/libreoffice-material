@@ -2,15 +2,16 @@
 
 ## Behavior
 
-Eight modal notebook dialogs create their page labels and page bodies in C++
+Twelve modal notebook dialogs create their page labels and page bodies in C++
 after the `.ui` shell loads: Chart **3D View**, **Character**, and **Paragraph**;
 plus shared **Area**, **Border/Area/Transparency**, **Border/Background**,
-**Callout**, and **Customize**. Each shell places its empty, scrollable left-tab
+**Callout**, **Customize**, and **Format Cells**; and Writer **Envelope**,
+**Footnote/Endnote**, and **Format Section**. Each shell places its empty, scrollable left-tab
 notebook inside a Material content grid: 12 px on every edge, 6 px row spacing,
 and 12 px column spacing. Titles, welded IDs, page factories, button responses,
 Enter default, and cancellation behavior are unchanged.
 
-The burn-down ledger classifies these eight resources as
+The burn-down ledger classifies these twelve resources as
 `runtime-dialog-shell`/`dialog-composition`. That family does not weaken the
 ordinary static-dialog predicate; a surface joins only through the explicit
 allow-list and a contract proving both its `.ui` shell and its C++ page host.
@@ -30,7 +31,11 @@ runtime controllers contribute the pages. The feature is scoped to:
   `borderbackgrounddialog.ui` with `cui/source/tabpages/bbdlg.cxx`;
 - `cui/uiconfig/ui/calloutdialog.ui` with `cui/source/tabpages/labdlg.cxx`;
 - `cui/uiconfig/ui/customizedialog.ui` with
-  `cui/source/customize/cfg.cxx`.
+  `cui/source/customize/cfg.cxx`;
+- `cui/uiconfig/ui/formatcellsdialog.ui` with
+  `cui/source/dialogs/sdrcelldlg.cxx`;
+- `sw/uiconfig/swriter/ui/envdialog.ui`, `footendnotedialog.ui`, and
+  `formatsectiondialog.ui` with their owning Writer controllers.
 
 Adding another shell requires an intentional contract row, classifier allow-list
 entry, source host markers, mutation coverage, and independent evidence. An
@@ -50,7 +55,7 @@ empty notebook alone is never sufficient.
 
 ## Security considerations
 
-All eight dialogs remain modal and retain their existing OK/Cancel response semantics.
+All twelve dialogs remain modal and retain their existing OK/Cancel response semantics.
 No data source, persistence path, privilege boundary, network request, or page
 factory changes. The checker strips C++ comments before locating host markers,
 so a commented-out page constructor cannot masquerade as live implementation.
@@ -66,7 +71,7 @@ python bin/check-material-rewrite-ledger.py
 python -m unittest bin/test_material_rewrite_ledger.py
 ```
 
-The contract and 17 mutation tests prove source composition only.
+The contract and 18 mutation tests prove source composition only.
 `runtime_verified` is `false`; no new native dialog capture, keyboard trace,
 screen-reader transcript, or scale matrix is claimed.
 

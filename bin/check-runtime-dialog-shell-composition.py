@@ -47,6 +47,10 @@ EXPECTED_SURFACES = {
     "cui/uiconfig/ui/borderbackgrounddialog.ui": ("cui", "unassigned"),
     "cui/uiconfig/ui/calloutdialog.ui": ("cui", "unassigned"),
     "cui/uiconfig/ui/customizedialog.ui": ("cui", "unassigned"),
+    "cui/uiconfig/ui/formatcellsdialog.ui": ("cui", "unassigned"),
+    "sw/uiconfig/swriter/ui/envdialog.ui": ("sw", "WIN-WR-001"),
+    "sw/uiconfig/swriter/ui/footendnotedialog.ui": ("sw", "WIN-WR-001"),
+    "sw/uiconfig/swriter/ui/formatsectiondialog.ui": ("sw", "WIN-WR-001"),
 }
 
 
@@ -374,6 +378,32 @@ def _validate_shell(
         errors.append(f"{context}: host source {source!r} is missing")
         return
     normalised = _normalise_source(contents[source])
+    region_start = host.get("region_start")
+    region_end = host.get("region_end")
+    if region_start is not None or region_end is not None:
+        if not (
+            isinstance(region_start, str)
+            and region_start.strip()
+            and isinstance(region_end, str)
+            and region_end.strip()
+        ):
+            errors.append(f"{context}: host region_start and region_end must both be non-empty")
+            return
+        region_start = " ".join(region_start.split())
+        region_end = " ".join(region_end.split())
+        start_count = normalised.count(region_start)
+        end_count = normalised.count(region_end)
+        if start_count != 1 or end_count != 1:
+            errors.append(
+                f"{context}: host region bounds occur {start_count}/{end_count} times in {source}"
+            )
+            return
+        start_index = normalised.index(region_start)
+        end_index = normalised.index(region_end)
+        if end_index <= start_index:
+            errors.append(f"{context}: host region bounds are reversed")
+            return
+        normalised = normalised[start_index:end_index]
     positions: list[int] = []
     for marker in host.get("ordered_markers", []):
         if not isinstance(marker, str) or not marker.strip():

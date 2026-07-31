@@ -318,6 +318,10 @@ RUNTIME_DIALOG_SHELL_SURFACES = frozenset(
         "cui/uiconfig/ui/borderbackgrounddialog.ui",
         "cui/uiconfig/ui/calloutdialog.ui",
         "cui/uiconfig/ui/customizedialog.ui",
+        "cui/uiconfig/ui/formatcellsdialog.ui",
+        "sw/uiconfig/swriter/ui/envdialog.ui",
+        "sw/uiconfig/swriter/ui/footendnotedialog.ui",
+        "sw/uiconfig/swriter/ui/formatsectiondialog.ui",
     }
 )
 

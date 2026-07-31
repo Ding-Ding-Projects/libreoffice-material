@@ -29,6 +29,7 @@ VIEW3D = "chart2/uiconfig/ui/3dviewdialog.ui"
 CUSTOMIZE = "cui/uiconfig/ui/customizedialog.ui"
 SHAPE_PARAGRAPH = "chart2/uiconfig/ui/paradialog.ui"
 BORDER_AREA = "cui/uiconfig/ui/borderareatransparencydialog.ui"
+FORMAT_SECTION = "sw/uiconfig/swriter/ui/formatsectiondialog.ui"
 VIEW3D_HOST = "chart2/source/controller/dialogs/dlg_View3D.cxx"
 SHAPE_PARAGRAPH_HOST = "chart2/source/controller/dialogs/dlg_ShapeParagraph.cxx"
 BORDER_HOST = "cui/source/tabpages/bbdlg.cxx"
@@ -167,6 +168,12 @@ class RuntimeDialogShellCompositionTest(unittest.TestCase):
         markers[2], markers[4] = markers[4], markers[2]
         errors = self.failures(registry=registry)
         self.assertTrue(any("host markers are out of declared order" in item for item in errors), errors)
+
+    def test_bounded_host_region_drift_fails(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        self.shell(registry, FORMAT_SECTION)["host"]["region_end"] = "missing region end"
+        errors = self.failures(registry=registry)
+        self.assertTrue(any(FORMAT_SECTION in item and "host region bounds" in item for item in errors), errors)
 
     def test_ledger_family_drift_fails(self) -> None:
         ledger = copy.deepcopy(self.ledger)

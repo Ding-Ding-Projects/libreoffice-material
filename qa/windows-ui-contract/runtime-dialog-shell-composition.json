@@ -387,6 +387,201 @@
         ],
         "page_ids": ["menus", "toolbars", "contextmenus", "keyboard", "events"]
       }
+    },
+    {
+      "surface": "cui/uiconfig/ui/formatcellsdialog.ui",
+      "owner": "cui",
+      "inventory_id": "unassigned",
+      "dialog": {
+        "id": "FormatCellsDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "formatcellsdialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["reset", "standard"]
+      },
+      "host": {
+        "source": "cui/source/dialogs/sdrcelldlg.cxx",
+        "ordered_markers": [
+          "SfxTabDialogController(pParent, u\"cui/ui/formatcellsdialog.ui\"_ustr, u\"FormatCellsDialog\"_ustr, &rAttr, bStyle)",
+          "AddTabPage(u\"font\"_ustr, TabResId(RID_TAB_FONT.aLabel), RID_SVXPAGE_CHAR_NAME, RID_M + RID_TAB_FONT.sIconName);",
+          "AddTabPage(u\"fonteffects\"_ustr, TabResId(RID_TAB_FONTEFFECTS.aLabel), RID_SVXPAGE_CHAR_EFFECTS, RID_M + RID_TAB_FONTEFFECTS.sIconName);",
+          "AddTabPage(u\"position\"_ustr, TabResId(RID_TAB_POSITION.aLabel), RID_SVXPAGE_CHAR_POSITION, RID_M + RID_TAB_POSITION.sIconName);",
+          "AddTabPage(u\"highlight\"_ustr, TabResId(RID_TAB_HIGHLIGHTING.aLabel), RID_SVXPAGE_BKG, RID_M + RID_TAB_HIGHLIGHTING.sIconName);",
+          "AddTabPage(u\"indentspacing\"_ustr, TabResId(RID_TAB_INDENTS.aLabel), RID_SVXPAGE_STD_PARAGRAPH, RID_M + RID_TAB_INDENTS.sIconName);",
+          "AddTabPage(u\"asian\"_ustr, TabResId(RID_TAB_ASIANTYPO.aLabel), RID_SVXPAGE_PARA_ASIAN, RID_M + RID_TAB_ASIANTYPO.sIconName);",
+          "AddTabPage(u\"alignment\"_ustr, TabResId(RID_TAB_ALIGNMENT.aLabel), SvxParaAlignTabPage::Create, SvxParaAlignTabPage::GetSdrRanges, RID_M + RID_TAB_ALIGNMENT.sIconName);",
+          "AddTabPage(u\"border\"_ustr, TabResId(RID_TAB_BORDER.aLabel), RID_SVXPAGE_BORDER, RID_M + RID_TAB_BORDER.sIconName);",
+          "AddTabPage(u\"area\"_ustr, TabResId(RID_TAB_BACKGROUND.aLabel), RID_SVXPAGE_AREA, RID_M + RID_TAB_BACKGROUND.sIconName);",
+          "AddTabPage(u\"shadow\"_ustr, TabResId(RID_TAB_SHADOW.aLabel), SvxShadowTabPage::Create, RID_M + RID_TAB_SHADOW.sIconName);"
+        ],
+        "page_ids": ["font", "fonteffects", "position", "highlight", "indentspacing", "asian", "alignment", "border", "area", "shadow"],
+        "conditional_pages": ["position", "highlight", "indentspacing", "asian", "alignment", "shadow"]
+      }
+    },
+    {
+      "surface": "sw/uiconfig/swriter/ui/envdialog.ui",
+      "owner": "sw",
+      "inventory_id": "WIN-WR-001",
+      "dialog": {
+        "id": "EnvDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "envdialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["user", "modify", "reset"]
+      },
+      "host": {
+        "source": "sw/source/ui/envelp/envlop1.cxx",
+        "ordered_markers": [
+          "SfxTabDialogController(pParent, u\"modules/swriter/ui/envdialog.ui\"_ustr, u\"EnvDialog\"_ustr, &rSet)",
+          "AddTabPage(u\"envelope\"_ustr, TabResId(RID_TAB_ENVELOPE.aLabel), SwEnvPage::Create, RID_L + RID_TAB_ENVELOPE.sIconName);",
+          "AddTabPage(u\"format\"_ustr, TabResId(RID_TAB_ENV_FORMAT.aLabel), SwEnvFormatPage::Create, RID_L + RID_TAB_ENV_FORMAT.sIconName);",
+          "AddTabPage(u\"printer\"_ustr, TabResId(RID_TAB_PRINTER.aLabel), SwEnvPrtPage::Create, RID_L + RID_TAB_PRINTER.sIconName);"
+        ],
+        "page_ids": ["envelope", "format", "printer"]
+      }
+    },
+    {
+      "surface": "sw/uiconfig/swriter/ui/footendnotedialog.ui",
+      "owner": "sw",
+      "inventory_id": "WIN-WR-001",
+      "dialog": {
+        "id": "FootEndnoteDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "footendnotedialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": []
+      },
+      "host": {
+        "source": "sw/source/ui/misc/docfnote.cxx",
+        "ordered_markers": [
+          "SfxTabDialogController(pParent, u\"modules/swriter/ui/footendnotedialog.ui\"_ustr, u\"FootEndnoteDialog\"_ustr)",
+          "AddTabPage(u\"footnotes\"_ustr, TabResId(RID_TAB_FOOTNOTES.aLabel), SwFootNoteOptionPage::Create, RID_L + RID_TAB_FOOTNOTES.sIconName);",
+          "AddTabPage(u\"endnotes\"_ustr, TabResId(RID_TAB_ENDNOTES.aLabel), SwEndNoteOptionPage::Create, RID_L + RID_TAB_ENDNOTES.sIconName);"
+        ],
+        "page_ids": ["footnotes", "endnotes"]
+      }
+    },
+    {
+      "surface": "sw/uiconfig/swriter/ui/formatsectiondialog.ui",
+      "owner": "sw",
+      "inventory_id": "WIN-WR-001",
+      "dialog": {
+        "id": "FormatSectionDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "formatsectiondialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["reset"]
+      },
+      "host": {
+        "source": "sw/source/ui/dialog/uiregionsw.cxx",
+        "region_start": "SwSectionPropertyTabDialog::SwSectionPropertyTabDialog(",
+        "region_end": "SwSectionPropertyTabDialog::~SwSectionPropertyTabDialog()",
+        "ordered_markers": [
+          "SfxTabDialogController(pParent, u\"modules/swriter/ui/formatsectiondialog.ui\"_ustr, u\"FormatSectionDialog\"_ustr, &rSet)",
+          "AddTabPage(u\"columns\"_ustr, TabResId(RID_TAB_COLUMNS.aLabel), SwColumnPage::Create, RID_L + RID_TAB_COLUMNS.sIconName);",
+          "AddTabPage(u\"indents\"_ustr, TabResId(RID_TAB_INDENTSONLY.aLabel), SwSectionIndentTabPage::Create, RID_L + RID_TAB_INDENTSONLY.sIconName);",
+          "AddTabPage(u\"background\"_ustr, TabResId(RID_TAB_BACKGROUND.aLabel), pFact->GetTabPageCreatorFunc(RID_SVXPAGE_BKG), RID_L + RID_TAB_BACKGROUND.sIconName);",
+          "AddTabPage(u\"notes\"_ustr, TabResId(RID_TAB_FOOTENDNOTES.aLabel), SwSectionFootnoteEndTabPage::Create, RID_L + RID_TAB_FOOTENDNOTES.sIconName);"
+        ],
+        "page_ids": ["columns", "indents", "background", "notes"],
+        "conditional_pages": ["columns", "indents", "notes"]
+      }
     }
   ]
 }

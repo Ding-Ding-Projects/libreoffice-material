@@ -1,5 +1,18 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — behavior-safe UI conformance slice
+
+The source-only slice updates `sfx2/uiconfig/ui/searchdialog.ui` to use the
+existing `RET_OK` response for its primary action and adds Material spacing,
+ellipsizing, and mnemonic metadata to the existing
+`dbaccess/uiconfig/ui/fielddescpanel.ui` controls. No controls or runtime-built
+content were invented. XML parsing, `check-material-dialog-anatomy.py`,
+`check-ui-a11y-fatals.py`, and the 55-test rewrite-ledger unit suite all pass.
+The fail-closed ledger remains **82.61% (1050/1271), 221 pending** because the
+field-description child window is still classified outside the panel-fragment
+contract; this is recorded as a source improvement, not a fabricated coverage
+credit.
+
 ## 2026-07-31 follow-up — GUI-lag issue status
 
 Open issue [#12](https://github.com/Ding-Ding-Projects/libreoffice-material/issues/12)

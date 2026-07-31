@@ -15,6 +15,13 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-31 milestone — behavior-safe UI slice:** the existing search dialog
+primary action now uses `RET_OK`, and the existing database field-description
+panel has Material margins plus ellipsizing and mnemonic metadata. XML,
+dialog-anatomy, accessibility-fatal, and 55 rewrite-ledger unit tests pass.
+The fail-closed headline remains **82.61% (1050/1271), 221 pending** because
+the runtime-composed child panel is not credited by the current ledger rule.
+
 **2026-07-29 milestone — source bug audit and evidence correction:** a
 post-pull audit closed the six product bug clusters recorded below at source
 level. Notification selection now follows visible rows, Undo skips prior Undo

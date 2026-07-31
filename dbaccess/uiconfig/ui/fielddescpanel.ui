@@ -8,6 +8,10 @@
     <property name="can_focus">False</property>
     <property name="hexpand">True</property>
     <property name="vexpand">True</property>
+    <property name="margin_start">12</property>
+    <property name="margin_end">12</property>
+    <property name="margin_top">12</property>
+    <property name="margin_bottom">12</property>
     <property name="row_spacing">6</property>
     <property name="column_spacing">12</property>
     <child>
@@ -15,6 +19,8 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="hexpand">True</property>
+        <property name="ellipsize">end</property>
+        <property name="mnemonic_widget">textview</property>
       </object>
       <packing>
         <property name="left_attach">0</property>

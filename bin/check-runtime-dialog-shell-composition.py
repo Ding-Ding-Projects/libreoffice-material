@@ -13,10 +13,11 @@ shells through the ordinary static-dialog predicate would require fake labels;
 crediting them without checking the host would accept an empty dialog.  This
 contract therefore requires both halves at once:
 
-* the static shell has a modal titled dialog, Material inset grid, empty
-  left-tab notebook, safe footer/default action, and no legacy border width;
-* the named C++ host binds that notebook and creates every declared page in the
-  declared order; and
+* the static shell preserves its declared modality and title source, Material
+  inset grid, empty left-tab notebook, safe footer/default action, and no
+  legacy border width;
+* the named C++ host binds that notebook and creates every declared page via
+  ordered markers or an exact conditional occurrence map; and
 * the burn-down ledger classifies only the explicit allow-list as
   ``runtime-dialog-shell`` and, once credited, cites this exact contract.
 
@@ -26,6 +27,7 @@ This is source-composition evidence only. ``runtime_verified`` remains false.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 import re
 import sys
@@ -40,6 +42,7 @@ LEDGER_PATH = "qa/windows-ui-contract/material-rewrite-ledger.json"
 CONTRACT = "material-runtime-dialog-shell-composition"
 EXPECTED_SURFACES = {
     "chart2/uiconfig/ui/3dviewdialog.ui": ("chart2", "WIN-CH-001"),
+    "chart2/uiconfig/ui/attributedialog.ui": ("chart2", "WIN-CH-001"),
     "chart2/uiconfig/ui/chardialog.ui": ("chart2", "WIN-CH-001"),
     "chart2/uiconfig/ui/paradialog.ui": ("chart2", "WIN-CH-001"),
     "cui/uiconfig/ui/areadialog.ui": ("cui", "unassigned"),
@@ -48,12 +51,14 @@ EXPECTED_SURFACES = {
     "cui/uiconfig/ui/calloutdialog.ui": ("cui", "unassigned"),
     "cui/uiconfig/ui/customizedialog.ui": ("cui", "unassigned"),
     "cui/uiconfig/ui/formatcellsdialog.ui": ("cui", "unassigned"),
+    "cui/uiconfig/ui/hyperlinkdlg.ui": ("cui", "WIN-SYS-015"),
     "filter/uiconfig/ui/pdfoptionsdialog.ui": ("filter", "WIN-SYS-002"),
     "sfx2/uiconfig/ui/documentpropertiesdialog.ui": ("sfx2", "WIN-SYS-003"),
     "sw/uiconfig/swriter/ui/characterproperties.ui": ("sw", "WIN-WR-001"),
     "sw/uiconfig/swriter/ui/envdialog.ui": ("sw", "WIN-WR-001"),
     "sw/uiconfig/swriter/ui/footendnotedialog.ui": ("sw", "WIN-WR-001"),
     "sw/uiconfig/swriter/ui/formatsectiondialog.ui": ("sw", "WIN-WR-001"),
+    "sw/uiconfig/swriter/ui/fielddialog.ui": ("sw", "WIN-WR-001"),
     "sw/uiconfig/swriter/ui/paradialog.ui": ("sw", "WIN-WR-001"),
     "sw/uiconfig/swriter/ui/picturedialog.ui": ("sw", "WIN-WR-001"),
     "sw/uiconfig/swriter/ui/tableproperties.ui": ("sw", "WIN-WR-001"),
@@ -257,10 +262,24 @@ def _validate_shell(
         errors.append(f"{context}: GtkDialog {dialog_id!r} is missing")
         return
     dialog_props = _direct_properties(dialog)
-    if dialog_spec.get("modal") is not True or not _bool(dialog_props.get("modal")):
-        errors.append(f"{context}: dialog must remain modal=True")
-    if dialog_spec.get("title_required") is not True or not dialog_props.get("title", "").strip():
-        errors.append(f"{context}: dialog must retain a non-empty title")
+    expected_modal = dialog_spec.get("modal")
+    if not isinstance(expected_modal, bool):
+        errors.append(f"{context}: dialog modal contract must be a boolean")
+    elif _bool(dialog_props.get("modal")) != expected_modal:
+        errors.append(f"{context}: dialog must remain modal={expected_modal}")
+
+    title_source = dialog_spec.get("title_source", "static")
+    if dialog_spec.get("title_required") is not True:
+        errors.append(f"{context}: dialog title_required must remain True")
+    elif title_source == "static":
+        if not dialog_props.get("title", "").strip():
+            errors.append(f"{context}: dialog must retain a non-empty static title")
+    elif title_source == "runtime":
+        runtime_title_marker = dialog_spec.get("runtime_title_marker")
+        if not isinstance(runtime_title_marker, str) or not runtime_title_marker.strip():
+            errors.append(f"{context}: runtime title source requires a non-empty marker")
+    else:
+        errors.append(f"{context}: dialog title_source must be 'static' or 'runtime'")
 
     grid_spec = shell.get("content_grid")
     if not isinstance(grid_spec, Mapping):
@@ -444,6 +463,17 @@ def _validate_shell(
             errors.append(f"{context}: host region bounds are reversed")
             return
         normalised = normalised[start_index:end_index]
+
+    if title_source == "runtime":
+        runtime_title_marker = " ".join(
+            str(dialog_spec.get("runtime_title_marker", "")).split()
+        )
+        marker_count = normalised.count(runtime_title_marker)
+        if marker_count != 1:
+            errors.append(
+                f"{context}: runtime title marker occurs {marker_count} times in {source}: "
+                f"{runtime_title_marker}"
+            )
     positions: list[int] = []
     for marker in host.get("ordered_markers", []):
         if not isinstance(marker, str) or not marker.strip():
@@ -464,9 +494,43 @@ def _validate_shell(
     if not isinstance(page_ids, list) or not page_ids:
         errors.append(f"{context}: host page_ids must be a non-empty list")
     else:
-        for page_id in page_ids:
-            if not isinstance(page_id, str) or f'u"{page_id}"_ustr' not in marker_blob:
-                errors.append(f"{context}: runtime page {page_id!r} has no ordered host marker")
+        page_occurrences = host.get("page_occurrences")
+        if page_occurrences is not None:
+            if not isinstance(page_occurrences, Mapping) or not page_occurrences:
+                errors.append(f"{context}: host page_occurrences must be a non-empty object")
+            else:
+                expected_occurrences: dict[str, int] = {}
+                for page_id, count in page_occurrences.items():
+                    if not isinstance(page_id, str) or not page_id:
+                        errors.append(f"{context}: every page_occurrences key must be non-empty")
+                    elif not isinstance(count, int) or isinstance(count, bool) or count < 1:
+                        errors.append(
+                            f"{context}: page occurrence count for {page_id!r} must be positive"
+                        )
+                    else:
+                        expected_occurrences[page_id] = count
+                actual_occurrences = Counter(
+                    re.findall(r'AddTabPage\s*\(\s*u"([^"]+)"_ustr', normalised)
+                )
+                if actual_occurrences != Counter(expected_occurrences):
+                    errors.append(
+                        f"{context}: runtime page occurrences drifted: "
+                        f"{dict(sorted(actual_occurrences.items()))!r} != "
+                        f"{dict(sorted(expected_occurrences.items()))!r}"
+                    )
+                if set(page_ids) != set(expected_occurrences):
+                    errors.append(
+                        f"{context}: page_ids must exactly match page_occurrences keys"
+                    )
+        else:
+            for page_id in page_ids:
+                encoded_tokens = (f'u"{page_id}"_ustr', f'"{page_id}"')
+                if not isinstance(page_id, str) or not any(
+                    token in marker_blob for token in encoded_tokens
+                ):
+                    errors.append(
+                        f"{context}: runtime page {page_id!r} has no ordered host marker"
+                    )
 
 
 def violations(
@@ -579,7 +643,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
     print(
         f"Runtime dialog shell composition passed: {len(EXPECTED_SURFACES)} explicit "
-        "empty-notebook shells retain Material inset grids, safe footers, and ordered "
+        "empty-notebook shells retain Material inset grids, safe footers, and declared "
         "C++ page hosts; runtime_verified=false."
     )
     return 0

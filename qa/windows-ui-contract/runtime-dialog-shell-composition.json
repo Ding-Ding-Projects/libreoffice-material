@@ -6,7 +6,7 @@
   "runtime_verified": false,
   "design_reference": "docs/design/08-dialogs.md#runtime-composed-dialog-shells",
   "ledger": "qa/windows-ui-contract/material-rewrite-ledger.json",
-  "note": "Fail-closed ownership for GtkDialog shells whose GtkNotebook pages are created by C++ at runtime. These rows cannot truthfully carry static content labels: the shell owns the title, footer, notebook host, and Material inset grid, while the controller owns the page labels and bodies. Credit requires both halves. This contract does not relax the ordinary static dialog predicate and claims source composition only; no runtime pixels are claimed.",
+  "note": "Fail-closed ownership for GtkDialog shells whose GtkNotebook pages are created by C++ at runtime. These rows cannot truthfully carry static content labels: the shell owns the footer, notebook host, and Material inset grid; the title remains with its declared static or runtime owner; and the controller owns the page labels and bodies. Credit requires both halves. This contract does not relax the ordinary static dialog predicate and claims source composition only; no runtime pixels are claimed.",
   "shells": [
     {
       "surface": "chart2/uiconfig/ui/3dviewdialog.ui",
@@ -56,6 +56,83 @@
           "m_xIllumination.reset(new ThreeD_SceneIllumination_TabPage(m_xTabControl->get_page(u\"illumination\"_ustr), m_xDialog.get(), xSceneProperties, xChartModel));"
         ],
         "page_ids": ["geometry", "appearance", "illumination"]
+      }
+    },
+    {
+      "surface": "chart2/uiconfig/ui/attributedialog.ui",
+      "owner": "chart2",
+      "inventory_id": "WIN-CH-001",
+      "dialog": {
+        "id": "AttributeDialog",
+        "modal": true,
+        "title_required": true,
+        "title_source": "runtime",
+        "runtime_title_marker": "m_xDialog->set_title(rDialogParameter.getLocalizedName());"
+      },
+      "content_grid": {
+        "id": "attributedialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "reset", "response": 101},
+          {"id": "ok", "response": -5},
+          {"id": "cancel", "response": -6},
+          {"id": "help", "response": -11}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": []
+      },
+      "host": {
+        "source": "chart2/source/controller/dialogs/dlg_ObjectProperties.cxx",
+        "region_start": "SchAttribTabDlg::SchAttribTabDlg(weld::Window* pParent,",
+        "region_end": "SchAttribTabDlg::~SchAttribTabDlg()",
+        "ordered_markers": [
+          "SfxTabDialogController(pParent, u\"modules/schart/ui/attributedialog.ui\"_ustr, u\"AttributeDialog\"_ustr, pAttr)",
+          "m_xDialog->set_title(rDialogParameter.getLocalizedName());",
+          "ObjectType eType = rDialogParameter.getObjectType();",
+          "switch (eType)",
+          "GetOKButton().connect_clicked(LINK(this, SchAttribTabDlg, OKPressed));"
+        ],
+        "page_ids": ["alignment", "area", "asian", "axislabel", "axispos", "border", "colorpalette", "datalabels", "datapointoption", "datatable", "effects", "fontname", "layout", "legendpos", "numberformat", "options", "polaroptions", "scale", "transparent", "trendline", "xerrorbar", "yerrorbar"],
+        "page_occurrences": {
+          "alignment": 2,
+          "area": 6,
+          "asian": 4,
+          "axislabel": 1,
+          "axispos": 1,
+          "border": 13,
+          "colorpalette": 3,
+          "datalabels": 1,
+          "datapointoption": 1,
+          "datatable": 1,
+          "effects": 6,
+          "fontname": 6,
+          "layout": 1,
+          "legendpos": 1,
+          "numberformat": 2,
+          "options": 1,
+          "polaroptions": 1,
+          "scale": 1,
+          "transparent": 5,
+          "trendline": 1,
+          "xerrorbar": 1,
+          "yerrorbar": 1
+        },
+        "conditional_pages": ["alignment", "area", "asian", "axispos", "border", "colorpalette", "datapointoption", "layout", "numberformat", "options", "polaroptions", "scale", "transparent"]
       }
     },
     {
@@ -443,6 +520,53 @@
       }
     },
     {
+      "surface": "cui/uiconfig/ui/hyperlinkdlg.ui",
+      "owner": "cui",
+      "inventory_id": "WIN-SYS-015",
+      "dialog": {
+        "id": "HyperlinkDialog",
+        "modal": false,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "hyperlinkdialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["reset", "apply"]
+      },
+      "host": {
+        "source": "cui/source/dialogs/hyperlinkdlg.cxx",
+        "ordered_markers": [
+          "SfxTabDialogController(pParent, u\"cui/ui/hyperlinkdlg.ui\"_ustr, u\"HyperlinkDialog\"_ustr)",
+          "AddTabPage(\"Internet\", TabResId(RID_TAB_HLINTERNET.aLabel), HyperlinkInternetTP::Create, RID_TAB_HLINTERNET.sIconName);",
+          "AddTabPage(\"Mail\", TabResId(RID_TAB_HLMAIL.aLabel), HyperlinkMailTabPage::Create, RID_TAB_HLMAIL.sIconName);",
+          "AddTabPage(\"Document\", TabResId(RID_TAB_HLDOC.aLabel), HyperlinkDocTabPage::Create, RID_TAB_HLDOC.sIconName);",
+          "AddTabPage(\"New Document\", TabResId(RID_TAB_HLDOCN.aLabel), HyperlinkDocNewTabPage::Create, RID_TAB_HLDOCN.sIconName);"
+        ],
+        "page_ids": ["Internet", "Mail", "Document", "New Document"]
+      }
+    },
+    {
       "surface": "sw/uiconfig/swriter/ui/envdialog.ui",
       "owner": "sw",
       "inventory_id": "WIN-WR-001",
@@ -531,6 +655,56 @@
           "AddTabPage(u\"endnotes\"_ustr, TabResId(RID_TAB_ENDNOTES.aLabel), SwEndNoteOptionPage::Create, RID_L + RID_TAB_ENDNOTES.sIconName);"
         ],
         "page_ids": ["footnotes", "endnotes"]
+      }
+    },
+    {
+      "surface": "sw/uiconfig/swriter/ui/fielddialog.ui",
+      "owner": "sw",
+      "inventory_id": "WIN-WR-001",
+      "dialog": {
+        "id": "FieldDialog",
+        "modal": false,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "fielddialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["reset"]
+      },
+      "host": {
+        "source": "sw/source/ui/fldui/fldtdlg.cxx",
+        "ordered_markers": [
+          "SfxTabDialogController(pParent, u\"modules/swriter/ui/fielddialog.ui\"_ustr, u\"FieldDialog\"_ustr)",
+          "AddTabPage(u\"document\"_ustr, TabResId(RID_TAB_DOCUMENT.aLabel), SwFieldDokPage::Create, RID_M + RID_TAB_DOCUMENT.sIconName);",
+          "AddTabPage(u\"ref\"_ustr, TabResId(RID_TAB_CROSSREF.aLabel), SwFieldRefPage::Create, RID_M + RID_TAB_CROSSREF.sIconName);",
+          "AddTabPage(u\"functions\"_ustr, TabResId(RID_TAB_FUNCTIONS.aLabel), SwFieldFuncPage::Create, RID_M + RID_TAB_FUNCTIONS.sIconName);",
+          "AddTabPage(u\"docinfo\"_ustr, TabResId(RID_TAB_DOCINFO.aLabel), SwFieldDokInfPage::Create, RID_M + RID_TAB_DOCINFO.sIconName);",
+          "AddTabPage(u\"variables\"_ustr, TabResId(RID_TAB_VARIABLES.aLabel), SwFieldVarPage::Create, RID_M + RID_TAB_VARIABLES.sIconName);",
+          "AddTabPage(u\"database\"_ustr, TabResId(RID_TAB_DATABASE.aLabel), SwFieldDBPage::Create, RID_M + RID_TAB_DATABASE.sIconName);"
+        ],
+        "page_ids": ["document", "ref", "functions", "docinfo", "variables", "database"],
+        "conditional_pages": ["ref", "functions", "database"]
       }
     },
     {

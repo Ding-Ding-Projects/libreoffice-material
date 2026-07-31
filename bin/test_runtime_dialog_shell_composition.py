@@ -26,13 +26,16 @@ sys.modules[SPEC.name] = VALIDATOR
 SPEC.loader.exec_module(VALIDATOR)
 
 VIEW3D = "chart2/uiconfig/ui/3dviewdialog.ui"
+ATTRIBUTE = "chart2/uiconfig/ui/attributedialog.ui"
 CUSTOMIZE = "cui/uiconfig/ui/customizedialog.ui"
+HYPERLINK = "cui/uiconfig/ui/hyperlinkdlg.ui"
 SHAPE_PARAGRAPH = "chart2/uiconfig/ui/paradialog.ui"
 BORDER_AREA = "cui/uiconfig/ui/borderareatransparencydialog.ui"
 FORMAT_SECTION = "sw/uiconfig/swriter/ui/formatsectiondialog.ui"
 PDF_OPTIONS = "filter/uiconfig/ui/pdfoptionsdialog.ui"
 PICTURE = "sw/uiconfig/swriter/ui/picturedialog.ui"
 VIEW3D_HOST = "chart2/source/controller/dialogs/dlg_View3D.cxx"
+ATTRIBUTE_HOST = "chart2/source/controller/dialogs/dlg_ObjectProperties.cxx"
 SHAPE_PARAGRAPH_HOST = "chart2/source/controller/dialogs/dlg_ShapeParagraph.cxx"
 BORDER_HOST = "cui/source/tabpages/bbdlg.cxx"
 
@@ -127,6 +130,39 @@ class RuntimeDialogShellCompositionTest(unittest.TestCase):
         )
         errors = self.failures(contents=contents)
         self.assertTrue(any("scrollable=True" in item for item in errors), errors)
+
+    def test_modeless_contract_drift_fails(self) -> None:
+        contents = self.replace_once(
+            HYPERLINK,
+            '<property name="modal">False</property>',
+            '<property name="modal">True</property>',
+        )
+        errors = self.failures(contents=contents)
+        self.assertTrue(any(HYPERLINK in item and "modal=False" in item for item in errors), errors)
+
+    def test_runtime_title_marker_removed_fails(self) -> None:
+        contents = self.replace_once(
+            ATTRIBUTE_HOST,
+            "m_xDialog->set_title(rDialogParameter.getLocalizedName());",
+            "m_xDialog->set_title_removed(rDialogParameter.getLocalizedName());",
+        )
+        errors = self.failures(contents=contents)
+        self.assertTrue(
+            any(ATTRIBUTE in item and "runtime title marker occurs 0 times" in item for item in errors),
+            errors,
+        )
+
+    def test_runtime_page_occurrence_drift_fails(self) -> None:
+        contents = self.replace_once(
+            ATTRIBUTE_HOST,
+            'AddTabPage(u"xerrorbar"_ustr',
+            'AddTabPage(u"xerrorbar-removed"_ustr',
+        )
+        errors = self.failures(contents=contents)
+        self.assertTrue(
+            any(ATTRIBUTE in item and "runtime page occurrences drifted" in item for item in errors),
+            errors,
+        )
 
     def test_static_page_claim_fails(self) -> None:
         registry = copy.deepcopy(self.registry)

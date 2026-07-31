@@ -203,26 +203,29 @@ runtime. A shell must not acquire a decorative label merely to satisfy a static
 scan, and an empty notebook must not earn Material credit by itself. The
 runtime-composed family therefore requires a two-part source proof:
 
-- the `.ui` shell remains modal and titled, keeps the Help / Cancel / primary
-  footer semantics, and hosts the empty, scrollable left-tab notebook inside a
-  12 px Material inset `GtkGrid` (`row-spacing: 6`, `column-spacing: 12`);
+- the `.ui` shell preserves its declared modal or modeless behavior and its
+  static or runtime title source, keeps the Help / Cancel / primary footer
+  semantics, and hosts the empty, scrollable left-tab notebook inside a 12 px
+  Material inset `GtkGrid` (`row-spacing: 6`, `column-spacing: 12`);
 - the named C++ controller binds that exact notebook and constructs every
   declared page in the contract's order.
 
-The governed set currently contains eighteen shells: Chart **3D View**,
-**Character**, and **Paragraph**; and shared **Area**,
+The governed set currently contains twenty-one shells: Chart **3D View**,
+**Object Attributes**, **Character**, and **Paragraph**; and shared **Area**,
 **Border/Area/Transparency**, **Border/Background**, **Callout**, and
-**Customize**, **Format Cells**, Writer **Envelope**, **Footnote/Endnote**, and
-**Format Section**; plus **PDF Export**, **Document Properties**, and Writer
-**Character**, **Paragraph**, **Picture**, and **Table Properties**. Their page labels and controls remain owned by their existing
+**Customize**, **Format Cells**, **Hyperlink**, Writer **Envelope**, **Fields**,
+**Footnote/Endnote**, and **Format Section**; plus **PDF Export**, **Document
+Properties**, and Writer **Character**, **Paragraph**, **Picture**, and **Table
+Properties**. Their page labels and controls remain owned by their existing
 `SfxTabDialogController` or dedicated controller; shell changes are limited to
 spacing, margins, and notebook overflow behavior. The ordinary `dialog` family
 keeps its full ellipsize-and-mnemonic requirement, so this composition path
 cannot be used to excuse a normal static form.
 
 [`runtime-dialog-shell-composition.json`](../../qa/windows-ui-contract/runtime-dialog-shell-composition.json)
-and its mutation-tested checker lock the explicit eighteen-surface allow-list, shell
-anatomy, footer responses/default, empty notebook, and ordered host markers.
+and its mutation-tested checker lock the explicit twenty-one-surface allow-list,
+shell anatomy, modality, title source, footer responses/default, empty notebook,
+ordered host markers, and the conditional Chart page-occurrence map.
 Missing host pages, an invented static page, lost margins, unsafe footer drift,
 or classification of an unlisted dialog fails closed. This is source evidence
 only: `runtime_verified` is false, and native pixels, keyboard traversal, scale,

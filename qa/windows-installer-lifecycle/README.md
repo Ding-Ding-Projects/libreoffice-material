@@ -18,8 +18,11 @@ any mutation.
 - 64-bit Windows 11 Pro with Windows Sandbox, Hyper-V, the Hyper-V hypervisor,
   and Virtual Machine Platform enabled;
 - an active hypervisor and at least 8 GB of memory available to the Sandbox;
-- network access during preparation so the host can fetch the two exact-tag
-  GitHub assets;
+- an authenticated GitHub CLI during preparation; the host uses
+  `gh release download` for the two exact-tag assets and never a raw HTTP client;
+- the registered Lowlevel MCP server plus its clean checkout and `uv`; Launch
+  creates an off-screen Win32 desktop, starts Windows Sandbox there, and releases
+  that desktop after verified guest disposal without touching the visible session;
 - no need to install the Windows SDK or any test framework.
 
 The generated Sandbox has networking, vGPU, audio input, video input, printer

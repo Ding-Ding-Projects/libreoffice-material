@@ -89,8 +89,16 @@ if ($failures.Count -eq 0) {
         'The host must expose a non-launching prepared-run inspection mode.'
     Assert-Match $hostText "'Launch'\s*\{" `
         'The host must require the explicit Launch mode.'
-    Assert-Match $hostText 'Start-Process\s+-FilePath\s+\$sandboxExecutable' `
-        'Launch mode must start only the resolved Windows Sandbox executable.'
+    Assert-NotMatch $hostText 'Invoke-WebRequest|System\.Net\.WebClient|HttpClient' `
+        'GitHub release downloads must use the gh CLI rather than a raw HTTP client.'
+    Assert-Match $hostText '&\s+\$gh\.Source\s+release\s+download\s+\$ReleaseTag' `
+        'Pinned MSI assets must be downloaded through gh release download.'
+    Assert-Match $hostText "Invoke-LowLevelTool\s+-Tool\s+'create_headless_desktop'" `
+        'Launch mode must create an off-screen desktop through Lowlevel MCP.'
+    Assert-Match $hostText "Invoke-LowLevelTool\s+-Tool\s+'launch_on_headless_desktop'" `
+        'Launch mode must start only the resolved Windows Sandbox executable through Lowlevel MCP.'
+    Assert-Match $hostText "Invoke-LowLevelTool\s+-Tool\s+'close_headless_desktop'" `
+        'Launch mode must release the Lowlevel MCP desktop after Sandbox disposal.'
     Assert-NotMatch $hostText '(?i)msiexec\.exe|WindowsInstaller\.Installer' `
         'The host script must never invoke or automate Windows Installer.'
     Assert-Match $hostText "launch_requires_explicit_mode\s*=\s*\`$true" `

@@ -17,6 +17,17 @@ contract coverage**, not complete product verification: exact-source native
 compilation, updater interaction/captures, accessibility/localization, full MSI
 lifecycle proof, and issue #12's installed-MSI performance timings remain open.
 
+## 2026-07-31 follow-up — installer lifecycle harness is headless and CLI-bound
+
+The disposable Windows Sandbox lifecycle host no longer downloads release
+assets through a raw web client or launches a visible Sandbox window. Preparation
+uses `gh release download` against each pinned tag, rechecks byte count and
+SHA-256, and retains the existing review-first boundary. Explicit Launch now
+creates a run-scoped off-screen Win32 desktop through the registered Lowlevel MCP
+server, launches only the resolved Sandbox executable there, waits for normal
+guest/backend disposal, and releases the desktop handle. Static parser/policy and
+release-workflow validators pass. No fresh lifecycle run is claimed yet.
+
 ## 2026-07-31 follow-up — updater lifecycle source implemented
 
 The old dedicated updater bubble has been replaced as a status transport by the

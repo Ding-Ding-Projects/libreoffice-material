@@ -25,6 +25,14 @@ the source/contract burn-down only. No phase is promoted to verified because
 native build, updater runtime/captures, accessibility/localization, complete MSI
 lifecycle, and installed-MSI performance proof remain open.
 
+**2026-07-31 installer lifecycle harness transport:** review-first preparation
+now uses `gh release download` for both exact-tag MSI assets, and explicit Launch
+routes Windows Sandbox through a run-scoped Lowlevel MCP off-screen desktop.
+Visible-session launch and raw HTTP download paths are regression-rejected; normal
+guest/backend disposal and desktop-handle release remain required. Static harness
+and release-workflow validators pass, but no new Sandbox lifecycle result is
+claimed.
+
 **2026-07-31 updater lifecycle source implementation:** the updater now maps all
 eleven states and routes eligible actionable/error exact-version status through
 the shared Material notification stack instead of a private legacy bubble.

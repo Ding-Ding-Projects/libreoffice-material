@@ -61,7 +61,11 @@ harness entry points. Immutable source commit
 `3d25fea0279d9f44bc7daff7a2b329509d38f951` carries that implementation and its
 native-shell ledger credit. `runtime_verified` remains `false`: a built MSI
 must still complete the real lifecycle harness before install behavior is
-claimed.
+claimed. That review-first host now obtains its byte-pinned assets through
+`gh release download` and launches Windows Sandbox only through a run-scoped
+Lowlevel MCP off-screen desktop. The static validator rejects raw HTTP clients,
+visible-session launch, missing normal-disposal checks, or an unreleased desktop
+handle; this transport hardening is not itself a lifecycle result.
 
 ## Suggested articles
 

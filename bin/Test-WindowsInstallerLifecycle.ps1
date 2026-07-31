@@ -34,7 +34,11 @@ param(
     [int]$MemoryInMB = 8192,
 
     [ValidateRange(30, 600)]
-    [int]$DisposalTimeoutSeconds = 180
+    [int]$DisposalTimeoutSeconds = 180,
+
+    [string]$McpUrl = 'http://127.0.0.1:8765/mcp',
+
+    [string]$DriverRoot = ''
 )
 
 Set-StrictMode -Version Latest
@@ -63,6 +67,10 @@ $script:ExpectedUpgradeCode = '{910006D2-BDF1-440C-89D3-8F1DD93790FE}'
 $script:StableLibreOfficeUpgradeCode = '{4B17E523-5D91-4E69-BD96-7FD81CFA81BB}'
 $script:ExpectedProductVersion = '27.2.0.0.alpha0'
 $script:ExpectedInstallRoot = 'C:\Program Files\LibreOfficeDev 27'
+$script:Repository = 'Ding-Ding-Projects/libreoffice-material'
+$script:RepoRoot = Split-Path -Parent $PSScriptRoot
+$script:McpClientPath = Join-Path $PSScriptRoot 'call-lowlevel-mcp.py'
+$script:McpUrl = $McpUrl
 $script:RequiredSteps = @(
     'old-install',
     'corrected-same-version-update',
@@ -147,7 +155,8 @@ function Assert-BoundedOrdinaryJsonFile {
 
 function Invoke-PinnedDownload {
     param(
-        [Parameter(Mandatory)][string]$Uri,
+        [Parameter(Mandatory)][string]$ReleaseTag,
+        [Parameter(Mandatory)][string]$AssetName,
         [Parameter(Mandatory)][string]$Destination,
         [Parameter(Mandatory)][long]$ExpectedBytes,
         [Parameter(Mandatory)][string]$ExpectedSha256
@@ -156,15 +165,18 @@ function Invoke-PinnedDownload {
         throw "Pinned download destination already exists: $Destination"
     }
 
-    [Net.ServicePointManager]::SecurityProtocol =
-        [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    $gh = Get-Command gh -CommandType Application -ErrorAction Stop
     $partial = "$Destination.partial"
     for ($attempt = 1; $attempt -le 4; $attempt++) {
         try {
             if (Test-Path -LiteralPath $partial) {
                 Remove-Item -LiteralPath $partial -Force
             }
-            Invoke-WebRequest -UseBasicParsing -Uri $Uri -OutFile $partial
+            $output = @(& $gh.Source release download $ReleaseTag `
+                --repo $script:Repository --pattern $AssetName --output $partial 2>&1)
+            if ($LASTEXITCODE -ne 0) {
+                throw "gh release download failed for $ReleaseTag/${AssetName}: $($output -join [Environment]::NewLine)"
+            }
             Assert-FileMatches -LiteralPath $partial -ExpectedBytes $ExpectedBytes `
                 -ExpectedSha256 $ExpectedSha256
             Move-Item -LiteralPath $partial -Destination $Destination
@@ -179,6 +191,54 @@ function Invoke-PinnedDownload {
             }
             Start-Sleep -Seconds (2 * $attempt)
         }
+    }
+}
+
+function Resolve-LowLevelDriverRoot {
+    if (-not [string]::IsNullOrWhiteSpace($DriverRoot)) {
+        $resolved = [IO.Path]::GetFullPath($DriverRoot)
+        if (-not (Test-Path -LiteralPath (Join-Path $resolved 'pyproject.toml') -PathType Leaf)) {
+            throw "Lowlevel MCP checkout is invalid: $resolved"
+        }
+        return $resolved
+    }
+
+    foreach ($candidate in @(
+        (Join-Path $script:RepoRoot '..\agent-global-memory\modules\lowlevel-computer-use-mcp'),
+        (Join-Path $script:RepoRoot '..\lowlevel-computer-use-mcp'),
+        (Join-Path $script:RepoRoot '..\desktop-material\vendor\lowlevel-computer-use-mcp')
+    )) {
+        $resolved = [IO.Path]::GetFullPath($candidate)
+        if (Test-Path -LiteralPath (Join-Path $resolved 'pyproject.toml') -PathType Leaf) {
+            return $resolved
+        }
+    }
+    throw 'Could not locate the Lowlevel MCP checkout.'
+}
+
+function Invoke-LowLevelTool {
+    param(
+        [Parameter(Mandatory)][string]$Tool,
+        [hashtable]$Arguments = @{},
+        [ValidateRange(1, 3600)][int]$TimeoutSeconds = 60
+    )
+
+    $argumentsJson = $Arguments | ConvertTo-Json -Compress -Depth 10
+    $argumentsBase64 = [Convert]::ToBase64String(
+        [Text.Encoding]::UTF8.GetBytes($argumentsJson))
+    $output = @(& uv run --directory $script:ResolvedDriverRoot python `
+        $script:McpClientPath --url $script:McpUrl --tool $Tool `
+        --arguments-base64 $argumentsBase64 --timeout $TimeoutSeconds 2>&1)
+    $exitCode = $LASTEXITCODE
+    $outputText = ($output | ForEach-Object { $_.ToString() }) -join "`n"
+    if ($exitCode -ne 0) {
+        throw "Lowlevel MCP tool '$Tool' failed with exit code ${exitCode}: $outputText"
+    }
+    try {
+        return $outputText | ConvertFrom-Json
+    }
+    catch {
+        throw "Lowlevel MCP tool '$Tool' returned invalid JSON: $outputText"
     }
 }
 
@@ -646,10 +706,12 @@ function New-PreparedRun {
     $oldPath = Join-Path $inputDirectory $script:OldInstaller.file_name
     $correctedPath = Join-Path $inputDirectory $script:CorrectedInstaller.file_name
     Write-Host 'Downloading and verifying the exact old release MSI...'
-    Invoke-PinnedDownload -Uri $script:OldInstaller.url -Destination $oldPath `
+    Invoke-PinnedDownload -ReleaseTag $script:OldInstaller.release_tag `
+        -AssetName 'LibreOfficeMaterial-Windows-x64.msi' -Destination $oldPath `
         -ExpectedBytes $script:OldInstaller.bytes -ExpectedSha256 $script:OldInstaller.sha256
     Write-Host 'Downloading and verifying the exact corrected release MSI...'
-    Invoke-PinnedDownload -Uri $script:CorrectedInstaller.url -Destination $correctedPath `
+    Invoke-PinnedDownload -ReleaseTag $script:CorrectedInstaller.release_tag `
+        -AssetName 'LibreOfficeMaterial-Windows-x64.msi' -Destination $correctedPath `
         -ExpectedBytes $script:CorrectedInstaller.bytes `
         -ExpectedSha256 $script:CorrectedInstaller.sha256
 
@@ -952,6 +1014,13 @@ switch ($Mode) {
         Assert-PreparedInputs -Run $run
         Assert-FreshOutput -Run $run
         $sandboxExecutable = Assert-SandboxReady
+        if (-not (Test-Path -LiteralPath $script:McpClientPath -PathType Leaf)) {
+            throw "Lowlevel MCP bridge is missing: $($script:McpClientPath)"
+        }
+        if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
+            throw 'uv is required to call the Lowlevel MCP server.'
+        }
+        $script:ResolvedDriverRoot = Resolve-LowLevelDriverRoot
         $existingSandboxProcesses = @(Get-WindowsSandboxProcesses)
         if ($existingSandboxProcesses.Count -ne 0) {
             $summary = @($existingSandboxProcesses | ForEach-Object { "$($_.name):$($_.id)" }) -join ', '
@@ -964,10 +1033,16 @@ switch ($Mode) {
         $hostSafetyError = $null
         $disposalError = $null
         $sandboxLaunched = $false
+        $desktopCreated = $false
+        $desktopName = 'LOMaterialLifecycle-' + ([string]$run.Manifest.run_id).Substring(0, 16)
         try {
-            Write-Host 'Launching the reviewed Windows Sandbox configuration...' -ForegroundColor Yellow
-            $sandboxProcess = Start-Process -FilePath $sandboxExecutable `
-                -ArgumentList ('"{0}"' -f $run.WsbPath) -PassThru
+            Write-Host 'Launching the reviewed Windows Sandbox configuration through Lowlevel MCP headless mode...' -ForegroundColor Yellow
+            Invoke-LowLevelTool -Tool 'create_headless_desktop' `
+                -Arguments @{ name = $desktopName } | Out-Null
+            $desktopCreated = $true
+            $sandboxCommand = '"{0}" "{1}"' -f $sandboxExecutable, $run.WsbPath
+            $sandboxLauncher = Invoke-LowLevelTool -Tool 'launch_on_headless_desktop' `
+                -Arguments @{ name = $desktopName; command = $sandboxCommand }
             $sandboxLaunched = $true
             Wait-ForSandboxResult -Run $run
             $complete = Assert-OutputArtifacts -Run $run
@@ -982,6 +1057,17 @@ switch ($Mode) {
                 }
                 catch {
                     $disposalError = $_
+                }
+            }
+            if ($desktopCreated) {
+                try {
+                    Invoke-LowLevelTool -Tool 'close_headless_desktop' `
+                        -Arguments @{ name = $desktopName } | Out-Null
+                }
+                catch {
+                    if (-not $disposalError) {
+                        $disposalError = $_
+                    }
                 }
             }
             try {
@@ -1018,7 +1104,8 @@ switch ($Mode) {
             status = 'passed'
             completed_at_utc = [DateTime]::UtcNow.ToString('o')
             guest_completed_at_utc = $complete.completed_at_utc
-            launch_process_id = [int]$sandboxProcess.Id
+            launch_process_id = [int]$sandboxLauncher.pid
+            lowlevel_headless_desktop = $desktopName
             sandbox_disposed = $true
             sandbox_processes_after = @(Get-WindowsSandboxProcesses).Count
             host_safety_unchanged = $true

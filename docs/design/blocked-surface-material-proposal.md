@@ -25,6 +25,32 @@ and OS-owned chrome is never duplicated by a GTK child.
 | `native:writer-document-canvas` | Material document surface around the custom canvas: tokenized margins, selection/insert focus treatment, and overlay affordances that never paint into document content. | Preserve document pixels, custom drawing, zoom, selection, and input coordinates. |
 | `vcl/uiconfig/ui/wizard.ui` | Material assistant shell around runtime pages: `surface-container`, 12 px page inset, progress/step indicator, and a footer whose primary action is supplied by the assistant owner. | Preserve `RET_*` responses, page order, default action, cancellation, and C++ ownership. |
 
+## Runtime-composed dialog and panel families
+
+For pending `.ui` fragments whose visible labels and controls are injected by
+C++, use the following implementation shape when the owning contract is
+available:
+
+- Dialog shells: keep the existing `GtkDialog` and action IDs; apply the
+  Material surface role to the body, use a 12 px content inset, 6 px section
+  spacing, and let the owner supply the runtime page. Never add a duplicate
+  heading or alter a cancel/help response just to satisfy a static predicate.
+- Form fragments: convert only anonymous layout containers that are welded by
+  ID and preserve child order; use a Material grid with 6 px row spacing, 12 px
+  column spacing, and 12 px outer margins. Existing runtime labels may gain
+  `ellipsize=end` and mnemonic targets only when the target is focusable.
+- Label-less editors: use accessible names and Material focus/selection states
+  on the existing focusable widget rather than painting a visible caption that
+  the design archive does not show.
+- Notebookbars and toolbars: keep group captions, tool items, overflow, and
+  scroll behavior owned by their existing contracts. Apply colors, shape, and
+  focus tokens at the band/container level; do not add form-grid markers to a
+  structure pinned as a ribbon or toolbar.
+
+These patterns are deliberately implementation-ready but remain proposals
+until their owning contracts, Windows build, interaction, pixel,
+accessibility, localization, and performance gates are available.
+
 ## Acceptance gates
 
 Each proposal becomes implementation only after its owning runtime contract
@@ -32,4 +58,3 @@ exists and can prove source, Windows build, headless interaction, pixels,
 accessibility, localization, and performance evidence. Until then these rows
 remain pending in the fail-closed ledger; this file deliberately does not
 convert a design proposal into coverage credit.
-

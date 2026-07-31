@@ -10,6 +10,11 @@ and anatomy proposal is recorded in
 It is explicitly design-only; the rows remain pending until their runtime
 contracts and Windows evidence exist.
 
+The same proposal now includes implementation-ready patterns for runtime-
+composed dialogs, welded form fragments, label-less editors, notebookbars, and
+toolbars. These patterns preserve owner-supplied labels, IDs, response codes,
+and pinned layout structure; they do not convert pending rows into coverage.
+
 ## 2026-07-31 follow-up — second non-sidebar classification correction
 
 The ledger now also classifies `svx/uiconfig/ui/themeselectorpanel.ui` as a

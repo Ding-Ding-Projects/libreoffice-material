@@ -232,6 +232,22 @@ only: `runtime_verified` is false, and native pixels, keyboard traversal, scale,
 bilingual clipping, and screen-reader output still require the Windows build
 and headless runtime harness.
 
+### Runtime-composed wizard shell
+
+The shared `vcl/uiconfig/ui/wizard.ui` assistant is likewise a runtime shell,
+not a static form. `SalInstanceAssistant::append_page` creates every page grid,
+while `RoadmapWizard::implConstruct` creates the Help, Previous, Next, Finish,
+and Cancel actions. Under the Material theme, each page consumes the
+`space-list-entry` metric (currently 12 px) for both spacing axes and all four
+margins; Next and Finish are the two mutually staged primary forward actions.
+The shell stays modal and title-free, and forced colors retain precedence.
+
+[`runtime-wizard-composition.json`](../../qa/windows-ui-contract/runtime-wizard-composition.json)
+and its mutation tests pin both runtime owners, the metric lookup, theme gate,
+high-contrast guard, primary-action set, and absence of the legacy shell
+border. This remains source-only evidence until an installed Windows build is
+captured and exercised.
+
 ---
 
 ## 8.2 Options dialog

@@ -19,7 +19,9 @@
 
 #include <sal/config.h>
 
+#include <cstdlib>
 #include <limits>
+#include <optional>
 #include <string_view>
 
 #include <com/sun/star/accessibility/AccessibleRelationType.hpp>
@@ -61,6 +63,9 @@
 #include <vcl/toolkit/fmtfield.hxx>
 #include <vcl/headbar.hxx>
 #include <vcl/layout.hxx>
+#include <vcl/MaterialTokens.hxx>
+#include <vcl/settings.hxx>
+#include <vcl/svapp.hxx>
 #include <vcl/notebookbar/NotebookBarAddonsItem.hxx>
 #include <vcl/toolkit/MenuButton.hxx>
 #include <vcl/ptrstyle.hxx>
@@ -86,6 +91,26 @@
 #include <wizdlg.hxx>
 #include <salvtables.hxx>
 #include <comphelper/lok.hxx>
+
+namespace
+{
+std::optional<sal_Int32> lcl_materialWizardPageSpacing()
+{
+    if (Application::GetSettings().GetStyleSettings().GetHighContrastMode())
+        return std::nullopt;
+
+    const char* pThemeName = std::getenv("VCL_FILE_WIDGET_THEME");
+    if (!pThemeName || std::string_view(pThemeName) != "material")
+        return std::nullopt;
+
+    static std::optional<vcl::MaterialTokens> spTokens;
+    if (!spTokens)
+        spTokens = vcl::MaterialTokens::fromCurrentTheme(false);
+    if (!spTokens->isValid())
+        return std::nullopt;
+    return spTokens->findMetric("space-list-entry");
+}
+}
 
 SalTimer::~SalTimer() {}
 
@@ -1988,6 +2013,15 @@ weld::Container* SalInstanceAssistant::append_page(const OUString& rIdent)
     xPage->Show();
     xGrid->set_hexpand(true);
     xGrid->set_vexpand(true);
+    if (const std::optional<sal_Int32> oSpacing = lcl_materialWizardPageSpacing())
+    {
+        xGrid->set_row_spacing(*oSpacing);
+        xGrid->set_column_spacing(*oSpacing);
+        xGrid->set_margin_start(*oSpacing);
+        xGrid->set_margin_end(*oSpacing);
+        xGrid->set_margin_top(*oSpacing);
+        xGrid->set_margin_bottom(*oSpacing);
+    }
     xGrid->Show();
     m_xWizard->AddPage(xPage);
     m_aIds.push_back(m_aAddedPages.size());

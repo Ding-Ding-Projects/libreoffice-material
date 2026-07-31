@@ -23,11 +23,15 @@
 #include <tools/mapunit.hxx>
 #include <osl/diagnose.h>
 #include <vcl/event.hxx>
+#include <vcl/settings.hxx>
+#include <vcl/svapp.hxx>
 
 #include <strings.hrc>
 #include <svdata.hxx>
 #include <wizdlg.hxx>
 
+#include <cstdlib>
+#include <string_view>
 #include <vector>
 
 #include "wizimpldata.hxx"
@@ -39,6 +43,18 @@
 #define WIZARDDIALOG_BUTTON_SMALLSTDOFFSET_X 3
 #define WIZARDDIALOG_VIEW_DLGOFFSET_X       6
 #define WIZARDDIALOG_VIEW_DLGOFFSET_Y       6
+
+namespace
+{
+bool lcl_isMaterialWizardTheme()
+{
+    if (Application::GetSettings().GetStyleSettings().GetHighContrastMode())
+        return false;
+
+    const char* pThemeName = std::getenv("VCL_FILE_WIDGET_THEME");
+    return pThemeName && std::string_view(pThemeName) == "material";
+}
+}
 
 namespace vcl
 {
@@ -432,6 +448,8 @@ namespace vcl
         m_pNextPage->SetText(VclResId(STR_WIZDLG_NEXT));
         m_pNextPage->Show();
         m_pNextPage->set_id(u"next"_ustr);
+        if (lcl_isMaterialWizardTheme())
+            m_pNextPage->setAction(true);
         AddButton( m_pNextPage, WIZARDDIALOG_BUTTON_STDOFFSET_X );
         mpNextBtn = m_pNextPage;
         m_pNextPage->SetClickHdl( LINK( this, RoadmapWizard, OnNextPage ) );
@@ -442,6 +460,8 @@ namespace vcl
         m_pFinish->SetText(VclResId(STR_WIZDLG_FINISH));
         m_pFinish->Show();
         m_pFinish->set_id(u"finish"_ustr);
+        if (lcl_isMaterialWizardTheme())
+            m_pFinish->setAction(true);
         AddButton( m_pFinish, WIZARDDIALOG_BUTTON_STDOFFSET_X );
         m_pFinish->SetClickHdl( LINK( this, RoadmapWizard, OnFinish ) );
 

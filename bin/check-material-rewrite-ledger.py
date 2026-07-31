@@ -284,13 +284,16 @@ FAMILY_DEFS: Mapping[str, dict[str, Any]] = {
         "required_markers": ["composition-contract-marker"],
     },
     FAMILY_WIZARD: {
-        "rewrite_class": RC_DIALOG_ANATOMY,
-        "evidence_kind": STATIC_UI,
-        "design_ref": "docs/design/08-dialogs.md#8.2",
+        # The checked-in assistant is only a shell. Pages and forward actions
+        # are created by VCL at runtime, so credit requires the two-part source
+        # contract rather than invented static labels or buttons.
+        "rewrite_class": RC_DIALOG_COMPOSITION,
+        "evidence_kind": COMPOSITION_CODE,
+        "design_ref": "docs/design/08-dialogs.md#runtime-composed-wizard-shell",
         "required_markers": [
-            "wizard-forward-primary",
+            "composition-contract-marker",
             "material-content-grid",
-            "title-modal",
+            "runtime-forward-actions",
         ],
     },
     FAMILY_NATIVE: {

@@ -520,6 +520,12 @@ jobs:
       - name: Run runtime-composed dialog shell mutation regressions
         run: python3 bin/test_runtime_dialog_shell_composition.py
 
+      - name: Validate runtime-composed Material wizard shell
+        run: python3 bin/check-runtime-wizard-composition.py
+
+      - name: Run runtime-composed wizard shell mutation regressions
+        run: python3 bin/test_runtime_wizard_composition.py
+
       - name: Verify host-composed Material surface registry is current
         run: python3 bin/generate-host-composed-surface-contract.py --check
 
@@ -543,10 +549,10 @@ jobs:
       - name: Run notification overlay mutation regressions
         run: python3 bin/test_notification_overlay_contract.py
 
-      - name: Validate pending native and wizard ownership
+      - name: Validate pending native ownership
         run: python3 bin/check-pending-native-surface-ownership.py
 
-      - name: Run pending native and wizard ownership regressions
+      - name: Run pending native ownership regressions
         run: python3 bin/test_pending_native_surface_ownership.py
 
       - name: Validate notebookbar UI conformance

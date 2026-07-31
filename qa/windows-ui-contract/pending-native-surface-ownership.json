@@ -5,7 +5,7 @@
   "status": "design-specified-not-wired",
   "runtime_verified": false,
   "design_reference": "docs/design/blocked-surface-material-proposal.md",
-  "note": "Fail-closed ownership contract for the five native-shell rows and shared wizard shell that do not yet have a Material implementation contract. This contract pins their real owners and requires the rewrite ledger to keep them pending with empty implementation evidence. It is not a rewrite credit.",
+  "note": "Fail-closed ownership contract for the five native-shell rows that do not yet have a Material implementation contract. This contract pins their real owners and requires the rewrite ledger to keep them pending with empty implementation evidence. It is not a rewrite credit.",
   "governed_surfaces": [
     {
       "surface": "native:find-toolbar",
@@ -61,29 +61,6 @@
       "source": "sw/source/core/view/viewsh.cxx",
       "required_markers": [
         "void SwViewShell::Paint(vcl::RenderContext& rRenderContext"
-      ]
-    },
-    {
-      "surface": "vcl/uiconfig/ui/wizard.ui",
-      "family": "wizard-assistant",
-      "owner": "vcl",
-      "inventory_id": "unassigned",
-      "source": "vcl/uiconfig/ui/wizard.ui",
-      "required_markers": [
-        "<object class=\"GtkAssistant\" id=\"Wizard\">"
-      ],
-      "runtime_sources": [
-        {
-          "source": "vcl/source/control/roadmapwizard.cxx",
-          "required_markers": ["void RoadmapWizard::implConstruct()"]
-        },
-        {
-          "source": "vcl/source/app/salvtables.cxx",
-          "required_markers": [
-            "VclPtrInstance<VclGrid> xGrid(xPage);",
-            "SalInstanceAssistant::weld_button_for_response(int nResponse)"
-          ]
-        }
       ]
     }
   ]

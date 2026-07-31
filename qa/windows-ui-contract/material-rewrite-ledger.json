@@ -106,13 +106,13 @@
       ]
     },
     "wizard-assistant": {
-      "rewrite_class": "dialog-anatomy",
-      "evidence_kind": "static-ui",
-      "design_ref": "docs/design/08-dialogs.md#8.2",
+      "rewrite_class": "dialog-composition",
+      "evidence_kind": "composition-code",
+      "design_ref": "docs/design/08-dialogs.md#runtime-composed-wizard-shell",
       "required_markers": [
-        "wizard-forward-primary",
+        "composition-contract-marker",
         "material-content-grid",
-        "title-modal"
+        "runtime-forward-actions"
       ]
     },
     "native-shell": {
@@ -39034,7 +39034,7 @@
       "owner": "vcl",
       "inventory_id": "unassigned",
       "family": "wizard-assistant",
-      "rewrite_class": "dialog-anatomy",
+      "rewrite_class": "dialog-composition",
       "rewrite_status": "pending",
       "rewrite_evidence": {
         "commit": null,

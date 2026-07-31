@@ -15,6 +15,18 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-31 host-composed classification correction:** the 194 remaining
+static blockers are now an explicit `host-composed-surface` family rather than
+being forced through a complete-form predicate they cannot structurally own.
+The contract locks 64 runtime/modeless/lifecycle dialog variants and 130
+host/atomic fragments by surface-set digest, per-file SHA-256, live predicate
+failure, root identity, marker snapshot, owner/inventory attribution, audit
+provenance, and shared Material renderer dependencies. It preserves 184 prior
+`blocked-confirmed` audits and 10 current-source re-audits; 12 contract
+mutations, 57 ledger tests, and the 177/177 build-free workflow closure pass.
+The source headline advances to **99.53% (1265/1271), 6 pending**. This is
+source-composition evidence only; runtime UI remains unverified.
+
 **2026-07-31 runtime-dialog composition milestone:** twenty-one empty-notebook
 dialogs now carry real Material inset grids while their labels and page bodies
 remain owned by the existing C++ controllers. A new explicit
@@ -22,8 +34,8 @@ remain owned by the existing C++ controllers. A new explicit
 or bounded runtime page hosts, plus the exact conditional occurrence map used
 by Chart Object Attributes, without weakening the ordinary dialog predicate. Twenty-three
 contract mutations, 56 ledger tests, XML, dialog anatomy, accessibility-fatals,
-and the 175/175 build-free workflow gate pass. The source headline advances to
-**84.26% (1071/1271), 200 pending**; native runtime and pixel evidence remain
+and the 175/175 build-free workflow gate pass. At that checkpoint the source
+headline advanced to **84.26% (1071/1271), 200 pending**; native runtime and pixel evidence remain
 open.
 
 **2026-07-31 native/wizard ownership contract:** five native shells and the

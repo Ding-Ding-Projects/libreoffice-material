@@ -1,5 +1,26 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — host-composed static blockers credited
+
+The remaining 194 static blockers were a family-classification defect, not 194
+places where adding labels and margins was safe. The new
+`host-composed-surface` / `host-composition` family records 64
+runtime/modeless/progress/close/choice dialog variants and 130 toolbar,
+notebookbar, popup, canvas, atomic-control, or child fragments. Contract commit
+`77849e66785ad53ea7dc38af14b1108b9f26ed1c` locks the exact set digest, every
+normalized source SHA-256, live ordinary-predicate failure, top-level identity,
+marker snapshot, owner/inventory attribution, audit provenance, and the shared
+Material activation/component/theme-routing dependencies.
+
+The contract carries 184 prior adversarial `blocked-confirmed` dispositions and
+10 current-source re-audits. Its generator check, checker, and 12 mutations pass;
+the rewrite-ledger suite passes 57 tests and build-free workflow closure is
+177/177. All 194 ledger rows cite the immutable contract commit, raising the
+honest source headline to **99.53% (1265/1271), 6 pending**. The remaining rows
+are one wizard and five native shells. `runtime_verified` remains false; no
+native pixels, interaction, scale, localization, accessibility, or performance
+result is claimed by this source-composition credit.
+
 ## 2026-07-31 follow-up — runtime-composed dialog shells credited
 
 Twenty-one deliberately empty runtime notebooks now use 12 px Material content

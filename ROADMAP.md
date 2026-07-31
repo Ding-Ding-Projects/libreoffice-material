@@ -15,6 +15,11 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-31 native/wizard ownership contract:** five native shells and the
+shared wizard shell now have a fail-closed owner/marker contract. It closes the
+governance gap while deliberately retaining `pending` status until their
+Material implementation and runtime evidence exist.
+
 **2026-07-31 blocked-surface design proposal:** the six non-static pending
 surfaces now have a concrete Material token/anatomy proposal in
 [`docs/design/blocked-surface-material-proposal.md`](docs/design/blocked-surface-material-proposal.md).

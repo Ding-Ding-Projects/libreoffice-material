@@ -18,13 +18,15 @@ row carrying ``rewrite_status`` (``pending`` | ``in-progress`` |
 The ledger derives its rows by IMPORTING ``build_registry()`` from
 ``bin/check-windows-ui-registry-closure.py`` -- it never re-walks Git itself, so
 the two files are structurally impossible to diverge undetected. Each surface is
-classified into one of nine families (dialog, message-dialog, options-page,
-panel-fragment, menu, popover, sidebar-panel, wizard-assistant, native-shell)
+classified into one of ten families (dialog, runtime-dialog-shell,
+message-dialog, options-page, panel-fragment, menu, popover, sidebar-panel,
+wizard-assistant, native-shell)
 whose acceptance predicate ("is this surface rewritten to Material?") is either
 static (parsed from the ``.ui`` XML: dialog/message/surface-body/popover) or a
-cross-reference to the composition contract that owns the surface (menu,
-sidebar-panel, native-shell -- families the theme renders, so their ``.ui``
-carries no static Material fingerprint and static --evaluate never credits them).
+cross-reference to the composition contract that owns the surface
+(runtime-dialog-shell, menu, sidebar-panel, native-shell -- families whose
+Material proof spans more than one source file, so static --evaluate never
+credits them).
 
 Field ownership split (the invariant that lets ``--regenerate`` re-sync
 structure without touching campaign progress):
@@ -39,8 +41,9 @@ structure without touching campaign progress):
 committed ``.ui`` via ElementTree and recomputes its status, crediting
 ``rewritten-material`` only where the surface satisfies its FULL family predicate
 (the dialog/message/surface-body/popover markers), and leaving it ``pending``
-otherwise -- conservative, no partial credit. Composition families (menu,
-sidebar-panel, native-shell) keep their contract-cross-reference status
+otherwise -- conservative, no partial credit. Composition families
+(runtime-dialog-shell, menu, sidebar-panel, native-shell) keep their
+contract-cross-reference status
 untouched. The credit is earned and reproducible: re-running ``--evaluate`` from
 a clean checkout re-derives the same markers and the same pass/fail from the
 tree. New or stale evidence is stamped with the most recent commit that actually
@@ -125,6 +128,7 @@ DESTRUCTIVE_CLASS = "destructive-action"
 
 # --- Family taxonomy -------------------------------------------------------
 FAMILY_DIALOG = "dialog"
+FAMILY_RUNTIME_DIALOG = "runtime-dialog-shell"
 FAMILY_MESSAGE = "message-dialog"
 FAMILY_OPTIONS = "options-page"
 FAMILY_PANEL = "panel-fragment"
@@ -143,6 +147,7 @@ PANEL_FRAGMENT_EXCEPTIONS = {
 
 ALL_FAMILIES = (
     FAMILY_DIALOG,
+    FAMILY_RUNTIME_DIALOG,
     FAMILY_MESSAGE,
     FAMILY_OPTIONS,
     FAMILY_PANEL,
@@ -154,6 +159,7 @@ ALL_FAMILIES = (
 )
 
 RC_DIALOG_ANATOMY = "dialog-anatomy"
+RC_DIALOG_COMPOSITION = "dialog-composition"
 RC_SURFACE_BODY = "surface-body"
 RC_POPOVER_ANATOMY = "popover-anatomy"
 RC_MENU_COMPOSITION = "menu-composition"
@@ -176,6 +182,20 @@ FAMILY_DEFS: Mapping[str, dict[str, Any]] = {
             "material-content-grid",
             "ellipsize-and-mnemonic",
             "title-modal",
+        ],
+    },
+    FAMILY_RUNTIME_DIALOG: {
+        # These shells deliberately contain an empty GtkNotebook.  Their page
+        # labels/bodies are created by a named C++ controller, so requiring a
+        # static label would invent UI while checking only the .ui file would
+        # accept an empty dialog.  The composition contract pins both halves.
+        "rewrite_class": RC_DIALOG_COMPOSITION,
+        "evidence_kind": COMPOSITION_CODE,
+        "design_ref": "docs/design/08-dialogs.md#runtime-composed-dialog-shells",
+        "required_markers": [
+            "composition-contract-marker",
+            "material-content-grid",
+            "runtime-page-host",
         ],
     },
     FAMILY_MESSAGE: {
@@ -284,12 +304,24 @@ COMMAND_SURFACE_CONFIG = {
 OPT_PAGE_RE = re.compile(r"^opt.*page\.ui$")
 MENU_TOPLEVEL_CLASSES = frozenset({"GtkMenu", "GtkPopoverMenu"})
 
+# Explicit rather than heuristic: only shells whose matching C++ page host is
+# pinned by runtime-dialog-shell-composition.json may enter the composition
+# family.  A newly empty notebook remains an ordinary pending dialog until its
+# ownership is proven and deliberately added here.
+RUNTIME_DIALOG_SHELL_SURFACES = frozenset(
+    {
+        "chart2/uiconfig/ui/3dviewdialog.ui",
+        "cui/uiconfig/ui/customizedialog.ui",
+    }
+)
+
 # Per-wave soft budget: how many surfaces of a family may flip to
 # rewritten-material in one ~3h CI wave before the capture harness is warned.
 # Exceeding a cap is a loud stderr WARN, never a fail-closed error, so batches
 # stay verifiable without blocking honest progress.
 FAMILY_BATCH_CAP = {
     FAMILY_DIALOG: 24,
+    FAMILY_RUNTIME_DIALOG: 8,
     FAMILY_PANEL: 24,
     FAMILY_MESSAGE: 16,
     FAMILY_MENU: 30,
@@ -445,6 +477,8 @@ def classify(surface: str, root: ET.Element | None) -> str:
         return FAMILY_MESSAGE
     if "GtkAssistant" in classes:
         return FAMILY_WIZARD
+    if surface in RUNTIME_DIALOG_SHELL_SURFACES:
+        return FAMILY_RUNTIME_DIALOG
     if OPT_PAGE_RE.match(base):
         return FAMILY_OPTIONS
     if "GtkDialog" in classes or has_action_widgets:
@@ -1213,10 +1247,11 @@ def evaluate_surface_status(
 ) -> tuple[str, dict[str, Any]]:
     """Recompute a surface's status from the LIVE .ui tree (``--evaluate``).
 
-    * Composition families (menu, sidebar-panel, native-shell) keep the existing
-      contract-cross-reference path: their status/evidence is campaign-owned and
-      is never recomputed statically. A stale evidence SHA is refreshed to the
-      last committed revision of the named contract.
+    * Composition families (runtime-dialog-shell, menu, sidebar-panel,
+      native-shell) keep the existing contract-cross-reference path: their
+      status/evidence is campaign-owned and is never recomputed statically. A
+      stale evidence SHA is refreshed to the last committed revision of the
+      named contract.
     * Static families are credited ``rewritten-material`` iff ALL of the family
       predicate's markers pass; otherwise the surface stays ``pending``. There is
       no partial credit: a some-but-not-all surface is ``pending``.

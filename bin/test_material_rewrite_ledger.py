@@ -322,7 +322,8 @@ class LedgerMutationTest(unittest.TestCase):
     def test_production_family_counts(self) -> None:
         by_family = self.ledger["coverage"]["by_family"]
         expected = {
-            "dialog": 522, "message-dialog": 76, "options-page": 40,
+            "dialog": 520, "runtime-dialog-shell": 2,
+            "message-dialog": 76, "options-page": 40,
             "panel-fragment": 453, "menu": 70, "popover": 47,
             "sidebar-panel": 52, "wizard-assistant": 1, "native-shell": 10,
         }
@@ -1061,6 +1062,22 @@ class LedgerMutationTest(unittest.TestCase):
     # -- menu is a composition family (never statically auto-credited) ------
     def test_menu_family_is_composition_code(self) -> None:
         self.assertEqual(CK.evidence_kind_for(CK.FAMILY_MENU), CK.COMPOSITION_CODE)
+
+    def test_runtime_dialog_shell_family_is_explicit_composition_code(self) -> None:
+        self.assertEqual(
+            CK.evidence_kind_for(CK.FAMILY_RUNTIME_DIALOG), CK.COMPOSITION_CODE
+        )
+        production = {
+            row["surface"]
+            for row in self.ledger["surfaces"]
+            if row["family"] == CK.FAMILY_RUNTIME_DIALOG
+        }
+        self.assertEqual(production, set(CK.RUNTIME_DIALOG_SHELL_SURFACES))
+        for surface in production:
+            self.assertEqual(
+                CK.classify(surface, CK._parse_root(REPOSITORY, surface)),
+                CK.FAMILY_RUNTIME_DIALOG,
+            )
 
     def test_stock_menu_evaluates_pending(self) -> None:
         # a stock-identical menu with pre-existing .uno action-names must stay

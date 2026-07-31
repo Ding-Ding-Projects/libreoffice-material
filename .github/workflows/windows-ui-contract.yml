@@ -514,6 +514,12 @@ jobs:
       - name: Run configuration-layer coverage mutation regressions
         run: python3 bin/test_config_layer_coverage.py
 
+      - name: Validate runtime-composed Material dialog shells
+        run: python3 bin/check-runtime-dialog-shell-composition.py
+
+      - name: Run runtime-composed dialog shell mutation regressions
+        run: python3 bin/test_runtime_dialog_shell_composition.py
+
       - name: Validate Material rewrite ledger
         env:
           MATERIAL_REWRITE_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || '' }}

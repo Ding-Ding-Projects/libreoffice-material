@@ -195,6 +195,35 @@ Per [`docs/HEADLESS_UI_EVIDENCE.md`](../HEADLESS_UI_EVIDENCE.md): run id
   mnemonic (`Alt+letter`) checks need a dedicated scenario or a documented
   caveat in `results.json`.
 
+### Runtime-composed dialog shells
+
+Some `GtkDialog` resources are intentionally only shells: their checked-in
+`GtkNotebook` has no static pages because the controller adds labelled pages at
+runtime. A shell must not acquire a decorative label merely to satisfy a static
+scan, and an empty notebook must not earn Material credit by itself. The
+runtime-composed family therefore requires a two-part source proof:
+
+- the `.ui` shell remains modal and titled, keeps the Help / Cancel / primary
+  footer semantics, and hosts the empty, scrollable left-tab notebook inside a
+  12 px Material inset `GtkGrid` (`row-spacing: 6`, `column-spacing: 12`);
+- the named C++ controller binds that exact notebook and constructs every
+  declared page in the contract's order.
+
+The first governed shells are Chart **3D View** and **Customize**. Their page
+labels and controls remain owned by `View3DDialog` and `SvxConfigDialog`; the
+shell changes only spacing, margins, and notebook overflow behavior. The
+ordinary `dialog` family keeps its full ellipsize-and-mnemonic requirement, so
+this composition path cannot be used to excuse a normal static form.
+
+[`runtime-dialog-shell-composition.json`](../../qa/windows-ui-contract/runtime-dialog-shell-composition.json)
+and its mutation-tested checker lock the explicit two-surface allow-list, shell
+anatomy, footer responses/default, empty notebook, and ordered host markers.
+Missing host pages, an invented static page, lost margins, unsafe footer drift,
+or classification of an unlisted dialog fails closed. This is source evidence
+only: `runtime_verified` is false, and native pixels, keyboard traversal, scale,
+bilingual clipping, and screen-reader output still require the Windows build
+and headless runtime harness.
+
 ---
 
 ## 8.2 Options dialog

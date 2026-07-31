@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "contract": "material-runtime-dialog-shell-composition",
+  "platform": "windows",
+  "status": "source-declared",
+  "runtime_verified": false,
+  "design_reference": "docs/design/08-dialogs.md#runtime-composed-dialog-shells",
+  "ledger": "qa/windows-ui-contract/material-rewrite-ledger.json",
+  "note": "Fail-closed ownership for GtkDialog shells whose GtkNotebook pages are created by C++ at runtime. These rows cannot truthfully carry static content labels: the shell owns the title, footer, notebook host, and Material inset grid, while the controller owns the page labels and bodies. Credit requires both halves. This contract does not relax the ordinary static dialog predicate and claims source composition only; no runtime pixels are claimed.",
+  "shells": [
+    {
+      "surface": "chart2/uiconfig/ui/3dviewdialog.ui",
+      "owner": "chart2",
+      "inventory_id": "WIN-CH-001",
+      "dialog": {
+        "id": "3DViewDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "3dviewdialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": []
+      },
+      "host": {
+        "source": "chart2/source/controller/dialogs/dlg_View3D.cxx",
+        "ordered_markers": [
+          "GenericDialogController(pParent, u\"modules/schart/ui/3dviewdialog.ui\"_ustr, u\"3DViewDialog\"_ustr)",
+          "m_xTabControl(m_xBuilder->weld_notebook(u\"tabcontrol\"_ustr))",
+          "m_xTabControl->append_page(u\"geometry\"_ustr, TabResId(RID_TAB_CHART_PERSPECTIVE.aLabel), &aStr);",
+          "m_xGeometry.reset(new ThreeD_SceneGeometry_TabPage(m_xTabControl->get_page(u\"geometry\"_ustr), xSceneProperties, m_aControllerLocker));",
+          "m_xTabControl->append_page(u\"appearance\"_ustr, TabResId(RID_TAB_CHART_APPEARANCE.aLabel), &aStr);",
+          "m_xAppearance.reset(new ThreeD_SceneAppearance_TabPage(m_xTabControl->get_page(u\"appearance\"_ustr), xChartModel, m_aControllerLocker));",
+          "m_xTabControl->append_page(u\"illumination\"_ustr, TabResId(RID_TAB_CHART_ILLUMINATION.aLabel), &aStr);",
+          "m_xIllumination.reset(new ThreeD_SceneIllumination_TabPage(m_xTabControl->get_page(u\"illumination\"_ustr), m_xDialog.get(), xSceneProperties, xChartModel));"
+        ],
+        "page_ids": ["geometry", "appearance", "illumination"]
+      }
+    },
+    {
+      "surface": "cui/uiconfig/ui/customizedialog.ui",
+      "owner": "cui",
+      "inventory_id": "unassigned",
+      "dialog": {
+        "id": "CustomizeDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "customizedialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "help", "response": -11},
+          {"id": "cancel", "response": -6},
+          {"id": "ok", "response": -5}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["reset"]
+      },
+      "host": {
+        "source": "cui/source/customize/cfg.cxx",
+        "ordered_markers": [
+          "SfxTabDialogController(pParent, u\"cui/ui/customizedialog.ui\"_ustr, u\"CustomizeDialog\"_ustr, pInSet)",
+          "AddTabPage(u\"menus\"_ustr, TabResId(RID_TAB_MENUS.aLabel), CreateSvxMenuConfigPage, RID_L + RID_TAB_MENUS.sIconName);",
+          "AddTabPage(u\"toolbars\"_ustr, TabResId(RID_TAB_TOOLBARS.aLabel), CreateSvxToolbarConfigPage, RID_L + RID_TAB_TOOLBARS.sIconName);",
+          "AddTabPage(u\"contextmenus\"_ustr, TabResId(RID_TAB_CONTEXTMENUS.aLabel), CreateSvxContextMenuConfigPage, RID_L + RID_TAB_CONTEXTMENUS.sIconName);",
+          "AddTabPage(u\"keyboard\"_ustr, TabResId(RID_TAB_KEYBOARD.aLabel), CreateKeyboardConfigPage, RID_L + RID_TAB_KEYBOARD.sIconName);",
+          "AddTabPage(u\"events\"_ustr, TabResId(RID_TAB_EVENTS.aLabel), CreateSvxEventConfigPage, RID_L + RID_TAB_EVENTS.sIconName);"
+        ],
+        "page_ids": ["menus", "toolbars", "contextmenus", "keyboard", "events"]
+      }
+    }
+  ]
+}

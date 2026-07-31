@@ -136,6 +136,29 @@ that drops the helper header or dispatch, or a registry outside the 3–8
 migration wave. It claims no native build, dialog pixels, or runtime
 interaction.
 
+### Runtime-composed dialog shells
+
+`runtime-dialog-shell-composition.json` owns the explicit exception to static
+dialog-body evidence for Chart **3D View** and **Customize**. Both `.ui` files
+contain deliberately empty notebooks whose real pages are added by C++.
+`bin/check-runtime-dialog-shell-composition.py` requires the modal titled shell,
+the 12 px Material inset grid, a scrollable empty left-tab notebook, exact
+Help/Cancel/OK footer responses and default, and ordered page-construction
+markers in `dlg_View3D.cxx` / `cfg.cxx`. It also parity-locks the two ledger rows
+to `family: runtime-dialog-shell`, `rewrite_class: dialog-composition`, and this
+contract marker once credited. The ordinary static-dialog predicate is not
+relaxed.
+
+```sh
+python bin/check-runtime-dialog-shell-composition.py
+python bin/test_runtime_dialog_shell_composition.py
+```
+
+The 13 mutation tests reject allow-list drift, invented static pages, lost
+margins or scrolling, footer/default drift, missing auxiliary Reset, missing or
+reordered host markers, ledger-family drift, and false runtime claims. This is
+source-composition evidence only; `runtime_verified` remains false.
+
 ## Registered UI inventory closure (WIN-SYS-016)
 
 `ui-registry.json` is the generated, checked-in closure ledger for the

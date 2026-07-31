@@ -1,0 +1,70 @@
+# Runtime-composed Material dialog shells
+
+## Behavior
+
+Chart **3D View** and **Customize** are modal notebook dialogs whose page labels
+and page bodies are created by C++ after the `.ui` shell loads. Their shell now
+places the empty, scrollable left-tab notebook inside a Material content grid:
+12 px on every edge, 6 px row spacing, and 12 px column spacing. Titles, welded
+IDs, page factories, button responses, Enter default, and cancellation behavior
+are unchanged.
+
+The burn-down ledger classifies these two resources as
+`runtime-dialog-shell`/`dialog-composition`. That family does not weaken the
+ordinary static-dialog predicate; a surface joins only through the explicit
+allow-list and a contract proving both its `.ui` shell and its C++ page host.
+
+## Configuration
+
+There is no user setting. The active Material theme supplies native tab and
+control rendering; the shell contributes only layout metrics and the existing
+runtime controllers contribute the pages. The feature is scoped to:
+
+- `chart2/uiconfig/ui/3dviewdialog.ui` with
+  `chart2/source/controller/dialogs/dlg_View3D.cxx`;
+- `cui/uiconfig/ui/customizedialog.ui` with
+  `cui/source/customize/cfg.cxx`.
+
+Adding another shell requires an intentional contract row, classifier allow-list
+entry, source host markers, mutation coverage, and independent evidence. An
+empty notebook alone is never sufficient.
+
+## Failure modes
+
+- Missing or zeroed grid metrics fail the source gate.
+- A static page added to the notebook conflicts with the runtime-shell contract
+  and must be reclassified or deliberately redesigned.
+- A removed, duplicated, or reordered controller marker fails closed rather
+  than crediting an empty dialog.
+- Footer response or default-action drift fails before it can be counted as
+  Material.
+- Native clipping, focus, scale, localization, or accessibility defects can
+  still exist despite source conformance; those require built-runtime evidence.
+
+## Security considerations
+
+Both dialogs remain modal and retain their existing OK/Cancel response semantics.
+No data source, persistence path, privilege boundary, network request, or page
+factory changes. The checker strips C++ comments before locating host markers,
+so a commented-out page constructor cannot masquerade as live implementation.
+
+## Verification status
+
+Build-free verification is provided by:
+
+```sh
+python bin/check-runtime-dialog-shell-composition.py
+python -m unittest bin/test_runtime_dialog_shell_composition.py
+python bin/check-material-rewrite-ledger.py
+python -m unittest bin/test_material_rewrite_ledger.py
+```
+
+The contract and 13 mutation tests prove source composition only.
+`runtime_verified` is `false`; no new native dialog capture, keyboard trace,
+screen-reader transcript, or scale matrix is claimed.
+
+## Related documentation
+
+- [Dialog design and runtime-shell anatomy](../design/08-dialogs.md#runtime-composed-dialog-shells)
+- [Windows UI contract index](../../qa/windows-ui-contract/README.md#runtime-composed-dialog-shells)
+- [Material rewrite ledger](../../qa/windows-ui-contract/material-rewrite-ledger.json)

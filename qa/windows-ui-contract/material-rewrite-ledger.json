@@ -27,6 +27,16 @@
         "title-modal"
       ]
     },
+    "runtime-dialog-shell": {
+      "rewrite_class": "dialog-composition",
+      "evidence_kind": "composition-code",
+      "design_ref": "docs/design/08-dialogs.md#runtime-composed-dialog-shells",
+      "required_markers": [
+        "composition-contract-marker",
+        "material-content-grid",
+        "runtime-page-host"
+      ]
+    },
     "message-dialog": {
       "rewrite_class": "dialog-anatomy",
       "evidence_kind": "static-ui",
@@ -111,8 +121,8 @@
     "coverage_pct": 82.61,
     "by_family": {
       "dialog": {
-        "total": 522,
-        "pending": 85,
+        "total": 520,
+        "pending": 83,
         "in-progress": 0,
         "rewritten-material": 437
       },
@@ -151,6 +161,12 @@
         "pending": 0,
         "in-progress": 0,
         "rewritten-material": 47
+      },
+      "runtime-dialog-shell": {
+        "total": 2,
+        "pending": 2,
+        "in-progress": 0,
+        "rewritten-material": 0
       },
       "sidebar-panel": {
         "total": 52,
@@ -1225,8 +1241,8 @@
       "surface": "chart2/uiconfig/ui/3dviewdialog.ui",
       "owner": "chart2",
       "inventory_id": "WIN-CH-001",
-      "family": "dialog",
-      "rewrite_class": "dialog-anatomy",
+      "family": "runtime-dialog-shell",
+      "rewrite_class": "dialog-composition",
       "rewrite_status": "pending",
       "rewrite_evidence": {
         "commit": null,
@@ -3405,8 +3421,8 @@
       "surface": "cui/uiconfig/ui/customizedialog.ui",
       "owner": "cui",
       "inventory_id": "unassigned",
-      "family": "dialog",
-      "rewrite_class": "dialog-anatomy",
+      "family": "runtime-dialog-shell",
+      "rewrite_class": "dialog-composition",
       "rewrite_status": "pending",
       "rewrite_evidence": {
         "commit": null,

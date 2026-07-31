@@ -126,10 +126,10 @@
   },
   "coverage": {
     "total_surfaces": 1271,
-    "pending": 2,
+    "pending": 1,
     "in_progress": 0,
-    "rewritten_material": 1269,
-    "coverage_pct": 99.84,
+    "rewritten_material": 1270,
+    "coverage_pct": 99.92,
     "by_family": {
       "dialog": {
         "total": 437,
@@ -157,9 +157,9 @@
       },
       "native-shell": {
         "total": 10,
-        "pending": 2,
+        "pending": 1,
         "in-progress": 0,
-        "rewritten-material": 8
+        "rewritten-material": 9
       },
       "options-page": {
         "total": 40,
@@ -315,9 +315,9 @@
       },
       "sw": {
         "total": 233,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 232
+        "rewritten-material": 233
       },
       "uui": {
         "total": 10,
@@ -557,9 +557,9 @@
       },
       "WIN-WR-002": {
         "total": 1,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 0
+        "rewritten-material": 1
       },
       "WIN-WR-005": {
         "total": 4,
@@ -13854,12 +13854,24 @@
       "inventory_id": "WIN-WR-002",
       "family": "native-shell",
       "rewrite_class": "shell-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "d48a2a57d90910174ad3c364af713d862c61a00e",
+        "contract": "qa/windows-ui-contract/writer-canvas-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "writer-canvas-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-writer-canvas-composition",
+          "evidence_kind": "composition-code",
+          "canvas_token": "surface-container-low",
+          "paint_boundary": "page-subtracted-workspace",
+          "shadow_edges": 4,
+          "forced_colors": "high-contrast-first",
+          "document_pixels": "preserved"
+        }
       }
     },
     {

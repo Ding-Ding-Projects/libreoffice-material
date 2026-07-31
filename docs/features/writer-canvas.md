@@ -62,7 +62,9 @@ consumers, and preserved rendering/input paths.
 
 `runtime_verified` remains `false`. A native Windows Writer build and focused
 light/dark/high-contrast captures are still required before rendered behavior
-is claimed.
+is claimed. Immutable source commit
+`d48a2a57d90910174ad3c364af713d862c61a00e` carries the implementation and its
+native-shell ledger credit.
 
 ## Suggested articles
 

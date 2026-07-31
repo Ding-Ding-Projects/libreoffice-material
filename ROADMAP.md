@@ -22,10 +22,10 @@ left after visible page subtraction, and all four page-shadow seams use the same
 resolved color. Non-Material configured-color/bitmap behavior and document,
 preview, print, tile, zoom, selection, and input paths remain owned. The focused
 checker and 13 tests (12 mutations plus production) pass. Native compilation
-and light/dark/high-contrast captures remain unverified. The implementation is
-being committed before its separate immutable ledger-credit pass, so the last
-commit-auditable headline below remains **99.84% (1269/1271), 2 pending** at
-this source checkpoint.
+and light/dark/high-contrast captures remain unverified. Immutable source
+commit `d48a2a57d90910174ad3c364af713d862c61a00e` supplies the evidence, so the
+headline is now **99.92% (1270/1271), 1 pending**; updater lifecycle is the sole
+remaining row.
 
 **2026-07-31 Material title-bar composition:** both rendering owners now consume
 the declared active/deactive frame slots. VCL normal/small/tear-off title bands
@@ -34,9 +34,9 @@ top-level frames pass those colors to DWM and refresh on `WM_NCACTIVATE`.
 High contrast resets all DWM colors to system defaults, and no client-side frame
 or hit-testing replacement is introduced. The focused checker and 19 tests (18
 mutations plus the production contract) pass. Commit
-`1b3b5f41ef54e6b0e9a3c659e955d4ef0f364366` supplies immutable source evidence,
-so the headline is now **99.84% (1269/1271), 2 pending**. Native compilation and
-runtime pixels remain unverified.
+`1b3b5f41ef54e6b0e9a3c659e955d4ef0f364366` supplies immutable source evidence.
+At that title-bar checkpoint the headline was **99.84% (1269/1271), 2
+pending**. Native compilation and runtime pixels remain unverified.
 
 **2026-07-31 MSI lifecycle composition:** the installer now bundles three
 deterministic 24-bit branding assets generated from the local Material token
@@ -95,8 +95,9 @@ open.
 
 **2026-07-31 native/wizard ownership contract:** five native shells and the
 shared wizard shell initially received a fail-closed owner/marker contract. The
-wizard has since moved to its implemented runtime-composition contract; the
-ownership boundary now retains only the four pending native shells.
+wizard subsequently moved to its implemented runtime-composition contract; at
+that intermediate checkpoint the boundary retained four native shells. The
+current boundary retains only updater lifecycle.
 
 **2026-07-31 blocked-surface design proposal:** the six non-static pending
 surfaces now have a concrete Material token/anatomy proposal in

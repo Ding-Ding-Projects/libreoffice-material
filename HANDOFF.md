@@ -11,10 +11,10 @@ preview, print/metafile, LibreOfficeKit tiles, zoom, selection, and input
 coordinates retain their existing owners.
 
 The composition checker and 13 tests (12 mutations plus production) pass.
-Native compilation and focused light/dark/high-contrast captures are not yet
-claimed. This source checkpoint intentionally precedes a separate immutable
-ledger-credit commit, so the last credited headline remains **99.84%
-(1269/1271), 2 pending** until that pass records the implementation commit.
+Immutable source commit `d48a2a57d90910174ad3c364af713d862c61a00e`
+supplies the evidence. The ledger is now **99.92% (1270/1271), 1 pending**;
+updater lifecycle is the sole remaining row. Native compilation and focused
+light/dark/high-contrast captures are not yet claimed.
 
 ## 2026-07-31 follow-up — Material title-bar consumption source-complete
 
@@ -28,10 +28,9 @@ caption buttons, hit testing, snapping, DPI, system commands, and accessibility.
 
 The focused checker and 19 tests (18 mutations plus the production contract)
 pass. Commit `1b3b5f41ef54e6b0e9a3c659e955d4ef0f364366` supplies immutable source
-evidence, so the title-bar row is credited and the headline is now **99.84%
-(1269/1271), 2 pending**. The pending-native ownership set is limited to updater
-lifecycle and Writer canvas. Native compilation and active/inactive runtime
-captures are not yet claimed.
+evidence. At that title-bar checkpoint the headline was **99.84% (1269/1271),
+2 pending**, with updater lifecycle and Writer canvas still open. Native
+compilation and active/inactive runtime captures are not yet claimed.
 
 ## 2026-07-31 follow-up — MSI lifecycle composition source-complete
 

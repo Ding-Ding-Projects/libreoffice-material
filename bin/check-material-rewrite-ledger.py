@@ -134,6 +134,12 @@ FAMILY_SIDEBAR = "sidebar-panel"
 FAMILY_WIZARD = "wizard-assistant"
 FAMILY_NATIVE = "native-shell"
 
+# ``fielddescpanel.ui`` is hosted by a Base child window, not the sidebar
+# deck; keep the filename heuristic from assigning it the wrong contract.
+PANEL_FRAGMENT_EXCEPTIONS = {
+    "dbaccess/uiconfig/ui/fielddescpanel.ui",
+}
+
 ALL_FAMILIES = (
     FAMILY_DIALOG,
     FAMILY_MESSAGE,
@@ -446,6 +452,8 @@ def classify(surface: str, root: ET.Element | None) -> str:
         return FAMILY_MENU
     if "GtkPopover" in classes:
         return FAMILY_POPOVER
+    if surface in PANEL_FRAGMENT_EXCEPTIONS:
+        return FAMILY_PANEL
     if "sidebar" in base or base.endswith("panel.ui"):
         return FAMILY_SIDEBAR
     return FAMILY_PANEL

@@ -141,8 +141,8 @@
         "rewritten-material": 40
       },
       "panel-fragment": {
-        "total": 451,
-        "pending": 128,
+        "total": 452,
+        "pending": 129,
         "in-progress": 0,
         "rewritten-material": 323
       },
@@ -153,8 +153,8 @@
         "rewritten-material": 47
       },
       "sidebar-panel": {
-        "total": 54,
-        "pending": 2,
+        "total": 53,
+        "pending": 1,
         "in-progress": 0,
         "rewritten-material": 52
       },
@@ -9463,8 +9463,8 @@
       "surface": "dbaccess/uiconfig/ui/fielddescpanel.ui",
       "owner": "dbaccess",
       "inventory_id": "WIN-BA-001",
-      "family": "sidebar-panel",
-      "rewrite_class": "panel-composition",
+      "family": "panel-fragment",
+      "rewrite_class": "surface-body",
       "rewrite_status": "pending",
       "rewrite_evidence": {
         "commit": null,

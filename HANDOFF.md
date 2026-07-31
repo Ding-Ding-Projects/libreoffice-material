@@ -1,5 +1,16 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — ledger host classification correction
+
+The fail-closed ledger now classifies
+`dbaccess/uiconfig/ui/fielddescpanel.ui` as a `panel-fragment`, not a
+`sidebar-panel`. Its actual host is `OTableFieldDescWin : OChildWindow`, not
+the sfx2 sidebar deck; the previous `*panel.ui` filename heuristic assigned a
+contract the runtime never receives. The explicit exception, regenerated
+ledger, 55-test suite, and sidebar contract validator pass. Overall coverage
+is unchanged at **82.61% (1050/1271), 221 pending**; only family ownership and
+the corresponding pending bucket changed.
+
 ## 2026-07-31 follow-up — isolated MSI packaging evidence
 
 The repaired isolated Windows build completed MSI packaging successfully. The

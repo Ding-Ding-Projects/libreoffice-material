@@ -15,6 +15,11 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-31 ledger correction:** `fielddescpanel.ui` is now explicitly
+classified as a panel fragment because its C++ owner is Base's ordinary
+`OChildWindow`, not the sfx2 sidebar deck. The regenerated ledger and 55-test
+suite pass; the overall headline remains **82.61% (1050/1271), 221 pending**.
+
 **2026-07-31 milestone — behavior-safe UI slice:** the existing search dialog
 primary action now uses `RET_OK`, and the existing database field-description
 panel has Material margins plus ellipsizing and mnemonic metadata. XML,

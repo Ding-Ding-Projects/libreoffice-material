@@ -376,6 +376,7 @@ public:
     vcl::RenderContext& GetRefDev() const;
     vcl::Window* GetWin()    const { return mpWin; }
     vcl::RenderContext* GetOut()     const { return mpOut; }
+    Color GetCanvasBackgroundColor() const;
 
     void SetWin(vcl::Window* win) { mpWin = win; }
     void SetOut(vcl::RenderContext* pOut) { mpOut = pOut; }

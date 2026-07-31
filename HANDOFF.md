@@ -1,5 +1,21 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — Writer canvas source implemented
+
+Writer's outside-page workspace now resolves the bundled Material
+`surface-container-low` role after a high-contrast-first gate. The desktop
+paint path subtracts every visible page before filling the remaining region,
+and the four page-shadow bitmap edges clear against that same color. The
+non-Material configured background/bitmap path is unchanged; document pixels,
+preview, print/metafile, LibreOfficeKit tiles, zoom, selection, and input
+coordinates retain their existing owners.
+
+The composition checker and 13 tests (12 mutations plus production) pass.
+Native compilation and focused light/dark/high-contrast captures are not yet
+claimed. This source checkpoint intentionally precedes a separate immutable
+ledger-credit commit, so the last credited headline remains **99.84%
+(1269/1271), 2 pending** until that pass records the implementation commit.
+
 ## 2026-07-31 follow-up — Material title-bar consumption source-complete
 
 The previously declared frame slots now reach both real rendering owners.

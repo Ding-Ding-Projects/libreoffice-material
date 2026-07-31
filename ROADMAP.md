@@ -15,6 +15,18 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-31 Writer canvas source implementation:** the custom Writer workspace
+now resolves `surface-container-low` from the bundled light/dark Material
+palettes after a high-contrast-first gate. `PaintDesktop` fills only the region
+left after visible page subtraction, and all four page-shadow seams use the same
+resolved color. Non-Material configured-color/bitmap behavior and document,
+preview, print, tile, zoom, selection, and input paths remain owned. The focused
+checker and 13 tests (12 mutations plus production) pass. Native compilation
+and light/dark/high-contrast captures remain unverified. The implementation is
+being committed before its separate immutable ledger-credit pass, so the last
+commit-auditable headline below remains **99.84% (1269/1271), 2 pending** at
+this source checkpoint.
+
 **2026-07-31 Material title-bar composition:** both rendering owners now consume
 the declared active/deactive frame slots. VCL normal/small/tear-off title bands
 select slot-derived fill, text, border, and caption-symbol colors; Windows

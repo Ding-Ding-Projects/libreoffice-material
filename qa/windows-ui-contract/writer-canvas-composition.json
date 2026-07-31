@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "contract": "material-writer-canvas-composition",
+  "platform": "windows",
+  "status": "source-implemented",
+  "runtime_verified": false,
+  "surface": "native:writer-document-canvas",
+  "owner": "sw",
+  "inventory_id": "WIN-WR-002",
+  "definition_file": "vcl/uiconfig/theme_definitions/material/definition.xml",
+  "design_reference": "docs/design/10-writer-calc.md#102-writer",
+  "canvas_token": "surface-container-low",
+  "workspace_slot": "@surface-container-low",
+  "sources": [
+    {
+      "path": "sw/inc/viewsh.hxx",
+      "required_markers": [
+        "Color GetCanvasBackgroundColor() const;"
+      ]
+    },
+    {
+      "path": "sw/source/core/view/viewsh.cxx",
+      "required_markers": [
+        "IsMaterialWriterCanvasEnabled()",
+        "rStyleSettings.GetHighContrastMode()",
+        "VCL_FILE_WIDGET_THEME",
+        "std::strcmp(pThemeName, \"material\") == 0",
+        "Color SwViewShell::GetCanvasBackgroundColor() const",
+        "GetViewOptions()->GetAppBackgroundColor()",
+        "vcl::MaterialTokens::fromCurrentTheme(bDark)",
+        "findColor(\"surface-container-low\")",
+        "!IsMaterialWriterCanvasEnabled()",
+        "DrawAppBackgroundBitmap(GetOut(), rRegion.GetOrigin())",
+        "GetOut()->SetFillColor(GetCanvasBackgroundColor())",
+        "aRegion -= aPageRect",
+        "PaintDesktop_(aRegion)",
+        "PaintDesktop(rRenderContext, aRect)",
+        "GetLayout()->PaintSwFrame( rRenderContext, aRect )"
+      ]
+    },
+    {
+      "path": "sw/source/core/layout/paintfrm.cxx",
+      "required_markers": [
+        "const SwViewShell* pViewShell",
+        "pViewShell->GetCanvasBackgroundColor()",
+        "lcl_paintBitmapExToRect(pOut, _pViewShell,"
+      ]
+    }
+  ],
+  "preserved_paths": [
+    "page rectangles are subtracted before desktop fill",
+    "document layout paints after desktop fill",
+    "LibreOfficeKit tiled rendering skips desktop fill",
+    "print and metafile output retain their existing exclusions",
+    "high contrast and non-Material themes retain configured colors",
+    "zoom, selection, caret, input coordinates, and document pixels are unchanged"
+  ],
+  "note": "Material mode now has a Writer-owned canvas consumer rather than relying on generic workspace plumbing. The helper is high-contrast-first, exact-theme-gated, accent/dark aware through MaterialTokens::fromCurrentTheme, and falls back to the configured AppBackground color if tokens cannot load. PaintDesktop subtracts every visible page (plus the notes sidebar) before PaintDesktop_ fills only the remaining canvas region. Page-shadow seam clearing uses the same resolved color. The document layout, page contents, tiled/print paths, selection, caret, zoom, and coordinates are untouched. Source evidence only; runtime pixels remain unverified."
+}

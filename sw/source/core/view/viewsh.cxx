@@ -18,6 +18,7 @@
  */
 
 #include <vcl/themecolors.hxx>
+#include <vcl/MaterialTokens.hxx>
 #include <officecfg/Office/Common.hxx>
 #include <config_wasm_strip.h>
 
@@ -82,6 +83,10 @@
 #include <sfx2/lokhelper.hxx>
 #include <tools/UnitConversion.hxx>
 
+#include <cstdlib>
+#include <cstring>
+#include <optional>
+
 #if !HAVE_FEATURE_DESKTOP
 #include <vcl/sysdata.hxx>
 #endif
@@ -100,8 +105,40 @@ static tools::DeleteOnDeinit<std::shared_ptr<weld::Window>>& getCareDialog()
 
 static bool bInSizeNotify = false;
 
+namespace
+{
+bool IsMaterialWriterCanvasEnabled()
+{
+    const StyleSettings& rStyleSettings = Application::GetSettings().GetStyleSettings();
+    if (rStyleSettings.GetHighContrastMode())
+        return false;
+
+    const char* pThemeName = std::getenv("VCL_FILE_WIDGET_THEME");
+    return pThemeName && std::strcmp(pThemeName, "material") == 0;
+}
+}
+
 
 using namespace ::com::sun::star;
+
+Color SwViewShell::GetCanvasBackgroundColor() const
+{
+    const Color aFallback(GetViewOptions()->GetAppBackgroundColor());
+    if (!IsMaterialWriterCanvasEnabled())
+        return aFallback;
+
+    const bool bDark
+        = Application::GetSettings().GetStyleSettings().GetWindowColor().IsDark();
+    static std::optional<vcl::MaterialTokens> oLightTokens;
+    static std::optional<vcl::MaterialTokens> oDarkTokens;
+    std::optional<vcl::MaterialTokens>& rTokens = bDark ? oDarkTokens : oLightTokens;
+    if (!rTokens)
+        rTokens = vcl::MaterialTokens::fromCurrentTheme(bDark);
+    if (!rTokens->isValid())
+        return aFallback;
+
+    return rTokens->findColor("surface-container-low").value_or(aFallback);
+}
 
 void SwViewShell::SetShowHeaderFooterSeparator( FrameControlType eControl, bool bShow ) {
 
@@ -1812,7 +1849,8 @@ void SwViewShell::PaintDesktop(const vcl::RenderContext& rRenderContext, const S
 // PaintDesktop is split in two, this part is also used by PreviewPage
 void SwViewShell::PaintDesktop_(const SwRegionRects &rRegion)
 {
-    if (DrawAppBackgroundBitmap(GetOut(), rRegion.GetOrigin()))
+    if (!IsMaterialWriterCanvasEnabled()
+        && DrawAppBackgroundBitmap(GetOut(), rRegion.GetOrigin()))
         return;
 
     // OD 2004-04-23 #116347#
@@ -1854,7 +1892,7 @@ void SwViewShell::PaintDesktop_(const SwRegionRects &rRegion)
 
         // #i75172# needed to move line/Fill color setters into loop since DLPrePaint2
         // may exchange GetOut(), that's it's purpose. This happens e.g. at print preview.
-        GetOut()->SetFillColor( GetViewOptions()->GetAppBackgroundColor());
+        GetOut()->SetFillColor(GetCanvasBackgroundColor());
         GetOut()->SetLineColor();
         GetOut()->DrawRect(aRectangle);
 

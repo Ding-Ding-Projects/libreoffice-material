@@ -296,6 +296,26 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
         </div>
         <div class="activation-card">
           <div>
+            <p class="card-kicker">Writer document canvas</p>
+            <h3>Material workspace color stops exactly at the page edge.</h3>
+            <p>
+              Writer now resolves the bundled light/dark
+              <code>surface-container-low</code> token for the workspace around
+              visible pages. The paint path subtracts document rectangles before
+              filling and clears all four page-shadow seams with that same color.
+              High contrast and non-Material configured backgrounds stay in
+              control; document pixels, preview, print, tile rendering, zoom,
+              selection, and input coordinates keep their existing owners. The
+              source contract and thirteen focused tests (twelve mutations plus
+              production) pass; native compilation and captures remain
+              unverified. Read the
+              <a href="https://github.com/Ding-Ding-Projects/libreoffice-material/blob/main/docs/features/writer-canvas.md">feature article</a>.
+            </p>
+          </div>
+          <span class="state state-progress">Source verified · runtime pending</span>
+        </div>
+        <div class="activation-card">
+          <div>
             <p class="card-kicker">Windows updater source</p>
             <h3>Strict release metadata, protected staging, explicit consent.</h3>
             <p>

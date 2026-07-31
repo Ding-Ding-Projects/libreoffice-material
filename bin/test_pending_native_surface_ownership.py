@@ -24,10 +24,11 @@ class PendingNativeOwnershipTest(unittest.TestCase):
         VALIDATOR.validate(REPOSITORY)
 
     def test_expected_surface_set_is_complete(self) -> None:
-        self.assertEqual(2, len(VALIDATOR.EXPECTED))
+        self.assertEqual(1, len(VALIDATOR.EXPECTED))
         self.assertNotIn("native:find-toolbar", VALIDATOR.EXPECTED)
         self.assertNotIn("native:msi-install-lifecycle-ui", VALIDATOR.EXPECTED)
         self.assertNotIn("native:window-title-bars", VALIDATOR.EXPECTED)
+        self.assertNotIn("native:writer-document-canvas", VALIDATOR.EXPECTED)
         self.assertNotIn("vcl/uiconfig/ui/wizard.ui", VALIDATOR.EXPECTED)
 
     def test_missing_marker_fails_closed(self) -> None:

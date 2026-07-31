@@ -5,7 +5,7 @@
   "status": "design-specified-not-wired",
   "runtime_verified": false,
   "design_reference": "docs/design/blocked-surface-material-proposal.md",
-  "note": "Fail-closed ownership contract for the two native-shell rows that do not yet have a Material implementation contract. This contract pins their real owners and requires the rewrite ledger to keep them pending with empty implementation evidence. It is not a rewrite credit.",
+  "note": "Fail-closed ownership contract for the one native-shell row that does not yet have a Material implementation contract. This contract pins its real owner and requires the rewrite ledger to keep it pending with empty implementation evidence. It is not a rewrite credit.",
   "governed_surfaces": [
     {
       "surface": "native:updater-lifecycle-ui",
@@ -16,16 +16,6 @@
       "required_markers": [
         "class UpdateCheckUI : public ::cppu::WeakImplHelper",
         "MenuBarUpdateIconManager maBubbleManager;"
-      ]
-    },
-    {
-      "surface": "native:writer-document-canvas",
-      "family": "native-shell",
-      "owner": "sw",
-      "inventory_id": "WIN-WR-002",
-      "source": "sw/source/core/view/viewsh.cxx",
-      "required_markers": [
-        "void SwViewShell::Paint(vcl::RenderContext& rRenderContext"
       ]
     }
   ]

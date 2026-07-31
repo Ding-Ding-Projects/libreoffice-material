@@ -1204,6 +1204,8 @@ python bin/check-windows-notebookbar-composition.py
 python bin/test_windows_notebookbar_composition.py
 python bin/check-windows-titlebar-composition.py
 python bin/test_windows_titlebar_composition.py
+python bin/check-writer-canvas-composition.py
+python bin/test_writer_canvas_composition.py
 python bin/check-notification-overlay-contract.py
 python bin/test_notification_overlay_contract.py
 python bin/check-windows-command-overflow.py
@@ -1693,13 +1695,35 @@ default/cancel, token, and ledger drift. This is source evidence only; no real
 install/repair/upgrade/uninstall/restart result is claimed and
 `runtime_verified` remains false.
 
+### Writer document canvas (WIN-WR-002)
+
+`writer-canvas-composition.json` (contract
+`material-writer-canvas-composition`) pins the Material-only Writer workspace
+paint boundary. The high-contrast-first resolver reads the bundled light/dark
+`surface-container-low` role with the configured application background as its
+fallback. `PaintDesktop` subtracts all visible page rectangles before filling
+the remainder, bypasses the optional workspace bitmap only in Material mode,
+and paints document content after the desktop. The page-shadow helper consumes
+the same canvas color on all four edges so cleared bitmap seams cannot expose a
+different background.
+
+```sh
+python bin/check-writer-canvas-composition.py
+python bin/test_writer_canvas_composition.py
+```
+
+Twelve mutations reject palette, slot, gate-order, fallback, page-subtraction,
+bitmap, paint-order, shadow-color, edge-count, and preserved-path drift. Page
+pixels, print/metafile output, LibreOfficeKit tiles, preview ownership, zoom,
+selection, and input coordinates remain outside the new paint decision. This
+is source composition evidence only; `runtime_verified` remains false.
+
 ### Pending native ownership
 
 `pending-native-surface-ownership.json` (contract
 `material-pending-native-surface-ownership`) closes the contract-ownership gap
-for two native-shell rows. It pins the real source owner and stable markers
-for updater lifecycle and Writer canvas;
-it also requires every row
+for one native-shell row. It pins the real source owner and stable markers for
+updater lifecycle; it also requires that row
 to remain `pending` with empty implementation evidence. The contract is a
 fail-closed planning boundary, not Material rewrite credit. Three mutation/
 baseline tests; `runtime_verified: false`.

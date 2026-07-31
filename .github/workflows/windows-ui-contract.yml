@@ -570,6 +570,12 @@ jobs:
       - name: Run pending native ownership regressions
         run: python3 bin/test_pending_native_surface_ownership.py
 
+      - name: Validate Material Writer canvas composition
+        run: python3 bin/check-writer-canvas-composition.py
+
+      - name: Run Writer canvas composition mutations
+        run: python3 bin/test_writer_canvas_composition.py
+
       - name: Validate notebookbar UI conformance
         run: python3 bin/check-windows-notebookbar-ui-conformance.py
 

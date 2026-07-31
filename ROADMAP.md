@@ -39,7 +39,7 @@ The rewrite evaluator itself also had a fail-closed dead end: a valid historical
 snapshot was retained after a still-conforming surface changed, so C4 rejected
 the stale markers but `--evaluate` could not refresh them. The evaluator and
 its mutation coverage now refresh such evidence. The audited headline is
-**82.45% (1048/1271), 223 pending, 0 in-progress**. This corrects ten
+**82.61% (1050/1271), 221 pending, 0 in-progress**. This corrects ten
 previously over-credited surfaces; eleven rows now carry explicit regression
 waivers in total. All claims in this milestone are source/static/build-free
 evidence. There is no configured local LibreOffice build, so the new C++ tests,

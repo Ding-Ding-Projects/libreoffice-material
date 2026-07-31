@@ -49,8 +49,8 @@ Document Tab Appearance snapshot landed at `baae1c416`.
 - The integration validator rejects raw-engine bypasses and dead marker routes
   hidden behind `if(false)`, `if(0)`, `if constexpr(false)`, or `#if 0`.
 - The ledger now refreshes a valid historical evidence snapshot when a
-  still-conforming surface changes. The current audited result is **82.45%
-  (1048/1271), 223 pending, 0 in-progress**; ten former credits were corrected,
+ still-conforming surface changes. The current audited result is **82.61%
+ (1050/1271), 221 pending, 0 in-progress**; ten former credits were corrected,
   and eleven rows carry explicit regression waivers in total. Re-running
   `--evaluate` is byte-idempotent.
 - No `config_host.mk`, `workdir`, or `instdir` exists in this checkout. The new

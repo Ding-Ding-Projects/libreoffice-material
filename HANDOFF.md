@@ -2,20 +2,23 @@
 
 ## 2026-07-31 follow-up — runtime-composed dialog shells credited
 
-Twelve deliberately empty runtime notebooks now use 12 px Material content grids
+Eighteen deliberately empty runtime notebooks now use 12 px Material content grids
 with scrollable left tabs: Chart 3D View, Character, and Paragraph; shared Area,
 Border/Area/Transparency, Border/Background, Callout, Customize, and Format Cells;
-and Writer Envelope, Footnote/Endnote, and Format Section.
+Writer Envelope, Footnote/Endnote, and Format Section; plus PDF Export, Document
+Properties, and four Writer format dialogs.
 Commits `88bde01c0c674b7d00eebfb34094fed067440e64` and
 `9920f81c607d52619bcc0456af9b1e64ebd19f37`, followed by
-`47978d3d534224856c3f16458a49151648576dfe`, add and expand the explicit
+`47978d3d534224856c3f16458a49151648576dfe` and
+`3b5848f6b7d326e43e0bd584d78234dd5f1c3d64`, add and expand the explicit
 `runtime-dialog-shell`/`dialog-composition` family and its fail-closed contract,
-which checks each static shell, Help/Cancel/OK footer/default, exact twelve-surface
-allow-list, and ordered or bounded C++ page hosts. Eighteen mutation tests, the 56-test
+which checks each static shell, its exact footer/default, the eighteen-surface
+allow-list, ordered or bounded C++ page hosts, and specialized composition
+dependencies. Twenty mutation tests, the 56-test
 rewrite-ledger suite, dialog anatomy, XML, accessibility-fatals (0 across 1,258
 UI files), and build-free workflow coverage (175/175) pass. The two evidence
 waves now cite their preceding committed contracts, moving the honest source
-headline to **83.56% (1062/1271), 209 pending**. `runtime_verified` remains false: no native
+headline to **84.03% (1068/1271), 203 pending**. `runtime_verified` remains false: no native
 dialog pixels, keyboard trace, scale matrix, localization capture, or
 screen-reader run is claimed.
 

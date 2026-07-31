@@ -15,14 +15,14 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
-**2026-07-31 runtime-dialog composition milestone:** twelve empty-notebook
+**2026-07-31 runtime-dialog composition milestone:** eighteen empty-notebook
 dialogs now carry real Material inset grids while their labels and page bodies
 remain owned by the existing C++ controllers. A new explicit
 `runtime-dialog-shell` family proves both the empty static shell and ordered
-or bounded runtime page host without weakening the ordinary dialog predicate. Eighteen
+or bounded runtime page host without weakening the ordinary dialog predicate. Twenty
 contract mutations, 56 ledger tests, XML, dialog anatomy, accessibility-fatals,
 and the 175/175 build-free workflow gate pass. The source headline advances to
-**83.56% (1062/1271), 209 pending**; native runtime and pixel evidence remain
+**84.03% (1068/1271), 203 pending**; native runtime and pixel evidence remain
 open.
 
 **2026-07-31 native/wizard ownership contract:** five native shells and the

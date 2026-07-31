@@ -22,8 +22,10 @@ tables, Segoe UI hierarchy, fourteen install/maintenance/progress/completion
 stages, three safe native decisions, template copying, and the existing
 lifecycle harness. Ten mutations and byte regeneration pass. Windows Installer
 still owns chrome, controls, DPI, keyboard, and accessibility. The native row
-awaits an immutable source commit before ledger credit; real MSI lifecycle
-behavior remains unverified.
+is credited against immutable source commit
+`3d25fea0279d9f44bc7daff7a2b329509d38f951`, raising the source headline to
+**99.76% (1268/1271), 3 pending**. Real MSI lifecycle behavior remains
+unverified.
 
 **2026-07-31 native Find-toolbar implementation:** the layout-manager-owned
 Find item window now has a real adjacent advanced regex builder. Validated ICU

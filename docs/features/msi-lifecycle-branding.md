@@ -57,8 +57,11 @@ control rendering.
 generator check, `bin/check-msi-lifecycle-composition.py`, and ten mutations.
 It pins all assets, token roles, table mappings, typography, fourteen lifecycle
 dialogs, three decision dialogs, template copying, and the existing lifecycle
-harness entry points. `runtime_verified` remains `false`: a built MSI must still
-complete the real lifecycle harness before install behavior is claimed.
+harness entry points. Immutable source commit
+`3d25fea0279d9f44bc7daff7a2b329509d38f951` carries that implementation and its
+native-shell ledger credit. `runtime_verified` remains `false`: a built MSI
+must still complete the real lifecycle harness before install behavior is
+claimed.
 
 ## Suggested articles
 

@@ -126,10 +126,10 @@
   },
   "coverage": {
     "total_surfaces": 1271,
-    "pending": 4,
+    "pending": 3,
     "in_progress": 0,
-    "rewritten_material": 1267,
-    "coverage_pct": 99.69,
+    "rewritten_material": 1268,
+    "coverage_pct": 99.76,
     "by_family": {
       "dialog": {
         "total": 437,
@@ -157,9 +157,9 @@
       },
       "native-shell": {
         "total": 10,
-        "pending": 4,
+        "pending": 3,
         "in-progress": 0,
-        "rewritten-material": 6
+        "rewritten-material": 7
       },
       "options-page": {
         "total": 40,
@@ -261,9 +261,9 @@
       },
       "instsetoo_native": {
         "total": 1,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 0
+        "rewritten-material": 1
       },
       "libreofficekit": {
         "total": 1,
@@ -539,9 +539,9 @@
       },
       "WIN-SYS-013": {
         "total": 2,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 1
+        "rewritten-material": 2
       },
       "WIN-SYS-015": {
         "total": 16,
@@ -13748,12 +13748,22 @@
       "inventory_id": "WIN-SYS-013",
       "family": "native-shell",
       "rewrite_class": "shell-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "3d25fea0279d9f44bc7daff7a2b329509d38f951",
+        "contract": "qa/windows-ui-contract/msi-lifecycle-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "msi-lifecycle-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-msi-lifecycle-composition",
+          "evidence_kind": "composition-code",
+          "generated_assets": "Banner.bmp+Image.bmp+Image_2.bmp",
+          "lifecycle_dialogs": 14,
+          "native_decision_dialogs": 3
+        }
       }
     },
     {

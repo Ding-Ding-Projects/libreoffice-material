@@ -12,10 +12,12 @@ Windows Installer continues to own its frame, caption buttons, controls, DPI,
 keyboard, and accessibility behavior.
 
 Generator replay, decode/SHA/geometry validation, the composition checker, and
-10 mutations pass. The existing guest harness entry points for install, repair,
-major upgrade, and uninstall are source-pinned, not run. The native ledger row
-therefore stays pending until this slice has a commit; the headline remains
-**99.69% (1267/1271), 4 pending** and `runtime_verified` remains false.
+10 mutations pass. Commit
+`3d25fea0279d9f44bc7daff7a2b329509d38f951` supplies immutable source evidence,
+so the native row is credited and the headline is now **99.76% (1268/1271), 3
+pending**. The existing guest harness entry points for install, repair, major
+upgrade, and uninstall are source-pinned, not run; `runtime_verified` remains
+false.
 
 ## 2026-07-31 follow-up — native Find toolbar source-complete
 

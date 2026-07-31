@@ -582,6 +582,340 @@
         "page_ids": ["columns", "indents", "background", "notes"],
         "conditional_pages": ["columns", "indents", "notes"]
       }
+    },
+    {
+      "surface": "filter/uiconfig/ui/pdfoptionsdialog.ui",
+      "owner": "filter",
+      "inventory_id": "WIN-SYS-002",
+      "dialog": {
+        "id": "PdfOptionsDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "pdfoptionsdialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "ok", "response": -5},
+          {"id": "cancel", "response": -6},
+          {"id": "help", "response": -11}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": []
+      },
+      "dependency_contract": {
+        "path": "qa/windows-ui-contract/pdf-export-dialog.json",
+        "contract_marker": "material-pdf-export-dialog-composition"
+      },
+      "host": {
+        "source": "filter/source/pdf/impdialog.cxx",
+        "ordered_markers": [
+          "SfxTabDialogController(pParent, u\"filter/ui/pdfoptionsdialog.ui\"_ustr, u\"PdfOptionsDialog\"_ustr)",
+          "AddTabPage(u\"general\"_ustr, TabResId(RID_TAB_ORGANIZER.aLabel), ImpPDFTabGeneralPage::Create,",
+          "AddTabPage(u\"initialview\"_ustr, TabResId(RID_TAB_PDFINITIAL.aLabel),",
+          "AddTabPage(u\"userinterface\"_ustr, TabResId(RID_TAB_PDFUI.aLabel), ImpPDFTabViewerPage::Create,",
+          "AddTabPage(u\"links\"_ustr, TabResId(RID_TAB_PDFLINKS.aLabel), ImpPDFTabLinksPage::Create,",
+          "AddTabPage(u\"security\"_ustr, TabResId(RID_TAB_PDFPROTECT.aLabel), ImpPDFTabSecurityPage::Create,",
+          "AddTabPage(u\"digitalsignatures\"_ustr, TabResId(RID_TAB_PDFSIGN.aLabel),"
+        ],
+        "page_ids": ["general", "initialview", "userinterface", "links", "security", "digitalsignatures"],
+        "conditional_pages": ["digitalsignatures"]
+      }
+    },
+    {
+      "surface": "sfx2/uiconfig/ui/documentpropertiesdialog.ui",
+      "owner": "sfx2",
+      "inventory_id": "WIN-SYS-003",
+      "dialog": {
+        "id": "DocumentPropertiesDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "documentpropertiesdialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "reset", "response": 101},
+          {"id": "ok", "response": -5},
+          {"id": "cancel", "response": -6},
+          {"id": "help", "response": -11}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": []
+      },
+      "dependency_contract": {
+        "path": "qa/windows-ui-contract/document-properties.json",
+        "contract_marker": "material-document-properties-composition"
+      },
+      "host": {
+        "source": "sfx2/source/dialog/dinfdlg.cxx",
+        "ordered_markers": [
+          "u\"sfx/ui/documentpropertiesdialog.ui\"_ustr",
+          "AddTabPage(u\"general\"_ustr, TabResId(RID_TAB_ORGANIZER.aLabel), SfxDocumentPage::Create,",
+          "AddTabPage(u\"description\"_ustr, TabResId(RID_TAB_DESCRIPTION.aLabel), SfxDocumentDescPage::Create,",
+          "AddTabPage(u\"customprops\"_ustr, TabResId(RID_TAB_CUSTOM.aLabel),",
+          "AddTabPage(u\"cmisprops\"_ustr, TabResId(RID_TAB_CMIS.aLabel),",
+          "AddTabPage(u\"security\"_ustr, TabResId(RID_TAB_SECURITY.aLabel), SfxSecurityPage::Create,",
+          "AddTabPage(u\"font\"_ustr, TabResId(RID_TAB_FONT.aLabel),"
+        ],
+        "page_ids": ["general", "description", "customprops", "cmisprops", "security", "font"],
+        "conditional_pages": ["cmisprops", "security"]
+      }
+    },
+    {
+      "surface": "sw/uiconfig/swriter/ui/characterproperties.ui",
+      "owner": "sw",
+      "inventory_id": "WIN-WR-001",
+      "dialog": {
+        "id": "CharacterPropertiesDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "characterproperties-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "reset", "response": 101},
+          {"id": "ok", "response": -5},
+          {"id": "cancel", "response": -6},
+          {"id": "help", "response": -11}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["standard"]
+      },
+      "dependency_contract": {
+        "path": "qa/windows-ui-contract/writer-format-dialogs.json",
+        "contract_marker": "material-writer-format-dialogs-composition"
+      },
+      "host": {
+        "source": "sw/source/ui/chrdlg/chardlg.cxx",
+        "ordered_markers": [
+          "u\"modules/swriter/ui/characterproperties.ui\"_ustr",
+          "AddTabPage(u\"font\"_ustr, TabResId(RID_TAB_FONT.aLabel), RID_SVXPAGE_CHAR_NAME,",
+          "AddTabPage(u\"fonteffects\"_ustr, TabResId(RID_TAB_FONTEFFECTS.aLabel), RID_SVXPAGE_CHAR_EFFECTS,",
+          "AddTabPage(u\"position\"_ustr, TabResId(RID_TAB_POSITION.aLabel), RID_SVXPAGE_CHAR_POSITION,",
+          "AddTabPage(u\"asianlayout\"_ustr, TabResId(RID_TAB_ASIANLAYOUT.aLabel), RID_SVXPAGE_CHAR_TWOLINES,",
+          "AddTabPage(u\"background\"_ustr, TabResId(RID_TAB_BACKGROUND.aLabel), RID_SVXPAGE_BKG,",
+          "AddTabPage(u\"borders\"_ustr, TabResId(RID_TAB_BORDER.aLabel), RID_SVXPAGE_BORDER,"
+        ],
+        "page_ids": ["font", "fonteffects", "position", "asianlayout", "background", "borders"]
+      }
+    },
+    {
+      "surface": "sw/uiconfig/swriter/ui/paradialog.ui",
+      "owner": "sw",
+      "inventory_id": "WIN-WR-001",
+      "dialog": {
+        "id": "ParagraphPropertiesDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "writer-paradialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "reset", "response": 101},
+          {"id": "ok", "response": -5},
+          {"id": "cancel", "response": -6},
+          {"id": "help", "response": -11}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": ["standard"]
+      },
+      "dependency_contract": {
+        "path": "qa/windows-ui-contract/writer-format-dialogs.json",
+        "contract_marker": "material-writer-format-dialogs-composition"
+      },
+      "host": {
+        "source": "sw/source/ui/chrdlg/pardlg.cxx",
+        "ordered_markers": [
+          "u\"modules/swriter/ui/paradialog.ui\"_ustr",
+          "AddTabPage(u\"indents\"_ustr, TabResId(RID_TAB_INDENTS.aLabel),",
+          "AddTabPage(u\"alignment\"_ustr, TabResId(RID_TAB_ALIGNMENT.aLabel),",
+          "AddTabPage(u\"textflow\"_ustr, TabResId(RID_TAB_TEXTFLOW.aLabel),",
+          "AddTabPage(u\"asiantypo\"_ustr, TabResId(RID_TAB_ASIANTYPO.aLabel),",
+          "AddTabPage(u\"outline\"_ustr, TabResId(RID_TAB_OUTLINELIST.aLabel),",
+          "AddTabPage(u\"tabs\"_ustr, TabResId(RID_TAB_TABS.aLabel),",
+          "AddTabPage(u\"dropcaps\"_ustr, TabResId(RID_TAB_DROPCAPS.aLabel), SwDropCapsPage::Create,",
+          "AddTabPage(u\"borders\"_ustr, TabResId(RID_TAB_BORDER.aLabel),",
+          "AddTabPage(u\"area\"_ustr, TabResId(RID_TAB_AREA.aLabel),",
+          "AddTabPage(u\"transparence\"_ustr, TabResId(RID_TAB_TRANSPARENCE.aLabel),"
+        ],
+        "page_ids": ["indents", "alignment", "textflow", "asiantypo", "outline", "tabs", "dropcaps", "borders", "area", "transparence"],
+        "conditional_pages": ["textflow", "asiantypo", "outline", "tabs", "dropcaps", "borders", "area", "transparence"]
+      }
+    },
+    {
+      "surface": "sw/uiconfig/swriter/ui/picturedialog.ui",
+      "owner": "sw",
+      "inventory_id": "WIN-WR-001",
+      "dialog": {
+        "id": "PictureDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "picturedialog-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "reset", "response": 101},
+          {"id": "ok", "response": -5},
+          {"id": "cancel", "response": -6},
+          {"id": "help", "response": -11}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": []
+      },
+      "dependency_contract": {
+        "path": "qa/windows-ui-contract/writer-format-dialogs.json",
+        "contract_marker": "material-writer-format-dialogs-composition"
+      },
+      "host": {
+        "source": "sw/source/ui/frmdlg/frmdlg.cxx",
+        "ordered_markers": [
+          "\"modules/swriter/ui/\" + sResType.toAsciiLowerCase() + \".ui\"",
+          "AddTabPage(u\"type\"_ustr, TabResId(RID_TAB_POSSIZE.aLabel), SwFramePage::Create,",
+          "AddTabPage(u\"options\"_ustr, TabResId(RID_TAB_FRAME_OPTIONS.aLabel), SwFrameAddPage::Create,",
+          "AddTabPage(u\"wrap\"_ustr, TabResId(RID_TAB_FRAME_WRAP.aLabel), SwWrapTabPage::Create,",
+          "AddTabPage(u\"hyperlink\"_ustr, TabResId(RID_TAB_HYPERLINK.aLabel), SwFrameURLPage::Create,",
+          "AddTabPage(u\"picture\"_ustr, TabResId(RID_TAB_ROTATION.aLabel), SwGrfExtPage::Create,",
+          "AddTabPage(u\"crop\"_ustr, TabResId(RID_TAB_CROP.aLabel), RID_SVXPAGE_GRFCROP,",
+          "AddTabPage(u\"borders\"_ustr, TabResId(RID_TAB_BORDER.aLabel), RID_SVXPAGE_BORDER,",
+          "AddTabPage(u\"area\"_ustr, TabResId(RID_TAB_AREA.aLabel),",
+          "AddTabPage(u\"transparence\"_ustr, TabResId(RID_TAB_TRANSPARENCE.aLabel),",
+          "AddTabPage(u\"macro\"_ustr, TabResId(RID_TAB_MACRO.aLabel), RID_SVXPAGE_MACROASSIGN,"
+        ],
+        "page_ids": ["type", "options", "wrap", "hyperlink", "picture", "crop", "borders", "area", "transparence", "macro"],
+        "conditional_pages": ["picture", "crop"]
+      }
+    },
+    {
+      "surface": "sw/uiconfig/swriter/ui/tableproperties.ui",
+      "owner": "sw",
+      "inventory_id": "WIN-WR-001",
+      "dialog": {
+        "id": "TablePropertiesDialog",
+        "modal": true,
+        "title_required": true
+      },
+      "content_grid": {
+        "id": "tableproperties-content-grid",
+        "class": "GtkGrid",
+        "row_spacing": 6,
+        "column_spacing": 12,
+        "margins": 12,
+        "hexpand": true,
+        "vexpand": true
+      },
+      "notebook": {
+        "id": "tabcontrol",
+        "class": "GtkNotebook",
+        "tab_pos": "left",
+        "static_pages": 0,
+        "scrollable": true
+      },
+      "footer": {
+        "action_widgets": [
+          {"id": "reset", "response": 101},
+          {"id": "ok", "response": -5},
+          {"id": "cancel", "response": -6},
+          {"id": "help", "response": -11}
+        ],
+        "primary": {"id": "ok", "response": -5, "can_default": true, "has_default": true},
+        "secondary": ["help"],
+        "auxiliary_buttons": []
+      },
+      "dependency_contract": {
+        "path": "qa/windows-ui-contract/writer-format-dialogs.json",
+        "contract_marker": "material-writer-format-dialogs-composition"
+      },
+      "host": {
+        "source": "sw/source/ui/table/tabledlg.cxx",
+        "ordered_markers": [
+          "u\"modules/swriter/ui/tableproperties.ui\"_ustr",
+          "AddTabPage(u\"table\"_ustr, TabResId(RID_TAB_TABLE.aLabel), &SwFormatTablePage::Create,",
+          "AddTabPage(u\"textflow\"_ustr, TabResId(RID_TAB_TEXTFLOW.aLabel), &SwTextFlowPage::Create,",
+          "AddTabPage(u\"columns\"_ustr, TabResId(RID_TAB_COLUMNS.aLabel), &SwTableColumnPage::Create,",
+          "AddTabPage(u\"borders\"_ustr, TabResId(RID_TAB_BORDER.aLabel),",
+          "AddTabPage(u\"background\"_ustr, TabResId(RID_TAB_BACKGROUND.aLabel),"
+        ],
+        "page_ids": ["table", "textflow", "columns", "borders", "background"]
+      }
     }
   ]
 }

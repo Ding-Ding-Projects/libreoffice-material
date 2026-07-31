@@ -121,8 +121,8 @@
     "coverage_pct": 83.56,
     "by_family": {
       "dialog": {
-        "total": 510,
-        "pending": 73,
+        "total": 504,
+        "pending": 67,
         "in-progress": 0,
         "rewritten-material": 437
       },
@@ -163,8 +163,8 @@
         "rewritten-material": 47
       },
       "runtime-dialog-shell": {
-        "total": 12,
-        "pending": 0,
+        "total": 18,
+        "pending": 6,
         "in-progress": 0,
         "rewritten-material": 12
       },
@@ -12465,8 +12465,8 @@
       "surface": "filter/uiconfig/ui/pdfoptionsdialog.ui",
       "owner": "filter",
       "inventory_id": "WIN-SYS-002",
-      "family": "dialog",
-      "rewrite_class": "dialog-anatomy",
+      "family": "runtime-dialog-shell",
+      "rewrite_class": "dialog-composition",
       "rewrite_status": "pending",
       "rewrite_evidence": {
         "commit": null,
@@ -22851,8 +22851,8 @@
       "surface": "sfx2/uiconfig/ui/documentpropertiesdialog.ui",
       "owner": "sfx2",
       "inventory_id": "WIN-SYS-003",
-      "family": "dialog",
-      "rewrite_class": "dialog-anatomy",
+      "family": "runtime-dialog-shell",
+      "rewrite_class": "dialog-composition",
       "rewrite_status": "pending",
       "rewrite_evidence": {
         "commit": null,
@@ -30327,8 +30327,8 @@
       "surface": "sw/uiconfig/swriter/ui/characterproperties.ui",
       "owner": "sw",
       "inventory_id": "WIN-WR-001",
-      "family": "dialog",
-      "rewrite_class": "dialog-anatomy",
+      "family": "runtime-dialog-shell",
+      "rewrite_class": "dialog-composition",
       "rewrite_status": "pending",
       "rewrite_evidence": {
         "commit": null,
@@ -34055,8 +34055,8 @@
       "surface": "sw/uiconfig/swriter/ui/paradialog.ui",
       "owner": "sw",
       "inventory_id": "WIN-WR-001",
-      "family": "dialog",
-      "rewrite_class": "dialog-anatomy",
+      "family": "runtime-dialog-shell",
+      "rewrite_class": "dialog-composition",
       "rewrite_status": "pending",
       "rewrite_evidence": {
         "commit": null,
@@ -34083,8 +34083,8 @@
       "surface": "sw/uiconfig/swriter/ui/picturedialog.ui",
       "owner": "sw",
       "inventory_id": "WIN-WR-001",
-      "family": "dialog",
-      "rewrite_class": "dialog-anatomy",
+      "family": "runtime-dialog-shell",
+      "rewrite_class": "dialog-composition",
       "rewrite_status": "pending",
       "rewrite_evidence": {
         "commit": null,
@@ -35381,8 +35381,8 @@
       "surface": "sw/uiconfig/swriter/ui/tableproperties.ui",
       "owner": "sw",
       "inventory_id": "WIN-WR-001",
-      "family": "dialog",
-      "rewrite_class": "dialog-anatomy",
+      "family": "runtime-dialog-shell",
+      "rewrite_class": "dialog-composition",
       "rewrite_status": "pending",
       "rewrite_evidence": {
         "commit": null,

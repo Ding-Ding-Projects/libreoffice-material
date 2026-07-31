@@ -48,9 +48,15 @@ EXPECTED_SURFACES = {
     "cui/uiconfig/ui/calloutdialog.ui": ("cui", "unassigned"),
     "cui/uiconfig/ui/customizedialog.ui": ("cui", "unassigned"),
     "cui/uiconfig/ui/formatcellsdialog.ui": ("cui", "unassigned"),
+    "filter/uiconfig/ui/pdfoptionsdialog.ui": ("filter", "WIN-SYS-002"),
+    "sfx2/uiconfig/ui/documentpropertiesdialog.ui": ("sfx2", "WIN-SYS-003"),
+    "sw/uiconfig/swriter/ui/characterproperties.ui": ("sw", "WIN-WR-001"),
     "sw/uiconfig/swriter/ui/envdialog.ui": ("sw", "WIN-WR-001"),
     "sw/uiconfig/swriter/ui/footendnotedialog.ui": ("sw", "WIN-WR-001"),
     "sw/uiconfig/swriter/ui/formatsectiondialog.ui": ("sw", "WIN-WR-001"),
+    "sw/uiconfig/swriter/ui/paradialog.ui": ("sw", "WIN-WR-001"),
+    "sw/uiconfig/swriter/ui/picturedialog.ui": ("sw", "WIN-WR-001"),
+    "sw/uiconfig/swriter/ui/tableproperties.ui": ("sw", "WIN-WR-001"),
 }
 
 
@@ -178,6 +184,9 @@ def load_repository(
             paths.add(surface)
         if isinstance(host, Mapping) and isinstance(host.get("source"), str):
             paths.add(host["source"])
+        dependency = shell.get("dependency_contract")
+        if isinstance(dependency, Mapping) and isinstance(dependency.get("path"), str):
+            paths.add(dependency["path"])
     contents = {
         path: (repo_root / path).read_text(encoding="utf-8")
         for path in paths
@@ -368,6 +377,37 @@ def _validate_shell(
             continue
         if (_integer(node.text) or 0) > 0:
             errors.append(f"{context}: legacy positive border-width returned")
+
+    dependency = shell.get("dependency_contract")
+    if dependency is not None:
+        if not isinstance(dependency, Mapping):
+            errors.append(f"{context}: dependency_contract must be an object")
+        else:
+            dependency_path = dependency.get("path")
+            dependency_marker = dependency.get("contract_marker")
+            if not isinstance(dependency_path, str) or dependency_path not in contents:
+                errors.append(f"{context}: dependency contract {dependency_path!r} is missing")
+            elif not isinstance(dependency_marker, str) or not dependency_marker:
+                errors.append(f"{context}: dependency contract marker is missing")
+            else:
+                try:
+                    dependency_data = json.loads(contents[dependency_path])
+                except json.JSONDecodeError as error:
+                    errors.append(f"{context}: dependency contract is invalid JSON: {error}")
+                else:
+                    if not (
+                        isinstance(dependency_data, Mapping)
+                        and dependency_data.get("contract") == dependency_marker
+                    ):
+                        errors.append(
+                            f"{context}: dependency contract marker {dependency_marker!r} vanished"
+                        )
+                    if isinstance(dependency_data, Mapping) and dependency_data.get(
+                        "runtime_verified"
+                    ) is not False:
+                        errors.append(
+                            f"{context}: dependency contract runtime_verified must remain false"
+                        )
 
     host = shell.get("host")
     if not isinstance(host, Mapping):

@@ -209,18 +209,19 @@ runtime-composed family therefore requires a two-part source proof:
 - the named C++ controller binds that exact notebook and constructs every
   declared page in the contract's order.
 
-The governed set currently contains twelve shells: Chart **3D View**,
+The governed set currently contains eighteen shells: Chart **3D View**,
 **Character**, and **Paragraph**; and shared **Area**,
 **Border/Area/Transparency**, **Border/Background**, **Callout**, and
 **Customize**, **Format Cells**, Writer **Envelope**, **Footnote/Endnote**, and
-**Format Section**. Their page labels and controls remain owned by their existing
+**Format Section**; plus **PDF Export**, **Document Properties**, and Writer
+**Character**, **Paragraph**, **Picture**, and **Table Properties**. Their page labels and controls remain owned by their existing
 `SfxTabDialogController` or dedicated controller; shell changes are limited to
 spacing, margins, and notebook overflow behavior. The ordinary `dialog` family
 keeps its full ellipsize-and-mnemonic requirement, so this composition path
 cannot be used to excuse a normal static form.
 
 [`runtime-dialog-shell-composition.json`](../../qa/windows-ui-contract/runtime-dialog-shell-composition.json)
-and its mutation-tested checker lock the explicit twelve-surface allow-list, shell
+and its mutation-tested checker lock the explicit eighteen-surface allow-list, shell
 anatomy, footer responses/default, empty notebook, and ordered host markers.
 Missing host pages, an invented static page, lost margins, unsafe footer drift,
 or classification of an unlisted dialog fails closed. This is source evidence

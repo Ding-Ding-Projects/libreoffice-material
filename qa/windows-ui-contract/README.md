@@ -139,15 +139,17 @@ interaction.
 ### Runtime-composed dialog shells
 
 `runtime-dialog-shell-composition.json` owns the explicit exception to static
-dialog-body evidence for twelve deliberately empty notebooks: Chart **3D View**,
+dialog-body evidence for eighteen deliberately empty notebooks: Chart **3D View**,
 **Character**, and **Paragraph**, plus shared **Area**,
 **Border/Area/Transparency**, **Border/Background**, **Callout**, and
 **Customize**, **Format Cells**, Writer **Envelope**, **Footnote/Endnote**, and
-**Format Section**. Their real pages are added by C++.
+**Format Section**, plus **PDF Export**, **Document Properties**, and four Writer
+format dialogs. Their real pages are added by C++.
 `bin/check-runtime-dialog-shell-composition.py` requires the modal titled shell,
 the 12 px Material inset grid, a scrollable empty left-tab notebook, exact
 Help/Cancel/OK footer responses and default, and ordered page-construction
-markers in the owning controller sources. It also parity-locks all twelve ledger rows
+markers in the owning controller sources and cross-checks the specialized PDF,
+Document Properties, and Writer-format composition contracts. It also parity-locks all eighteen ledger rows
 to `family: runtime-dialog-shell`, `rewrite_class: dialog-composition`, and this
 contract marker once credited. The ordinary static-dialog predicate is not
 relaxed.
@@ -157,7 +159,7 @@ python bin/check-runtime-dialog-shell-composition.py
 python bin/test_runtime_dialog_shell_composition.py
 ```
 
-The 18 mutation tests reject allow-list drift, invented static pages, lost
+The 20 mutation tests reject allow-list drift, invented static pages, lost
 margins or scrolling, footer/default drift, missing auxiliary Reset, missing or
 reordered host markers, ledger-family drift, and false runtime claims. This is
 source-composition evidence only; `runtime_verified` remains false.

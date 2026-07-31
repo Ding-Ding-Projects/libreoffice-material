@@ -319,9 +319,15 @@ RUNTIME_DIALOG_SHELL_SURFACES = frozenset(
         "cui/uiconfig/ui/calloutdialog.ui",
         "cui/uiconfig/ui/customizedialog.ui",
         "cui/uiconfig/ui/formatcellsdialog.ui",
+        "filter/uiconfig/ui/pdfoptionsdialog.ui",
+        "sfx2/uiconfig/ui/documentpropertiesdialog.ui",
         "sw/uiconfig/swriter/ui/envdialog.ui",
         "sw/uiconfig/swriter/ui/footendnotedialog.ui",
         "sw/uiconfig/swriter/ui/formatsectiondialog.ui",
+        "sw/uiconfig/swriter/ui/characterproperties.ui",
+        "sw/uiconfig/swriter/ui/paradialog.ui",
+        "sw/uiconfig/swriter/ui/picturedialog.ui",
+        "sw/uiconfig/swriter/ui/tableproperties.ui",
     }
 )
 

@@ -30,6 +30,8 @@ CUSTOMIZE = "cui/uiconfig/ui/customizedialog.ui"
 SHAPE_PARAGRAPH = "chart2/uiconfig/ui/paradialog.ui"
 BORDER_AREA = "cui/uiconfig/ui/borderareatransparencydialog.ui"
 FORMAT_SECTION = "sw/uiconfig/swriter/ui/formatsectiondialog.ui"
+PDF_OPTIONS = "filter/uiconfig/ui/pdfoptionsdialog.ui"
+PICTURE = "sw/uiconfig/swriter/ui/picturedialog.ui"
 VIEW3D_HOST = "chart2/source/controller/dialogs/dlg_View3D.cxx"
 SHAPE_PARAGRAPH_HOST = "chart2/source/controller/dialogs/dlg_ShapeParagraph.cxx"
 BORDER_HOST = "cui/source/tabpages/bbdlg.cxx"
@@ -79,6 +81,12 @@ class RuntimeDialogShellCompositionTest(unittest.TestCase):
         registry["runtime_verified"] = True
         self.assertTrue(any("runtime_verified" in item for item in self.failures(registry=registry)))
 
+    def test_dependency_contract_marker_drift_fails(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        self.shell(registry, PDF_OPTIONS)["dependency_contract"]["contract_marker"] = "wrong"
+        errors = self.failures(registry=registry)
+        self.assertTrue(any(PDF_OPTIONS in item and "dependency contract marker" in item for item in errors), errors)
+
     def test_surface_allow_list_drift_fails(self) -> None:
         registry = copy.deepcopy(self.registry)
         registry["shells"][0]["surface"] = "cui/uiconfig/ui/not-a-real-dialog.ui"
@@ -92,6 +100,15 @@ class RuntimeDialogShellCompositionTest(unittest.TestCase):
         )
         errors = self.failures(contents=contents)
         self.assertTrue(any("margin-start" in item and "expected 12" in item for item in errors), errors)
+
+    def test_legacy_border_return_fails(self) -> None:
+        contents = self.replace_once(
+            PICTURE,
+            '<property name="title" translatable="yes" context="picturedialog|PictureDialog">Image</property>',
+            '<property name="border-width">6</property>\n    <property name="title" translatable="yes" context="picturedialog|PictureDialog">Image</property>',
+        )
+        errors = self.failures(contents=contents)
+        self.assertTrue(any(PICTURE in item and "legacy positive border-width" in item for item in errors), errors)
 
     def test_expanded_shell_vertical_margin_drift_fails(self) -> None:
         contents = self.replace_once(

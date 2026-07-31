@@ -57,14 +57,15 @@ REPOSITORY = Path(__file__).resolve().parents[1]
 REGISTRY_PATH = "qa/windows-ui-contract/regex-search-integrations.json"
 FULL_FLAG_RUNTIME_COVERAGE = {
     "forms.record-search",
+    "document.find-bar",
     "document.find-replace",
     "writer.quick-find",
 }
-GLOBAL_FLAG_DISABLED_COVERAGE = {
-    "start-center.document-search",
-    "options.autocorrect-rules",
+GLOBAL_FLAG_DISABLED_POLICIES = {
+    "start-center.document-search": "disabled-boolean-filter",
+    "options.autocorrect-rules": "disabled-boolean-filter",
+    "document.find-bar": "disabled-owner-controls-result-scope",
 }
-GLOBAL_FLAG_DISABLED_POLICY = "disabled-boolean-filter"
 STATE_REFRESH_REQUIRED_COVERAGE = {
     "start-center.document-search",
     "options.autocorrect-rules",
@@ -185,6 +186,7 @@ CHANGED_HANDLER_ROLES = {
     "button-enabler": "set_sensitive",
     "deferred-dirty-flag": "= true",
     "forward-to-site": None,
+    "owner-callback": ".Call(",
 }
 
 SITE_ROUTES = (
@@ -1293,6 +1295,78 @@ def _validate_full_flag_runtime_route(
 
     source = _without_cpp_comments(contents.get(source_file, ""))
 
+    if coverage_id == "document.find-bar":
+        search = _function_body(source, "void impl_executeSearch(")
+        _require_ordered_route(
+            context,
+            "find-bar-dispatch",
+            search,
+            (
+                "pFindTextFieldControl->set_match_case(aMatchCase)",
+                "pFindTextFieldControl->get_search_options(aSearchOptions)",
+                "sFindText = aSearchOptions.searchString;",
+                "TransliterationFlags nFlags = aSearchOptions.transliterateFlags;",
+                "nFlags &= ~TransliterationFlags::IGNORE_CASE;",
+                "if (!aMatchCase)",
+                "nFlags |= TransliterationFlags::IGNORE_CASE;",
+                '"SearchItem.SearchString", css::uno::Any( sFindText )',
+                '"SearchItem.SearchFlags", css::uno::Any( aSearchOptions.searchFlag )',
+                '"SearchItem.TransliterateFlags"',
+                '"SearchItem.Command"',
+                "aFindAll ?SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND",
+                '"SearchItem.AlgorithmType"',
+                "i18nutil::downgradeSearchAlgorithms2(aSearchOptions.AlgorithmType2)",
+                '"SearchItem.AlgorithmType2", css::uno::Any( aSearchOptions.AlgorithmType2 )',
+                "xDispatch->dispatch( aURL, aArgs );",
+            ),
+            errors,
+        )
+        for marker in (
+            "pFindTextFieldControl->get_search_options(aSearchOptions)",
+            "sFindText = aSearchOptions.searchString;",
+            "i18nutil::downgradeSearchAlgorithms2(aSearchOptions.AlgorithmType2)",
+            '"SearchItem.AlgorithmType2", css::uno::Any( aSearchOptions.AlgorithmType2 )',
+        ):
+            _require_exact_route_marker(
+                context, "find-bar-dispatch", search, marker, 1, errors
+            )
+        options = _function_body(
+            source, "bool FindTextFieldControl::get_search_options("
+        )
+        _require_ordered_route(
+            context,
+            "find-bar-validation",
+            options,
+            (
+                "m_xRegexSearchController->GetState()",
+                "sfx2::RegexSearchService::Validate(rState).IsValid",
+                "m_xRegexSearchController->GetSearchOptions()",
+            ),
+            errors,
+        )
+        match_case = _function_body(
+            source, "void SAL_CALL MatchCaseToolboxController::click()"
+        )
+        _require_ordered_route(
+            context,
+            "find-bar-case-sync",
+            match_case,
+            (
+                "const bool bMatchCase = !bCurrent;",
+                "m_xMatchCaseControl->set_active(bMatchCase);",
+                "pFindControl->set_match_case(bMatchCase);",
+            ),
+            errors,
+        )
+        if search and (
+            "SearchAlgorithms2::ABSOLUTE) )" in search
+            or "SearchAlgorithms_ABSOLUTE) )" in search
+        ):
+            errors.append(
+                f"{context}:runtime-route-find-bar-dispatch:hard-coded literal algorithm remains"
+            )
+        return
+
     if coverage_id == "forms.record-search":
         search = _function_body(
             source, "IMPL_LINK_NOARG(FmSearchDialog, OnClickedSearchAgain"
@@ -1800,13 +1874,14 @@ def violations(
             errors.append(f"{context}:status:must be source-integrated")
         if not isinstance(entry.get("runtime_verified"), bool):
             errors.append(f"{context}:runtime_verified:boolean required")
-        global_flag_disabled = coverage_id in GLOBAL_FLAG_DISABLED_COVERAGE
+        global_flag_disabled = coverage_id in GLOBAL_FLAG_DISABLED_POLICIES
         global_flag_policy = entry.get("global_flag_capability")
         if global_flag_disabled:
-            if global_flag_policy != GLOBAL_FLAG_DISABLED_POLICY:
+            expected_global_policy = GLOBAL_FLAG_DISABLED_POLICIES[coverage_id]
+            if global_flag_policy != expected_global_policy:
                 errors.append(
                     f"{context}:global-flag-capability:must be "
-                    f"{GLOBAL_FLAG_DISABLED_POLICY}"
+                    f"{expected_global_policy}"
                 )
         elif global_flag_policy is not None:
             errors.append(

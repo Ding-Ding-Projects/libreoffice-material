@@ -30,6 +30,21 @@ namespace svt
 class AcceleratorExecute;
 }
 
+namespace i18nutil
+{
+struct SearchOptions2;
+}
+
+namespace sfx2
+{
+class RegexSearchController;
+}
+
+namespace weld
+{
+class Button;
+}
+
 class FindTextFieldControl final : public InterimItemWindow
 {
 public:
@@ -50,18 +65,23 @@ public:
     OUString get_active_text() const;
     void append_text(const OUString& rText);
     void set_entry_message_type(weld::EntryMessageType eType);
+    void set_match_case(bool bMatchCase);
+    bool get_search_options(i18nutil::SearchOptions2& rOptions) const;
 
 private:
     ImplSVEvent* m_nAsyncGetFocusId;
     std::unique_ptr<weld::ComboBox> m_xWidget;
+    std::unique_ptr<weld::Button> m_xRegexBuilderButton;
     css::uno::Reference<css::frame::XFrame> m_xFrame;
     css::uno::Reference<css::uno::XComponentContext> m_xContext;
     std::unique_ptr<svt::AcceleratorExecute> m_pAcc;
     Link<weld::ComboBox&, void> m_aChangeHdl;
+    std::unique_ptr<sfx2::RegexSearchController> m_xRegexSearchController;
 
     DECL_LINK(FocusInHdl, weld::Widget&, void);
     DECL_LINK(KeyInputHdl, const KeyEvent&, bool);
     DECL_LINK(ActivateHdl, weld::ComboBox&, bool);
+    DECL_LINK(RegexSearchChangedHdl, weld::ComboBox&, void);
     DECL_LINK(OnAsyncGetFocus, void*, void);
 
     void FocusIn();

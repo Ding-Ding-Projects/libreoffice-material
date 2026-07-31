@@ -323,8 +323,8 @@ class SearchFieldCoverageTests(unittest.TestCase):
         # Phase 7.5 wired the AutoCorrect rules search and the General options page search to the
         # shared controller, moving both from the honest gap ledger into the integration registry.
         _, stats = validator.validate_registry(REPO_ROOT, REGISTRY_PATH)
-        self.assertEqual(15, stats.source_integrated_fields)
-        self.assertEqual(15, stats.gap_fields)
+        self.assertEqual(16, stats.source_integrated_fields)
+        self.assertEqual(14, stats.gap_fields)
 
 
 class IntegrationLedgerTests(unittest.TestCase):

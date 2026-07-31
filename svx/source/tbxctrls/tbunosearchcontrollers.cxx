@@ -53,6 +53,7 @@
 #include <com/sun/star/util/SearchAlgorithms2.hpp>
 
 #include <vcl/weld/Builder.hxx>
+#include <vcl/weld/Button.hxx>
 #include <vcl/InterimItemWindow.hxx>
 #include <svl/ctloptions.hxx>
 #include <svl/srchitem.hxx>
@@ -67,6 +68,7 @@
 #include <findtextfield.hxx>
 
 #include <sfx2/sfxsids.hrc>
+#include <sfx2/RegexSearchController.hxx>
 #include <sfx2/viewfrm.hxx>
 #include <sfx2/bindings.hxx>
 
@@ -141,6 +143,9 @@ void impl_executeSearch( const css::uno::Reference< css::uno::XComponentContext 
     xURLTransformer->parseStrict(aURL);
 
     OUString sFindText;
+    i18nutil::SearchOptions2 aSearchOptions;
+    aSearchOptions.AlgorithmType2 = css::util::SearchAlgorithms2::ABSOLUTE;
+    FindTextFieldControl* pFindTextFieldControl = nullptr;
     bool aMatchCase = false;
     bool aMatchDiacritics = false;
     bool bSearchFormatted = false;
@@ -156,7 +161,7 @@ void impl_executeSearch( const css::uno::Reference< css::uno::XComponentContext 
                 FindTextFieldControl* pItemWin = static_cast<FindTextFieldControl*>(pToolBox->GetItemWindow(id));
                 if (pItemWin)
                 {
-                    sFindText = pItemWin->get_active_text();
+                    pFindTextFieldControl = pItemWin;
                     if (aFindAll && !pItemWin->ControlHasFocus())
                         pItemWin->GetFocus();
                 }
@@ -179,7 +184,16 @@ void impl_executeSearch( const css::uno::Reference< css::uno::XComponentContext 
         }
     }
 
-    TransliterationFlags nFlags = TransliterationFlags::NONE;
+    if (pFindTextFieldControl)
+    {
+        pFindTextFieldControl->set_match_case(aMatchCase);
+        if (!pFindTextFieldControl->get_search_options(aSearchOptions))
+            return;
+        sFindText = aSearchOptions.searchString;
+    }
+
+    TransliterationFlags nFlags = aSearchOptions.transliterateFlags;
+    nFlags &= ~TransliterationFlags::IGNORE_CASE;
     if (!aMatchCase)
         nFlags |= TransliterationFlags::IGNORE_CASE;
     if (!aMatchDiacritics)
@@ -192,11 +206,11 @@ void impl_executeSearch( const css::uno::Reference< css::uno::XComponentContext 
         // Related tdf#102506: make Find Bar Ctrl+F searching by value by default
         { "SearchItem.CellType", css::uno::Any( sal_Int16(SvxSearchCellType::VALUE) ) },
         { "SearchItem.Backward", css::uno::Any( aSearchBackwards ) },
-        { "SearchItem.SearchFlags", css::uno::Any( sal_Int32(0) ) },
+        { "SearchItem.SearchFlags", css::uno::Any( aSearchOptions.searchFlag ) },
         { "SearchItem.TransliterateFlags", css::uno::Any( static_cast<sal_Int32>(nFlags) ) },
         { "SearchItem.Command", css::uno::Any( static_cast<sal_Int16>(aFindAll ?SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND ) ) },
-        { "SearchItem.AlgorithmType", css::uno::Any( sal_Int16(css::util::SearchAlgorithms_ABSOLUTE) ) },
-        { "SearchItem.AlgorithmType2", css::uno::Any( sal_Int16(css::util::SearchAlgorithms2::ABSOLUTE) ) },
+        { "SearchItem.AlgorithmType", css::uno::Any( sal_Int16(i18nutil::downgradeSearchAlgorithms2(aSearchOptions.AlgorithmType2)) ) },
+        { "SearchItem.AlgorithmType2", css::uno::Any( aSearchOptions.AlgorithmType2 ) },
         { "SearchItem.SearchFormatted", css::uno::Any( bSearchFormatted ) },
         { "UseAttrItemList", css::uno::Any(false) }
     } ) );
@@ -221,6 +235,7 @@ FindTextFieldControl::FindTextFieldControl(ToolBox* pParent,
     InterimItemWindow(pParent, u"svx/ui/findbox.ui"_ustr, u"FindBox"_ustr),
     m_nAsyncGetFocusId(nullptr),
     m_xWidget(m_xBuilder->weld_combo_box(u"find"_ustr)),
+    m_xRegexBuilderButton(m_xBuilder->weld_button(u"find_regex_builder"_ustr)),
     m_xFrame(std::move(xFrame)),
     m_xContext(std::move(xContext)),
     m_pAcc(svt::AcceleratorExecute::createAcceleratorHelper())
@@ -234,6 +249,16 @@ FindTextFieldControl::FindTextFieldControl(ToolBox* pParent,
     m_xWidget->connect_focus_in(LINK(this, FindTextFieldControl, FocusInHdl));
     m_xWidget->connect_key_press(LINK(this, FindTextFieldControl, KeyInputHdl));
     m_xWidget->connect_entry_activate(LINK(this, FindTextFieldControl, ActivateHdl));
+
+    m_xRegexSearchController = std::make_unique<sfx2::RegexSearchController>(
+        m_xContainer.get(), *m_xWidget, *m_xRegexBuilderButton,
+        LINK(this, FindTextFieldControl, RegexSearchChangedHdl));
+    m_xRegexSearchController->SetGlobalFlagEnabled(false);
+    m_xRegexSearchController->SetCaseInsensitiveFlagEnabled(false);
+    sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+    aState.Mode = sfx2::RegexSearchMode::Literal;
+    aState.Flags.CaseInsensitive = true;
+    m_xRegexSearchController->SetState(aState);
 
     m_xWidget->set_size_request(250, -1);
     SetSizePixel(m_xContainer->get_preferred_size());
@@ -300,15 +325,18 @@ void FindTextFieldControl::SetTextToSelected_Impl()
     if ( !aString.isEmpty() )
     {
         // If something is selected in the document, prepopulate with this
-        m_xWidget->set_entry_text(aString);
-        m_aChangeHdl.Call(*m_xWidget);
+        sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+        aState.Pattern = aString;
+        m_xRegexSearchController->SetState(aState);
     }
     // tdf#154818 - reuse last search string
     else if (!m_sRememberedSearchString.isEmpty() || get_count() > 0)
     {
         // prepopulate with last search word (fdo#84256)
-        m_xWidget->set_entry_text(m_sRememberedSearchString.isEmpty() ? m_xWidget->get_text(0)
-                                                                      : m_sRememberedSearchString);
+        sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+        aState.Pattern = m_sRememberedSearchString.isEmpty() ? m_xWidget->get_text(0)
+                                                             : m_sRememberedSearchString;
+        m_xRegexSearchController->SetState(aState);
     }
 }
 
@@ -499,6 +527,8 @@ void FindTextFieldControl::dispose()
         Application::RemoveUserEvent(m_nAsyncGetFocusId);
         m_nAsyncGetFocusId = nullptr;
     }
+    m_xRegexSearchController.reset();
+    m_xRegexBuilderButton.reset();
     m_xWidget.reset();
     InterimItemWindow::dispose();
 }
@@ -511,7 +541,11 @@ FindTextFieldControl::~FindTextFieldControl()
 void FindTextFieldControl::connect_changed(const Link<weld::ComboBox&, void>& rLink)
 {
     m_aChangeHdl = rLink;
-    m_xWidget->connect_changed(rLink);
+}
+
+IMPL_LINK_NOARG(FindTextFieldControl, RegexSearchChangedHdl, weld::ComboBox&, void)
+{
+    m_aChangeHdl.Call(*m_xWidget);
 }
 
 int FindTextFieldControl::get_count() const
@@ -537,6 +571,22 @@ void FindTextFieldControl::set_entry_message_type(weld::EntryMessageType eType)
 void FindTextFieldControl::append_text(const OUString& rText)
 {
     m_xWidget->append_text(rText);
+}
+
+void FindTextFieldControl::set_match_case(bool bMatchCase)
+{
+    sfx2::RegexSearchState aState = m_xRegexSearchController->GetState();
+    aState.Flags.CaseInsensitive = !bMatchCase;
+    m_xRegexSearchController->SetStateWithoutNotify(aState, false);
+}
+
+bool FindTextFieldControl::get_search_options(i18nutil::SearchOptions2& rOptions) const
+{
+    const sfx2::RegexSearchState& rState = m_xRegexSearchController->GetState();
+    if (!sfx2::RegexSearchService::Validate(rState).IsValid)
+        return false;
+    rOptions = m_xRegexSearchController->GetSearchOptions();
+    return true;
 }
 
 namespace {
@@ -1000,7 +1050,15 @@ void SAL_CALL MatchCaseToolboxController::click()
     if (m_xMatchCaseControl)
     {
         bool bCurrent = m_xMatchCaseControl->get_active();
-        m_xMatchCaseControl->set_active(!bCurrent);
+        const bool bMatchCase = !bCurrent;
+        m_xMatchCaseControl->set_active(bMatchCase);
+
+        ToolBox* pToolBox = static_cast<ToolBox*>(m_xMatchCaseControl->GetParent());
+        const ToolBoxItemId nFindId = pToolBox->GetItemId(COMMAND_FINDTEXT);
+        auto* pFindControl
+            = static_cast<FindTextFieldControl*>(pToolBox->GetItemWindow(nFindId));
+        if (pFindControl)
+            pFindControl->set_match_case(bMatchCase);
     }
 }
 

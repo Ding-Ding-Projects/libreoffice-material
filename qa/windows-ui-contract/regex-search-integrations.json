@@ -2,7 +2,7 @@
   "schema_version": 1,
   "contract": "windows-native-regex-search-integrations",
   "platform": "windows",
-  "expected_integrations": 15,
+  "expected_integrations": 16,
   "integrations": [
     {
       "coverage_id": "calc.go-to-sheet",
@@ -485,6 +485,47 @@
           }
         ]
       },
+      "runtime_verified": false
+    },
+    {
+      "coverage_id": "document.find-bar",
+      "surface": "Find Bar",
+      "status": "source-integrated",
+      "ui_file": "svx/uiconfig/ui/findbox.ui",
+      "entry_id": "find",
+      "builder_button_id": "find_regex_builder",
+      "header_file": "svx/source/inc/findtextfield.hxx",
+      "source_file": "svx/source/tbxctrls/tbunosearchcontrollers.cxx",
+      "owner_type": "FindTextFieldControl",
+      "owner_changed_handler": "RegexSearchChangedHdl",
+      "entry_member": "m_xWidget",
+      "builder_member": "m_xRegexBuilderButton",
+      "controller_member": "m_xRegexSearchController",
+      "controller_parent": "m_xContainer.get()",
+      "widget_kind": "combobox",
+      "matcher_strategy": "controller-driven-search-sites",
+      "default_mode": "engine-preserving-current-default",
+      "engine_default_case_insensitive": true,
+      "global_flag_capability": "disabled-owner-controls-result-scope",
+      "changed_handler_role": "owner-callback",
+      "changed_handler_trigger": "m_aChangeHdl.Call(*m_xWidget);",
+      "search_sites": [
+        {
+          "signature": "bool FindTextFieldControl::get_search_options(",
+          "site_route": "options-handoff",
+          "handoff_sink": "rOptions = m_xRegexSearchController->GetSearchOptions();"
+        }
+      ],
+      "runtime_flag_markers": [
+        "pFindTextFieldControl->set_match_case(aMatchCase)",
+        "pFindTextFieldControl->get_search_options(aSearchOptions)",
+        "sFindText = aSearchOptions.searchString;",
+        "TransliterationFlags nFlags = aSearchOptions.transliterateFlags;",
+        "nFlags &= ~TransliterationFlags::IGNORE_CASE;",
+        "SearchItem.AlgorithmType2",
+        "i18nutil::downgradeSearchAlgorithms2(aSearchOptions.AlgorithmType2)",
+        "aFindAll ?SvxSearchCmd::FIND_ALL : SvxSearchCmd::FIND"
+      ],
       "runtime_verified": false
     },
     {

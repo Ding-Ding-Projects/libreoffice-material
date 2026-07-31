@@ -60,6 +60,12 @@ jobs:
       - name: Run regex-search integration mutations
         run: python3 bin/test_windows_regex_search_integrations.py
 
+      - name: Validate native Material Find toolbar composition
+        run: python3 bin/check-find-toolbar-composition.py
+
+      - name: Run Find toolbar composition mutations
+        run: python3 bin/test_find_toolbar_composition.py
+
       - name: Validate Windows no-nag startup contract
         run: python3 bin/check-windows-no-nag-contract.py
 

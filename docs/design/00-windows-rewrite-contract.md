@@ -81,12 +81,16 @@ source: its adjacent accessible builder owns the prior change callback,
 preserves exact legacy `OUString::indexOf` matching in the default literal,
 case-sensitive mode, and uses one compiled `utl::TextSearch` matcher per refresh
 for regex or explicitly case-insensitive literal searches. The current coverage
-ledger audits 30 shipping fields: 15 are source-integrated and 15 retain
-documented architectural gaps. Forms, Find & Replace, and Writer Quick Find now
+ledger audits 30 shipping fields: 16 are source-integrated and 14 retain
+documented architectural gaps. The document Find toolbar now owns a real
+adjacent builder and passes validated effective strings/algorithms into its
+existing UNO dispatch while preserving Match Case and Find All ownership.
+Forms, Find & Replace, and Writer Quick Find also
 route effective ICU patterns plus `i/g/m/s` through their real native matchers,
 with bounded live validation, explicit incompatible-mode transitions, and
-repeat-search state recovery. The source contract and 97 mutation regressions
-pass; native compilation and runtime proof remain open.
+repeat-search state recovery. The shared source contract and 100 mutation
+regressions plus the 10-mutation focused Find contract pass; native compilation
+and runtime proof remain open.
 
 The first shared native implementation seam is now present in source: after
 final VCL `InitShow` layout, Windows `Dialog` instances are positioned at the

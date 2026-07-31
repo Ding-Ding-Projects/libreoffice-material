@@ -323,9 +323,9 @@ class LedgerMutationTest(unittest.TestCase):
         by_family = self.ledger["coverage"]["by_family"]
         expected = {
             "dialog": 437, "runtime-dialog-shell": 21,
-            "host-composed-surface": 194,
+            "host-composed-surface": 195,
             "message-dialog": 76, "options-page": 40,
-            "panel-fragment": 323, "menu": 70, "popover": 47,
+            "panel-fragment": 322, "menu": 70, "popover": 47,
             "sidebar-panel": 52, "wizard-assistant": 1, "native-shell": 10,
         }
         for fam, count in expected.items():
@@ -1090,7 +1090,7 @@ class LedgerMutationTest(unittest.TestCase):
             if row["family"] == CK.FAMILY_HOST_COMPOSED
         }
         self.assertEqual(production, set(CK.HOST_COMPOSED_SURFACES))
-        self.assertEqual(len(production), 194)
+        self.assertEqual(len(production), 195)
         for surface in production:
             self.assertEqual(
                 CK.classify(surface, CK._parse_root(REPOSITORY, surface)),

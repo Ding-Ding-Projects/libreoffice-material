@@ -24,15 +24,17 @@ class PendingNativeOwnershipTest(unittest.TestCase):
         VALIDATOR.validate(REPOSITORY)
 
     def test_expected_surface_set_is_complete(self) -> None:
-        self.assertEqual(5, len(VALIDATOR.EXPECTED))
-        self.assertIn("native:find-toolbar", VALIDATOR.EXPECTED)
+        self.assertEqual(4, len(VALIDATOR.EXPECTED))
+        self.assertNotIn("native:find-toolbar", VALIDATOR.EXPECTED)
         self.assertNotIn("vcl/uiconfig/ui/wizard.ui", VALIDATOR.EXPECTED)
 
     def test_missing_marker_fails_closed(self) -> None:
         original = VALIDATOR.EXPECTED
         try:
             VALIDATOR.EXPECTED = dict(original)
-            VALIDATOR.EXPECTED["native:find-toolbar"] = ("native-shell", "wrong-owner", "WIN-INP-005")
+            VALIDATOR.EXPECTED["native:msi-install-lifecycle-ui"] = (
+                "native-shell", "wrong-owner", "WIN-SYS-013"
+            )
             errors = VALIDATOR.violations(REPOSITORY)
             self.assertTrue(any("owner drift" in error for error in errors), errors)
         finally:

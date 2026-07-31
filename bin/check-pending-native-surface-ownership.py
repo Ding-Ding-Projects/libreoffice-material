@@ -14,7 +14,6 @@ LEDGER_PATH = Path("qa/windows-ui-contract/material-rewrite-ledger.json")
 DESIGN_PATH = Path("docs/design/blocked-surface-material-proposal.md")
 
 EXPECTED = {
-    "native:find-toolbar": ("native-shell", "svx", "WIN-INP-005"),
     "native:msi-install-lifecycle-ui": ("native-shell", "instsetoo_native", "WIN-SYS-013"),
     "native:updater-lifecycle-ui": ("native-shell", "extensions", "WIN-SYS-012"),
     "native:window-title-bars": ("native-shell", "vcl", "WIN-NAV-007"),
@@ -113,7 +112,7 @@ def main() -> int:
     except (OSError, json.JSONDecodeError, ValidationError) as error:
         print(f"Pending native-surface ownership contract failed:\n{error}")
         return 1
-    print("Pending native-surface ownership contract passed: 5 native shells are owner-pinned, design-specified, runtime-unverified, and ledger-pending.")
+    print("Pending native-surface ownership contract passed: 4 native shells are owner-pinned, design-specified, runtime-unverified, and ledger-pending.")
     return 0
 
 

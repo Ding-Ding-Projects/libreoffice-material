@@ -41,6 +41,13 @@ OUTPUT_PATH = Path("qa/windows-ui-contract/host-composed-surfaces.json")
 CHECKER_PATH = Path("bin/check-material-rewrite-ledger.py")
 CONTRACT = "material-host-composed-surfaces"
 
+# Surfaces may enter the composition family after the initial adversarial wave
+# when a real runtime owner replaces a static-predicate workaround. Keep those
+# promotions explicit so regeneration is deterministic and reviewable.
+PROMOTED_HOST_COMPOSED_SURFACES = {
+    "svx/uiconfig/ui/findbox.ui": "panel-fragment",
+}
+
 
 class GenerationError(RuntimeError):
     pass
@@ -104,7 +111,8 @@ def _existing_surface_rows(contract: Mapping[str, Any]) -> list[tuple[str, str]]
         family = row.get("legacy_family")
         if isinstance(surface, str) and family in {"dialog", "panel-fragment"}:
             rows.append((surface, family))
-    return sorted(rows)
+    rows.extend(PROMOTED_HOST_COMPOSED_SURFACES.items())
+    return sorted(set(rows))
 
 
 def build_contract(repo_root: Path = REPOSITORY) -> dict[str, Any]:

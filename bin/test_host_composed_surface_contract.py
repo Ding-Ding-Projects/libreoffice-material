@@ -77,7 +77,7 @@ class HostComposedSurfaceContractTest(unittest.TestCase):
         self.assertEqual(0, completed.returncode, completed.stderr)
 
     def test_exact_surface_set_is_locked(self) -> None:
-        self.assertEqual(194, len(self.registry["surfaces"]))
+        self.assertEqual(195, len(self.registry["surfaces"]))
         self.assertEqual(
             VALIDATOR.EXPECTED_SURFACE_SET_SHA256,
             self.registry["surface_set_sha256"],

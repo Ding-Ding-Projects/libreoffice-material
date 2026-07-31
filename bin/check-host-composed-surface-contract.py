@@ -37,12 +37,12 @@ AUDIT_PATH = "docs/design/material-rewrite-wave-2026-07-28-evidence.json"
 LEDGER_CHECKER_PATH = "bin/check-material-rewrite-ledger.py"
 MATERIAL_DEFINITION = "vcl/uiconfig/theme_definitions/material/definition.xml"
 CONTRACT = "material-host-composed-surfaces"
-EXPECTED_SURFACE_COUNT = 194
-EXPECTED_SURFACE_SET_SHA256 = "7a6bd9a38fe7e4777b014e08c52599ea8840855cbde6f14c5e205dd674d7a68c"
-EXPECTED_LEGACY_COUNTS = {"dialog": 64, "panel-fragment": 130}
+EXPECTED_SURFACE_COUNT = 195
+EXPECTED_SURFACE_SET_SHA256 = "16aca94ebfab01fcb6b6ce631c48b55d596b747a881f3c0db5e2b7789b0dfcd2"
+EXPECTED_LEGACY_COUNTS = {"dialog": 64, "panel-fragment": 131}
 EXPECTED_AUDIT_COUNTS = {
     "blocked-confirmed": 184,
-    "re-audited-current-source": 10,
+    "re-audited-current-source": 11,
 }
 EXPECTED_DEPENDENCIES = {
     "qa/windows-ui-contract/material-default-activation.json":
@@ -343,7 +343,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Host-composed surface contract failed:\n{error}", file=sys.stderr)
         return 1
     print(
-        "Host-composed surface contract passed: 194 explicit audited resources "
+        "Host-composed surface contract passed: 195 explicit audited resources "
         "retain source hashes, inapplicable ordinary predicates, shared Material "
         "renderer dependencies, and composition ledger ownership; "
         "runtime_verified=false."

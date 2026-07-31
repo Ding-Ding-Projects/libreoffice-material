@@ -23,15 +23,15 @@
       "contract_marker": "material-theme-resolution-routing"
     }
   ],
-  "surface_count": 194,
-  "surface_set_sha256": "7a6bd9a38fe7e4777b014e08c52599ea8840855cbde6f14c5e205dd674d7a68c",
+  "surface_count": 195,
+  "surface_set_sha256": "16aca94ebfab01fcb6b6ce631c48b55d596b747a881f3c0db5e2b7789b0dfcd2",
   "legacy_family_counts": {
     "dialog": 64,
-    "panel-fragment": 130
+    "panel-fragment": 131
   },
   "audit_counts": {
     "blocked-confirmed": 184,
-    "re-audited-current-source": 10
+    "re-audited-current-source": 11
   },
   "surfaces": [
     {
@@ -5086,6 +5086,31 @@
       "audit": {
         "status": "blocked-confirmed",
         "prior_verdict": "blocked-confirmed"
+      }
+    },
+    {
+      "surface": "svx/uiconfig/ui/findbox.ui",
+      "owner": "svx",
+      "inventory_id": "unassigned",
+      "legacy_family": "panel-fragment",
+      "variant": "host-composed-fragment",
+      "ordinary_predicate_failure": "content grid lacks Material spacing/margins",
+      "source_sha256": "dd7371a8957177909fa5a9496eacebbd0a82a9a6cf8a4cdb39a8b68976c05612",
+      "top_level_objects": [
+        {
+          "id": "FindBox",
+          "class": "GtkBox"
+        }
+      ],
+      "marker_snapshot": {
+        "content_grid_material": false,
+        "ellipsize_count": 0,
+        "mnemonic_content_labels": 0,
+        "has_own_action_widgets": false
+      },
+      "audit": {
+        "status": "re-audited-current-source",
+        "prior_verdict": null
       }
     },
     {

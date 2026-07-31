@@ -7,8 +7,8 @@
     "shipping_fields": 30,
     "planned_fields": 0,
     "excluded_candidates": 16,
-    "source_integrated_fields": 15,
-    "gap_fields": 15
+    "source_integrated_fields": 16,
+    "gap_fields": 14
   },
   "gap_taxonomy": {
     "note": "Every shipping field carries an integration_status. A 'source-integrated' field is bound to the shared controller-driven regex builder and MUST have a matching entry in regex-search-integrations.json (the checker reconciles the two registries and fails closed on drift). A 'gap' field is an honest, still-unintegrated surface; it MUST carry a gap_category from the fixed enum below plus non-empty gap_evidence citing a real file:symbol anchor for the architectural reason it cannot yet reuse the builder. Existing upstream (non-Material-guarded) source never satisfies the integration gate, so gap_evidence documents WHY, it is not a passing integration.",
@@ -257,9 +257,7 @@
       "widget_id": "find",
       "query_scope": "active document",
       "regex_builder": "adjacent-advanced-builder",
-      "integration_status": "gap",
-      "gap_category": "split UNO ownership",
-      "gap_evidence": "svx/source/tbxctrls/tbunosearchcontrollers.cxx: FindTextToolbarController is an InterimItemWindow embedded in a layout-manager-owned toolbar that dispatches .uno:ExecuteSearch with SearchAlgorithms2 (hard-coding AlgorithmType=ABSOLUTE); the query is owned by the UNO dispatch, not by a dialog member."
+      "integration_status": "source-integrated"
     },
     {
       "coverage_id": "document.find-replace",

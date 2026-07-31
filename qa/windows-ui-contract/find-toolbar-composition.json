@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "contract": "material-find-toolbar-composition",
+  "platform": "windows",
+  "status": "source-implemented",
+  "runtime_verified": false,
+  "surface": "native:find-toolbar",
+  "owner": "svx",
+  "inventory_id": "WIN-INP-005",
+  "ui_file": "svx/uiconfig/ui/findbox.ui",
+  "entry_id": "find",
+  "builder_button_id": "find_regex_builder",
+  "source_files": [
+    {
+      "path": "svx/uiconfig/ui/findbox.ui",
+      "sha256": "dd7371a8957177909fa5a9496eacebbd0a82a9a6cf8a4cdb39a8b68976c05612"
+    },
+    {
+      "path": "svx/source/inc/findtextfield.hxx",
+      "sha256": "a6657d986b98a7f651a88ff2543bef6bee6bd7a4ebb8ed0d438e330c851760a3"
+    },
+    {
+      "path": "svx/source/tbxctrls/tbunosearchcontrollers.cxx",
+      "sha256": "2d19d7446bc89d0d220b23412102033a6e980b574cc5150ad9998015a402cad0"
+    }
+  ],
+  "dependencies": [
+    {
+      "path": "qa/windows-ui-contract/search-field-coverage.json",
+      "contract_marker": "windows-native-text-query-coverage",
+      "coverage_id": "document.find-bar"
+    },
+    {
+      "path": "qa/windows-ui-contract/regex-search-integrations.json",
+      "contract_marker": "windows-native-regex-search-integrations",
+      "coverage_id": "document.find-bar"
+    },
+    {
+      "path": "qa/windows-ui-contract/host-composed-surfaces.json",
+      "contract_marker": "material-host-composed-surfaces",
+      "governed_surface": "svx/uiconfig/ui/findbox.ui"
+    }
+  ],
+  "layout": {
+    "root_class": "GtkBox",
+    "root_id": "FindBox",
+    "orientation": "horizontal",
+    "spacing": 6,
+    "direct_children": [
+      "find",
+      "find_regex_builder"
+    ],
+    "forbidden_workarounds": [
+      "empty-hidden-label",
+      "detached-builder",
+      "shared-builder-state"
+    ]
+  },
+  "controller": {
+    "type": "FindTextFieldControl",
+    "header": "svx/source/inc/findtextfield.hxx",
+    "source": "svx/source/tbxctrls/tbunosearchcontrollers.cxx",
+    "changed_handler": "RegexSearchChangedHdl",
+    "options_method": "get_search_options",
+    "global_policy": "owner-actions-find-next-or-find-all",
+    "case_policy": "owner-toolbar-match-case",
+    "invalid_pattern_policy": "no-dispatch"
+  },
+  "dispatch": {
+    "command": ".uno:ExecuteSearch",
+    "effective_pattern_property": "SearchItem.SearchString",
+    "search_flags_property": "SearchItem.SearchFlags",
+    "transliteration_property": "SearchItem.TransliterateFlags",
+    "algorithm_property": "SearchItem.AlgorithmType2",
+    "literal_algorithm": "ABSOLUTE",
+    "regex_algorithm": "REGEXP"
+  },
+  "preserved_semantics": [
+    "find-next",
+    "find-previous",
+    "find-all",
+    "match-case-toolbar-authority",
+    "match-diacritics-toolbar-authority",
+    "formatted-search-toolbar-authority",
+    "search-history",
+    "escape-returns-focus-to-document"
+  ]
+}

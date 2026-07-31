@@ -1,5 +1,24 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — native Find toolbar source-complete
+
+The layout-manager-owned Find item window now constructs the shared
+`RegexSearchController` beside its editable history combo. Invalid regexes stop
+before dispatch; valid literal/regex state supplies the effective pattern,
+search flags, transliteration flags, and AlgorithmType2 to the existing
+`.uno:ExecuteSearch` route. Match Case is synchronized from its native toolbar
+control, while Find Next/Previous/All, Match Diacritics, Search Formatted,
+history, Escape, and focus behavior retain their existing owners.
+
+The old empty hidden label was removed. `findbox.ui` is now the 195th
+host-composed resource, with a real keyboard-focusable adjacent builder and
+translated accessibility metadata. The 10 focused mutations, 100 shared regex
+integration mutations, 22 coverage tests, 12 host-composition mutations, and
+SVX accessibility gate (143 `.ui` files, 0 FATALs) pass. The native ledger row
+remains pending only until this slice receives an immutable commit; the current
+headline therefore remains **99.61% (1266/1271), 5 pending**. No runtime pixels
+or interaction are claimed.
+
 ## 2026-07-31 follow-up — runtime wizard credited
 
 Commit `686980e7eca0436edc78c34a4296b319faad8079` implements the shared

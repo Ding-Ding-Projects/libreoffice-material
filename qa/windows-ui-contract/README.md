@@ -186,12 +186,14 @@ This is source-composition evidence only; `runtime_verified` remains false.
 
 ### Host-composed Material surfaces
 
-`host-composed-surfaces.json` owns the explicit 194-resource bridge for static
+`host-composed-surfaces.json` owns the explicit 195-resource bridge for static
 surfaces whose ordinary dialog or panel predicate is structurally inapplicable:
-64 runtime/modeless/progress/close/choice dialog variants and 130 toolbar,
+64 runtime/modeless/progress/close/choice dialog variants and 131 toolbar,
 notebookbar, popup, canvas, atomic-control, or child fragments. The set comes
 from the adversarial rewrite audit: 184 entries retain an independently verified
-`blocked-confirmed` disposition, while 10 current resources were re-audited.
+`blocked-confirmed` disposition, while 11 current resources were re-audited.
+The post-wave addition is the Find toolbar item window, promoted after its fake
+empty label was replaced by a real adjacent builder and C++/UNO handoff.
 
 The registry does not weaken either ordinary predicate. Every row pins its live
 predicate failure, normalized source SHA-256, top-level object IDs/classes,
@@ -315,6 +317,8 @@ python bin/check-windows-regex-builder-foundation.py
 python bin/test_windows_regex_builder_foundation.py
 python bin/check-windows-regex-search-integrations.py
 python bin/test_windows_regex_search_integrations.py
+python bin/check-find-toolbar-composition.py
+python bin/test_find_toolbar_composition.py
 ```
 
 This is the minimum audited native inventory, not permission to ignore a new
@@ -329,18 +333,23 @@ insertion, and embedded Build/Test/Reference/Examples content. Its
 a modal or bottom-right dialog.
 
 `regex-search-integrations.json` is the separate source-implementation ledger.
-It records 15 of the 30 shipping fields as source-integrated; the other 15 have
+It records 16 of the 30 shipping fields as source-integrated; the other 14 have
 explicit gap categories and evidence. Its validator requires entry/button
 adjacency or the registered Start Center pill layout, translated accessible
 metadata, controller-owned change dispatch, controller-first destruction, and
 function-local routes into each real matcher. It preserves legacy literal
-behavior where required and now checks Forms, Find & Replace, and Writer Quick
-Find for effective patterns, `i/g/m/s`, invalid-pattern guards, incompatible-mode
-transitions, bounded live work, and repeat state. Ninety-seven mutations include
+behavior where required and now checks the Find toolbar, Forms, Find & Replace,
+and Writer Quick Find for effective patterns, `i/g/m/s`, invalid-pattern guards, incompatible-mode
+transitions, bounded live work, and repeat state. One hundred mutations include
 raw-sink, dead-route, capability, range, metadata, and owner-message bypasses.
 Comment-only wiring cannot satisfy the source contract. Native build/runtime
 proof remains open; `runtime_verified: false` is intentional until exact-build
 interaction evidence exists.
+
+The focused Find-toolbar contract adds ten mutations around its adjacent layout,
+accessible metadata, controller-owned callback and lifetime, invalid-pattern
+no-dispatch guard, native Match Case synchronization, Find Next/Find All scope,
+and the effective algorithm/string handoff into `.uno:ExecuteSearch`.
 
 ## No unsolicited startup or promotion prompts
 
@@ -1663,9 +1672,9 @@ Material differentiators stay `status: specified`. 17 mutation tests;
 
 `pending-native-surface-ownership.json` (contract
 `material-pending-native-surface-ownership`) closes the contract-ownership gap
-for five native-shell rows. It pins the real source owner and stable markers
-for Find toolbar, MSI lifecycle, updater lifecycle, Windows title bars, and
-Writer canvas; it also requires every row
+for four native-shell rows. It pins the real source owner and stable markers
+for MSI lifecycle, updater lifecycle, Windows title bars, and Writer canvas;
+it also requires every row
 to remain `pending` with empty implementation evidence. The contract is a
 fail-closed planning boundary, not Material rewrite credit. Three mutation/
 baseline tests; `runtime_verified: false`.

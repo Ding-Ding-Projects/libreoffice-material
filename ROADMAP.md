@@ -15,6 +15,16 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-31 native Find-toolbar implementation:** the layout-manager-owned
+Find item window now has a real adjacent advanced regex builder. Validated ICU
+state supplies the effective string, flags, and algorithm to the existing UNO
+dispatch; the native Match Case and Find Next/Previous/All controls retain
+authority. The fake empty label has been removed and its `.ui` root promoted to
+the 195-resource host-composed family. The focused 10-mutation contract, shared
+100-mutation integration suite, 22 coverage tests, and 143-file SVX
+accessibility gate pass. The native row remains pending only until this source
+slice has an immutable commit to cite; runtime UI remains unverified.
+
 **2026-07-31 runtime-wizard composition milestone:** the shared assistant now
 uses token-derived 12 px spacing on every C++-generated page and marks exactly
 Next and Finish as Material primary forward actions, without inventing static
@@ -666,11 +676,14 @@ mutation coverage, UI lint, and accessibility lint pass; fourteen native
 CppUnit cases are wired but not compiled in the current checkout.
 Build/Test/Reference/Examples are
 scroll-backed, close cancellation is backend-independent, and Qt placement is
-work-area clamped. Fifteen of the 30 shipping fields are source-integrated and
-15 carry explicit architectural gap evidence. Calc Go to Sheet preserves its
+work-area clamped. Sixteen of the 30 shipping fields are source-integrated and
+14 carry explicit architectural gap evidence. The document Find toolbar now
+hands validated effective patterns and literal/regex algorithms through its
+existing UNO dispatch while preserving Match Case and Find All ownership. Calc Go to Sheet preserves its
 legacy `OUString::indexOf` default; Forms, Find & Replace, and Writer Quick Find
 now route effective patterns and flags into their native matcher paths. The
-implementation registry, focused validator, and 97 mutation regressions pass.
+implementation registry, focused validator, and 100 shared plus 10 Find-toolbar
+mutation regressions pass.
 
 By 2026-07-21 the integration contract generalized twice into a strict
 parameterized form: four matcher strategies (in-handler legacy literal,

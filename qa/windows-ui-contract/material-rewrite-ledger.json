@@ -138,10 +138,10 @@
         "rewritten-material": 437
       },
       "host-composed-surface": {
-        "total": 194,
+        "total": 195,
         "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 194
+        "rewritten-material": 195
       },
       "menu": {
         "total": 70,
@@ -168,10 +168,10 @@
         "rewritten-material": 40
       },
       "panel-fragment": {
-        "total": 323,
+        "total": 322,
         "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 323
+        "rewritten-material": 322
       },
       "popover": {
         "total": 47,
@@ -28211,22 +28211,23 @@
       "surface": "svx/uiconfig/ui/findbox.ui",
       "owner": "svx",
       "inventory_id": "unassigned",
-      "family": "panel-fragment",
-      "rewrite_class": "surface-body",
+      "family": "host-composed-surface",
+      "rewrite_class": "host-composition",
       "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": "6107acb23882a976cd34bb499921f688d1cef80c",
-        "contract": "docs/design/06-panels.md#6.7",
+        "commit": "77849e66785ad53ea7dc38af14b1108b9f26ed1c",
+        "contract": "qa/windows-ui-contract/host-composed-surfaces.json",
         "capture": {
           "scene": null,
-          "sample_batch": "static-anatomy-evaluation",
+          "sample_batch": "host-composed-source-contract",
           "captured": false
         },
         "anatomy_markers": {
-          "content_grid_material": true,
-          "ellipsize_count": 1,
-          "mnemonic_content_labels": 1,
-          "has_own_action_widgets": false
+          "contract_marker": "material-host-composed-surfaces",
+          "evidence_kind": "composition-code",
+          "source_sha256": "dd7371a8957177909fa5a9496eacebbd0a82a9a6cf8a4cdb39a8b68976c05612",
+          "legacy_family": "panel-fragment",
+          "shared_material_renderer": true
         }
       }
     },

@@ -9,8 +9,8 @@ modal behavior. A normal panel body must expose Material spacing plus a real
 label and mnemonic target. Those checks are useful only when the resource owns
 those regions.
 
-The remaining 194 static blockers do not. They comprise 64 runtime-filled,
-modeless, progress, close-only, or choice-dialog resources and 130 host-composed
+The family now contains 195 resources. It comprises 64 runtime-filled,
+modeless, progress, close-only, or choice-dialog resources and 131 host-composed
 fragments such as toolbar roots, notebookbars, atomic controls, embedded
 canvases, and child containers. Their labels, insets, lifecycle actions, or
 geometry belong to a C++ host, a wrapping page, or a specialized composition
@@ -22,7 +22,7 @@ It found that satisfying the static predicate would require at least one real
 regression: inventing a visible label, making a modeless tool modal, changing a
 Cancel/Close/progress lifecycle into an affirmative action, shifting a
 caret-anchored popup with wrapper margins, or changing the root class a host
-loads by ID. Ten later/current cases were re-audited from live source under the
+loads by ID. Eleven later/current cases were re-audited from live source under the
 same rule.
 
 ## Composition contract
@@ -53,6 +53,12 @@ leave this exception family. A new resource cannot enter by filename or by
 merely failing a predicate: the surface-set digest, count, contract row, audit
 status, classifier, and ledger must all change together with mutation coverage.
 
+The first explicit post-wave promotion is `svx/uiconfig/ui/findbox.ui`. Its
+previous panel credit depended on an empty hidden mnemonic label. The native
+Find toolbar now owns a real adjacent builder and validated UNO handoff, so the
+fake label was removed and the item-window resource moved into this composition
+family with current-source audit provenance.
+
 ## What this does not claim
 
 This family proves source composition and correct ownership. It does not prove
@@ -72,4 +78,3 @@ python bin/test_material_rewrite_ledger.py
 
 The generator is deterministic and refreshes the same locked set; it refuses to
 retain a resource that has become a valid ordinary static form.
-

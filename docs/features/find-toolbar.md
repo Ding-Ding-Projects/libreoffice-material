@@ -53,8 +53,9 @@ search registries additionally run 22 coverage and 100 integration mutations.
 The contract pins adjacency, accessibility, callback ownership, destruction
 order, invalid-pattern suppression, effective-pattern/algorithm handoff,
 Match Case synchronization, Find All scope, and the removal of the fake label.
-Source verification passes; `runtime_verified` remains `false` until a Windows
-MSI exercises the toolbar through the headless harness.
+Source verification passes at commit
+`5f9bc77fc35901bfe9f355c483409302bb642b34`; `runtime_verified` remains `false`
+until a Windows MSI exercises the toolbar through the headless harness.
 
 ## Suggested articles
 

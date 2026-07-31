@@ -22,17 +22,18 @@ dispatch; the native Match Case and Find Next/Previous/All controls retain
 authority. The fake empty label has been removed and its `.ui` root promoted to
 the 195-resource host-composed family. The focused 10-mutation contract, shared
 100-mutation integration suite, 22 coverage tests, and 143-file SVX
-accessibility gate pass. The native row remains pending only until this source
-slice has an immutable commit to cite; runtime UI remains unverified.
+accessibility gate pass. Commit `5f9bc77fc35901bfe9f355c483409302bb642b34`
+now supplies immutable evidence, raising the source headline to **99.69%
+(1267/1271), 4 pending**. Runtime UI remains unverified.
 
 **2026-07-31 runtime-wizard composition milestone:** the shared assistant now
 uses token-derived 12 px spacing on every C++-generated page and marks exactly
 Next and Finish as Material primary forward actions, without inventing static
 widgets or changing response semantics. The six-mutation composition contract,
 VCL accessibility gate (19 files, 0 FATALs), 57 ledger tests, and 179/179
-build-free workflow closure pass. The source headline is now **99.61%
-(1266/1271), 5 pending**; all `.ui`-backed families are complete and only five
-native shells remain. Runtime UI remains unverified.
+build-free workflow closure pass. At that checkpoint the source headline was
+**99.61% (1266/1271), 5 pending**; all `.ui`-backed families were complete.
+Runtime UI remains unverified.
 
 **2026-07-31 host-composed classification correction:** the 194 remaining
 static blockers are now an explicit `host-composed-surface` family rather than
@@ -60,7 +61,7 @@ open.
 **2026-07-31 native/wizard ownership contract:** five native shells and the
 shared wizard shell initially received a fail-closed owner/marker contract. The
 wizard has since moved to its implemented runtime-composition contract; the
-ownership boundary now retains only the five pending native shells.
+ownership boundary now retains only the four pending native shells.
 
 **2026-07-31 blocked-surface design proposal:** the six non-static pending
 surfaces now have a concrete Material token/anatomy proposal in

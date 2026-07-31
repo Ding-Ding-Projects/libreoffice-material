@@ -126,10 +126,10 @@
   },
   "coverage": {
     "total_surfaces": 1271,
-    "pending": 5,
+    "pending": 4,
     "in_progress": 0,
-    "rewritten_material": 1266,
-    "coverage_pct": 99.61,
+    "rewritten_material": 1267,
+    "coverage_pct": 99.69,
     "by_family": {
       "dialog": {
         "total": 437,
@@ -157,9 +157,9 @@
       },
       "native-shell": {
         "total": 10,
-        "pending": 5,
+        "pending": 4,
         "in-progress": 0,
-        "rewritten-material": 5
+        "rewritten-material": 6
       },
       "options-page": {
         "total": 40,
@@ -309,9 +309,9 @@
       },
       "svx": {
         "total": 144,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 143
+        "rewritten-material": 144
       },
       "sw": {
         "total": 233,
@@ -437,9 +437,9 @@
       },
       "WIN-INP-005": {
         "total": 1,
-        "pending": 1,
+        "pending": 0,
         "in-progress": 0,
-        "rewritten-material": 0
+        "rewritten-material": 1
       },
       "WIN-MA-001": {
         "total": 16,
@@ -13703,12 +13703,22 @@
       "inventory_id": "WIN-INP-005",
       "family": "native-shell",
       "rewrite_class": "shell-composition",
-      "rewrite_status": "pending",
+      "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": null,
-        "contract": null,
-        "capture": null,
-        "anatomy_markers": {}
+        "commit": "5f9bc77fc35901bfe9f355c483409302bb642b34",
+        "contract": "qa/windows-ui-contract/find-toolbar-composition.json",
+        "capture": {
+          "scene": null,
+          "sample_batch": "find-toolbar-source-composition",
+          "captured": false
+        },
+        "anatomy_markers": {
+          "contract_marker": "material-find-toolbar-composition",
+          "evidence_kind": "composition-code",
+          "adjacent_builder": "find_regex_builder",
+          "validated_uno_handoff": ".uno:ExecuteSearch",
+          "native_scope_controls": "match-case+find-next+find-previous+find-all"
+        }
       }
     },
     {
@@ -14029,7 +14039,7 @@
       "rewrite_class": "host-composition",
       "rewrite_status": "rewritten-material",
       "rewrite_evidence": {
-        "commit": "77849e66785ad53ea7dc38af14b1108b9f26ed1c",
+        "commit": "5f9bc77fc35901bfe9f355c483409302bb642b34",
         "contract": "qa/windows-ui-contract/host-composed-surfaces.json",
         "capture": {
           "scene": null,

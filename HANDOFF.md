@@ -14,10 +14,10 @@ The old empty hidden label was removed. `findbox.ui` is now the 195th
 host-composed resource, with a real keyboard-focusable adjacent builder and
 translated accessibility metadata. The 10 focused mutations, 100 shared regex
 integration mutations, 22 coverage tests, 12 host-composition mutations, and
-SVX accessibility gate (143 `.ui` files, 0 FATALs) pass. The native ledger row
-remains pending only until this slice receives an immutable commit; the current
-headline therefore remains **99.61% (1266/1271), 5 pending**. No runtime pixels
-or interaction are claimed.
+SVX accessibility gate (143 `.ui` files, 0 FATALs) pass. Commit
+`5f9bc77fc35901bfe9f355c483409302bb642b34` supplies immutable source evidence;
+the native row is credited and the headline is now **99.69% (1267/1271), 4
+pending**. No runtime pixels or interaction are claimed.
 
 ## 2026-07-31 follow-up — runtime wizard credited
 
@@ -32,8 +32,8 @@ modal and runtime-titled, and response/page/navigation semantics are unchanged.
 The source contract and six mutations pass, as do 57 ledger tests, 179/179
 build-free workflow coverage, and the VCL accessibility gate (19 `.ui` files,
 0 FATALs). The immutable wizard evidence raises the honest source headline to
-**99.61% (1266/1271), 5 pending**. Every `.ui`-backed family is complete; the
-remaining rows are the five native shells. Runtime UI remains unverified, and
+**99.61% (1266/1271), 5 pending** at that checkpoint. Every `.ui`-backed family
+was complete; the remaining rows were the five native shells. Runtime UI remains unverified, and
 the branch CI run is still being monitored in the background.
 
 ## 2026-07-31 follow-up — host-composed static blockers credited

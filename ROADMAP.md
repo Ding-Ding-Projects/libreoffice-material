@@ -15,6 +15,16 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-31 MSI lifecycle composition:** the installer now bundles three
+deterministic 24-bit branding assets generated from the local Material token
+palette. A fail-closed contract follows them through Binary/Control/Dialog
+tables, Segoe UI hierarchy, fourteen install/maintenance/progress/completion
+stages, three safe native decisions, template copying, and the existing
+lifecycle harness. Ten mutations and byte regeneration pass. Windows Installer
+still owns chrome, controls, DPI, keyboard, and accessibility. The native row
+awaits an immutable source commit before ledger credit; real MSI lifecycle
+behavior remains unverified.
+
 **2026-07-31 native Find-toolbar implementation:** the layout-manager-owned
 Find item window now has a real adjacent advanced regex builder. Validated ICU
 state supplies the effective string, flags, and algorithm to the existing UNO

@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "contract": "material-msi-lifecycle-composition",
+  "platform": "windows",
+  "status": "source-implemented",
+  "runtime_verified": false,
+  "surface": "native:msi-install-lifecycle-ui",
+  "owner": "instsetoo_native",
+  "inventory_id": "WIN-SYS-013",
+  "generator": "bin/generate-material-msi-branding.py",
+  "theme_definition": "vcl/uiconfig/theme_definitions/material/definition.xml",
+  "token_roles": [
+    "surface",
+    "surface-container",
+    "surface-container-low",
+    "primary",
+    "primary-container",
+    "on-primary",
+    "on-primary-container",
+    "outline-variant"
+  ],
+  "assets": [
+    {
+      "name": "Banner.bmp",
+      "width": 632,
+      "height": 57,
+      "bits_per_pixel": 24,
+      "sha256": "af70e553811b2e0534584f78c9338b5c5327ed29d3c2d7d4ddd9737f7ff46e28",
+      "role": "standard-dialog-banner"
+    },
+    {
+      "name": "Image.bmp",
+      "width": 162,
+      "height": 312,
+      "bits_per_pixel": 24,
+      "sha256": "1d6fa7a87dda59a1ff310021f320b07a84f5b24583554f3c947285087724a320",
+      "role": "welcome-completion-side-image"
+    },
+    {
+      "name": "Image_2.bmp",
+      "width": 493,
+      "height": 312,
+      "bits_per_pixel": 24,
+      "sha256": "75eefeecafe16016ca76d12e9722b4f036d299bae4d1344107721d059bdbb9c9",
+      "role": "bundled-wide-branding-variant"
+    }
+  ],
+  "tables": {
+    "binary": "instsetoo_native/inc_openoffice/windows/msi_templates/Binary.idt",
+    "dialog": "instsetoo_native/inc_openoffice/windows/msi_templates/Dialog.idt",
+    "control": "instsetoo_native/inc_openoffice/windows/msi_templates/Control.idt",
+    "text_style": "instsetoo_native/inc_openoffice/windows/msi_templates/TextStyl.idt",
+    "property": "instsetoo_native/inc_openoffice/windows/msi_templates/Property.idt",
+    "install_ui_sequence": "instsetoo_native/inc_openoffice/windows/msi_templates/InstallU.idt",
+    "custom_target": "instsetoo_native/CustomTarget_install.mk"
+  },
+  "binary_mappings": {
+    "BannerBmp": "Banner.bmp",
+    "ImageBmp": "Image.bmp"
+  },
+  "font_contract": {
+    "default_property": "DefaultUIFont",
+    "default_style": "DialogDefault",
+    "face": "Segoe UI",
+    "size": "9",
+    "heading_style": "DialogHeading",
+    "heading_size": "11"
+  },
+  "lifecycle_dialogs": [
+    {"stage": "install-welcome", "dialog": "InstallWelcome", "visual_control": "Image", "visual_binary": "ImageBmp", "default": "Next", "cancel": "Cancel"},
+    {"stage": "setup-type", "dialog": "SetupType", "visual_control": "Banner", "visual_binary": "BannerBmp", "default": "Next", "cancel": "Cancel"},
+    {"stage": "customer-information", "dialog": "CustomerInformation", "visual_control": "Banner", "visual_binary": "BannerBmp", "default": "Next", "cancel": "Cancel"},
+    {"stage": "license", "dialog": "LicenseAgreement", "visual_control": "Banner", "visual_binary": "BannerBmp", "default": "Next", "cancel": "Cancel"},
+    {"stage": "file-associations", "dialog": "FileTypeDialog", "visual_control": "Banner", "visual_binary": "BannerBmp", "default": "Next", "cancel": "Cancel"},
+    {"stage": "ready-install", "dialog": "ReadyToInstall", "visual_control": "Banner", "visual_binary": "BannerBmp", "default": "InstallNow", "cancel": "Cancel"},
+    {"stage": "progress", "dialog": "SetupProgress", "visual_control": "Banner", "visual_binary": "BannerBmp", "default": "Cancel", "cancel": "Cancel"},
+    {"stage": "success", "dialog": "SetupCompleteSuccess", "visual_control": "Image", "visual_binary": "ImageBmp", "default": "OK", "cancel": "OK"},
+    {"stage": "maintenance-welcome", "dialog": "MaintenanceWelcome", "visual_control": "Image", "visual_binary": "ImageBmp", "default": "Next", "cancel": "Cancel"},
+    {"stage": "maintenance-type", "dialog": "MaintenanceType", "visual_control": "Banner", "visual_binary": "BannerBmp", "default": "Next", "cancel": "Cancel"},
+    {"stage": "ready-remove", "dialog": "ReadyToRemove", "visual_control": "Banner", "visual_binary": "BannerBmp", "default": "RemoveNow", "cancel": "Cancel"},
+    {"stage": "patch-welcome", "dialog": "PatchWelcome", "visual_control": "Image", "visual_binary": "ImageBmp", "default": "Next", "cancel": "Cancel"},
+    {"stage": "error", "dialog": "SetupCompleteError", "visual_control": "Image", "visual_binary": "ImageBmp", "default": "Finish", "cancel": "Finish"},
+    {"stage": "interrupted", "dialog": "SetupInterrupted", "visual_control": "Image", "visual_binary": "ImageBmp", "default": "Finish", "cancel": "Finish"}
+  ],
+  "decision_dialogs": [
+    {"dialog": "CancelSetup", "safe_default": "No", "cancel": "No"},
+    {"dialog": "FilesInUse", "safe_default": "Retry", "cancel": "Exit"},
+    {"dialog": "MsiRMFilesInUse", "safe_default": "OK", "cancel": "Cancel"}
+  ],
+  "os_owned_chrome": [
+    "window-frame",
+    "caption-buttons",
+    "system-dialog-controls",
+    "dpi-scaling",
+    "keyboard-and-accessibility-semantics"
+  ],
+  "runtime_harness": "qa/windows-installer-lifecycle/guest-lifecycle.ps1"
+}

@@ -257,6 +257,25 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
         </div>
         <div class="activation-card">
           <div>
+            <p class="card-kicker">Windows Installer lifecycle</p>
+            <h3>Local Material branding, native Windows decisions.</h3>
+            <p>
+              Three deterministic 24-bit bitmaps are generated from the bundled
+              Material palette and mapped through the real MSI Binary, Control,
+              and Dialog tables. Fourteen install, maintenance, progress, and
+              completion stages share the treatment; Cancel Setup and both
+              Files-in-Use decisions keep their native safe defaults. Windows
+              Installer still owns chrome, controls, DPI, keyboard, and
+              accessibility. Source generation and ten mutations pass; a real
+              install/repair/upgrade/uninstall lifecycle remains unverified.
+              Read the
+              <a href="https://github.com/Ding-Ding-Projects/libreoffice-material/blob/main/docs/features/msi-lifecycle-branding.md">feature article</a>.
+            </p>
+          </div>
+          <span class="state state-progress">Source verified · lifecycle pending</span>
+        </div>
+        <div class="activation-card">
+          <div>
             <p class="card-kicker">Windows updater source</p>
             <h3>Strict release metadata, protected staging, explicit consent.</h3>
             <p>

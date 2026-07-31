@@ -1,5 +1,22 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — MSI lifecycle composition source-complete
+
+The Windows Installer templates now carry deterministic 24-bit Material
+branding generated from the repository's own token palette: `Banner.bmp`
+(632×57), `Image.bmp` (162×312), and `Image_2.bmp` (493×312). The contract
+follows Banner/Image mappings through the actual MSI tables, keeps the existing
+Segoe UI hierarchy, and pins fourteen install/maintenance/progress/completion
+dialogs plus the safe defaults of Cancel Setup and both Files-in-Use decisions.
+Windows Installer continues to own its frame, caption buttons, controls, DPI,
+keyboard, and accessibility behavior.
+
+Generator replay, decode/SHA/geometry validation, the composition checker, and
+10 mutations pass. The existing guest harness entry points for install, repair,
+major upgrade, and uninstall are source-pinned, not run. The native ledger row
+therefore stays pending until this slice has a commit; the headline remains
+**99.69% (1267/1271), 4 pending** and `runtime_verified` remains false.
+
 ## 2026-07-31 follow-up — native Find toolbar source-complete
 
 The layout-manager-owned Find item window now constructs the shared

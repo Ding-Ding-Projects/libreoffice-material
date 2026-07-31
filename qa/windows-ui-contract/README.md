@@ -1668,12 +1668,35 @@ is present and unregressed and must **not** flip `M`, which stays `·`. The thre
 Material differentiators stay `status: specified`. 17 mutation tests;
 `runtime_verified: false`.
 
+### Material MSI lifecycle composition
+
+`msi-lifecycle-composition.json` owns the source-level Windows Installer
+branding and lifecycle boundary. A pure-Python deterministic generator reads
+the bundled Material palette and emits the exact 24-bit Banner/Image/Image_2
+dimensions expected by the MSI templates. The checker follows BannerBmp and
+ImageBmp through Binary/Control/Dialog tables, pins Segoe UI defaults, fourteen
+install/maintenance/progress/completion stages, three safe native decision
+dialogs, the wildcard template-copy rule, and lifecycle-harness entry points.
+OS window chrome, system controls, DPI, keyboard, and accessibility remain
+Windows Installer-owned.
+
+```sh
+python bin/generate-material-msi-branding.py --check
+python bin/check-msi-lifecycle-composition.py
+python bin/test_msi_lifecycle_composition.py
+```
+
+Ten mutations reject asset, bitmap geometry, mapping, font, stage visual,
+default/cancel, token, and ledger drift. This is source evidence only; no real
+install/repair/upgrade/uninstall/restart result is claimed and
+`runtime_verified` remains false.
+
 ### Pending native ownership
 
 `pending-native-surface-ownership.json` (contract
 `material-pending-native-surface-ownership`) closes the contract-ownership gap
-for four native-shell rows. It pins the real source owner and stable markers
-for MSI lifecycle, updater lifecycle, Windows title bars, and Writer canvas;
+for three native-shell rows. It pins the real source owner and stable markers
+for updater lifecycle, Windows title bars, and Writer canvas;
 it also requires every row
 to remain `pending` with empty implementation evidence. The contract is a
 fail-closed planning boundary, not Material rewrite credit. Three mutation/

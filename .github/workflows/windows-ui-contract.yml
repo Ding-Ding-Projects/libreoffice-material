@@ -66,6 +66,15 @@ jobs:
       - name: Run Find toolbar composition mutations
         run: python3 bin/test_find_toolbar_composition.py
 
+      - name: Verify deterministic Material MSI branding
+        run: python3 bin/generate-material-msi-branding.py --check
+
+      - name: Validate Material MSI lifecycle composition
+        run: python3 bin/check-msi-lifecycle-composition.py
+
+      - name: Run MSI lifecycle composition mutations
+        run: python3 bin/test_msi_lifecycle_composition.py
+
       - name: Validate Windows no-nag startup contract
         run: python3 bin/check-windows-no-nag-contract.py
 

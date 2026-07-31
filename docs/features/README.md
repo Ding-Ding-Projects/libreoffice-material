@@ -19,6 +19,7 @@ own "Verification status" section.
 | [`runtime-dialog-shells.md`](runtime-dialog-shells.md) | Material inset grids and fail-closed C++ page-host ownership for twenty-one runtime-composed notebook shells. | Source contract + 23 mutation tests; **runtime UI UNVERIFIED**. |
 | [`runtime-wizard-shell.md`](runtime-wizard-shell.md) | Token-spaced runtime pages and Material primary Next/Finish actions for the shared VCL wizard shell. | Source contract + 6 mutation tests; **runtime UI UNVERIFIED**. |
 | [`find-toolbar.md`](find-toolbar.md) | Adjacent advanced regex builder and validated ICU/UNO handoff for the document Find toolbar. | Source contract + 10 focused and 100 shared mutations; **runtime UI UNVERIFIED**. |
+| [`msi-lifecycle-branding.md`](msi-lifecycle-branding.md) | Deterministic token-derived installer branding across install, maintenance, progress, completion, and safe-decision MSI stages. | Generator check + 10 mutations; **real MSI lifecycle UNVERIFIED**. |
 | [`host-composed-surfaces.md`](host-composed-surfaces.md) | Hash-locked shared-renderer ownership for 195 audited dialog variants and host/atomic fragments whose static form predicate is structurally inapplicable. | Source contract + 12 mutation tests; **runtime UI UNVERIFIED**. |
 
 There is no HTTP or API surface in this category, so no Postman collection

@@ -520,6 +520,15 @@ jobs:
       - name: Run runtime-composed dialog shell mutation regressions
         run: python3 bin/test_runtime_dialog_shell_composition.py
 
+      - name: Verify host-composed Material surface registry is current
+        run: python3 bin/generate-host-composed-surface-contract.py --check
+
+      - name: Validate host-composed Material surfaces
+        run: python3 bin/check-host-composed-surface-contract.py
+
+      - name: Run host-composed surface mutation regressions
+        run: python3 bin/test_host_composed_surface_contract.py
+
       - name: Validate Material rewrite ledger
         env:
           MATERIAL_REWRITE_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || '' }}

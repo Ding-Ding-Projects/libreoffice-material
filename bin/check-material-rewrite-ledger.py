@@ -18,13 +18,13 @@ row carrying ``rewrite_status`` (``pending`` | ``in-progress`` |
 The ledger derives its rows by IMPORTING ``build_registry()`` from
 ``bin/check-windows-ui-registry-closure.py`` -- it never re-walks Git itself, so
 the two files are structurally impossible to diverge undetected. Each surface is
-classified into one of ten families (dialog, runtime-dialog-shell,
-message-dialog, options-page, panel-fragment, menu, popover, sidebar-panel,
-wizard-assistant, native-shell)
+classified into one of eleven families (dialog, runtime-dialog-shell,
+host-composed-surface, message-dialog, options-page, panel-fragment, menu,
+popover, sidebar-panel, wizard-assistant, native-shell)
 whose acceptance predicate ("is this surface rewritten to Material?") is either
 static (parsed from the ``.ui`` XML: dialog/message/surface-body/popover) or a
 cross-reference to the composition contract that owns the surface
-(runtime-dialog-shell, menu, sidebar-panel, native-shell -- families whose
+(runtime-dialog-shell, host-composed-surface, menu, sidebar-panel, native-shell -- families whose
 Material proof spans more than one source file, so static --evaluate never
 credits them).
 
@@ -42,7 +42,7 @@ committed ``.ui`` via ElementTree and recomputes its status, crediting
 ``rewritten-material`` only where the surface satisfies its FULL family predicate
 (the dialog/message/surface-body/popover markers), and leaving it ``pending``
 otherwise -- conservative, no partial credit. Composition families
-(runtime-dialog-shell, menu, sidebar-panel, native-shell) keep their
+(runtime-dialog-shell, host-composed-surface, menu, sidebar-panel, native-shell) keep their
 contract-cross-reference status
 untouched. The credit is earned and reproducible: re-running ``--evaluate`` from
 a clean checkout re-derives the same markers and the same pass/fail from the
@@ -129,6 +129,7 @@ DESTRUCTIVE_CLASS = "destructive-action"
 # --- Family taxonomy -------------------------------------------------------
 FAMILY_DIALOG = "dialog"
 FAMILY_RUNTIME_DIALOG = "runtime-dialog-shell"
+FAMILY_HOST_COMPOSED = "host-composed-surface"
 FAMILY_MESSAGE = "message-dialog"
 FAMILY_OPTIONS = "options-page"
 FAMILY_PANEL = "panel-fragment"
@@ -148,6 +149,7 @@ PANEL_FRAGMENT_EXCEPTIONS = {
 ALL_FAMILIES = (
     FAMILY_DIALOG,
     FAMILY_RUNTIME_DIALOG,
+    FAMILY_HOST_COMPOSED,
     FAMILY_MESSAGE,
     FAMILY_OPTIONS,
     FAMILY_PANEL,
@@ -160,6 +162,7 @@ ALL_FAMILIES = (
 
 RC_DIALOG_ANATOMY = "dialog-anatomy"
 RC_DIALOG_COMPOSITION = "dialog-composition"
+RC_HOST_COMPOSITION = "host-composition"
 RC_SURFACE_BODY = "surface-body"
 RC_POPOVER_ANATOMY = "popover-anatomy"
 RC_MENU_COMPOSITION = "menu-composition"
@@ -196,6 +199,21 @@ FAMILY_DEFS: Mapping[str, dict[str, Any]] = {
             "composition-contract-marker",
             "material-content-grid",
             "runtime-page-host",
+        ],
+    },
+    FAMILY_HOST_COMPOSED: {
+        # These explicitly audited resources cannot own the ordinary static
+        # dialog/form markers without invented labels, broken host geometry, or
+        # changed lifecycle semantics. Their controls ride the globally active
+        # Material renderer while their host owns the missing composition.
+        "rewrite_class": RC_HOST_COMPOSITION,
+        "evidence_kind": COMPOSITION_CODE,
+        "design_ref": "docs/design/host-composed-material-surfaces.md",
+        "required_markers": [
+            "composition-contract-marker",
+            "source-sha256",
+            "legacy-family",
+            "shared-material-renderer",
         ],
     },
     FAMILY_MESSAGE: {
@@ -334,6 +352,18 @@ RUNTIME_DIALOG_SHELL_SURFACES = frozenset(
     }
 )
 
+HOST_COMPOSED_CONTRACT_PATH = (
+    REPOSITORY / "qa/windows-ui-contract/host-composed-surfaces.json"
+)
+_HOST_COMPOSED_CONTRACT = json.loads(
+    HOST_COMPOSED_CONTRACT_PATH.read_text(encoding="utf-8")
+)
+HOST_COMPOSED_SURFACES = frozenset(
+    row["surface"]
+    for row in _HOST_COMPOSED_CONTRACT.get("surfaces", [])
+    if isinstance(row, Mapping) and isinstance(row.get("surface"), str)
+)
+
 # Per-wave soft budget: how many surfaces of a family may flip to
 # rewritten-material in one ~3h CI wave before the capture harness is warned.
 # Exceeding a cap is a loud stderr WARN, never a fail-closed error, so batches
@@ -341,6 +371,7 @@ RUNTIME_DIALOG_SHELL_SURFACES = frozenset(
 FAMILY_BATCH_CAP = {
     FAMILY_DIALOG: 24,
     FAMILY_RUNTIME_DIALOG: 8,
+    FAMILY_HOST_COMPOSED: 194,
     FAMILY_PANEL: 24,
     FAMILY_MESSAGE: 16,
     FAMILY_MENU: 30,
@@ -498,6 +529,8 @@ def classify(surface: str, root: ET.Element | None) -> str:
         return FAMILY_WIZARD
     if surface in RUNTIME_DIALOG_SHELL_SURFACES:
         return FAMILY_RUNTIME_DIALOG
+    if surface in HOST_COMPOSED_SURFACES:
+        return FAMILY_HOST_COMPOSED
     if OPT_PAGE_RE.match(base):
         return FAMILY_OPTIONS
     if "GtkDialog" in classes or has_action_widgets:
@@ -1266,8 +1299,8 @@ def evaluate_surface_status(
 ) -> tuple[str, dict[str, Any]]:
     """Recompute a surface's status from the LIVE .ui tree (``--evaluate``).
 
-    * Composition families (runtime-dialog-shell, menu, sidebar-panel,
-      native-shell) keep the existing contract-cross-reference path: their
+    * Composition families (runtime-dialog-shell, host-composed-surface, menu,
+      sidebar-panel, native-shell) keep the existing contract-cross-reference path: their
       status/evidence is campaign-owned and is never recomputed statically. A
       stale evidence SHA is refreshed to the last committed revision of the
       named contract.

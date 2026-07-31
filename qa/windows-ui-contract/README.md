@@ -166,6 +166,35 @@ reordered host markers, modality/title-source drift, page-occurrence drift,
 ledger-family drift, and false runtime claims. This is
 source-composition evidence only; `runtime_verified` remains false.
 
+### Host-composed Material surfaces
+
+`host-composed-surfaces.json` owns the explicit 194-resource bridge for static
+surfaces whose ordinary dialog or panel predicate is structurally inapplicable:
+64 runtime/modeless/progress/close/choice dialog variants and 130 toolbar,
+notebookbar, popup, canvas, atomic-control, or child fragments. The set comes
+from the adversarial rewrite audit: 184 entries retain an independently verified
+`blocked-confirmed` disposition, while 10 current resources were re-audited.
+
+The registry does not weaken either ordinary predicate. Every row pins its live
+predicate failure, normalized source SHA-256, top-level object IDs/classes,
+complete marker snapshot, owner/inventory attribution, legacy family, and
+composition variant. It depends on the separate default-activation, component
+gallery, and theme-resolution contracts to prove that these resources render
+through the shared Windows Material definition. A byte change fails; a resource
+that becomes a valid ordinary static form also fails until it leaves this
+exception family.
+
+```sh
+python bin/generate-host-composed-surface-contract.py --check
+python bin/check-host-composed-surface-contract.py
+python bin/test_host_composed_surface_contract.py
+```
+
+The 12 mutation tests reject set/digest drift, stale generated output, source or
+marker changes, predicate drift, renderer dependency drift, ledger-family or
+evidence drift, lost audit provenance, and false runtime claims. This is
+source-composition evidence only; `runtime_verified` remains false.
+
 ## Registered UI inventory closure (WIN-SYS-016)
 
 `ui-registry.json` is the generated, checked-in closure ledger for the

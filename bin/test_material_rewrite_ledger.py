@@ -322,9 +322,10 @@ class LedgerMutationTest(unittest.TestCase):
     def test_production_family_counts(self) -> None:
         by_family = self.ledger["coverage"]["by_family"]
         expected = {
-            "dialog": 501, "runtime-dialog-shell": 21,
+            "dialog": 437, "runtime-dialog-shell": 21,
+            "host-composed-surface": 194,
             "message-dialog": 76, "options-page": 40,
-            "panel-fragment": 453, "menu": 70, "popover": 47,
+            "panel-fragment": 323, "menu": 70, "popover": 47,
             "sidebar-panel": 52, "wizard-assistant": 1, "native-shell": 10,
         }
         for fam, count in expected.items():
@@ -1077,6 +1078,23 @@ class LedgerMutationTest(unittest.TestCase):
             self.assertEqual(
                 CK.classify(surface, CK._parse_root(REPOSITORY, surface)),
                 CK.FAMILY_RUNTIME_DIALOG,
+            )
+
+    def test_host_composed_family_is_explicit_composition_code(self) -> None:
+        self.assertEqual(
+            CK.evidence_kind_for(CK.FAMILY_HOST_COMPOSED), CK.COMPOSITION_CODE
+        )
+        production = {
+            row["surface"]
+            for row in self.ledger["surfaces"]
+            if row["family"] == CK.FAMILY_HOST_COMPOSED
+        }
+        self.assertEqual(production, set(CK.HOST_COMPOSED_SURFACES))
+        self.assertEqual(len(production), 194)
+        for surface in production:
+            self.assertEqual(
+                CK.classify(surface, CK._parse_root(REPOSITORY, surface)),
+                CK.FAMILY_HOST_COMPOSED,
             )
 
     def test_stock_menu_evaluates_pending(self) -> None:

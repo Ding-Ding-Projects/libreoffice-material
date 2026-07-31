@@ -44,6 +44,11 @@ without treating shared-component compilation as application-surface proof.
 | 11 | [Impress & Draw](11-impress-draw.md) | Slide panel, canvas, layouts, tool rail, object properties |
 | 12 | [Base, Math & shared](12-base-math-shared.md) | Database shell, formula editor, chart editor, Features catalog, history, suite-wide rules |
 
+Cross-cutting source-composition evidence for resources whose visible anatomy
+belongs to a runtime host is documented separately in
+[Host-composed Material surfaces](host-composed-material-surfaces.md). That
+contract preserves the strict static form predicates and claims no runtime UI.
+
 ## How a spec becomes "done"
 
 A component or surface graduates only through the verification gate in

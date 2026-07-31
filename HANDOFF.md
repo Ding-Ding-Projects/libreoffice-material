@@ -1,5 +1,15 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — blocked-surface Material proposal
+
+The native/wizard audit found no safe static source edit for the six remaining
+non-static rows: find toolbar, MSI lifecycle, updater lifecycle, Windows title
+bars, Writer document canvas, and the C++-owned wizard shell. A concrete token
+and anatomy proposal is recorded in
+[`docs/design/blocked-surface-material-proposal.md`](docs/design/blocked-surface-material-proposal.md).
+It is explicitly design-only; the rows remain pending until their runtime
+contracts and Windows evidence exist.
+
 ## 2026-07-31 follow-up — second non-sidebar classification correction
 
 The ledger now also classifies `svx/uiconfig/ui/themeselectorpanel.ui` as a

@@ -15,6 +15,12 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-31 blocked-surface design proposal:** the six non-static pending
+surfaces now have a concrete Material token/anatomy proposal in
+[`docs/design/blocked-surface-material-proposal.md`](docs/design/blocked-surface-material-proposal.md).
+It remains design-only until runtime contracts and Windows evidence are
+available; the ledger does not award coverage for a proposal.
+
 **2026-07-31 ledger correction:** `fielddescpanel.ui` is now explicitly
 classified as a panel fragment because its C++ owner is Base's ordinary
 `OChildWindow`, not the sfx2 sidebar deck. The regenerated ledger and 55-test

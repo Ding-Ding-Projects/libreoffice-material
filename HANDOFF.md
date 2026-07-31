@@ -1,5 +1,18 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — GUI-lag issue status
+
+Open issue [#12](https://github.com/Ding-Ding-Projects/libreoffice-material/issues/12)
+has a source-level fix at `5053a127d`: Material token tables are memoized,
+native widget state lookup avoids a per-draw heap/refcount allocation, and the
+material-theme environment lookup is cached without changing the per-call high-
+contrast check. The fix was compiled and packaged in the green
+[`windows-msi-99-1-5053a127d6`](https://github.com/Ding-Ding-Projects/libreoffice-material/releases/tag/windows-msi-99-1-5053a127d6)
+release. The issue remains intentionally open because no before/after frame-time
+or interaction-latency measurement has been captured from an installed MSI;
+compilation and packaging prove deliverability, not measured user-perceived
+speed. No new runtime performance claim is made here.
+
 ## 2026-07-29 source bug audit, evidence repair, and integration handoff
 
 The audit began from pulled `origin/main` at `85f94df37` and integrated the

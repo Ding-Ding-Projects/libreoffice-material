@@ -1,5 +1,17 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — isolated MSI packaging evidence
+
+The repaired isolated Windows build completed MSI packaging successfully. The
+artifact is
+`C:\lo-material-vs2022\build\workdir\installation\LibreOfficeDev\msi\install\en-US\LibreOfficeDev_27.2.0.0.alpha0_Win_x86-64.msi`,
+size **197,189,632 bytes**, SHA-256
+`162AD57EEBE6B93523DF3AC4B89B54BFCF0E3F480B5F45A4800B9D110327A062`. The
+installer log records successful `makecab.exe` packaging, successful
+`msidb.exe` CAB inclusion, and `Successful packaging process!`. This proves
+local artifact packaging only; installed-MSI interaction and performance
+evidence remain separate gates.
+
 ## 2026-07-31 follow-up — notification view-model fixture verification
 
 The isolated Windows native run initially reported one failure in

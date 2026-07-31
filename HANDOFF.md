@@ -1,5 +1,28 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-07-31 follow-up — updater lifecycle source implemented
+
+The old dedicated updater bubble has been replaced as a status transport by the
+shared bottom-right Material notification stack; the existing update icon still
+opens details and actions. The controller supplies eleven stable states before
+translated title/body visibility, and the UI maps them to Information, Success,
+Warning, or Error after a worker→VCL-main-thread handoff. Existing suppression
+keeps routine checking/no-update paths quiet and emits actionable/error cards
+only while the update dialog is hidden or minimized. Exact version appears
+before notification; live progress remains in the dialog; paused/stalled cards
+include percent; failures state automatic retry; and download completion says
+Windows Installer owns completion/rollback. No verified bundled code-name
+catalog/feed field exists, so version-only fallback is explicit.
+
+The focused checker and 22 tests (21 mutations plus production) pass, as do the
+expanded nine-producer/four-module notification contract's 40 tests. Default-No
+modal consent, immediate file verification, protected staging and retained
+lock, interactive `/i`, and both restart-suppression properties remain pinned.
+Native compilation and a real lifecycle walkthrough are not claimed. This
+source checkpoint intentionally precedes its immutable ledger credit, so the
+last credited headline remains **99.92% (1270/1271), 1 pending** until that
+follow-up records the implementation commit.
+
 ## 2026-07-31 follow-up — Writer canvas source implemented
 
 Writer's outside-page workspace now resolves the bundled Material

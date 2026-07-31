@@ -787,7 +787,7 @@ revert that leaves the producer function defined but unreachable (dead code) fai
 closed here instead of passing on the surviving definition. 27 mutation tests; no
 native build, notification pixels, or runtime interaction are claimed.
 
-The mega wave (below) extends this ledger to **eight** producers (WIN-FBK-007,
+The mega wave (below) extended this ledger to **eight** producers (WIN-FBK-007,
 WIN-SHL-003): five acknowledgement-only modal message boxes were converted onto
 `sfx2::NotificationRouter::NotifyInfo` and registered — the no-email-client
 warning (`mailmodel.cxx`, Warning), the HTML/Basic source-view "search key not
@@ -795,14 +795,24 @@ found" notice (`srcview.cxx`, Information), the predefined-label-locked warning
 (`labfmt.cxx`, Warning), and the read-only-content notice pair (`wrtsh1.cxx` +
 `textfld.cxx`, Information). To keep the convention from silently collapsing back
 to one or two modules on a future revert, the registry now carries a
-`min_producer_modules` field (value **3**: the distinct module set over
-`producers` — `sfx2`, `sw`, `svx` — must have cardinality ≥ 3), asserted
+`min_producer_modules` field (then value **3**: the distinct module set over
+`producers` — `sfx2`, `sw`, `svx` — had to have cardinality ≥ 3), asserted
 fail-closed alongside the existing per-producer existence checks. Every new
 producer is `informational_only`, uses the already-approved `libreoffice.core-ui`
 display source, and is added to `required_producers`. `runtime_verified` stays
 `false`; replacing a blocking `run()` with a fire-and-forget notice is a genuine
 behaviour change that only a Windows build plus a manual walkthrough can confirm
 is safe.
+
+The updater lifecycle slice raises the live registry to **nine** producers and
+four modules by adding `extensions/source/update/ui/updatecheckui.cxx` under the
+already-approved `libreoffice.update` source. Its four severity outcomes are
+derived from the separately supplied stable lifecycle state; a heap-owned event
+payload marshals worker changes onto the VCL main thread before `NotifyInfo`.
+Wiring markers pin that post, suppression of the duplicate legacy bubble, the
+controller's state property, and automatic-retry copy. The diversity floor is
+now **4** (`extensions`, `sfx2`, `sw`, `svx`) with zero slack. The suite passes
+40 tests; runtime notification behavior remains unverified.
 
 ### Sidebar deck & side panes (WIN-CON-007)
 
@@ -1206,6 +1216,8 @@ python bin/check-windows-titlebar-composition.py
 python bin/test_windows_titlebar_composition.py
 python bin/check-writer-canvas-composition.py
 python bin/test_writer_canvas_composition.py
+python bin/check-updater-lifecycle-composition.py
+python bin/test_updater_lifecycle_composition.py
 python bin/check-notification-overlay-contract.py
 python bin/test_notification_overlay_contract.py
 python bin/check-windows-command-overflow.py
@@ -1718,12 +1730,35 @@ pixels, print/metafile output, LibreOfficeKit tiles, preview ownership, zoom,
 selection, and input coordinates remain outside the new paint decision. This
 is source composition evidence only; `runtime_verified` remains false.
 
+### Updater lifecycle notifications (WIN-SYS-012)
+
+`updater-lifecycle-composition.json` (contract
+`material-updater-lifecycle-composition`) owns the final native-shell source
+boundary. The updater controller maps all eleven `UpdateState` values to stable
+names, sets immutable version metadata before translated title/body generation,
+and supplies state before visibility. `UpdateCheckUI` maps that state to
+Information/Success/Warning/Error, posts a heap-owned payload to the VCL main
+thread, emits through the shared `libreoffice.update` notification route, and
+keeps the old dedicated bubble closed while retaining the update icon.
+
+```sh
+python bin/check-updater-lifecycle-composition.py
+python bin/test_updater_lifecycle_composition.py
+```
+
+The contract also pins the live dialog progress owner, paused/stalled percent,
+automatic retry copy and backoff schedules, truthful Windows Installer
+completion/rollback ownership, no-invented-code-name fallback, and the full
+security decision chain: default-No modal consent, immediate file verification,
+protected non-overwriting staging, retained write/delete lock, interactive `/i`
+launch, and both restart-suppression properties. Twenty-one mutations plus production
+pass. This is source evidence only; `runtime_verified` remains false.
+
 ### Pending native ownership
 
 `pending-native-surface-ownership.json` (contract
-`material-pending-native-surface-ownership`) closes the contract-ownership gap
-for one native-shell row. It pins the real source owner and stable markers for
-updater lifecycle; it also requires that row
-to remain `pending` with empty implementation evidence. The contract is a
-fail-closed planning boundary, not Material rewrite credit. Three mutation/
-baseline tests; `runtime_verified: false`.
+`material-pending-native-surface-ownership`) is now a closure sentinel: every
+native-shell row has a dedicated implementation contract, so its governed set
+is empty. It remains fail-closed against a reintroduced owner-only row and is
+not itself Material rewrite evidence. Three mutation/baseline tests;
+`runtime_verified: false`.

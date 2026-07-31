@@ -71,6 +71,42 @@ constexpr OUStringLiteral PROPERTY_TEXT = u"BubbleText";
 constexpr OUStringLiteral PROPERTY_SHOW_BUBBLE = u"BubbleVisible";
 constexpr OUStringLiteral PROPERTY_CLICK_HDL = u"MenuClickHDL";
 constexpr OUString PROPERTY_SHOW_MENUICON = u"MenuIconVisible"_ustr;
+constexpr OUString PROPERTY_LIFECYCLE_STATE = u"LifecycleState"_ustr;
+
+namespace
+{
+OUString GetUpdateLifecycleState(UpdateState eState)
+{
+    switch (eState)
+    {
+        case UPDATESTATE_CHECKING:
+            return u"checking"_ustr;
+        case UPDATESTATE_ERROR_CHECKING:
+            return u"error-checking"_ustr;
+        case UPDATESTATE_NO_UPDATE_AVAIL:
+            return u"no-update"_ustr;
+        case UPDATESTATE_UPDATE_AVAIL:
+            return u"update-available"_ustr;
+        case UPDATESTATE_UPDATE_NO_DOWNLOAD:
+            return u"manual-download"_ustr;
+        case UPDATESTATE_AUTO_START:
+            return u"auto-start"_ustr;
+        case UPDATESTATE_DOWNLOADING:
+            return u"downloading"_ustr;
+        case UPDATESTATE_DOWNLOAD_PAUSED:
+            return u"download-paused"_ustr;
+        case UPDATESTATE_ERROR_DOWNLOADING:
+            return u"error-downloading"_ustr;
+        case UPDATESTATE_DOWNLOAD_AVAIL:
+            return u"download-available"_ustr;
+        case UPDATESTATE_EXT_UPD_AVAIL:
+            return u"extension-update"_ustr;
+        case UPDATESTATES_COUNT:
+            break;
+    }
+    return u"unknown"_ustr;
+}
+}
 
 std::array<rtl_uString*, 4> WindowsInstallerCommand::getProcessArguments() const
 {
@@ -1814,6 +1850,8 @@ void UpdateCheck::handleMenuBarUI( const rtl::Reference< UpdateHandler >& rUpdat
 
     if( xMenuBarUI.is() )
     {
+        xMenuBarUI->setPropertyValue(PROPERTY_LIFECYCLE_STATE,
+                                     uno::Any(GetUpdateLifecycleState(eState)));
         if( UPDATESTATE_NO_UPDATE_AVAIL == eState )
         {
             xMenuBarUI->setPropertyValue( PROPERTY_SHOW_MENUICON, uno::Any(false) );
@@ -1840,8 +1878,7 @@ void UpdateCheck::setUIState(UpdateState eState, bool suppressBubble)
     if( ! m_xMenuBarUI.is() &&
         (DISABLED != m_eState) &&
         ( m_bHasExtensionUpdate || (UPDATESTATE_NO_UPDATE_AVAIL != eState)) &&
-        (UPDATESTATE_CHECKING != eState) &&
-        (UPDATESTATE_ERROR_CHECKING != eState)
+        (UPDATESTATE_CHECKING != eState)
     )
     {
         m_xMenuBarUI = createMenuBarUI(m_xContext, new MenuBarButtonJob(this));
@@ -1862,6 +1899,11 @@ void UpdateCheck::setUIState(UpdateState eState, bool suppressBubble)
 
     aGuard.unlock();
 
+    // Bubble/notification strings substitute %NEXTVERSION. Set the immutable update metadata
+    // before handing the state to the UI so a newly-created lifecycle card never shows an empty or
+    // previous version.
+    aUpdateHandler->setDescription(aUpdateInfo.Description);
+    aUpdateHandler->setNextVersion(aUpdateInfo.Version);
     handleMenuBarUI(aUpdateHandler, xMenuBarUI, eState, suppressBubble);
 
     if( (UPDATESTATE_UPDATE_AVAIL == eState)
@@ -1882,8 +1924,6 @@ void UpdateCheck::setUIState(UpdateState eState, bool suppressBubble)
         aUpdateHandler->setDownloadFile(aImageName);
     }
 
-    aUpdateHandler->setDescription(aUpdateInfo.Description);
-    aUpdateHandler->setNextVersion(aUpdateInfo.Version);
     aUpdateHandler->setState(eState);
 }
 

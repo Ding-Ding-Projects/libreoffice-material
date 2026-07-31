@@ -128,7 +128,7 @@
             </div>
             <div>
               <dt>Windows updater</dt>
-              <dd><span class="state state-progress">Corrected source; lifecycle pending</span></dd>
+              <dd><span class="state state-progress">Lifecycle source verified; runtime pending</span></dd>
             </div>
             <div>
               <dt>Whole-suite UI</dt>
@@ -317,7 +317,22 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
         <div class="activation-card">
           <div>
             <p class="card-kicker">Windows updater source</p>
-            <h3>Strict release metadata, protected staging, explicit consent.</h3>
+            <h3>Material lifecycle cards, protected staging, explicit consent.</h3>
+            <p>
+              Eleven stable update states are mapped, while eligible actionable
+              and exceptional transitions route exact-version status through the
+              shared bottom-right Material notification stack. Routine checking
+              and no-update paths stay quiet under the existing suppression policy.
+              Information,
+              success, warning, and persistent error cards cover availability,
+              download progress, pause, automatic retry, and completion; the
+              existing update icon remains the details and action path. Paused
+              and stalled cards include the current percentage, repeated progress
+              callbacks do not spam, and completion copy states that Windows
+              Installer owns the final install or rollback result. No verified
+              bundled code-name catalog/feed field exists, so the UI shows the
+              exact version and invents no dish name.
+            </p>
             <p>
               The Windows-only updater reads the exact GitHub Latest XML asset
               and accepts one tag-derived repository URL only when the canonical
@@ -336,7 +351,11 @@ VCL_FILE_WIDGET_THEME=material</code></pre>
             <p>
               Confirmation defaults to No; no silent install exists. Checks
               default on weekly, automatic download defaults off, and download
-              and install remain opt-in. See the
+              and install remain opt-in. The source contract and twenty-two
+              focused tests pass; native notification behavior remains
+              unverified. Read the
+              <a href="https://github.com/Ding-Ding-Projects/libreoffice-material/blob/main/docs/features/updater-lifecycle.md">feature article</a>
+              and
               <a href="https://github.com/Ding-Ding-Projects/libreoffice-material/blob/main/PRIVACY.md">privacy details</a>.
             </p>
             <p>

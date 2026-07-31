@@ -22,6 +22,7 @@ own "Verification status" section.
 | [`msi-lifecycle-branding.md`](msi-lifecycle-branding.md) | Deterministic token-derived installer branding across install, maintenance, progress, completion, and safe-decision MSI stages. | Generator check + 10 mutations; **real MSI lifecycle UNVERIFIED**. |
 | [`material-title-bars.md`](material-title-bars.md) | Active/inactive Material slot consumption in VCL floating title bands and Windows DWM top-level chrome. | 19 focused tests (18 mutations + production); **runtime UI UNVERIFIED**. |
 | [`writer-canvas.md`](writer-canvas.md) | Token-derived Writer workspace fill and page-shadow seams outside page-subtracted document content. | 13 focused tests (12 mutations + production); **runtime UI UNVERIFIED**. |
+| [`updater-lifecycle.md`](updater-lifecycle.md) | Versioned update states, progress/retry summaries, and installer/rollback ownership through the shared Material notification stack while verified default-No install consent remains intact. | 21 focused tests (20 mutations + production); **runtime lifecycle UNVERIFIED**. |
 | [`host-composed-surfaces.md`](host-composed-surfaces.md) | Hash-locked shared-renderer ownership for 195 audited dialog variants and host/atomic fragments whose static form predicate is structurally inapplicable. | Source contract + 12 mutation tests; **runtime UI UNVERIFIED**. |
 
 There is no HTTP or API surface in this category, so no Postman collection

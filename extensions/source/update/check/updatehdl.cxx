@@ -276,6 +276,8 @@ OUString UpdateHandler::getBubbleText( UpdateState eState )
 
     loadStrings();
 
+    if (eState == UPDATESTATE_ERROR_CHECKING)
+        return substVariables(msCheckingRetry);
     if ( ( UPDATESTATE_UPDATE_AVAIL <= nIndex ) && ( nIndex < UPDATESTATES_COUNT ) )
         sText = substVariables( msBubbleTexts[ nIndex - UPDATESTATE_UPDATE_AVAIL ] );
 
@@ -292,6 +294,8 @@ OUString UpdateHandler::getBubbleTitle( UpdateState eState )
 
     loadStrings();
 
+    if (eState == UPDATESTATE_ERROR_CHECKING)
+        return substVariables(msCheckingError);
     if ( ( UPDATESTATE_UPDATE_AVAIL <= nIndex ) && ( nIndex < UPDATESTATES_COUNT ) )
         sText = substVariables( msBubbleTitles[ nIndex - UPDATESTATE_UPDATE_AVAIL] );
 
@@ -624,6 +628,7 @@ void UpdateHandler::loadStrings()
 
     msChecking      = loadString( loc, RID_UPDATE_STR_CHECKING );
     msCheckingError = loadString( loc, RID_UPDATE_STR_CHECKING_ERR );
+    msCheckingRetry = loadString( loc, RID_UPDATE_BUBBLE_ERROR_CHECKING_RETRY );
     msNoUpdFound    = loadString( loc, RID_UPDATE_STR_NO_UPD_FOUND );
 
     msUpdFound      = loadString( loc, RID_UPDATE_STR_UPD_FOUND );

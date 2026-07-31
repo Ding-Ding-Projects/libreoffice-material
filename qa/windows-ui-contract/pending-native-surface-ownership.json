@@ -2,21 +2,9 @@
   "schema_version": 1,
   "contract": "material-pending-native-surface-ownership",
   "platform": "windows",
-  "status": "design-specified-not-wired",
+  "status": "complete-no-pending-native-surfaces",
   "runtime_verified": false,
   "design_reference": "docs/design/blocked-surface-material-proposal.md",
-  "note": "Fail-closed ownership contract for the one native-shell row that does not yet have a Material implementation contract. This contract pins its real owner and requires the rewrite ledger to keep it pending with empty implementation evidence. It is not a rewrite credit.",
-  "governed_surfaces": [
-    {
-      "surface": "native:updater-lifecycle-ui",
-      "family": "native-shell",
-      "owner": "extensions",
-      "inventory_id": "WIN-SYS-012",
-      "source": "extensions/source/update/ui/updatecheckui.cxx",
-      "required_markers": [
-        "class UpdateCheckUI : public ::cppu::WeakImplHelper",
-        "MenuBarUpdateIconManager maBubbleManager;"
-      ]
-    }
-  ]
+  "note": "Closure sentinel for the native-shell ownership campaign. Every native row now has a dedicated Material implementation contract, so no surface remains governed here. Updater ledger credit follows its immutable source commit; this file itself is not rewrite evidence.",
+  "governed_surfaces": []
 }

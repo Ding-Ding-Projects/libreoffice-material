@@ -13,9 +13,7 @@ CONTRACT_PATH = Path("qa/windows-ui-contract/pending-native-surface-ownership.js
 LEDGER_PATH = Path("qa/windows-ui-contract/material-rewrite-ledger.json")
 DESIGN_PATH = Path("docs/design/blocked-surface-material-proposal.md")
 
-EXPECTED = {
-    "native:updater-lifecycle-ui": ("native-shell", "extensions", "WIN-SYS-012"),
-}
+EXPECTED: dict[str, tuple[str, str, str]] = {}
 
 
 class ValidationError(RuntimeError):
@@ -36,8 +34,8 @@ def violations(repo: Path = REPOSITORY) -> list[str]:
 
     if contract.get("contract") != "material-pending-native-surface-ownership":
         errors.append("contract marker drift")
-    if contract.get("status") != "design-specified-not-wired":
-        errors.append("status must remain design-specified-not-wired")
+    if contract.get("status") != "complete-no-pending-native-surfaces":
+        errors.append("status must remain complete-no-pending-native-surfaces")
     if contract.get("runtime_verified") is not False:
         errors.append("runtime_verified must remain false")
 
@@ -109,7 +107,7 @@ def main() -> int:
     except (OSError, json.JSONDecodeError, ValidationError) as error:
         print(f"Pending native-surface ownership contract failed:\n{error}")
         return 1
-    print("Pending native-surface ownership contract passed: 1 native shell is owner-pinned, design-specified, runtime-unverified, and ledger-pending.")
+    print("Pending native-surface ownership contract passed: all native shells now have implementation contracts; 0 surfaces remain owner-pinned here and runtime proof stays separate.")
     return 0
 
 

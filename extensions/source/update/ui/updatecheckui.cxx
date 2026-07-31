@@ -34,11 +34,13 @@
 #include <vcl/image.hxx>
 #include <vcl/menubarupdateicon.hxx>
 #include <vcl/svapp.hxx>
-#include <vcl/vclenum.hxx>
-#include <vcl/weld/MessageDialog.hxx>
+#include <sfx2/notificationrouter.hxx>
 #include <sfx2/strings.hrc>
 
 #include <bitmaps.hlst>
+
+#include <memory>
+#include <utility>
 
 constexpr OUString PROPERTY_TITLE = u"BubbleHeading"_ustr;
 constexpr OUString PROPERTY_TEXT = u"BubbleText"_ustr;
@@ -46,12 +48,36 @@ constexpr OUString PROPERTY_IMAGE = u"BubbleImageURL"_ustr;
 constexpr OUString PROPERTY_SHOW_BUBBLE = u"BubbleVisible"_ustr;
 constexpr OUString PROPERTY_CLICK_HDL = u"MenuClickHDL"_ustr;
 constexpr OUString PROPERTY_SHOW_MENUICON = u"MenuIconVisible"_ustr;
+constexpr OUString PROPERTY_LIFECYCLE_STATE = u"LifecycleState"_ustr;
+
+constexpr OUStringLiteral LIFECYCLE_ERROR_CHECKING = u"error-checking";
+constexpr OUStringLiteral LIFECYCLE_DOWNLOAD_PAUSED = u"download-paused";
+constexpr OUStringLiteral LIFECYCLE_ERROR_DOWNLOADING = u"error-downloading";
+constexpr OUStringLiteral LIFECYCLE_DOWNLOAD_AVAILABLE = u"download-available";
 
 using namespace ::com::sun::star;
 
 
 namespace
 {
+
+struct LifecycleNotificationPayload
+{
+    sfx2::NotificationSeverity Severity;
+    OUString Title;
+    OUString Body;
+};
+
+sfx2::NotificationSeverity GetLifecycleSeverity(const OUString& rState)
+{
+    if (rState == LIFECYCLE_ERROR_CHECKING || rState == LIFECYCLE_ERROR_DOWNLOADING)
+        return sfx2::NotificationSeverity::Error;
+    if (rState == LIFECYCLE_DOWNLOAD_PAUSED)
+        return sfx2::NotificationSeverity::Warning;
+    if (rState == LIFECYCLE_DOWNLOAD_AVAILABLE)
+        return sfx2::NotificationSeverity::Success;
+    return sfx2::NotificationSeverity::Information;
+}
 
 class UpdateCheckUI : public ::cppu::WeakImplHelper
                         < lang::XServiceInfo, document::XDocumentEventListener, beans::XPropertySet >
@@ -61,11 +87,15 @@ class UpdateCheckUI : public ::cppu::WeakImplHelper
     OUString       maBubbleImageURL;
     MenuBarUpdateIconManager maBubbleManager;
     std::locale         maSfxLocale;
+    OUString            maLifecycleState;
+    bool                mbBubbleVisible = false;
 
 private:
                     DECL_LINK(ClickHdl, LinkParamNone*, void);
+                    DECL_STATIC_LINK(UpdateCheckUI, NotifyLifecycleHdl, void*, void);
 
     Image           GetBubbleImage( OUString const &rURL );
+    void            QueueLifecycleNotification();
 
 public:
     explicit        UpdateCheckUI(const uno::Reference<uno::XComponentContext>&);
@@ -159,6 +189,30 @@ Image UpdateCheckUI::GetBubbleImage( OUString const &rURL )
     return aImage;
 }
 
+void UpdateCheckUI::QueueLifecycleNotification()
+{
+    OUString aTitle = maBubbleManager.GetBubbleTitle();
+    if (aTitle.isEmpty())
+        return;
+
+    auto xPayload = std::make_unique<LifecycleNotificationPayload>(
+        LifecycleNotificationPayload{ GetLifecycleSeverity(maLifecycleState), std::move(aTitle),
+                                      maBubbleManager.GetBubbleText() });
+    if (Application::PostUserEvent(LINK(nullptr, UpdateCheckUI, NotifyLifecycleHdl),
+                                   xPayload.get()))
+        xPayload.release();
+}
+
+IMPL_STATIC_LINK(UpdateCheckUI, NotifyLifecycleHdl, void*, pPayload, void)
+{
+    std::unique_ptr<LifecycleNotificationPayload> xPayload(
+        static_cast<LifecycleNotificationPayload*>(pPayload));
+    if (!xPayload)
+        return;
+    sfx2::NotificationRouter::NotifyInfo("libreoffice.update"_ostr, xPayload->Severity,
+                                         xPayload->Title, xPayload->Body);
+}
+
 void SAL_CALL UpdateCheckUI::documentEventOccured(const document::DocumentEvent& rEvent)
 {
     SolarMutexGuard aGuard;
@@ -201,7 +255,14 @@ void UpdateCheckUI::setPropertyValue(const OUString& rPropertyName,
     else if( rPropertyName == PROPERTY_SHOW_BUBBLE ) {
         bool bShowBubble= false;
         rValue >>= bShowBubble;
-        maBubbleManager.SetShowBubble(bShowBubble);
+        mbBubbleVisible = bShowBubble;
+        // The update icon remains the action entry point. Lifecycle status itself uses the shared
+        // non-blocking Material notification stack; the old dedicated bubble is kept closed so the
+        // same event cannot appear twice. The posted static handler marshals worker-thread updates
+        // onto the VCL main thread before NotificationRouter is called.
+        maBubbleManager.SetShowBubble(false);
+        if (bShowBubble)
+            QueueLifecycleNotification();
     }
     else if( rPropertyName == PROPERTY_CLICK_HDL ) {
         uno::Reference< task::XJob > aJob;
@@ -214,6 +275,9 @@ void UpdateCheckUI::setPropertyValue(const OUString& rPropertyName,
         bool bShowMenuIcon = false;
         rValue >>= bShowMenuIcon;
         maBubbleManager.SetShowMenuIcon(bShowMenuIcon);
+    }
+    else if (rPropertyName == PROPERTY_LIFECYCLE_STATE ) {
+        rValue >>= maLifecycleState;
     }
     else
         throw beans::UnknownPropertyException(rPropertyName);
@@ -230,13 +294,15 @@ uno::Any UpdateCheckUI::getPropertyValue(const OUString& rPropertyName)
     else if( rPropertyName == PROPERTY_TEXT )
         aRet <<= maBubbleManager.GetBubbleText();
     else if( rPropertyName == PROPERTY_SHOW_BUBBLE )
-        aRet <<= maBubbleManager.GetShowBubble();
+        aRet <<= mbBubbleVisible;
     else if( rPropertyName == PROPERTY_IMAGE )
         aRet <<= maBubbleImageURL;
     else if( rPropertyName == PROPERTY_CLICK_HDL )
         aRet <<= mrJob;
     else if( rPropertyName == PROPERTY_SHOW_MENUICON )
         aRet <<= maBubbleManager.GetShowMenuIcon();
+    else if( rPropertyName == PROPERTY_LIFECYCLE_STATE )
+        aRet <<= maLifecycleState;
     else
         throw beans::UnknownPropertyException(rPropertyName);
 
@@ -280,10 +346,9 @@ IMPL_LINK_NOARG(UpdateCheckUI, ClickHdl, LinkParamNone*, void)
             mrJob->execute( aEmpty );
         }
         catch(const uno::Exception&) {
-            std::unique_ptr<weld::MessageDialog> xErrorBox(Application::CreateMessageDialog(nullptr,
-                                                           VclMessageType::Warning, VclButtonsType::Ok,
-                                                           Translate::get(STR_NO_WEBBROWSER_FOUND, maSfxLocale)));
-            xErrorBox->run();
+            sfx2::NotificationRouter::NotifyInfo(
+                "libreoffice.update"_ostr, sfx2::NotificationSeverity::Warning,
+                Translate::get(STR_NO_WEBBROWSER_FOUND, maSfxLocale));
         }
     }
 }

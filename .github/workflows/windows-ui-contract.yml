@@ -576,6 +576,12 @@ jobs:
       - name: Run Writer canvas composition mutations
         run: python3 bin/test_writer_canvas_composition.py
 
+      - name: Validate Material updater lifecycle composition
+        run: python3 bin/check-updater-lifecycle-composition.py
+
+      - name: Run updater lifecycle composition mutations
+        run: python3 bin/test_updater_lifecycle_composition.py
+
       - name: Validate notebookbar UI conformance
         run: python3 bin/check-windows-notebookbar-ui-conformance.py
 

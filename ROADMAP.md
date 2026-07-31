@@ -15,6 +15,23 @@ Status vocabulary:
 
 No phase is currently marked verified.
 
+**2026-07-31 updater lifecycle source implementation:** the updater now maps all
+eleven states and routes eligible actionable/error exact-version status through
+the shared Material notification stack instead of a private legacy bubble.
+Routine checking/no-update paths remain quiet under the existing suppression
+policy. Stable state drives four severities;
+worker events marshal to the VCL main thread; paused/stalled copy includes the
+current percent; checking/download errors state automatic retry; and completed
+download names Windows Installer as the completion/rollback owner. The update
+icon remains the action path. With no bundled verified code-name catalog/feed
+field, the card uses the exact version and invents nothing. Default-No install
+consent, immediate verification, protected staging/lock, interactive `/i`, and
+restart suppression remain pinned. The focused checker and 22 tests (21
+mutations plus production) pass; the expanded nine-producer notification suite
+passes 40 tests. Native runtime remains unverified. This implementation is
+being committed before separate immutable ledger credit, so the last credited
+headline remains **99.92% (1270/1271), 1 pending** at this source checkpoint.
+
 **2026-07-31 Writer canvas source implementation:** the custom Writer workspace
 now resolves `surface-container-low` from the bundled light/dark Material
 palettes after a high-contrast-first gate. `PaintDesktop` fills only the region

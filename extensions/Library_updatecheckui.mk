@@ -21,6 +21,7 @@ $(eval $(call gb_Library_use_external,updatecheckui,boost_headers))
 $(eval $(call gb_Library_use_sdk_api,updatecheckui))
 
 $(eval $(call gb_Library_use_libraries,updatecheckui,\
+	sfx \
 	vcl \
 	tl \
 	utl \

@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "contract": "material-updater-lifecycle-composition",
+  "platform": "windows",
+  "status": "source-implemented",
+  "runtime_verified": false,
+  "surface": "native:updater-lifecycle-ui",
+  "owner": "extensions",
+  "inventory_id": "WIN-SYS-012",
+  "design_reference": "docs/design/blocked-surface-material-proposal.md",
+  "notification_source": "libreoffice.update",
+  "lifecycle_state_property": "LifecycleState",
+  "states": {
+    "checking": "Information",
+    "error-checking": "Error",
+    "no-update": "Information",
+    "update-available": "Information",
+    "manual-download": "Information",
+    "auto-start": "Information",
+    "downloading": "Information",
+    "download-paused": "Warning",
+    "error-downloading": "Error",
+    "download-available": "Success",
+    "extension-update": "Information"
+  },
+  "emission_policy": {
+    "trigger": "BubbleVisible=true while the update dialog is hidden or minimized",
+    "checking": "silent automatic path",
+    "no_update": "silent and hides the update icon",
+    "same_state_progress": "suppressed",
+    "note": "All eleven states have stable names and severities, but the existing updater suppression policy intentionally emits cards only for actionable or exceptional transitions. A routine check and a routine no-update result remain quiet."
+  },
+  "release_code_name": {
+    "status": "unavailable-no-bundled-catalog",
+    "fallback": "version-only",
+    "invented": false,
+    "note": "This repository has no bundled, verifier-backed dim-sum catalog or code-name field in its update feed. The card therefore shows the exact update version and does not invent a code name."
+  },
+  "progress": {
+    "notification": "state-summary",
+    "live_owner": "UpdateHandler progress control",
+    "paused_and_error_copy_include_percent": true,
+    "repeat_state_notifications_suppressed": true
+  },
+  "retry": {
+    "checking": "automatic-backoff",
+    "download": "automatic-backoff",
+    "error_notifications_persist": true
+  },
+  "rollback": {
+    "owner": "Windows Installer",
+    "app_claims_result": false,
+    "card_states_owner": true
+  },
+  "install_decision": {
+    "modal": true,
+    "default": "No",
+    "requires_verified_staged_msi": true,
+    "interactive_installer": true,
+    "restart_suppression": [
+      "REBOOT=ReallySuppress",
+      "MSIRESTARTMANAGERCONTROL=DisableShutdown"
+    ]
+  },
+  "sources": [
+    {
+      "path": "extensions/source/update/ui/updatecheckui.cxx",
+      "required_markers": [
+        "PROPERTY_LIFECYCLE_STATE",
+        "GetLifecycleSeverity",
+        "LifecycleNotificationPayload",
+        "Application::PostUserEvent(LINK(nullptr, UpdateCheckUI, NotifyLifecycleHdl)",
+        "sfx2::NotificationRouter::NotifyInfo(\"libreoffice.update\"_ostr",
+        "maBubbleManager.SetShowBubble(false)",
+        "QueueLifecycleNotification()",
+        "sfx2::NotificationSeverity::Warning",
+        "Translate::get(STR_NO_WEBBROWSER_FOUND, maSfxLocale)"
+      ]
+    },
+    {
+      "path": "extensions/source/update/check/updatecheck.cxx",
+      "required_markers": [
+        "GetUpdateLifecycleState(UpdateState eState)",
+        "PROPERTY_LIFECYCLE_STATE",
+        "aUpdateHandler->setNextVersion(aUpdateInfo.Version)",
+        "handleMenuBarUI(aUpdateHandler, xMenuBarUI, eState, suppressBubble)",
+        "if ( eState == m_eUpdateState )",
+        "verifyUpdateFile(aInstallerURL, aSource)",
+        "stageVerifiedWindowsInstaller(aInstallerURL, aSource",
+        "REBOOT=ReallySuppress",
+        "MSIRESTARTMANAGERCONTROL=DisableShutdown"
+      ]
+    },
+    {
+      "path": "extensions/source/update/check/updatehdl.cxx",
+      "required_markers": [
+        "UPDATESTATE_ERROR_CHECKING",
+        "msCheckingRetry",
+        "m_pProgressBar->SetValue(mnPercent)",
+        "awt::VclWindowPeerAttribute::DEF_NO",
+        "if (showWarning(substVariables(msInstallConfirm)))"
+      ]
+    },
+    {
+      "path": "extensions/source/update/check/updatehdl.hxx",
+      "required_markers": [
+        "msCheckingRetry",
+        "UPDATESTATE_ERROR_DOWNLOADING",
+        "UPDATESTATE_DOWNLOAD_AVAIL"
+      ]
+    },
+    {
+      "path": "extensions/inc/strings.hrc",
+      "required_markers": [
+        "RID_UPDATE_BUBBLE_ERROR_CHECKING_RETRY",
+        "%NEXTVERSION",
+        "%PERCENT%",
+        "retry automatically",
+        "rollback status"
+      ]
+    },
+    {
+      "path": "extensions/Library_updatecheckui.mk",
+      "required_markers": [
+        "gb_Library_use_libraries,updatecheckui",
+        "\tsfx \\",
+        "extensions/source/update/ui/updatecheckui"
+      ]
+    },
+    {
+      "path": "qa/windows-ui-contract/notification-producer-policy.json",
+      "required_markers": [
+        "updater-lifecycle-status",
+        "libreoffice.update",
+        "extensions/source/update/ui/updatecheckui.cxx"
+      ]
+    }
+  ],
+  "preserved_paths": [
+    "update icon remains the details and action entry point",
+    "same-state progress callbacks do not create notification spam",
+    "install consent remains modal and defaults to No",
+    "download bytes are reverified before protected non-overwriting staging",
+    "the staged MSI remains write-delete locked across launch",
+    "Windows Installer stays interactive and owns completion and rollback status",
+    "restart and Restart Manager shutdown requests remain suppressed",
+    "no release code name is invented without a bundled verified catalog"
+  ],
+  "note": "The legacy update bubble transport is replaced by the shared bottom-right Material notification stack while the existing menu icon remains the action surface. Exact lifecycle state is passed separately from translated text, worker-thread updates are marshalled to the VCL main thread, and fixed translated status uses the approved libreoffice.update source. Version metadata is applied before text substitution; live progress remains in the existing update dialog, while paused/error cards include the current percent. Check and download errors state the real automatic retry behavior. Download-complete copy states that Windows Installer owns completion/rollback status. Install consent remains a default-No modal decision after immediate verification and protected staging. Source evidence only; native/runtime behavior is unverified."
+}

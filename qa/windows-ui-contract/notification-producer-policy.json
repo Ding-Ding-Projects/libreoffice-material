@@ -22,15 +22,16 @@
     "",
     "Every producer routes purely informational text (a status/acknowledgement), so it is never a",
     "modal input/destructive/credential/security prompt: informational_only is invariably true and",
-    "the router's Classify keeps the informational case non-modal. Display text is fixed, translated",
-    "and carries no document data, so it uses NotificationPrivacy::SafeDisplayText under an approved",
+    "the router's Classify keeps the informational case non-modal. Display text is translated and",
+    "carries no document data; updater cards add only trusted public version/progress metadata, so",
+    "all producers use NotificationPrivacy::SafeDisplayText under an approved",
     "source; the store redacts anything else regardless of this hint.",
     "",
     "Cross-module diversity: 'min_producer_modules' requires the registered producers to span at least",
     "that many distinct owning modules (the first path segment of each producer file). It is the",
     "checkable evidence that observable-feedback routing is a suite-wide convention rather than a",
     "single-file trick: if the registry ever collapses back toward one module the rule fails closed.",
-    "The value is pinned at the exact current diversity (sfx2/sw/svx = 3) with zero slack, so removing",
+    "The value is pinned at the exact current diversity (extensions/sfx2/sw/svx = 4) with zero slack, so removing",
     "or renaming a producer down to fewer modules must be a deliberate, reviewed change to this number,",
     "never a silent regression."
   ],
@@ -47,7 +48,7 @@
     "confirmation_entry_point": "NotifyConfirmation"
   },
   "confirmation_severities": ["Success", "Information"],
-  "min_producer_modules": 3,
+  "min_producer_modules": 4,
   "required_producers": [
     "viewprn-printer-busy",
     "newhelp-no-search-text",
@@ -56,7 +57,8 @@
     "srcview-search-not-found",
     "labfmt-predefined-label-locked",
     "wrtsh1-readonly-content-notice",
-    "textfld-readonly-content-notice"
+    "textfld-readonly-content-notice",
+    "updater-lifecycle-status"
   ],
   "producers": [
     {
@@ -188,6 +190,38 @@
           "file": "sw/source/uibase/shells/textfld.cxx",
           "pattern": "SwResId(STR_INFORODLG_PRIMARY)",
           "note": "The converted notice routes the audited default primary string in the HasReadonlySel branch of ExecField. Reverting to the modal InfoReadonlyDialog removes this reference, leaving the producer's routing dead."
+        }
+      ]
+    },
+    {
+      "id": "updater-lifecycle-status",
+      "file": "extensions/source/update/ui/updatecheckui.cxx",
+      "function": "IMPL_STATIC_LINK(UpdateCheckUI, NotifyLifecycleHdl, void*, pPayload, void)",
+      "router_call": "NotifyInfo",
+      "source": "libreoffice.update",
+      "severity": ["Information", "Success", "Warning", "Error"],
+      "informational_only": true,
+      "purpose": "Update availability, download/progress transitions, automatic-retry errors, and installer/rollback ownership are posted to the shared bottom-right Material notification stack; the update icon remains the details/action entry point and install consent remains a separate default-No modal decision.",
+      "wiring_markers": [
+        {
+          "file": "extensions/source/update/ui/updatecheckui.cxx",
+          "pattern": "Application::PostUserEvent(LINK(nullptr, UpdateCheckUI, NotifyLifecycleHdl),",
+          "note": "Worker-thread lifecycle changes are marshalled to the VCL main thread before NotificationRouter, whose API requires that thread. Removing the post would either dead-code the producer or violate the router contract."
+        },
+        {
+          "file": "extensions/source/update/ui/updatecheckui.cxx",
+          "pattern": "maBubbleManager.SetShowBubble(false);",
+          "note": "The legacy dedicated bubble is explicitly kept closed when the shared notification is emitted, preventing duplicate status surfaces while retaining the menu icon action entry point."
+        },
+        {
+          "file": "extensions/source/update/check/updatecheck.cxx",
+          "pattern": "xMenuBarUI->setPropertyValue(PROPERTY_LIFECYCLE_STATE,",
+          "note": "The controller supplies the exact lifecycle state before title/body visibility so severity and status copy cannot guess from translated text."
+        },
+        {
+          "file": "extensions/inc/strings.hrc",
+          "pattern": "RID_UPDATE_BUBBLE_ERROR_CHECKING_RETRY",
+          "note": "The checking-error card states the real automatic retry behavior instead of leaving an informational error modal or silent."
         }
       ]
     }

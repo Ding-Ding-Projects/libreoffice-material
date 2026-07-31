@@ -300,7 +300,8 @@ class NotificationProducerContractTest(unittest.TestCase):
     # The second producer tranche adds a min_producer_modules rule: the producers must span at least
     # that many distinct owning modules (first path segment of each producer file). It is the
     # checkable proxy that observable-feedback routing is a suite-wide convention, not a single-file
-    # trick. The value is pinned with ZERO slack at the current diversity (sfx2/sw/svx = 3).
+    # trick. The value is pinned with ZERO slack at the current diversity
+    # (extensions/sfx2/sw/svx = 4).
     SECOND_TRANCHE = {
         "mailmodel-no-email-client": "SfxResId(STR_ERROR_FIND_EMAIL_PRIMARY)",
         "srcview-search-not-found": "SwResId(STR_SRCVIEW_SEARCH_NOT_FOUND)",
@@ -313,8 +314,8 @@ class NotificationProducerContractTest(unittest.TestCase):
         # The threshold equals the actual diversity exactly -- no margin. If this drifts, either a
         # producer was removed or the pin was loosened, both of which must be a deliberate edit.
         modules = {p["file"].split("/", 1)[0] for p in self.registry["producers"]}
-        self.assertEqual(modules, {"sfx2", "sw", "svx"})
-        self.assertEqual(self.registry["min_producer_modules"], 3)
+        self.assertEqual(modules, {"extensions", "sfx2", "sw", "svx"})
+        self.assertEqual(self.registry["min_producer_modules"], 4)
         self.assertEqual(len(modules), self.registry["min_producer_modules"])
 
     def test_rejects_producers_collapsed_below_min_modules(self) -> None:
@@ -372,6 +373,21 @@ class NotificationProducerContractTest(unittest.TestCase):
                 producer = self.producer(pid)
                 self.assertEqual(producer["router_call"], "NotifyInfo")
                 self.assertIs(producer["informational_only"], True)
+
+    def test_updater_lifecycle_producer_is_complete(self) -> None:
+        producer = self.producer("updater-lifecycle-status")
+        self.assertEqual(producer["router_call"], "NotifyInfo")
+        self.assertEqual(
+            set(producer["severity"]), {"Information", "Success", "Warning", "Error"}
+        )
+        self.assertIs(producer["informational_only"], True)
+        self.assertEqual(len(producer["wiring_markers"]), 4)
+
+    def test_rejects_updater_main_thread_handoff_reverted(self) -> None:
+        producer = self.producer("updater-lifecycle-status")
+        pattern = "Application::PostUserEvent(LINK(nullptr, UpdateCheckUI, NotifyLifecycleHdl),"
+        files = self.mutated(producer["file"], pattern, "Application::PostUserEvent({})")
+        self.assert_fails(pattern, files=files)
 
     def test_rejects_second_tranche_wiring_marker_reverted(self) -> None:
         # Removing a converted producer's audited resource-string reference (a revert to the modal

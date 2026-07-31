@@ -111,6 +111,7 @@ private:
     OUString           msDescriptionMsg;
     OUString           msChecking;         // RID_UPDATE_STR_CHECKING
     OUString           msCheckingError;    // RID_UPDATE_STR_CHECKING_ERR
+    OUString           msCheckingRetry;    // RID_UPDATE_BUBBLE_ERROR_CHECKING_RETRY
     OUString           msNoUpdFound;       // RID_UPDATE_STR_NO_UPD_FOUND
     OUString           msUpdFound;         // RID_UPDATE_STR_UPD_FOUND
     OUString           msDlgTitle;         // RID_UPDATE_STR_DLG_TITLE

@@ -778,8 +778,8 @@ machine-checkable proxy. The producer registry
 declares `min_producer_modules`, and
 [`bin/check-notification-producer-contract.py`](../../bin/check-notification-producer-contract.py)
 fails closed unless the registered notification producers span at least that
-many distinct owning modules — pinned at the current diversity, `sfx2` / `sw` /
-`svx` = 3, with zero slack. Cross-module diversity is the evidence that
+many distinct owning modules — pinned at the current diversity, `extensions` /
+`sfx2` / `sw` / `svx` = 4, with zero slack. Cross-module diversity is the evidence that
 observable-feedback routing is a suite-wide convention rather than a single-file
 trick: if the registry ever collapses toward one module the rule fails. This is
 a source-level proxy only — it proves the routing convention holds across

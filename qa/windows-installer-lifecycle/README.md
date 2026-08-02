@@ -81,6 +81,9 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
   -RunDirectory 'C:\absolute\prepared\run-directory'
 ```
 
+Host and guest explicitly load `Microsoft.PowerShell.Utility`; a hidden
+no-profile launch must not depend on module auto-loading for `Get-FileHash`.
+
 Launch only the reviewed prepared run:
 
 ```powershell

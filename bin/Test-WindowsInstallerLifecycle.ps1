@@ -43,6 +43,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+Import-Module Microsoft.PowerShell.Utility -ErrorAction Stop
 
 $script:OldInstaller = [ordered]@{
     file_name = 'old.msi'

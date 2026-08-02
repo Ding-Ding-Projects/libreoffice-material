@@ -31,7 +31,9 @@ routes Windows Sandbox through a run-scoped Lowlevel MCP off-screen desktop.
 Visible-session launch and raw HTTP download paths are regression-rejected; normal
 guest/backend disposal and desktop-handle release remain required. Static harness
 and release-workflow validators pass, but no new Sandbox lifecycle result is
-claimed.
+claimed. A first hidden attempt stopped before Sandbox creation when no-profile
+Windows PowerShell omitted the utility module that owns `Get-FileHash`; explicit
+host/guest imports are now regression-pinned before the retry.
 
 **2026-07-31 updater lifecycle source implementation:** the updater now maps all
 eleven states and routes eligible actionable/error exact-version status through

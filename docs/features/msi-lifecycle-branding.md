@@ -66,6 +66,9 @@ claimed. That review-first host now obtains its byte-pinned assets through
 Lowlevel MCP off-screen desktop. The static validator rejects raw HTTP clients,
 visible-session launch, missing normal-disposal checks, or an unreleased desktop
 handle; this transport hardening is not itself a lifecycle result.
+Both host and guest explicitly import `Microsoft.PowerShell.Utility`, so hidden
+no-profile execution cannot lose the `Get-FileHash` primitive used for every
+pinned asset and evidence check.
 
 ## Suggested articles
 

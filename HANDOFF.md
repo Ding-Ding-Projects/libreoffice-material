@@ -28,6 +28,12 @@ server, launches only the resolved Sandbox executable there, waits for normal
 guest/backend disposal, and releases the desktop handle. Static parser/policy and
 release-workflow validators pass. No fresh lifecycle run is claimed yet.
 
+The first hidden Launch attempt failed during host-side hash revalidation before
+Sandbox creation because that no-profile Windows PowerShell process did not
+auto-load `Microsoft.PowerShell.Utility`; `Get-FileHash` was therefore absent.
+Host and guest now import the module explicitly, and the static validator pins
+both imports. The failed attempt mutated neither Sandbox nor installer state.
+
 ## 2026-07-31 follow-up — updater lifecycle source implemented
 
 The old dedicated updater bubble has been replaced as a status transport by the

@@ -83,6 +83,12 @@ if ($failures.Count -eq 0) {
     $hostText = Get-Content -LiteralPath $hostPath -Raw
     $guestText = Get-Content -LiteralPath $guestPath -Raw
 
+    foreach ($scriptText in @($hostText, $guestText)) {
+        Assert-Match $scriptText `
+            'Import-Module\s+Microsoft\.PowerShell\.Utility\s+-ErrorAction\s+Stop' `
+            'Host and guest must explicitly load Get-FileHash under hidden/no-profile PowerShell.'
+    }
+
     Assert-Match $hostText "\[string\]\`$Mode\s*=\s*'Prepare'" `
         'The host default must remain prepare-only.'
     Assert-Match $hostText "'Inspect'\s*\{" `

@@ -1,5 +1,9 @@
 # Windows-only handoff — 2026-07-29
 
+## 2026-08-20 root build-route handoff
+
+The repository root now exposes `download-dependencies.bat`, `build.bat`, and `build-installer.bat`. They dispatch into the existing reviewed `bin/Build-Windows.ps1` engine; the new `Program` phase runs configure, native regression targets, and the product build without packaging, while the installer route retains administrative MSI extraction, SHA-256 output, source-commit metadata, and `signed: false`. Focused validation is `powershell.exe -NoProfile -ExecutionPolicy Bypass -File bin/Test-RootBuildRoutes.ps1`. No native build, MSI installation, or runtime launch was performed in this documentation-and-routing change.
+
 ## 2026-07-31 follow-up — missing native/wizard ownership contract
 
 The six previously ownerless pending rows now have a fail-closed contract at

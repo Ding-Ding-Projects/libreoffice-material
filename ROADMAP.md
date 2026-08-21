@@ -1,5 +1,7 @@
 # LibreOffice Material roadmap
 
+- [x] Expose root dependency, runnable-program, and unsigned-MSI build routes over the supported Windows build engine (2026-08-20).
+
 This roadmap covers a whole-GUI modernization, not a theme preview. It is
 ordered so shared native primitives are proved before individual applications
 diverge. Dates are intentionally omitted until build capacity and baseline

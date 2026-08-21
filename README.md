@@ -1,5 +1,11 @@
 # LibreOffice Material
 
+## One-click Windows build routes
+
+From the repository root, run `download-dependencies.bat /s` to provision and verify the dedicated build toolchain, `build.bat /s` to configure, test, and build the runnable LibreOfficeDev program, or `build-installer.bat /s` to run the same supported path through MSI packaging and structural validation. `/s`, `--silent`, and `SILENT=1` suppress interactive prompts. The scripts never sign, install, or launch the MSI. A successful installer run prints the staged MSI path and SHA-256 and records `signed: false` and the exact source commit in `windows-msi-manifest.json`.
+
+The native build is large and requires at least 80 GiB free by default. The build engine uses isolated tool/build roots, pinned LibreOffice helper hashes, the signed Microsoft and Cygwin bootstrap channels, an LF source snapshot, and the same configure/test/build/package phases as the Windows workflow.
+
 An experimental LibreOffice engineering fork exploring a suite-wide Material
 Design 3 interface while retaining LibreOffice's native implementation stack,
 document engine, file-format support, and accessibility foundations.

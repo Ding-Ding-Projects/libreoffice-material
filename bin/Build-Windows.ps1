@@ -16,7 +16,7 @@
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('All', 'Preflight', 'Bootstrap', 'Configure', 'Tests', 'Build', 'Package')]
+    [ValidateSet('All', 'Program', 'Preflight', 'Bootstrap', 'Configure', 'Tests', 'Build', 'Package')]
     [string] $Phase = 'All',
 
     [ValidateRange(1, 64)]
@@ -1337,14 +1337,14 @@ function Invoke-BuildPhases {
         # a different compatible instance.
         $env:LO_VISUAL_STUDIO_INSTALL_PATH = $script:VsInstallPath
 
-        if ($Phase -in @('All', 'Configure')) {
+        if ($Phase -in @('All', 'Program', 'Configure')) {
             Invoke-Configure
         }
-        if ($Phase -in @('All', 'Tests')) {
+        if ($Phase -in @('All', 'Program', 'Tests')) {
             Assert-ConfiguredBuild
             Invoke-NativeTests
         }
-        if ($Phase -in @('All', 'Build')) {
+        if ($Phase -in @('All', 'Program', 'Build')) {
             Assert-ConfiguredBuild
             Invoke-ProductBuild
         }
